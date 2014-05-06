@@ -162,27 +162,5 @@
 		</pluginRepository>
 	</pluginRepositories>
 
-    <!--RT : needed when we are pushing it to openmrs-->
-    <!--<distributionManagement>-->
-        <!--<repository>-->
-            <!--<id>openmrs-repo-modules</id>-->
-            <!--<name>OpenMRS Modules</name>-->
-            <!--<url>http://mavenrepo.openmrs.org/nexus/content/repositories/modules</url>-->
-        <!--</repository>-->
-        <!--<snapshotRepository>-->
-            <!--<id>openmrs-repo-snapshots</id>-->
-            <!--<name>OpenMRS Snapshots</name>-->
-            <!--<url>http://mavenrepo.openmrs.org/nexus/content/repositories/snapshots</url>-->
-        <!--</snapshotRepository>-->
-    <!--</distributionManagement>-->
-
-    <!--RT : needed only till we keep it in bahmni organisation-->
-    <distributionManagement>
-        <snapshotRepository>
-            <id>bahmni-artifactory</id>
-            <name>bahmni-artifactory-snapshots</name>
-            <url>http://bahmnirepo.thoughtworks.com/artifactory/libs-snapshot-local</url>
-        </snapshotRepository>
-    </distributionManagement>
 
 </project>
