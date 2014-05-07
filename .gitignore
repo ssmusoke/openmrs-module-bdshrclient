@@ -17,3 +17,4 @@
 *.iml
 *.sass-cache
 *.DS_Store
+.vagrant
