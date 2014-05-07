@@ -1,0 +1,2 @@
+[bahmni]
+192.168.33.11 ansible_ssh_user=vagrant
