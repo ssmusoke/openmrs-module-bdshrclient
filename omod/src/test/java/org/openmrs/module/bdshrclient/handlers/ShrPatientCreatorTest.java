@@ -109,4 +109,9 @@ public class ShrPatientCreatorTest {
         assertEquals(gender, patient.getGender());
         assertEquals(new Address("10", "1020", "102030", "10203040"), patient.getAddress());
     }
+
+    @Test
+    public void shouldExecuteHttpPost() {
+        //TODO:
+    }
 }

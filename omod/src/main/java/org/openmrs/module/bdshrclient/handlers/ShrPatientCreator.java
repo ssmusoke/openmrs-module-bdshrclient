@@ -1,12 +1,10 @@
 package org.openmrs.module.bdshrclient.handlers;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicNameValuePair;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.service.EventWorker;
@@ -19,14 +17,14 @@ import org.openmrs.module.bdshrclient.model.Patient;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ShrPatientCreator implements EventWorker {
 
-    private static final String MCI_URL = "http://todo";
+    //TODO
+    private static final String MCI_URL = "http://localhost:8080/patient";
 
     private static ObjectMapper jsonMapper = new ObjectMapper();
     private static HttpClient httpClient = HttpClientBuilder.create().build();
@@ -91,10 +89,11 @@ public class ShrPatientCreator implements EventWorker {
     }
 
     public int httpPost(String url, String json) throws IOException {
+        //TODO: HttpAsyncClient
         HttpPost post = new HttpPost(url);
-        List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-        nvps.add(new BasicNameValuePair("patient", json));
-        post.setEntity(new UrlEncodedFormEntity(nvps));
+        StringEntity entity = new StringEntity(json);
+        entity.setContentType("application/json");
+        post.setEntity(entity);
 
         HttpResponse response = httpClient.execute(post);
         return response.getStatusLine().getStatusCode();
