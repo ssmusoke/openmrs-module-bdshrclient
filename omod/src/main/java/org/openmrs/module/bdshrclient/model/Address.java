@@ -1,9 +1,10 @@
 package org.openmrs.module.bdshrclient.model;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Address {
-
     @JsonProperty("division_id")
     private String divisionId;
     @JsonProperty("district_id")
@@ -12,6 +13,9 @@ public class Address {
     private String upazillaId;
     @JsonProperty("union_id")
     private String unionId;
+
+    public Address() {
+    }
 
     public Address(String divisionId, String districtId, String upazillaId, String unionId) {
         this.divisionId = divisionId;
@@ -42,5 +46,37 @@ public class Address {
         result = 31 * result + upazillaId.hashCode();
         result = 31 * result + unionId.hashCode();
         return result;
+    }
+
+    public String getDivisionId() {
+        return divisionId;
+    }
+
+    public void setDivisionId(String divisionId) {
+        this.divisionId = divisionId;
+    }
+
+    public String getDistrictId() {
+        return districtId;
+    }
+
+    public void setDistrictId(String districtId) {
+        this.districtId = districtId;
+    }
+
+    public String getUpazillaId() {
+        return upazillaId;
+    }
+
+    public void setUpazillaId(String upazillaId) {
+        this.upazillaId = upazillaId;
+    }
+
+    public String getUnionId() {
+        return unionId;
+    }
+
+    public void setUnionId(String unionId) {
+        this.unionId = unionId;
     }
 }

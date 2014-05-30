@@ -1,8 +1,10 @@
 package org.openmrs.module.bdshrclient.model;
 
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Patient {
 
     @JsonProperty("full_name")
