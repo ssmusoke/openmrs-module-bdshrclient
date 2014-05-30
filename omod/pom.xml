@@ -121,6 +121,10 @@
             <version>${atomfeed.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.openmrs.module</groupId>
+            <artifactId>uiframework-api</artifactId>
+        </dependency>
 
 	</dependencies>
 

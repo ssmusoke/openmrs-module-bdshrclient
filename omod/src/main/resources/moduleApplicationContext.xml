@@ -8,5 +8,9 @@
     <description>
         This is a openmrs module context configuration file for MRS-SHR sync.
     </description>
+
+    <bean class="org.openmrs.ui.framework.StandardModuleUiConfiguration">
+        <property name="moduleId" value="bdshrclient"/>
+    </bean>
 	
 </beans>
