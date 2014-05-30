@@ -38,7 +38,10 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <webservicesRestModuleVersion>2.5-SNAPSHOT</webservicesRestModuleVersion>
         <openmrsAtomfeedVersion>2.0-SNAPSHOT</openmrsAtomfeedVersion>
+        <openmrs.address.hierarchy.version>2.4-SNAPSHOT</openmrs.address.hierarchy.version>
         <atomfeed.version>1.0-SNAPSHOT</atomfeed.version>
+        <jackson.version>1.9.13</jackson.version>
+        <httpclient.version>4.3.3</httpclient.version>
     </properties>
 
 	<dependencyManagement>
@@ -52,6 +55,13 @@
 				<scope>provided</scope>
 			</dependency>
 
+            <dependency>
+                <groupId>org.openmrs.module</groupId>
+                <artifactId>addresshierarchy-api</artifactId>
+                <version>${openmrs.address.hierarchy.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
 			<dependency>
 				<groupId>org.openmrs.web</groupId>
 				<artifactId>openmrs-web</artifactId>
@@ -59,8 +69,26 @@
 				<type>jar</type>
 				<scope>provided</scope>
 			</dependency>
-						
-			<dependency>
+
+            <dependency>
+                <groupId>org.codehaus.jackson</groupId>
+                <artifactId>jackson-core-asl</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.jackson</groupId>
+                <artifactId>jackson-mapper-asl</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpclient.version}</version>
+            </dependency>
+
+
+            <dependency>
 				<groupId>org.openmrs.api</groupId>
 				<artifactId>openmrs-api</artifactId>
 				<version>${openMRSVersion}</version>
@@ -134,7 +162,7 @@
         <repository>
             <id>sonatype-nexus-snapshots</id>
             <name>Sonatype Nexus Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                <url>https://oss.sonatype.org/content/repositories/snapshots</url>
             <releases>
                 <enabled>false</enabled>
             </releases>

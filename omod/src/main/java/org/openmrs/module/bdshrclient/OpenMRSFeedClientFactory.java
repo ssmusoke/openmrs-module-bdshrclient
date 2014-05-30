@@ -55,14 +55,14 @@ public class OpenMRSFeedClientFactory {
 
     private EventFeedService getEventFeedService(JdbcConnectionProvider connectionProvider) {
         return new EventFeedServiceImpl(new FeedGeneratorFactory().getFeedGenerator(
-            new AllEventRecordsJdbcImpl(connectionProvider),
-            new AllEventRecordsOffsetMarkersJdbcImpl(connectionProvider),
-            new ChunkingEntriesJdbcImpl(connectionProvider),
-            new ResourceHelper()));
+                new AllEventRecordsJdbcImpl(connectionProvider),
+                new AllEventRecordsOffsetMarkersJdbcImpl(connectionProvider),
+                new ChunkingEntriesJdbcImpl(connectionProvider),
+                new ResourceHelper()));
     }
 
     private AtomFeedProperties getFeedProperties() {
-        AtomFeedProperties props =  new AtomFeedProperties();
+        AtomFeedProperties props = new AtomFeedProperties();
         return props;
     }
 
