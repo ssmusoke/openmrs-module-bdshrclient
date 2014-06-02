@@ -6,6 +6,8 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
+import org.openmrs.module.bdshrclient.service.MciPatientService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +19,8 @@ import java.util.Map;
 @RequestMapping(value = "/mci")
 public class MciPatientLookupController {
 
+    @Autowired
+    MciPatientService patientService;
 
 
     @RequestMapping(method = RequestMethod.GET, value = "/search")
