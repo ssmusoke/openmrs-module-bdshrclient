@@ -70,7 +70,9 @@ public class ShrPatientCreator implements EventWorker {
         org.openmrs.Patient openMrsPatient = patientService.getPatientByUuid(patientUuid);
 
         Patient patient = new Patient();
-        patient.setFullName(openMrsPatient.getGivenName(), openMrsPatient.getMiddleName(), openMrsPatient.getFamilyName());
+        patient.setFirstName(openMrsPatient.getGivenName());
+        patient.setMiddleName(openMrsPatient.getMiddleName());
+        patient.setLastName(openMrsPatient.getFamilyName());
 
         patient.setGender(GenderEnum.getCode(openMrsPatient.getGender()));
 

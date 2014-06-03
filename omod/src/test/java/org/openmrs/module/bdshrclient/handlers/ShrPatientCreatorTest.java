@@ -40,7 +40,6 @@ public class ShrPatientCreatorTest {
 
     @Test
     public void shouldCreatePatientFromEvent() throws Exception {
-
         final String uuid = "123abc456";
         final String givenName = "Sachin";
         final String middleName = "Ramesh";
@@ -50,6 +49,19 @@ public class ShrPatientCreatorTest {
         final String district = "some-district";
         final String upazilla = "some-upazilla";
         final String union = "some-union";
+
+        Person person = new Person();
+        PersonName personName = new PersonName(givenName, middleName, familyName);
+        person.addName(personName);
+        person.setGender(gender);
+
+        PersonAddress address = new PersonAddress();
+        address.setStateProvince(division);
+        address.setCountyDistrict(district);
+        address.setAddress3(upazilla);
+        address.setCityVillage(union);
+        person.addAddress(address);
+        org.openmrs.Patient openMrsPatient = new org.openmrs.Patient(person);
 
         AddressHierarchyLevel level1 = new AddressHierarchyLevel();
         level1.setId(100);
@@ -89,25 +101,15 @@ public class ShrPatientCreatorTest {
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(2), upazilla)).thenReturn(entries3);
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), union)).thenReturn(entries4);
 
-        Person person = new Person();
-        PersonName personName = new PersonName(givenName, middleName, familyName);
-        person.addName(personName);
-        person.setGender(gender);
 
-        PersonAddress address = new PersonAddress();
-        address.setStateProvince(division);
-        address.setCountyDistrict(district);
-        address.setAddress3(upazilla);
-        address.setCityVillage(union);
-        person.addAddress(address);
-
-        org.openmrs.Patient openMrsPatient = new org.openmrs.Patient(person);
         when(patientService.getPatientByUuid(uuid)).thenReturn(openMrsPatient);
 
         Event event = new Event("id100", "/openmrs/ws/rest/v1/patient/" + uuid + "?v=full");
         Patient patient = shrPatientCreator.populatePatient(event);
 
-        assertEquals("Sachin Ramesh Tendulkar", patient.getFullName());
+        assertEquals("Sachin", patient.getFirstName());
+        assertEquals("Ramesh", patient.getMiddleName());
+        assertEquals("Tendulkar", patient.getLastName());
         assertEquals(GenderEnum.MALE.getId(), patient.getGender());
         assertEquals(new Address("10", "1020", "102030", "10203040"), patient.getAddress());
     }

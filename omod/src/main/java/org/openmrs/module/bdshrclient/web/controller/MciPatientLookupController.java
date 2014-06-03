@@ -39,7 +39,9 @@ public class MciPatientLookupController {
 
         if (criteria.get("nid") != null) {
             Patient patient = new Patient();
-            patient.setFullName("Papon", "Das", "Baul");
+            patient.setFirstName("Papon");
+            patient.setMiddleName("Das");
+            patient.setLastName("Baul");
             patient.setAddress(new Address("01", "0101", "010101", "01010101"));
             patient.setGender("Male");
             return patient;
@@ -50,7 +52,9 @@ public class MciPatientLookupController {
 
     public static void main(String[] args) {
         Patient patient = new Patient();
-        patient.setFullName("Papon", "Das", "Baul");
+        patient.setFirstName("Papon");
+        patient.setMiddleName("Das");
+        patient.setLastName("Baul");
         patient.setAddress(new Address("01", "0101", "010101", "01010101"));
         patient.setGender("Male");
 

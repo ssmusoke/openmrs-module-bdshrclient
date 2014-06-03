@@ -42,7 +42,7 @@
         <atomfeed.version>1.0-SNAPSHOT</atomfeed.version>
         <slf4j.api.version>1.7.7</slf4j.api.version>
         <slf4j.log4j.version>1.7.7</slf4j.log4j.version>
-        <jackson.version>1.9.13</jackson.version>
+        <jackson.version>2.3.3</jackson.version>
         <httpclient.version>4.3.3</httpclient.version>
     </properties>
 
@@ -84,13 +84,13 @@
             </dependency>
 
             <dependency>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-core-asl</artifactId>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-mapper-asl</artifactId>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
 
