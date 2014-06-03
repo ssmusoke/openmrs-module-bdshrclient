@@ -14,17 +14,19 @@ import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
+import org.openmrs.module.bdshrclient.util.GenderEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.StringWriter;
+import java.io.InputStream;
 import java.util.List;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ShrPatientCreator implements EventWorker {
-
-    //TODO
-    private static final String MCI_URL = "http://localhost:8080/patient";
+    private static final Logger logger = LoggerFactory.getLogger(ShrPatientCreator.class);
 
     private static ObjectMapper jsonMapper = new ObjectMapper();
     private static HttpClient httpClient = HttpClientBuilder.create().build();
@@ -41,13 +43,21 @@ public class ShrPatientCreator implements EventWorker {
     public void process(Event event) {
         try {
             Patient patient = populatePatient(event);
-            String patientJson = convertToJson(patient);
-            int responseCode = httpPost(MCI_URL, patientJson);
-
+            int responseCode = httpPost(getMciUrl(), patient);
+            logger.debug("Processed create patient event. Response code: " + responseCode);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error while processing create patient event.", e);
         }
+    }
 
+    private String getMciUrl() throws IOException {
+        final InputStream inputStream = getClass().getClassLoader().getResourceAsStream("freeshrclient.properties");
+        Properties properties = new Properties();
+        properties.load(inputStream);
+
+        final String mciHost = properties.getProperty("mci.host");
+        final String mciPort = properties.getProperty("mci.port");
+        return String.format("http://%s:%s/patient", mciHost, mciPort);
     }
 
     Patient populatePatient(Event event) {
@@ -62,7 +72,7 @@ public class ShrPatientCreator implements EventWorker {
         Patient patient = new Patient();
         patient.setFullName(openMrsPatient.getGivenName(), openMrsPatient.getMiddleName(), openMrsPatient.getFamilyName());
 
-        patient.setGender(openMrsPatient.getGender());
+        patient.setGender(GenderEnum.getCode(openMrsPatient.getGender()));
 
         PersonAddress openMrsPersonAddress = openMrsPatient.getPersonAddress();
         String division = openMrsPersonAddress.getStateProvince();
@@ -82,16 +92,10 @@ public class ShrPatientCreator implements EventWorker {
         return patient;
     }
 
-    private String convertToJson(Object o) throws IOException {
-        StringWriter sw = new StringWriter();
-        jsonMapper.writeValue(sw, o);
-        return sw.toString();
-    }
-
-    public int httpPost(String url, String json) throws IOException {
+    public int httpPost(String url, Patient patient) throws IOException {
         //TODO: HttpAsyncClient
         HttpPost post = new HttpPost(url);
-        StringEntity entity = new StringEntity(json);
+        StringEntity entity = new StringEntity(jsonMapper.writeValueAsString(patient));
         entity.setContentType("application/json");
         post.setEntity(entity);
 

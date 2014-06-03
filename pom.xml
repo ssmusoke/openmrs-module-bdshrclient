@@ -40,6 +40,8 @@
         <openmrsAtomfeedVersion>2.0-SNAPSHOT</openmrsAtomfeedVersion>
         <openmrs.address.hierarchy.version>2.4-SNAPSHOT</openmrs.address.hierarchy.version>
         <atomfeed.version>1.0-SNAPSHOT</atomfeed.version>
+        <slf4j.api.version>1.7.7</slf4j.api.version>
+        <slf4j.log4j.version>1.7.7</slf4j.log4j.version>
         <jackson.version>1.9.13</jackson.version>
         <httpclient.version>4.3.3</httpclient.version>
     </properties>
@@ -69,6 +71,17 @@
 				<type>jar</type>
 				<scope>provided</scope>
 			</dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>${slf4j.log4j.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>

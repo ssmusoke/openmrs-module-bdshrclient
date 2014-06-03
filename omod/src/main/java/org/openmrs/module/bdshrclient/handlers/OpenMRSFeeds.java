@@ -5,12 +5,14 @@ import com.sun.syndication.io.FeedException;
 import com.sun.syndication.io.WireFeedOutput;
 import org.ict4h.atomfeed.client.repository.AllFeeds;
 import org.ict4h.atomfeed.server.service.EventFeedService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
 public class OpenMRSFeeds extends AllFeeds {
-
+    private static final Logger logger = LoggerFactory.getLogger(OpenMRSFeeds.class);
     private EventFeedService eventFeedService;
     private URI emrPatientUpdateUri;
 
@@ -21,8 +23,7 @@ public class OpenMRSFeeds extends AllFeeds {
 
     @Override
     public Feed getFor(URI uri) {
-        //TODO
-        System.out.println("fetching feed for:" + uri);
+        logger.debug("Fetching feed for:" + uri);
 
         String eventUrlPath = uri.getPath();
         if (eventUrlPath.startsWith("/")) {

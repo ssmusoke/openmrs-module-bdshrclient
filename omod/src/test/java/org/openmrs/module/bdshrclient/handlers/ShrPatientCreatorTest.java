@@ -13,6 +13,7 @@ import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
+import org.openmrs.module.bdshrclient.util.GenderEnum;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class ShrPatientCreatorTest {
+
     @Mock
     private PatientService patientService;
     @Mock
@@ -106,12 +108,7 @@ public class ShrPatientCreatorTest {
         Patient patient = shrPatientCreator.populatePatient(event);
 
         assertEquals("Sachin Ramesh Tendulkar", patient.getFullName());
-        assertEquals(gender, patient.getGender());
+        assertEquals(GenderEnum.MALE.getId(), patient.getGender());
         assertEquals(new Address("10", "1020", "102030", "10203040"), patient.getAddress());
-    }
-
-    @Test
-    public void shouldExecuteHttpPost() {
-        //TODO:
     }
 }
