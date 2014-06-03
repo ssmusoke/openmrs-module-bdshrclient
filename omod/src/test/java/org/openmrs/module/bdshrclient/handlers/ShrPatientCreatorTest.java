@@ -44,7 +44,7 @@ public class ShrPatientCreatorTest {
         final String givenName = "Sachin";
         final String middleName = "Ramesh";
         final String familyName = "Tendulkar";
-        final String gender = "Male";
+        final String gender = "M";
         final String division = "some-division";
         final String district = "some-district";
         final String upazilla = "some-upazilla";
@@ -110,7 +110,7 @@ public class ShrPatientCreatorTest {
         assertEquals("Sachin", patient.getFirstName());
         assertEquals("Ramesh", patient.getMiddleName());
         assertEquals("Tendulkar", patient.getLastName());
-        assertEquals(GenderEnum.MALE.getId(), patient.getGender());
+        assertEquals(GenderEnum.M.getId(), patient.getGender());
         assertEquals(new Address("10", "1020", "102030", "10203040"), patient.getAddress());
     }
 }

@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public enum GenderEnum {
-    MALE("1"), FEMALE("2"), OTHER("3");
+    M("1"), F("2"), O("3");
 
     private static final Logger logger = LoggerFactory.getLogger(GenderEnum.class);
 
