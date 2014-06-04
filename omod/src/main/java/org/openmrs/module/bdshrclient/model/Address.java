@@ -78,4 +78,14 @@ public class Address {
     public void setUnionId(String unionId) {
         this.unionId = unionId;
     }
+
+    @Override
+    public String toString() {
+        return "Address{" +
+                "divisionId='" + divisionId + '\'' +
+                ", districtId='" + districtId + '\'' +
+                ", upazillaId='" + upazillaId + '\'' +
+                ", unionId='" + unionId + '\'' +
+                '}';
+    }
 }

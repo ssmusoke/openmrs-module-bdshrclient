@@ -17,11 +17,10 @@ import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
 import org.openmrs.module.bdshrclient.util.GenderEnum;
+import org.openmrs.module.bdshrclient.util.MciProperties;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,13 +52,9 @@ public class ShrPatientCreator implements EventWorker {
     }
 
     private String getMciUrl() throws IOException {
-        final InputStream inputStream = getClass().getClassLoader().getResourceAsStream("freeshrclient.properties");
-        Properties properties = new Properties();
-        properties.load(inputStream);
-
-        final String mciHost = properties.getProperty("mci.host");
-        final String mciPort = properties.getProperty("mci.port");
-        return String.format("http://%s:%s/patient", mciHost, mciPort);
+        MciProperties mciProperties = new MciProperties();
+        mciProperties.loadProperties();
+        return mciProperties.getMciPatientBaseURL();
     }
 
     Patient populatePatient(Event event) {

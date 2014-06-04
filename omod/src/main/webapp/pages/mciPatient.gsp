@@ -107,12 +107,12 @@
             <ul class="mciPatientInfo">
                 <li>
                     <div id="resultDetails" class="result-details">
-                        <div><span class="patient-name">{{ fullName }}</span> <span class="gender">({{ gender }})</span></div>
-                        <div class="father-info">Father name: Some Paul</div>
-                        <span class="address">Address: {{ address.street }}, {{ address.union }}, {{ address.upazilla }}, {{ address.district }}</span>
+                        <div><span class="patient-name">{{ firstName }} {{ middleName }} {{ lastName }} </span> <span class="gender">({{ gender }})</span></div>
+                        <div class="father-info">Primary Contact: {{ primaryContact }} </div>
+                        <span class="address">Address: {{ address.union }}, {{ address.upazilla }}, {{ address.district }}, {{ address.division }}</span>
                     </div>
 
-                    <button class="download-btn btn">Download</button>
+                    <button data-hid="{{ healthId }}" class="download-btn btn">Download</button>
                 </li>
             </ul>
         </script>
@@ -150,18 +150,18 @@
                 });
             }
 
-            function downloadMciPatient() {
-                var postData = {};
-                var idType = jq( "#idType" ).val();
-                var patientId = jq( "#patientId" ).val();
-                postData[idType] = patientId;
+            function downloadMciPatient(e) {
+                // var postData = {};
+                // var idType = jq( "#idType" ).val();
+                // var patientId = jq( "#patientId" ).val();
+                // postData[idType] = patientId;
 
                 jq.ajax({
                    type: "GET",
-                   url: "/openmrs/ws/mci/download",
+                   url: "/openmrs/ws/mci/download?hid=" + jq(".download-btn").attr("data-hid"),
                    dataType: "json"
                 }).done(function( responseData ) {
-                   console.log(responseData);
+                   window.location = "registration/#/patient/" + responseData.uuid;
                 }).fail(function(error) {
                    alert( "error occurred : " + error);
                 });

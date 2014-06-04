@@ -27,6 +27,9 @@ public class Patient {
     @JsonProperty("gender")
     private String gender;
 
+    @JsonProperty("hid")
+    private String healthId;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -59,6 +62,7 @@ public class Patient {
     public String toString() {
         final StringBuilder sb = new StringBuilder("Patient{");
         sb.append("nationalId='").append(nationalId).append('\'');
+        sb.append(", healthId='").append(healthId).append('\'');
         sb.append(", firstName='").append(firstName).append('\'');
         sb.append(", middleName='").append(middleName).append('\'');
         sb.append(", lastName='").append(lastName).append('\'');
@@ -114,6 +118,14 @@ public class Patient {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    public String getHealthId() {
+        return healthId;
+    }
+
+    public void setHealthId(String healthId) {
+        this.healthId = healthId;
     }
 }
 
