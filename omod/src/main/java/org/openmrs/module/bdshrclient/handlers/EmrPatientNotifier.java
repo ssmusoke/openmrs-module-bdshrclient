@@ -1,18 +1,18 @@
 package org.openmrs.module.bdshrclient.handlers;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.ict4h.atomfeed.client.service.FeedClient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.OpenMRSFeedClientFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
 public class EmrPatientNotifier {
-    private static final Logger logger = LoggerFactory.getLogger(EmrPatientNotifier.class);
+    private static final Log log = LogFactory.getLog(EmrPatientNotifier.class);
     private static final String OPENMRS_PATIENT_FEED_URI = "openmrs://events/patient/recent";
 
     public void process() {
@@ -24,7 +24,7 @@ public class EmrPatientNotifier {
                     Context.getService(AddressHierarchyService.class), Context.getPatientService()));
             feedClient.processEvents();
         } catch (URISyntaxException e) {
-            logger.error("Invalid URI. ", e);
+            log.error("Invalid URI. ", e);
         }
     }
 

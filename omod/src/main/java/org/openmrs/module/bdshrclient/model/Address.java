@@ -1,9 +1,8 @@
 package org.openmrs.module.bdshrclient.model;
 
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.codehaus.jackson.annotate.JsonProperty;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Address {
     @JsonProperty("division_id")
     private String divisionId;

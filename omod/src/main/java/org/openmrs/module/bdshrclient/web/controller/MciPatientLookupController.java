@@ -1,17 +1,16 @@
 package org.openmrs.module.bdshrclient.web.controller;
 
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
 import org.openmrs.module.bdshrclient.service.MciPatientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,31 +47,4 @@ public class MciPatientLookupController {
         }
         return null;
     }
-
-
-    public static void main(String[] args) {
-        Patient patient = new Patient();
-        patient.setFirstName("Papon");
-        patient.setMiddleName("Das");
-        patient.setLastName("Baul");
-        patient.setAddress(new Address("01", "0101", "010101", "01010101"));
-        patient.setGender("Male");
-
-        ObjectMapper om = new ObjectMapper();
-        try {
-            String testAString = om.writeValueAsString(patient);
-            System.out.println(testAString);
-            Patient newTestA = om.readValue(testAString, Patient.class);
-        } catch (JsonGenerationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (JsonMappingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
 }

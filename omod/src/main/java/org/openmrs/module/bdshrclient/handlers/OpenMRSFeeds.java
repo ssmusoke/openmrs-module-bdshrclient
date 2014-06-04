@@ -1,18 +1,15 @@
 package org.openmrs.module.bdshrclient.handlers;
 
 import com.sun.syndication.feed.atom.Feed;
-import com.sun.syndication.io.FeedException;
-import com.sun.syndication.io.WireFeedOutput;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.ict4h.atomfeed.client.repository.AllFeeds;
 import org.ict4h.atomfeed.server.service.EventFeedService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 public class OpenMRSFeeds extends AllFeeds {
-    private static final Logger logger = LoggerFactory.getLogger(OpenMRSFeeds.class);
+    private static final Log log = LogFactory.getLog(OpenMRSFeeds.class);
     private EventFeedService eventFeedService;
     private URI emrPatientUpdateUri;
 
@@ -23,18 +20,18 @@ public class OpenMRSFeeds extends AllFeeds {
 
     @Override
     public Feed getFor(URI uri) {
-        logger.debug("Fetching feed for:" + uri);
+        log.debug("Fetching feed for:" + uri);
 
         String eventUrlPath = uri.getPath();
         if (eventUrlPath.startsWith("/")) {
             eventUrlPath = eventUrlPath.substring(1, eventUrlPath.length());
         }
         if (eventUrlPath.endsWith("/")) {
-            eventUrlPath = eventUrlPath.substring(0, eventUrlPath.length()-1);
+            eventUrlPath = eventUrlPath.substring(0, eventUrlPath.length() - 1);
         }
         String[] pathInfo = eventUrlPath.split("/");
         String category = pathInfo[0];
-        String feedId =  (pathInfo.length > 1) ? pathInfo[1] : "recent";
+        String feedId = (pathInfo.length > 1) ? pathInfo[1] : "recent";
 
         Feed responseFeed;
         if ("recent".equals(feedId)) {

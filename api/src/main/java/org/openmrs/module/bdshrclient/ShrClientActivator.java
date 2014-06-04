@@ -13,10 +13,7 @@
  */
 package org.openmrs.module.bdshrclient;
 
-import org.openmrs.module.ModuleActivator;
-
-
-import org.apache.commons.logging.Log; 
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.module.ModuleActivator;
 
@@ -24,49 +21,49 @@ import org.openmrs.module.ModuleActivator;
  * This class contains the logic that is run every time this module is either started or stopped.
  */
 public class ShrClientActivator implements ModuleActivator {
-	
-	protected Log log = LogFactory.getLog(getClass());
-		
-	/**
-	 * @see ModuleActivator#willRefreshContext()
-	 */
-	public void willRefreshContext() {
-		log.info("Refreshing bdshrclient Module");
-	}
-	
-	/**
-	 * @see ModuleActivator#contextRefreshed()
-	 */
-	public void contextRefreshed() {
-		log.info("bdshrclient Module refreshed");
-	}
-	
-	/**
-	 * @see ModuleActivator#willStart()
-	 */
-	public void willStart() {
-		log.info("Starting bdshrclient Module");
-	}
-	
-	/**
-	 * @see ModuleActivator#started()
-	 */
-	public void started() {
-		log.info("bdshrclient Module started");
-	}
-	
-	/**
-	 * @see ModuleActivator#willStop()
-	 */
-	public void willStop() {
-		log.info("Stopping bdshrclient Module");
-	}
-	
-	/**
-	 * @see ModuleActivator#stopped()
-	 */
-	public void stopped() {
-		log.info("bdshrclient Module stopped");
-	}
-		
+
+    private static final Log log = LogFactory.getLog(ShrClientActivator.class);
+
+    /**
+     * @see ModuleActivator#willRefreshContext()
+     */
+    public void willRefreshContext() {
+        log.info("Refreshing bdshrclient Module");
+    }
+
+    /**
+     * @see ModuleActivator#contextRefreshed()
+     */
+    public void contextRefreshed() {
+        log.info("bdshrclient Module refreshed");
+    }
+
+    /**
+     * @see ModuleActivator#willStart()
+     */
+    public void willStart() {
+        log.info("Starting bdshrclient Module");
+    }
+
+    /**
+     * @see ModuleActivator#started()
+     */
+    public void started() {
+        log.info("bdshrclient Module started");
+    }
+
+    /**
+     * @see ModuleActivator#willStop()
+     */
+    public void willStop() {
+        log.info("Stopping bdshrclient Module");
+    }
+
+    /**
+     * @see ModuleActivator#stopped()
+     */
+    public void stopped() {
+        log.info("bdshrclient Module stopped");
+    }
+
 }

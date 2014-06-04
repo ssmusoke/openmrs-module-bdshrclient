@@ -1,23 +1,22 @@
 package org.openmrs.module.bdshrclient.handlers;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.PersonAddress;
-import org.openmrs.PersonAttribute;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
 import org.openmrs.module.bdshrclient.util.GenderEnum;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,7 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ShrPatientCreator implements EventWorker {
-    private static final Logger logger = LoggerFactory.getLogger(ShrPatientCreator.class);
+    private static final Log log = LogFactory.getLog(ShrPatientCreator.class);
 
     private static ObjectMapper jsonMapper = new ObjectMapper();
     private static HttpClient httpClient = HttpClientBuilder.create().build();
@@ -42,14 +41,14 @@ public class ShrPatientCreator implements EventWorker {
 
     @Override
     public void process(Event event) {
-        logger.debug("Processing patient event: [" + event + "]");
+        log.debug("Patient sync event. Event: [" + event + "]");
         try {
             Patient patient = populatePatient(event);
-            logger.debug("Processing patient event. Patient: [ " + patient + "]");
+            log.debug("Patient sync event. Patient: [ " + patient + "]");
             int responseCode = httpPost(getMciUrl(), patient);
-            logger.debug("Processed patient event. Response code: " + responseCode);
+            log.debug("Patient sync event. Response code: " + responseCode);
         } catch (IOException e) {
-            logger.error("Error while processing create patient event.", e);
+            log.error("Error while processing patient sync event.", e);
         }
     }
 
@@ -101,7 +100,7 @@ public class ShrPatientCreator implements EventWorker {
     public int httpPost(String url, Patient patient) throws IOException {
         //TODO: HttpAsyncClient
         final String json = jsonMapper.writeValueAsString(patient);
-        logger.debug(String.format("HTTP post. \nURL: [%s] \nJSON:[%s]", url, json));
+        log.debug(String.format("Patient sync event. HTTP post. \nURL: [%s] \nJSON:[%s]", url, json));
         HttpPost post = new HttpPost(url);
         StringEntity entity = new StringEntity(json);
         entity.setContentType("application/json");
