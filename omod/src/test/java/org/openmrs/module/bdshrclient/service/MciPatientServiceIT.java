@@ -19,7 +19,7 @@ public class MciPatientServiceIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void dummy() {
 //        MciPatientServiceImpl mciPatientService = new MciPatientServiceImpl();
-//        String identifier = mciPatientService.getIdentifier();
+//        String identifier = mciPatientService.generateIdentifier();
 //        System.out.println("identifier:" + identifier);
         IdentifierSourceService service = Context.getService(IdentifierSourceService.class);
         System.out.println("idgen service:" + service);

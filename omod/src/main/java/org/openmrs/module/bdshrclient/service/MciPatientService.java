@@ -7,5 +7,5 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public interface MciPatientService extends OpenmrsService {
      Patient createOrUpdatePatient(org.openmrs.module.bdshrclient.model.Patient mciPatient);
-     String getIdentifier();
+     org.openmrs.PatientIdentifier generateIdentifier();
 }
