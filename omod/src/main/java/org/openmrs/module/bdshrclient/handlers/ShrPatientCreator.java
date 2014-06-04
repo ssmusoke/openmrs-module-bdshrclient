@@ -9,6 +9,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.PersonAddress;
+import org.openmrs.PersonAttribute;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
@@ -41,10 +42,12 @@ public class ShrPatientCreator implements EventWorker {
 
     @Override
     public void process(Event event) {
+        logger.debug("Processing patient event: [" + event + "]");
         try {
             Patient patient = populatePatient(event);
+            logger.debug("Processing patient event. Patient: [ " + patient + "]");
             int responseCode = httpPost(getMciUrl(), patient);
-            logger.debug("Processed create patient event. Response code: " + responseCode);
+            logger.debug("Processed patient event. Response code: " + responseCode);
         } catch (IOException e) {
             logger.error("Error while processing create patient event.", e);
         }
@@ -70,6 +73,7 @@ public class ShrPatientCreator implements EventWorker {
         org.openmrs.Patient openMrsPatient = patientService.getPatientByUuid(patientUuid);
 
         Patient patient = new Patient();
+        patient.setNationalId(openMrsPatient.getAttribute("National ID").getValue());
         patient.setFirstName(openMrsPatient.getGivenName());
         patient.setMiddleName(openMrsPatient.getMiddleName());
         patient.setLastName(openMrsPatient.getFamilyName());
@@ -96,8 +100,10 @@ public class ShrPatientCreator implements EventWorker {
 
     public int httpPost(String url, Patient patient) throws IOException {
         //TODO: HttpAsyncClient
+        final String json = jsonMapper.writeValueAsString(patient);
+        logger.debug(String.format("HTTP post. \nURL: [%s] \nJSON:[%s]", url, json));
         HttpPost post = new HttpPost(url);
-        StringEntity entity = new StringEntity(jsonMapper.writeValueAsString(patient));
+        StringEntity entity = new StringEntity(json);
         entity.setContentType("application/json");
         post.setEntity(entity);
 

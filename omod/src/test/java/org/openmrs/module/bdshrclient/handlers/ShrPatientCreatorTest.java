@@ -4,9 +4,7 @@ import org.ict4h.atomfeed.client.domain.Event;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.openmrs.Person;
-import org.openmrs.PersonAddress;
-import org.openmrs.PersonName;
+import org.openmrs.*;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
@@ -15,9 +13,7 @@ import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
 import org.openmrs.module.bdshrclient.util.GenderEnum;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -41,13 +37,18 @@ public class ShrPatientCreatorTest {
     @Test
     public void shouldCreatePatientFromEvent() throws Exception {
         final String uuid = "123abc456";
+        final String nationalId = "nid-123";
         final String givenName = "Sachin";
         final String middleName = "Ramesh";
         final String familyName = "Tendulkar";
         final String gender = "M";
+        final String divisionId = "10";
         final String division = "some-division";
+        final String districtId = "1020";
         final String district = "some-district";
+        final String upazillaId = "102030";
         final String upazilla = "some-upazilla";
+        final String unionId = "10203040";
         final String union = "some-union";
 
         Person person = new Person();
@@ -63,6 +64,12 @@ public class ShrPatientCreatorTest {
         person.addAddress(address);
         org.openmrs.Patient openMrsPatient = new org.openmrs.Patient(person);
 
+        Set<PersonAttribute> attributes = new HashSet<PersonAttribute>();
+        final PersonAttributeType type = new PersonAttributeType();
+        type.setName("National ID");
+        attributes.add(new PersonAttribute(type, nationalId));
+        openMrsPatient.setAttributes(attributes);
+
         AddressHierarchyLevel level1 = new AddressHierarchyLevel();
         level1.setId(100);
         AddressHierarchyLevel level2 = new AddressHierarchyLevel();
@@ -74,22 +81,22 @@ public class ShrPatientCreatorTest {
 
         List<AddressHierarchyEntry> entries1 = new ArrayList<AddressHierarchyEntry>();
         AddressHierarchyEntry entry1 = new AddressHierarchyEntry();
-        entry1.setUserGeneratedId("10");
+        entry1.setUserGeneratedId(divisionId);
         entries1.add(entry1);
 
         List<AddressHierarchyEntry> entries2 = new ArrayList<AddressHierarchyEntry>();
         AddressHierarchyEntry entry2 = new AddressHierarchyEntry();
-        entry2.setUserGeneratedId("1020");
+        entry2.setUserGeneratedId(districtId);
         entries2.add(entry2);
 
         List<AddressHierarchyEntry> entries3 = new ArrayList<AddressHierarchyEntry>();
         AddressHierarchyEntry entry3 = new AddressHierarchyEntry();
-        entry3.setUserGeneratedId("102030");
+        entry3.setUserGeneratedId(upazillaId);
         entries3.add(entry3);
 
         List<AddressHierarchyEntry> entries4 = new ArrayList<AddressHierarchyEntry>();
         AddressHierarchyEntry entry4 = new AddressHierarchyEntry();
-        entry4.setUserGeneratedId("10203040");
+        entry4.setUserGeneratedId(unionId);
         entries4.add(entry4);
 
 
@@ -107,10 +114,11 @@ public class ShrPatientCreatorTest {
         Event event = new Event("id100", "/openmrs/ws/rest/v1/patient/" + uuid + "?v=full");
         Patient patient = shrPatientCreator.populatePatient(event);
 
-        assertEquals("Sachin", patient.getFirstName());
-        assertEquals("Ramesh", patient.getMiddleName());
-        assertEquals("Tendulkar", patient.getLastName());
+        assertEquals(nationalId, patient.getNationalId());
+        assertEquals(givenName, patient.getFirstName());
+        assertEquals(middleName, patient.getMiddleName());
+        assertEquals(familyName, patient.getLastName());
         assertEquals(GenderEnum.M.getId(), patient.getGender());
-        assertEquals(new Address("10", "1020", "102030", "10203040"), patient.getAddress());
+        assertEquals(new Address(divisionId, districtId, upazillaId, unionId), patient.getAddress());
     }
 }
