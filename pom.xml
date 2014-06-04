@@ -44,6 +44,7 @@
         <slf4j.log4j.version>1.7.7</slf4j.log4j.version>
         <jackson.version>2.3.3</jackson.version>
         <httpclient.version>4.3.3</httpclient.version>
+        <idGenVersion>2.6</idGenVersion>
     </properties>
 
 	<dependencyManagement>

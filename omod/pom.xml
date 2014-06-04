@@ -135,6 +135,13 @@
             <artifactId>uiframework-api</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.openmrs.module</groupId>
+            <artifactId>idgen-api</artifactId>
+            <version>${idGenVersion}</version>
+            <scope>provided</scope>
+        </dependency>
+
 	</dependencies>
 
 	<build>

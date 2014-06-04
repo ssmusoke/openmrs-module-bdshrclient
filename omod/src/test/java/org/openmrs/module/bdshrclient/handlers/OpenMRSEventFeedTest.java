@@ -1,4 +1,4 @@
-package org.openmrs.module.bdshr.handlers;
+package org.openmrs.module.bdshrclient.handlers;
 
 import com.sun.syndication.feed.atom.Feed;
 import com.sun.syndication.io.WireFeedInput;
