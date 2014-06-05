@@ -1,13 +1,12 @@
 package org.openmrs.module.bdshrclient.handlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.PersonAddress;
@@ -26,7 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ShrPatientCreator implements EventWorker {
-    private static final Log log = LogFactory.getLog(ShrPatientCreator.class);
+    private static final Logger log = Logger.getLogger(ShrPatientCreator.class);
     public static final String ISO_DATE_FORMAT = "yyyy-MM-dd";
 
     private static ObjectMapper jsonMapper = new ObjectMapper();

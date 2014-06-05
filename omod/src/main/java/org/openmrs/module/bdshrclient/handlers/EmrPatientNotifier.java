@@ -1,8 +1,7 @@
 package org.openmrs.module.bdshrclient.handlers;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.client.service.FeedClient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
@@ -12,7 +11,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class EmrPatientNotifier {
-    private static final Log log = LogFactory.getLog(EmrPatientNotifier.class);
+    private static final Logger log = Logger.getLogger(EmrPatientNotifier.class);
     private static final String OPENMRS_PATIENT_FEED_URI = "openmrs://events/patient/recent";
 
     public void process() {

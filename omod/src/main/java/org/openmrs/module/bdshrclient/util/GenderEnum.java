@@ -1,13 +1,12 @@
 package org.openmrs.module.bdshrclient.util;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 
 public enum GenderEnum {
     M("1"), F("2"), O("3");
 
-    private static final Log log = LogFactory.getLog(GenderEnum.class);
+    private static final Logger log = Logger.getLogger(GenderEnum.class);
 
     private String id;
 

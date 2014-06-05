@@ -13,8 +13,7 @@
  */
 package org.openmrs.module.bdshrclient;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.openmrs.module.ModuleActivator;
 
 /**
@@ -22,7 +21,7 @@ import org.openmrs.module.ModuleActivator;
  */
 public class ShrClientActivator implements ModuleActivator {
 
-    private static final Log log = LogFactory.getLog(ShrClientActivator.class);
+    private static final Logger log = Logger.getLogger(ShrClientActivator.class);
 
     /**
      * @see ModuleActivator#willRefreshContext()
