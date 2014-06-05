@@ -48,6 +48,7 @@ public class MciPatientLookupController {
         patientModel.put("gender", GenderEnum.forCode(mciPatient.getGender()).name());
         patientModel.put("nationalId", mciPatient.getNationalId());
         patientModel.put("healthId", mciPatient.getHealthId());
+        patientModel.put("primaryContact", mciPatient.getPrimaryContact());
 
         Map<String, String> addressModel = new HashMap<String, String>();
         Address address = mciPatient.getAddress();

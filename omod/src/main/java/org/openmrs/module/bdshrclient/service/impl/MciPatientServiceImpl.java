@@ -18,12 +18,16 @@ import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 
 public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPatientService {
 
     private static final String SHR_CLIENT_SYSTEM_NAME = "shrclientsystem";
+    private static final java.lang.String ISO_DATE_FORMAT = "yyyy-MM-dd";
     private final String IDENTIFIER_SOURCE_NAME = "BAM";
     public static final String EMR_PRIMARY_IDENTIFIER_TYPE = "emr.primaryIdentifierType";
 
@@ -42,6 +46,18 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
         addPersonAttribute(personService, newPatient, "National ID", mciPatient.getNationalId());
         addPersonAttribute(personService, newPatient, "Health ID", mciPatient.getHealthId());
+        addPersonAttribute(personService, newPatient, "primaryContact", mciPatient.getPrimaryContact());
+        addPersonAttribute(personService, newPatient, "occupation", mciPatient.getOccupation());
+        addPersonAttribute(personService, newPatient, "education", mciPatient.getEducationLevel());
+
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(ISO_DATE_FORMAT);
+        try {
+            Date dob = simpleDateFormat.parse(mciPatient.getDateOfBirth());
+            newPatient.setBirthdate(dob);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
         PatientIdentifier identifier = generateIdentifier();
         identifier.setPreferred(true);
