@@ -161,7 +161,7 @@
                    url: "/openmrs/ws/mci/download?hid=" + jq(".download-btn").attr("data-hid"),
                    dataType: "json"
                 }).done(function( responseData ) {
-                   window.location = "registration/#/patient/" + responseData.uuid;
+                   window.location = "/registration/#/patient/" + responseData.uuid;
                 }).fail(function(error) {
                    alert( "error occurred : " + error);
                 });

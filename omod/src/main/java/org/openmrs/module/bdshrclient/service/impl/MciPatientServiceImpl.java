@@ -5,6 +5,7 @@ import org.openmrs.Patient;
 import org.openmrs.api.AdministrationService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
+import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
@@ -22,6 +23,7 @@ import java.util.List;
 
 public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPatientService {
 
+    private static final String SHR_CLIENT_SYSTEM_NAME = "shrclientsystem";
     private final String IDENTIFIER_SOURCE_NAME = "BAM";
     public static final String EMR_PRIMARY_IDENTIFIER_TYPE = "emr.primaryIdentifierType";
 
@@ -44,8 +46,16 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         PatientIdentifier identifier = generateIdentifier();
         identifier.setPreferred(true);
         newPatient.addIdentifier(identifier);
+
+        User systemUser = getShrClientSystemUser();
+        newPatient.setCreator(systemUser);
         patientService.savePatient(newPatient);
         return newPatient;
+    }
+
+    private User getShrClientSystemUser() {
+        UserService userService = Context.getUserService();
+        return userService.getUserByUsername(SHR_CLIENT_SYSTEM_NAME);
     }
 
     private void addPersonAddress(Patient newPatient, Address address) {
