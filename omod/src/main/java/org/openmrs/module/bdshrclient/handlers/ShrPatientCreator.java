@@ -18,6 +18,7 @@ import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
+import static org.openmrs.module.bdshrclient.util.Constants.*;
 import org.openmrs.module.bdshrclient.util.GenderEnum;
 import org.openmrs.module.bdshrclient.util.MciProperties;
 
@@ -29,10 +30,8 @@ import java.util.regex.Pattern;
 
 public class ShrPatientCreator implements EventWorker {
 
-    //TODO: need to pull out to common constant
-    private static final String SHR_CLIENT_SYSTEM_NAME = "shrclientsystem";
     private static final Logger log = Logger.getLogger(ShrPatientCreator.class);
-    public static final String ISO_DATE_FORMAT = "yyyy-MM-dd";
+
 
     private static ObjectMapper jsonMapper = new ObjectMapper();
     private static HttpClient httpClient = HttpClientBuilder.create().build();
@@ -76,27 +75,27 @@ public class ShrPatientCreator implements EventWorker {
     Patient populatePatient(org.openmrs.Patient openMrsPatient) {
         Patient patient = new Patient();
 
-        String nationalId = getAttributeValue(openMrsPatient, "National ID");
+        String nationalId = getAttributeValue(openMrsPatient, NATIONAL_ID_ATTRIBUTE);
         if (nationalId != null) {
             patient.setNationalId(nationalId);
         }
 
-        String healthId = getAttributeValue(openMrsPatient, "Health ID");
+        String healthId = getAttributeValue(openMrsPatient, HEALTH_ID_ATTRIBUTE);
         if (healthId != null) {
             patient.setHealthId(healthId);
         }
 
-        String occupation = getAttributeValue(openMrsPatient, "occupation");
+        String occupation = getAttributeValue(openMrsPatient,  OCCUPATION_ATTRIBUTE);
         if (occupation != null) {
             patient.setOccupation(occupation);
         }
 
-        String educationLevel = getAttributeValue(openMrsPatient, "education");
+        String educationLevel = getAttributeValue(openMrsPatient, EDUCATION_ATTRIBUTE);
         if (educationLevel != null) {
             patient.setEducationLevel(educationLevel);
         }
 
-        String primaryContact = getAttributeValue(openMrsPatient, "primaryContact");
+        String primaryContact = getAttributeValue(openMrsPatient, PRIMARY_CONTACT_ATTRIBUTE);
         if (primaryContact != null) {
             patient.setPrimaryContact(primaryContact);
         }

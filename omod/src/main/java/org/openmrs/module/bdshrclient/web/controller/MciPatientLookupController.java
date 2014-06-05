@@ -52,6 +52,7 @@ public class MciPatientLookupController {
 
         Map<String, String> addressModel = new HashMap<String, String>();
         Address address = mciPatient.getAddress();
+        addressModel.put("address_line", address.getAddressLine());
         addressModel.put("division", getAddressEntryText(address.getDivisionId()));
         addressModel.put("district", getAddressEntryText(address.getDistrictId()));
         addressModel.put("upazilla", getAddressEntryText(address.getUpazillaId()));
@@ -65,9 +66,9 @@ public class MciPatientLookupController {
     @ResponseBody
     public Object download(MciPatientSearchRequest request) {
         Patient mciPatient = searchPatientByHealthId(request.getHid());
-        org.openmrs.Patient patient = mciPatientService.createOrUpdatePatient(mciPatient);
+        org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(mciPatient);
         Map<String, String> downloadResponse = new HashMap<String, String>();
-        downloadResponse.put("uuid", patient.getUuid());
+        downloadResponse.put("uuid", emrPatient.getUuid());
         return downloadResponse;
     }
 
@@ -82,8 +83,8 @@ public class MciPatientLookupController {
         try {
             mciNationIdSearchUrl = String.format("%s?nid=%s", getMciPatientBaseUrl(), nid);
             WebClient webClient = new WebClient();
-            Patient patient = webClient.get(mciNationIdSearchUrl, Patient.class);
-            return patient;
+            Patient mciPatient = webClient.get(mciNationIdSearchUrl, Patient.class);
+            return mciPatient;
         } catch (IOException e) {
             throw new RuntimeException("Error occurred while trying to query MCI", e);
         }
@@ -94,8 +95,8 @@ public class MciPatientLookupController {
         try {
             mciPatientUrl = String.format("%s/%s", getMciPatientBaseUrl(), hid);
             WebClient webClient = new WebClient();
-            Patient patient = webClient.get(mciPatientUrl, Patient.class);
-            return patient;
+            Patient mciPatient = webClient.get(mciPatientUrl, Patient.class);
+            return mciPatient;
         } catch (IOException e) {
             throw new RuntimeException("Error occurred while trying to query MCI", e);
         }
