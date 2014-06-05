@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.openmrs.*;
 import org.openmrs.api.PatientService;
+import org.openmrs.api.UserService;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
@@ -13,8 +14,6 @@ import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
 import org.openmrs.module.bdshrclient.util.GenderEnum;
 
-import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -29,12 +28,15 @@ public class ShrPatientCreatorTest {
     private PatientService patientService;
     @Mock
     private AddressHierarchyService addressHierarchyService;
+    @Mock
+    private UserService userService;
+
     private ShrPatientCreator shrPatientCreator;
 
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        shrPatientCreator = new ShrPatientCreator(addressHierarchyService, patientService);
+        shrPatientCreator = new ShrPatientCreator(addressHierarchyService, patientService, userService);
     }
 
 
@@ -142,7 +144,8 @@ public class ShrPatientCreatorTest {
         when(patientService.getPatientByUuid(uuid)).thenReturn(openMrsPatient);
 
         Event event = new Event("id100", "/openmrs/ws/rest/v1/patient/" + uuid + "?v=full");
-        Patient patient = shrPatientCreator.populatePatient(event);
+        String patientUuid = shrPatientCreator.getPatientUuid(event);
+        Patient patient = shrPatientCreator.populatePatient(openMrsPatient);
 
         Patient p = new Patient();
         p.setNationalId(nationalId);

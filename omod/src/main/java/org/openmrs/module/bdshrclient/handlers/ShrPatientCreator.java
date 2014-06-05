@@ -10,7 +10,10 @@ import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.PersonAddress;
+import org.openmrs.PersonAttribute;
+import org.openmrs.User;
 import org.openmrs.api.PatientService;
+import org.openmrs.api.UserService;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.model.Address;
@@ -25,6 +28,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ShrPatientCreator implements EventWorker {
+
+    //TODO: need to pull out to common constant
+    private static final String SHR_CLIENT_SYSTEM_NAME = "shrclientsystem";
     private static final Logger log = Logger.getLogger(ShrPatientCreator.class);
     public static final String ISO_DATE_FORMAT = "yyyy-MM-dd";
 
@@ -33,17 +39,26 @@ public class ShrPatientCreator implements EventWorker {
 
     private AddressHierarchyService addressHierarchyService;
     private PatientService patientService;
+    private UserService userService;
 
-    public ShrPatientCreator(AddressHierarchyService addressHierarchyService, PatientService patientService) {
+    public ShrPatientCreator(AddressHierarchyService addressHierarchyService, PatientService patientService, UserService userService) {
         this.addressHierarchyService = addressHierarchyService;
         this.patientService = patientService;
+        this.userService = userService;
     }
 
     @Override
     public void process(Event event) {
         log.debug("Patient sync event. Event: [" + event + "]");
         try {
-            Patient patient = populatePatient(event);
+            String patientUuid = getPatientUuid(event);
+            org.openmrs.Patient openMrsPatient = patientService.getPatientByUuid(patientUuid);
+            if (!shouldSyncPatient(openMrsPatient)) {
+                log.debug("Patient %s was created from SHR. Ignoring Patient Sync");
+                return;
+            }
+
+            Patient patient = populatePatient(openMrsPatient);
             log.debug("Patient sync event. Patient: [ " + patient + "]");
             int responseCode = httpPost(getMciUrl(), patient);
             log.debug("Patient sync event. Response code: " + responseCode);
@@ -58,29 +73,67 @@ public class ShrPatientCreator implements EventWorker {
         return mciProperties.getMciPatientBaseURL();
     }
 
-    Patient populatePatient(Event event) {
+    Patient populatePatient(org.openmrs.Patient openMrsPatient) {
+        Patient patient = new Patient();
+
+        String nationalId = getAttributeValue(openMrsPatient, "National ID");
+        if (nationalId != null) {
+            patient.setNationalId(nationalId);
+        }
+
+        String healthId = getAttributeValue(openMrsPatient, "Health ID");
+        if (healthId != null) {
+            patient.setHealthId(healthId);
+        }
+
+        String occupation = getAttributeValue(openMrsPatient, "occupation");
+        if (occupation != null) {
+            patient.setOccupation(occupation);
+        }
+
+        String educationLevel = getAttributeValue(openMrsPatient, "education");
+        if (educationLevel != null) {
+            patient.setEducationLevel(educationLevel);
+        }
+
+        String primaryContact = getAttributeValue(openMrsPatient, "primaryContact");
+        if (primaryContact != null) {
+            patient.setPrimaryContact(primaryContact);
+        }
+
+        patient.setFirstName(openMrsPatient.getGivenName());
+        patient.setMiddleName(openMrsPatient.getMiddleName());
+        patient.setLastName(openMrsPatient.getFamilyName());
+        patient.setGender(GenderEnum.getCode(openMrsPatient.getGender()));
+        patient.setDateOfBirth(new SimpleDateFormat(ISO_DATE_FORMAT).format(openMrsPatient.getBirthdate()));
+
+
+        patient.setAddress(getAddress(openMrsPatient));
+        return patient;
+    }
+
+    private String getAttributeValue(org.openmrs.Patient openMrsPatient, String attributeName) {
+        PersonAttribute attribute = openMrsPatient.getAttribute(attributeName);
+        return attribute != null ? attribute.getValue() : null;
+    }
+
+    private boolean shouldSyncPatient(org.openmrs.Patient openMrsPatient) {
+        User changedByUser = openMrsPatient.getChangedBy();
+        if (changedByUser == null) {
+            changedByUser = openMrsPatient.getCreator();
+        }
+        User shrClientSystemUser = userService.getUserByUsername(SHR_CLIENT_SYSTEM_NAME);
+        return shrClientSystemUser.getId() != changedByUser.getId();
+    }
+
+    public String getPatientUuid(Event event) {
         String patientUuid = null;
         Pattern p = Pattern.compile("^\\/openmrs\\/ws\\/rest\\/v1\\/patient\\/(.*)\\?v=full");
         Matcher m = p.matcher(event.getContent());
         if (m.matches()) {
             patientUuid = m.group(1);
         }
-        org.openmrs.Patient openMrsPatient = patientService.getPatientByUuid(patientUuid);
-
-        Patient patient = new Patient();
-        patient.setNationalId(openMrsPatient.getAttribute("National ID").getValue());
-        patient.setHealthId(openMrsPatient.getAttribute("Health ID").getValue());
-        patient.setFirstName(openMrsPatient.getGivenName());
-        patient.setMiddleName(openMrsPatient.getMiddleName());
-        patient.setLastName(openMrsPatient.getFamilyName());
-        patient.setGender(GenderEnum.getCode(openMrsPatient.getGender()));
-        patient.setDateOfBirth(new SimpleDateFormat(ISO_DATE_FORMAT).format(openMrsPatient.getBirthdate()));
-        patient.setOccupation(openMrsPatient.getAttribute("occupation").getValue());
-        patient.setEducationLevel(openMrsPatient.getAttribute("education").getValue());
-        patient.setPrimaryContact(openMrsPatient.getAttribute("primaryContact").getValue());
-
-        patient.setAddress(getAddress(openMrsPatient));
-        return patient;
+        return patientUuid;
     }
 
     private Address getAddress(org.openmrs.Patient openMrsPatient) {

@@ -19,8 +19,11 @@ public class EmrPatientNotifier {
         FeedClient feedClient = null;
         try {
             //TODO: Should only 1 instance of ShrPatientCreator be created ?
-            feedClient = factory.getFeedClient(getEmrPatientUpdateUri(), new ShrPatientCreator(
-                    Context.getService(AddressHierarchyService.class), Context.getPatientService()));
+            feedClient = factory.getFeedClient(getEmrPatientUpdateUri(),
+                    new ShrPatientCreator(
+                       Context.getService(AddressHierarchyService.class),
+                       Context.getPatientService(),
+                       Context.getUserService()));
             feedClient.processEvents();
         } catch (URISyntaxException e) {
             log.error("Invalid URI. ", e);
