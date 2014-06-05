@@ -27,6 +27,11 @@
     </changeSet>
 
     <changeSet id="bdshrclient-040614" author="tw" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from users where system_id = 'shrclientsystem';
+            </sqlCheck>
+        </preConditions>
         <sql>
             set @puuid = uuid();
 
