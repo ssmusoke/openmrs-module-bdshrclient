@@ -1,5 +1,6 @@
 package org.openmrs.module.bdshrclient.handlers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -7,7 +8,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.PersonAddress;
@@ -20,12 +20,14 @@ import org.openmrs.module.bdshrclient.util.GenderEnum;
 import org.openmrs.module.bdshrclient.util.MciProperties;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ShrPatientCreator implements EventWorker {
     private static final Log log = LogFactory.getLog(ShrPatientCreator.class);
+    public static final String ISO_DATE_FORMAT = "yyyy-MM-dd";
 
     private static ObjectMapper jsonMapper = new ObjectMapper();
     private static HttpClient httpClient = HttpClientBuilder.create().build();
@@ -68,13 +70,23 @@ public class ShrPatientCreator implements EventWorker {
 
         Patient patient = new Patient();
         patient.setNationalId(openMrsPatient.getAttribute("National ID").getValue());
+        patient.setHealthId(openMrsPatient.getAttribute("Health ID").getValue());
         patient.setFirstName(openMrsPatient.getGivenName());
         patient.setMiddleName(openMrsPatient.getMiddleName());
         patient.setLastName(openMrsPatient.getFamilyName());
-
         patient.setGender(GenderEnum.getCode(openMrsPatient.getGender()));
+        patient.setDateOfBirth(new SimpleDateFormat(ISO_DATE_FORMAT).format(openMrsPatient.getBirthdate()));
+        patient.setOccupation(openMrsPatient.getAttribute("occupation").getValue());
+        patient.setEducationLevel(openMrsPatient.getAttribute("education").getValue());
+        patient.setPrimaryContact(openMrsPatient.getAttribute("primaryContact").getValue());
 
+        patient.setAddress(getAddress(openMrsPatient));
+        return patient;
+    }
+
+    private Address getAddress(org.openmrs.Patient openMrsPatient) {
         PersonAddress openMrsPersonAddress = openMrsPatient.getPersonAddress();
+        String addressLine = openMrsPersonAddress.getAddress1();
         String division = openMrsPersonAddress.getStateProvince();
         String district = openMrsPersonAddress.getCountyDistrict();
         String upazilla = openMrsPersonAddress.getAddress3();
@@ -86,10 +98,7 @@ public class ShrPatientCreator implements EventWorker {
         String upazillaId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(2), upazilla).get(0).getUserGeneratedId();
         String unionId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), union).get(0).getUserGeneratedId();
 
-        Address address = new Address(divisionId, districtId, upazillaId, unionId);
-        patient.setAddress(address);
-
-        return patient;
+        return new Address(addressLine, divisionId, districtId, upazillaId, unionId);
     }
 
     public int httpPost(String url, Patient patient) throws IOException {

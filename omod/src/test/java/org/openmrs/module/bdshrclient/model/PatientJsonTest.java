@@ -27,10 +27,9 @@ public class PatientJsonTest {
     @Test
     public void shouldExcludeEmptyNonMandatoryFields() throws Exception {
         patient.setMiddleName("");
-
-        String expected = "{\"first_name\":\"Scott\",\"last_name\":\"Tiger\"," +
-                "\"present_address\":{\"division_id\":\"10\",\"district_id\":\"1020\",\"upazilla_id\":\"102030\",\"union_id\":\"10203040\"}," +
-                "\"gender\":\"1\",\"hid\":null}";
+        String expected = "{\"first_name\":\"Scott\",\"last_name\":\"Tiger\",\"date_of_birth\":null,\"gender\":\"1\"" +
+                ",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"1020\"" +
+                ",\"upazilla_id\":\"102030\",\"union_id\":\"10203040\"}}";
         String actual = new ObjectMapper().writeValueAsString(patient);
         assertEquals(expected, actual);
     }
@@ -39,10 +38,9 @@ public class PatientJsonTest {
     public void shouldIncludeNonEmptyNonMandatoryFields() throws Exception {
         patient.setNationalId("nid-100");
         patient.setMiddleName(null);
-
-        String expected = "{\"nid\":\"nid-100\",\"first_name\":\"Scott\",\"last_name\":\"Tiger\"," +
-                "\"present_address\":{\"division_id\":\"10\",\"district_id\":\"1020\",\"upazilla_id\":\"102030\",\"union_id\":\"10203040\"}," +
-                "\"gender\":\"1\",\"hid\":null}";
+        String expected = "{\"nid\":\"nid-100\",\"first_name\":\"Scott\",\"last_name\":\"Tiger\",\"date_of_birth\":null," +
+                "\"gender\":\"1\",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"1020\"," +
+                "\"upazilla_id\":\"102030\",\"union_id\":\"10203040\"}}";
         String actual = new ObjectMapper().writeValueAsString(patient);
         assertEquals(expected, actual);
     }

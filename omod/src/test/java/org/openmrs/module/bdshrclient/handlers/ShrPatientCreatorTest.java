@@ -13,11 +13,15 @@ import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
 import org.openmrs.module.bdshrclient.util.GenderEnum;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.openmrs.module.bdshrclient.handlers.ShrPatientCreator.ISO_DATE_FORMAT;
 
 public class ShrPatientCreatorTest {
 
@@ -37,11 +41,19 @@ public class ShrPatientCreatorTest {
     @Test
     public void shouldCreatePatientFromEvent() throws Exception {
         final String uuid = "123abc456";
-        final String nationalId = "nid-123";
+
+        final String nationalId = "nid-100";
+        final String healthId = "hid-200";
         final String givenName = "Sachin";
         final String middleName = "Ramesh";
         final String familyName = "Tendulkar";
         final String gender = "M";
+        final Date dateOfBirth = new SimpleDateFormat(ISO_DATE_FORMAT).parse("2000-12-31");
+        final String occupation = "salaried";
+        final String educationLevel = "graduate";
+        final String primaryContact = "some contact";
+
+        final String addressLine = "house10";
         final String divisionId = "10";
         final String division = "some-division";
         final String districtId = "1020";
@@ -55,8 +67,10 @@ public class ShrPatientCreatorTest {
         PersonName personName = new PersonName(givenName, middleName, familyName);
         person.addName(personName);
         person.setGender(gender);
+        person.setBirthdate(dateOfBirth);
 
         PersonAddress address = new PersonAddress();
+        address.setAddress1(addressLine);
         address.setStateProvince(division);
         address.setCountyDistrict(district);
         address.setAddress3(upazilla);
@@ -65,9 +79,26 @@ public class ShrPatientCreatorTest {
         org.openmrs.Patient openMrsPatient = new org.openmrs.Patient(person);
 
         Set<PersonAttribute> attributes = new HashSet<PersonAttribute>();
-        final PersonAttributeType type = new PersonAttributeType();
-        type.setName("National ID");
-        attributes.add(new PersonAttribute(type, nationalId));
+        final PersonAttributeType nationalIdAttrType = new PersonAttributeType();
+        nationalIdAttrType.setName("National ID");
+        attributes.add(new PersonAttribute(nationalIdAttrType, nationalId));
+
+        final PersonAttributeType healthIdAttrType = new PersonAttributeType();
+        healthIdAttrType.setName("Health ID");
+        attributes.add(new PersonAttribute(healthIdAttrType, healthId));
+
+        final PersonAttributeType occupationAttrType = new PersonAttributeType();
+        occupationAttrType.setName("occupation");
+        attributes.add(new PersonAttribute(occupationAttrType, occupation));
+
+        final PersonAttributeType educationAttrType = new PersonAttributeType();
+        educationAttrType.setName("education");
+        attributes.add(new PersonAttribute(educationAttrType, educationLevel));
+
+        final PersonAttributeType primaryContactAttrType = new PersonAttributeType();
+        primaryContactAttrType.setName("primaryContact");
+        attributes.add(new PersonAttribute(primaryContactAttrType, primaryContact));
+
         openMrsPatient.setAttributes(attributes);
 
         AddressHierarchyLevel level1 = new AddressHierarchyLevel();
@@ -108,17 +139,31 @@ public class ShrPatientCreatorTest {
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(2), upazilla)).thenReturn(entries3);
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), union)).thenReturn(entries4);
 
-
         when(patientService.getPatientByUuid(uuid)).thenReturn(openMrsPatient);
 
         Event event = new Event("id100", "/openmrs/ws/rest/v1/patient/" + uuid + "?v=full");
         Patient patient = shrPatientCreator.populatePatient(event);
 
-        assertEquals(nationalId, patient.getNationalId());
-        assertEquals(givenName, patient.getFirstName());
-        assertEquals(middleName, patient.getMiddleName());
-        assertEquals(familyName, patient.getLastName());
-        assertEquals(GenderEnum.M.getId(), patient.getGender());
-        assertEquals(new Address(divisionId, districtId, upazillaId, unionId), patient.getAddress());
+        Patient p = new Patient();
+        p.setNationalId(nationalId);
+        p.setHealthId(healthId);
+        p.setFirstName(givenName);
+        p.setMiddleName(middleName);
+        p.setLastName(familyName);
+        p.setGender(GenderEnum.getCode(gender));
+        p.setDateOfBirth(new SimpleDateFormat(ISO_DATE_FORMAT).format(dateOfBirth));
+        p.setOccupation(occupation);
+        p.setEducationLevel(educationLevel);
+        p.setPrimaryContact(primaryContact);
+
+        Address a = new Address();
+        a.setAddressLine(addressLine);
+        a.setDivisionId(divisionId);
+        a.setDistrictId(districtId);
+        a.setUpazillaId(upazillaId);
+        a.setUnionId(unionId);
+        p.setAddress(a);
+
+        assertEquals(p, patient);
     }
 }
