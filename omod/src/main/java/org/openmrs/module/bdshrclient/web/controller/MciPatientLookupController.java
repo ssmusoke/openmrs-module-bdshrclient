@@ -35,7 +35,9 @@ public class MciPatientLookupController {
     public Object search(MciPatientSearchRequest request) {
         if (request.getNid() != null) {
             Patient mciPatient = searchPatientByNationalId(request.getNid());
-            return mapToPatientUIModel(mciPatient);
+            if (mciPatient != null) {
+                return mapToPatientUIModel(mciPatient);
+            }
         }
         return null;
     }
@@ -65,10 +67,12 @@ public class MciPatientLookupController {
     @RequestMapping(method = RequestMethod.GET, value = "/download")
     @ResponseBody
     public Object download(MciPatientSearchRequest request) {
-        Patient mciPatient = searchPatientByHealthId(request.getHid());
-        org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(mciPatient);
         Map<String, String> downloadResponse = new HashMap<String, String>();
-        downloadResponse.put("uuid", emrPatient.getUuid());
+        Patient mciPatient = searchPatientByHealthId(request.getHid());
+        if (mciPatient != null) {
+            org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(mciPatient);
+            downloadResponse.put("uuid", emrPatient.getUuid());
+        }
         return downloadResponse;
     }
 

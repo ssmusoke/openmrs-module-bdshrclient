@@ -20,7 +20,10 @@ public class WebClient {
 
     public <T> T get(String url, Class<T> returnType) throws IOException {
         String response = getResponse(URI.create(url));
-        return objectMapper.readValue(response, returnType);
+        if ((response != null) && !"".equals(response)) {
+            return objectMapper.readValue(response, returnType);
+        }
+        return null;
     }
 
     private String getResponse(URI uri) throws IOException {
