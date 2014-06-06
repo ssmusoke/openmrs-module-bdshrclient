@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 @Controller
 @RequestMapping(value = "/mci")
@@ -109,7 +110,7 @@ public class MciPatientLookupController {
 
     private String getMciPatientBaseUrl() throws IOException {
         if (mciPatientUrl == null) {
-            MciProperties mciProperties = new MciProperties();
+            MciProperties mciProperties = new MciProperties(new Properties());
             mciProperties.loadProperties();
             mciPatientUrl = mciProperties.getMciPatientBaseURL();
         }

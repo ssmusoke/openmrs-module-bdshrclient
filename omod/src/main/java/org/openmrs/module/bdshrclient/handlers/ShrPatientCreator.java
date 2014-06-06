@@ -28,6 +28,7 @@ import org.openmrs.module.bdshrclient.util.MciProperties;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,6 +62,11 @@ public class ShrPatientCreator implements EventWorker {
             log.debug("Patient uuid: [" + uuid + "]");
 
             org.openmrs.Patient openMrsPatient = patientService.getPatientByUuid(uuid);
+            if (openMrsPatient == null) {
+                log.debug(String.format("No OpenMRS patient exists with uuid: [%s].", uuid));
+                return;
+            }
+
             if (!shouldSyncPatient(openMrsPatient)) {
                 log.debug(String.format("OpenMRS patient [%s] was created from SHR. Ignoring Patient Sync.", openMrsPatient));
                 return;
@@ -68,7 +74,8 @@ public class ShrPatientCreator implements EventWorker {
             Patient patient = populatePatient(openMrsPatient);
             log.debug("Patient: [ " + patient + "]");
 
-            String healthId = httpPost(getMciUrl(), patient);
+            final MciProperties mciProperties = new MciProperties(new Properties());
+            String healthId = httpPost(getMciUrl(mciProperties), patient);
             updateOpenMrsPatientHealthId(openMrsPatient, healthId);
 
         } catch (IOException e) {
@@ -94,7 +101,6 @@ public class ShrPatientCreator implements EventWorker {
             healthIdAttribute = new PersonAttribute();
             PersonAttributeType healthAttrType = personService.getPersonAttributeTypeByName(HEALTH_ID_ATTRIBUTE);
             healthIdAttribute.setAttributeType(healthAttrType);
-            // OpenMRS may not allow setting blank attribute
             healthIdAttribute.setValue(healthId);
             openMrsPatient.addAttribute(healthIdAttribute);
 
@@ -110,8 +116,7 @@ public class ShrPatientCreator implements EventWorker {
         log.debug(String.format("OpenMRS patient updated."));
     }
 
-    String getMciUrl() throws IOException {
-        MciProperties mciProperties = new MciProperties();
+    String getMciUrl(MciProperties mciProperties) throws IOException {
         mciProperties.loadProperties();
         return mciProperties.getMciPatientBaseURL();
     }

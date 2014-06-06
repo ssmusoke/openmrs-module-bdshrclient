@@ -15,14 +15,17 @@ import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
 import org.openmrs.module.bdshrclient.util.Constants;
 import org.openmrs.module.bdshrclient.util.GenderEnum;
+import org.openmrs.module.bdshrclient.util.MciProperties;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.openmrs.module.bdshrclient.util.Constants.*;
 
 public class ShrPatientCreatorTest {
 
@@ -34,6 +37,9 @@ public class ShrPatientCreatorTest {
     private UserService userService;
     @Mock
     private PersonService personService;
+
+    @Mock
+    Properties properties;
 
     private ShrPatientCreator shrPatientCreator;
 
@@ -51,47 +57,90 @@ public class ShrPatientCreatorTest {
 
     @Test
     public void shouldProcessPatientSyncEvent() {
-        //TODO
+        final String uuid = "123abc456";
+        Event event = new Event("id100", "/openmrs/ws/rest/v1/patient/" + uuid + "?v=full");
+        shrPatientCreator.process(event);
+        verify(patientService).getPatientByUuid(anyString());
+//        verify(userService).getUserByUsername(anyString());
     }
 
     @Test
-    public void shouldGetPatientIdFromEvent() {
+    public void shouldNotSyncPatientWhenUsersAreSame() {
+        final org.openmrs.Patient openMrsPatient = new org.openmrs.Patient();
+        User shrUser = new User();
+        shrUser.setId(2);
+        openMrsPatient.setCreator(shrUser);
+        when(userService.getUserByUsername(SHR_CLIENT_SYSTEM_NAME)).thenReturn(shrUser);
+
+        assertFalse(shrPatientCreator.shouldSyncPatient(openMrsPatient));
+    }
+
+    @Test
+    public void shouldSyncPatientWhenUsersAreDifferent() {
+        final org.openmrs.Patient openMrsPatient = new org.openmrs.Patient();
+        User bahmniUser = new User();
+        bahmniUser.setId(1);
+        User shrUser = new User();
+        shrUser.setId(2);
+        openMrsPatient.setCreator(bahmniUser);
+        when(userService.getUserByUsername(SHR_CLIENT_SYSTEM_NAME)).thenReturn(shrUser);
+
+        assertTrue(shrPatientCreator.shouldSyncPatient(openMrsPatient));
+    }
+
+    @Test
+    public void shouldGetMciUrl() throws IOException {
+        MciProperties mciProperties = new MciProperties(properties);
+        when(properties.getProperty("mci.host")).thenReturn("localhost");
+        when(properties.getProperty("mci.port")).thenReturn("8080");
+        assertEquals("http://localhost:8080/patient", shrPatientCreator.getMciUrl(mciProperties));
+    }
+
+    @Test
+    public void shouldGetPatientUuidFromEvent() {
         final String uuid = "123abc456";
         Event event = new Event("id100", "/openmrs/ws/rest/v1/patient/" + uuid + "?v=full");
         assertEquals(uuid, shrPatientCreator.getPatientUuid(event));
     }
 
     @Test
-    public void shouldNotUpdateOpenMrsPatient_WhenHealthIdIsBlank() {
-        shrPatientCreator.updateOpenMrsPatientHealthId(new org.openmrs.Patient(100), "  ");
+    public void shouldNotUpdateOpenMrsPatient_WhenHealthIdIsBlankOrNull() {
+        shrPatientCreator.updateOpenMrsPatientHealthId(new org.openmrs.Patient(), " ");
         verify(patientService, never()).savePatient(any(org.openmrs.Patient.class));
-    }
-
-    @Test
-    public void shouldNotUpdateOpenMrsPatient_WhenHealthIdAttributeIsNull() {
-        //TODO
+        shrPatientCreator.updateOpenMrsPatientHealthId(new org.openmrs.Patient(), null);
         verify(patientService, never()).savePatient(any(org.openmrs.Patient.class));
     }
 
     @Test
     public void shouldNotUpdateOpenMrsPatient_WhenHealthIdAttributeIsSameAsProvidedHealthId() {
-        //TODO
+        final org.openmrs.Patient openMrsPatient = new org.openmrs.Patient();
+
+        PersonAttributeType healthIdAttributeType = new PersonAttributeType();
+        healthIdAttributeType.setName(HEALTH_ID_ATTRIBUTE);
+
+        PersonAttribute healthIdAttribute = new PersonAttribute();
+        healthIdAttribute.setAttributeType(healthIdAttributeType);
+        healthIdAttribute.setValue(healthId);
+
+        Set<PersonAttribute> openMrsPatientAttributes = new HashSet<PersonAttribute>();
+        openMrsPatientAttributes.add(healthIdAttribute);
+        openMrsPatient.setAttributes(openMrsPatientAttributes);
+
+        shrPatientCreator.updateOpenMrsPatientHealthId(openMrsPatient, healthId);
         verify(patientService, never()).savePatient(any(org.openmrs.Patient.class));
     }
 
     @Test
-    public void shouldSyncPatient() {
-        //TODO
-    }
-
-    @Test
     public void shouldUpdateOpenMrsPatient_WhenNewHealthIdIsProvided() {
-        //TODO
-    }
+        final org.openmrs.Patient openMrsPatient = new org.openmrs.Patient();
+        PersonAttributeType healthIdAttributeType = new PersonAttributeType();
+        healthIdAttributeType.setName(HEALTH_ID_ATTRIBUTE);
+        Set<PersonAttribute> openMrsPatientAttributes = new HashSet<PersonAttribute>();
+        openMrsPatient.setAttributes(openMrsPatientAttributes);
 
-    @Test
-    public void shouldGetMciUrl() {
-        //TODO
+        when(personService.getPersonAttributeTypeByName(HEALTH_ID_ATTRIBUTE)).thenReturn(healthIdAttributeType);
+        shrPatientCreator.updateOpenMrsPatientHealthId(openMrsPatient, healthId);
+        verify(patientService).savePatient(any(org.openmrs.Patient.class));
     }
 
     @Test
@@ -170,23 +219,23 @@ public class ShrPatientCreatorTest {
     private Set<PersonAttribute> createOpenMrsPersonAttributes() {
         Set<PersonAttribute> attributes = new HashSet<PersonAttribute>();
         final PersonAttributeType nationalIdAttrType = new PersonAttributeType();
-        nationalIdAttrType.setName(Constants.NATIONAL_ID_ATTRIBUTE);
+        nationalIdAttrType.setName(NATIONAL_ID_ATTRIBUTE);
         attributes.add(new PersonAttribute(nationalIdAttrType, nationalId));
 
         final PersonAttributeType healthIdAttrType = new PersonAttributeType();
-        healthIdAttrType.setName(Constants.HEALTH_ID_ATTRIBUTE);
+        healthIdAttrType.setName(HEALTH_ID_ATTRIBUTE);
         attributes.add(new PersonAttribute(healthIdAttrType, healthId));
 
         final PersonAttributeType occupationAttrType = new PersonAttributeType();
-        occupationAttrType.setName(Constants.OCCUPATION_ATTRIBUTE);
+        occupationAttrType.setName(OCCUPATION_ATTRIBUTE);
         attributes.add(new PersonAttribute(occupationAttrType, occupation));
 
         final PersonAttributeType educationAttrType = new PersonAttributeType();
-        educationAttrType.setName(Constants.EDUCATION_ATTRIBUTE);
+        educationAttrType.setName(EDUCATION_ATTRIBUTE);
         attributes.add(new PersonAttribute(educationAttrType, educationLevel));
 
         final PersonAttributeType primaryContactAttrType = new PersonAttributeType();
-        primaryContactAttrType.setName(Constants.PRIMARY_CONTACT_ATTRIBUTE);
+        primaryContactAttrType.setName(PRIMARY_CONTACT_ATTRIBUTE);
         attributes.add(new PersonAttribute(primaryContactAttrType, primaryContact));
         return attributes;
     }
