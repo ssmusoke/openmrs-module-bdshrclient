@@ -23,7 +23,8 @@ public class EmrPatientNotifier {
                     new ShrPatientCreator(
                        Context.getService(AddressHierarchyService.class),
                        Context.getPatientService(),
-                       Context.getUserService()));
+                       Context.getUserService(),
+                       Context.getPersonService()));
             feedClient.processEvents();
         } catch (URISyntaxException e) {
             log.error("Invalid URI. ", e);

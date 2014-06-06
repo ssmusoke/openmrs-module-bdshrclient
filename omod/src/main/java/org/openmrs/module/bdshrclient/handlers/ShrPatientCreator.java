@@ -1,24 +1,27 @@
 package org.openmrs.module.bdshrclient.handlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.PersonAddress;
 import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
 import org.openmrs.User;
 import org.openmrs.api.PatientService;
+import org.openmrs.api.PersonService;
 import org.openmrs.api.UserService;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
-import static org.openmrs.module.bdshrclient.util.Constants.*;
 import org.openmrs.module.bdshrclient.util.GenderEnum;
 import org.openmrs.module.bdshrclient.util.MciProperties;
 
@@ -27,6 +30,8 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.openmrs.module.bdshrclient.util.Constants.*;
 
 public class ShrPatientCreator implements EventWorker {
 
@@ -39,34 +44,73 @@ public class ShrPatientCreator implements EventWorker {
     private AddressHierarchyService addressHierarchyService;
     private PatientService patientService;
     private UserService userService;
+    private PersonService personService;
 
-    public ShrPatientCreator(AddressHierarchyService addressHierarchyService, PatientService patientService, UserService userService) {
+    public ShrPatientCreator(AddressHierarchyService addressHierarchyService, PatientService patientService, UserService userService, PersonService personService) {
         this.addressHierarchyService = addressHierarchyService;
         this.patientService = patientService;
         this.userService = userService;
+        this.personService = personService;
     }
 
     @Override
     public void process(Event event) {
-        log.debug("Patient sync event. Event: [" + event + "]");
+        log.debug("Event: [" + event + "]");
         try {
-            String patientUuid = getPatientUuid(event);
-            org.openmrs.Patient openMrsPatient = patientService.getPatientByUuid(patientUuid);
+            String uuid = getPatientUuid(event);
+            log.debug("Patient uuid: [" + uuid + "]");
+
+            org.openmrs.Patient openMrsPatient = patientService.getPatientByUuid(uuid);
             if (!shouldSyncPatient(openMrsPatient)) {
-                log.debug("Patient %s was created from SHR. Ignoring Patient Sync");
+                log.debug(String.format("OpenMRS patient [%s] was created from SHR. Ignoring Patient Sync.", openMrsPatient));
                 return;
             }
-
             Patient patient = populatePatient(openMrsPatient);
-            log.debug("Patient sync event. Patient: [ " + patient + "]");
-            int responseCode = httpPost(getMciUrl(), patient);
-            log.debug("Patient sync event. Response code: " + responseCode);
+            log.debug("Patient: [ " + patient + "]");
+
+            String healthId = httpPost(getMciUrl(), patient);
+            updateOpenMrsPatientHealthId(openMrsPatient, healthId);
+
         } catch (IOException e) {
             log.error("Error while processing patient sync event.", e);
         }
     }
 
-    private String getMciUrl() throws IOException {
+    void updateOpenMrsPatientHealthId(org.openmrs.Patient openMrsPatient, String healthId) {
+        log.debug(String.format("Trying to update OpenMRS patient [%s] with health id [%s]", openMrsPatient, healthId));
+
+        if (StringUtils.isBlank(healthId)) {
+            log.debug("Health id is blank. Hence, not updated.");
+            return;
+        }
+
+        PersonAttribute healthIdAttribute = openMrsPatient.getAttribute(HEALTH_ID_ATTRIBUTE);
+        if (healthIdAttribute != null && healthId.equals(healthIdAttribute.getValue())) {
+            log.debug("OpenMRS patient health id is same as the health id provided. Hence, not updated.");
+            return;
+        }
+
+        if (healthIdAttribute == null) {
+            healthIdAttribute = new PersonAttribute();
+            PersonAttributeType healthAttrType = personService.getPersonAttributeTypeByName(HEALTH_ID_ATTRIBUTE);
+            healthIdAttribute.setAttributeType(healthAttrType);
+            // OpenMRS may not allow setting blank attribute
+            healthIdAttribute.setValue(healthId);
+            openMrsPatient.addAttribute(healthIdAttribute);
+
+        } else {
+            healthIdAttribute.setValue(healthId);
+        }
+
+        User shrClientSystemUser = userService.getUserByUsername(SHR_CLIENT_SYSTEM_NAME);
+        log.debug("SHR client system user: " + shrClientSystemUser);
+        openMrsPatient.setChangedBy(shrClientSystemUser);
+
+        patientService.savePatient(openMrsPatient);
+        log.debug(String.format("OpenMRS patient updated."));
+    }
+
+    String getMciUrl() throws IOException {
         MciProperties mciProperties = new MciProperties();
         mciProperties.loadProperties();
         return mciProperties.getMciPatientBaseURL();
@@ -85,7 +129,13 @@ public class ShrPatientCreator implements EventWorker {
             patient.setHealthId(healthId);
         }
 
-        String occupation = getAttributeValue(openMrsPatient,  OCCUPATION_ATTRIBUTE);
+        patient.setFirstName(openMrsPatient.getGivenName());
+        patient.setMiddleName(openMrsPatient.getMiddleName());
+        patient.setLastName(openMrsPatient.getFamilyName());
+        patient.setGender(GenderEnum.getCode(openMrsPatient.getGender()));
+        patient.setDateOfBirth(new SimpleDateFormat(ISO_DATE_FORMAT).format(openMrsPatient.getBirthdate()));
+
+        String occupation = getAttributeValue(openMrsPatient, OCCUPATION_ATTRIBUTE);
         if (occupation != null) {
             patient.setOccupation(occupation);
         }
@@ -100,13 +150,6 @@ public class ShrPatientCreator implements EventWorker {
             patient.setPrimaryContact(primaryContact);
         }
 
-        patient.setFirstName(openMrsPatient.getGivenName());
-        patient.setMiddleName(openMrsPatient.getMiddleName());
-        patient.setLastName(openMrsPatient.getFamilyName());
-        patient.setGender(GenderEnum.getCode(openMrsPatient.getGender()));
-        patient.setDateOfBirth(new SimpleDateFormat(ISO_DATE_FORMAT).format(openMrsPatient.getBirthdate()));
-
-
         patient.setAddress(getAddress(openMrsPatient));
         return patient;
     }
@@ -116,16 +159,16 @@ public class ShrPatientCreator implements EventWorker {
         return attribute != null ? attribute.getValue() : null;
     }
 
-    private boolean shouldSyncPatient(org.openmrs.Patient openMrsPatient) {
+    boolean shouldSyncPatient(org.openmrs.Patient openMrsPatient) {
         User changedByUser = openMrsPatient.getChangedBy();
         if (changedByUser == null) {
             changedByUser = openMrsPatient.getCreator();
         }
         User shrClientSystemUser = userService.getUserByUsername(SHR_CLIENT_SYSTEM_NAME);
-        return shrClientSystemUser.getId() != changedByUser.getId();
+        return !shrClientSystemUser.getId().equals(changedByUser.getId());
     }
 
-    public String getPatientUuid(Event event) {
+    String getPatientUuid(Event event) {
         String patientUuid = null;
         Pattern p = Pattern.compile("^\\/openmrs\\/ws\\/rest\\/v1\\/patient\\/(.*)\\?v=full");
         Matcher m = p.matcher(event.getContent());
@@ -152,17 +195,26 @@ public class ShrPatientCreator implements EventWorker {
         return new Address(addressLine, divisionId, districtId, upazillaId, unionId);
     }
 
-    public int httpPost(String url, Patient patient) throws IOException {
-        //TODO: HttpAsyncClient
+    //TODO: HttpAsyncClient
+    String httpPost(String url, Patient patient) throws IOException {
         final String json = jsonMapper.writeValueAsString(patient);
-        log.debug(String.format("Patient sync event. HTTP post. \nURL: [%s] \nJSON:[%s]", url, json));
+        log.debug(String.format("HTTP post. \nURL: [%s] \nJSON:[%s]", url, json));
+
         HttpPost post = new HttpPost(url);
         StringEntity entity = new StringEntity(json);
         entity.setContentType("application/json");
         post.setEntity(entity);
 
         HttpResponse response = httpClient.execute(post);
-        return response.getStatusLine().getStatusCode();
+        final int statusCode = response.getStatusLine().getStatusCode();
+        log.debug(String.format("HTTP post response status code: " + statusCode));
+
+        String healthId = null;
+        if (statusCode == 200) {
+            healthId = EntityUtils.toString(response.getEntity());
+        }
+        log.debug(String.format("HTTP post response health id: " + healthId));
+        return healthId;
     }
 
     @Override

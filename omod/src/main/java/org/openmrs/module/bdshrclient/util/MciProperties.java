@@ -6,7 +6,9 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class MciProperties {
+
     Properties properties = new Properties();
+
     public void loadProperties() throws IOException {
         final InputStream inputStream = getClass().getClassLoader().getResourceAsStream("freeshrclient.properties");
         properties.clear();

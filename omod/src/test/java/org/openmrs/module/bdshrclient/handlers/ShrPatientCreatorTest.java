@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.openmrs.*;
 import org.openmrs.api.PatientService;
+import org.openmrs.api.PersonService;
 import org.openmrs.api.UserService;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
@@ -19,7 +20,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class ShrPatientCreatorTest {
@@ -30,30 +32,75 @@ public class ShrPatientCreatorTest {
     private AddressHierarchyService addressHierarchyService;
     @Mock
     private UserService userService;
+    @Mock
+    private PersonService personService;
 
     private ShrPatientCreator shrPatientCreator;
+
+    private String nationalId = "nid-100";
+    private String healthId = "hid-200";
+    private String occupation = "salaried";
+    private String educationLevel = "graduate";
+    private String primaryContact = "some contact";
 
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        shrPatientCreator = new ShrPatientCreator(addressHierarchyService, patientService, userService);
+        shrPatientCreator = new ShrPatientCreator(addressHierarchyService, patientService, userService, personService);
     }
 
+    @Test
+    public void shouldProcessPatientSyncEvent() {
+        //TODO
+    }
 
     @Test
-    public void shouldCreatePatientFromEvent() throws Exception {
+    public void shouldGetPatientIdFromEvent() {
         final String uuid = "123abc456";
+        Event event = new Event("id100", "/openmrs/ws/rest/v1/patient/" + uuid + "?v=full");
+        assertEquals(uuid, shrPatientCreator.getPatientUuid(event));
+    }
 
-        final String nationalId = "nid-100";
-        final String healthId = "hid-200";
+    @Test
+    public void shouldNotUpdateOpenMrsPatient_WhenHealthIdIsBlank() {
+        shrPatientCreator.updateOpenMrsPatientHealthId(new org.openmrs.Patient(100), "  ");
+        verify(patientService, never()).savePatient(any(org.openmrs.Patient.class));
+    }
+
+    @Test
+    public void shouldNotUpdateOpenMrsPatient_WhenHealthIdAttributeIsNull() {
+        //TODO
+        verify(patientService, never()).savePatient(any(org.openmrs.Patient.class));
+    }
+
+    @Test
+    public void shouldNotUpdateOpenMrsPatient_WhenHealthIdAttributeIsSameAsProvidedHealthId() {
+        //TODO
+        verify(patientService, never()).savePatient(any(org.openmrs.Patient.class));
+    }
+
+    @Test
+    public void shouldSyncPatient() {
+        //TODO
+    }
+
+    @Test
+    public void shouldUpdateOpenMrsPatient_WhenNewHealthIdIsProvided() {
+        //TODO
+    }
+
+    @Test
+    public void shouldGetMciUrl() {
+        //TODO
+    }
+
+    @Test
+    public void shouldPopulateFreeShrPatientFromOpenMrsPatient() throws Exception {
         final String givenName = "Sachin";
         final String middleName = "Ramesh";
         final String familyName = "Tendulkar";
         final String gender = "M";
         final Date dateOfBirth = new SimpleDateFormat(Constants.ISO_DATE_FORMAT).parse("2000-12-31");
-        final String occupation = "salaried";
-        final String educationLevel = "graduate";
-        final String primaryContact = "some contact";
 
         final String addressLine = "house10";
         final String divisionId = "10";
@@ -80,71 +127,21 @@ public class ShrPatientCreatorTest {
         person.addAddress(address);
         org.openmrs.Patient openMrsPatient = new org.openmrs.Patient(person);
 
-        Set<PersonAttribute> attributes = new HashSet<PersonAttribute>();
-        final PersonAttributeType nationalIdAttrType = new PersonAttributeType();
-        nationalIdAttrType.setName(Constants.NATIONAL_ID_ATTRIBUTE);
-        attributes.add(new PersonAttribute(nationalIdAttrType, nationalId));
+        openMrsPatient.setAttributes(createOpenMrsPersonAttributes());
 
-        final PersonAttributeType healthIdAttrType = new PersonAttributeType();
-        healthIdAttrType.setName(Constants.HEALTH_ID_ATTRIBUTE);
-        attributes.add(new PersonAttribute(healthIdAttrType, healthId));
+        List<AddressHierarchyLevel> levels = createAddressHierarchyLevels();
+        List<AddressHierarchyEntry> divisionEntries = createAddressHierarchyEntries(divisionId);
+        List<AddressHierarchyEntry> districtEntries = createAddressHierarchyEntries(districtId);
+        List<AddressHierarchyEntry> upazillaEntries = createAddressHierarchyEntries(upazillaId);
+        List<AddressHierarchyEntry> unionEntries = createAddressHierarchyEntries(unionId);
 
-        final PersonAttributeType occupationAttrType = new PersonAttributeType();
-        occupationAttrType.setName(Constants.OCCUPATION_ATTRIBUTE);
-        attributes.add(new PersonAttribute(occupationAttrType, occupation));
-
-        final PersonAttributeType educationAttrType = new PersonAttributeType();
-        educationAttrType.setName(Constants.EDUCATION_ATTRIBUTE);
-        attributes.add(new PersonAttribute(educationAttrType, educationLevel));
-
-        final PersonAttributeType primaryContactAttrType = new PersonAttributeType();
-        primaryContactAttrType.setName(Constants.PRIMARY_CONTACT_ATTRIBUTE);
-        attributes.add(new PersonAttribute(primaryContactAttrType, primaryContact));
-
-        openMrsPatient.setAttributes(attributes);
-
-        AddressHierarchyLevel level1 = new AddressHierarchyLevel();
-        level1.setId(100);
-        AddressHierarchyLevel level2 = new AddressHierarchyLevel();
-        level2.setId(200);
-        AddressHierarchyLevel level3 = new AddressHierarchyLevel();
-        level3.setId(300);
-        AddressHierarchyLevel level4 = new AddressHierarchyLevel();
-        level4.setId(400);
-
-        List<AddressHierarchyEntry> entries1 = new ArrayList<AddressHierarchyEntry>();
-        AddressHierarchyEntry entry1 = new AddressHierarchyEntry();
-        entry1.setUserGeneratedId(divisionId);
-        entries1.add(entry1);
-
-        List<AddressHierarchyEntry> entries2 = new ArrayList<AddressHierarchyEntry>();
-        AddressHierarchyEntry entry2 = new AddressHierarchyEntry();
-        entry2.setUserGeneratedId(districtId);
-        entries2.add(entry2);
-
-        List<AddressHierarchyEntry> entries3 = new ArrayList<AddressHierarchyEntry>();
-        AddressHierarchyEntry entry3 = new AddressHierarchyEntry();
-        entry3.setUserGeneratedId(upazillaId);
-        entries3.add(entry3);
-
-        List<AddressHierarchyEntry> entries4 = new ArrayList<AddressHierarchyEntry>();
-        AddressHierarchyEntry entry4 = new AddressHierarchyEntry();
-        entry4.setUserGeneratedId(unionId);
-        entries4.add(entry4);
-
-
-        List<AddressHierarchyLevel> levels = Arrays.asList(level1, level2, level3, level4);
 
         when(addressHierarchyService.getAddressHierarchyLevels()).thenReturn(levels);
-        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(0), division)).thenReturn(entries1);
-        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(1), district)).thenReturn(entries2);
-        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(2), upazilla)).thenReturn(entries3);
-        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), union)).thenReturn(entries4);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(0), division)).thenReturn(divisionEntries);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(1), district)).thenReturn(districtEntries);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(2), upazilla)).thenReturn(upazillaEntries);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), union)).thenReturn(unionEntries);
 
-        when(patientService.getPatientByUuid(uuid)).thenReturn(openMrsPatient);
-
-        Event event = new Event("id100", "/openmrs/ws/rest/v1/patient/" + uuid + "?v=full");
-        String patientUuid = shrPatientCreator.getPatientUuid(event);
         Patient patient = shrPatientCreator.populatePatient(openMrsPatient);
 
         Patient p = new Patient();
@@ -168,5 +165,54 @@ public class ShrPatientCreatorTest {
         p.setAddress(a);
 
         assertEquals(p, patient);
+    }
+
+    private Set<PersonAttribute> createOpenMrsPersonAttributes() {
+        Set<PersonAttribute> attributes = new HashSet<PersonAttribute>();
+        final PersonAttributeType nationalIdAttrType = new PersonAttributeType();
+        nationalIdAttrType.setName(Constants.NATIONAL_ID_ATTRIBUTE);
+        attributes.add(new PersonAttribute(nationalIdAttrType, nationalId));
+
+        final PersonAttributeType healthIdAttrType = new PersonAttributeType();
+        healthIdAttrType.setName(Constants.HEALTH_ID_ATTRIBUTE);
+        attributes.add(new PersonAttribute(healthIdAttrType, healthId));
+
+        final PersonAttributeType occupationAttrType = new PersonAttributeType();
+        occupationAttrType.setName(Constants.OCCUPATION_ATTRIBUTE);
+        attributes.add(new PersonAttribute(occupationAttrType, occupation));
+
+        final PersonAttributeType educationAttrType = new PersonAttributeType();
+        educationAttrType.setName(Constants.EDUCATION_ATTRIBUTE);
+        attributes.add(new PersonAttribute(educationAttrType, educationLevel));
+
+        final PersonAttributeType primaryContactAttrType = new PersonAttributeType();
+        primaryContactAttrType.setName(Constants.PRIMARY_CONTACT_ATTRIBUTE);
+        attributes.add(new PersonAttribute(primaryContactAttrType, primaryContact));
+        return attributes;
+    }
+
+    private List<AddressHierarchyLevel> createAddressHierarchyLevels() {
+        AddressHierarchyLevel level1 = new AddressHierarchyLevel();
+        level1.setId(100);
+        AddressHierarchyLevel level2 = new AddressHierarchyLevel();
+        level2.setId(200);
+        AddressHierarchyLevel level3 = new AddressHierarchyLevel();
+        level3.setId(300);
+        AddressHierarchyLevel level4 = new AddressHierarchyLevel();
+        level4.setId(400);
+        return Arrays.asList(level1, level2, level3, level4);
+    }
+
+    private List<AddressHierarchyEntry> createAddressHierarchyEntries(String id) {
+        List<AddressHierarchyEntry> entries1 = new ArrayList<AddressHierarchyEntry>();
+        AddressHierarchyEntry entry1 = new AddressHierarchyEntry();
+        entry1.setUserGeneratedId(id);
+        entries1.add(entry1);
+        return entries1;
+    }
+
+    @Test
+    public void shouldHttpPostPatientToUrl() {
+        //TODO
     }
 }
