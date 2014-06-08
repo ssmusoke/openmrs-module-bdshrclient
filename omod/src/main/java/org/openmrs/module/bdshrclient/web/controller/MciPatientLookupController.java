@@ -43,6 +43,20 @@ public class MciPatientLookupController {
         return null;
     }
 
+    //@RequestMapping(method = RequestMethod.POST, value = "/download")
+    @RequestMapping(method = RequestMethod.GET, value = "/download")
+    @ResponseBody
+    public Object download(MciPatientSearchRequest request) {
+        Patient mciPatient = searchPatientByHealthId(request.getHid());
+        if (mciPatient != null) {
+            Map<String, String> downloadResponse = new HashMap<String, String>();
+            org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(mciPatient);
+            downloadResponse.put("uuid", emrPatient.getUuid());
+            return downloadResponse;
+        }
+        return null;
+    }
+
     private Map<String, Object> mapToPatientUIModel(Patient mciPatient) {
         Map<String, Object> patientModel = new HashMap<String, Object>();
         patientModel.put("firstName", mciPatient.getFirstName());
@@ -65,24 +79,6 @@ public class MciPatientLookupController {
         return patientModel;
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/download")
-    @ResponseBody
-    public Object download(MciPatientSearchRequest request) {
-        Map<String, String> downloadResponse = new HashMap<String, String>();
-        Patient mciPatient = searchPatientByHealthId(request.getHid());
-        if (mciPatient != null) {
-            org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(mciPatient);
-            downloadResponse.put("uuid", emrPatient.getUuid());
-        }
-        return downloadResponse;
-    }
-
-//    @RequestMapping(method = RequestMethod.POST, value = "/downloadPatient")
-//    @ResponseBody
-//    public MciPatientSearchRequest downloadPatient(@RequestBody MciPatientSearchRequest request) {
-//        return request;
-//    }
-
     private Patient searchPatientByNationalId(String nid)  {
         String mciNationIdSearchUrl = null;
         try {
@@ -96,9 +92,9 @@ public class MciPatientLookupController {
     }
 
     private Patient searchPatientByHealthId(String hid)  {
-        String mciPatientUrl = null;
+        if ((hid == null) || "".equals(hid)) return null;
         try {
-            mciPatientUrl = String.format("%s/%s", getMciPatientBaseUrl(), hid);
+            String mciPatientUrl = String.format("%s/%s", getMciPatientBaseUrl(), hid);
             WebClient webClient = new WebClient();
             Patient mciPatient = webClient.get(mciPatientUrl, Patient.class);
             return mciPatient;

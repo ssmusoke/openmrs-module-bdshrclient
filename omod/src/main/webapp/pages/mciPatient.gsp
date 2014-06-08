@@ -74,6 +74,16 @@
                 font-size: 12px;
                 color: #666;
             }
+            .errorMessage {
+                padding:2px 4px;
+                margin:0px;
+                border:solid 1px #FBD3C6;
+                background:#FDE4E1;
+                color:#CB4721;
+                font-family:Arial, Helvetica, sans-serif;
+                font-size:14px;
+                font-weight:bold;
+            }
 
         </style>
 
@@ -91,6 +101,7 @@
             ${ ui.includeFragment("uicommons", "infoAndErrorMessage") }
             <div id="content" class="container">
                 <h1>Search Patient in National Registry</h1>
+                <div style="display:none" class="errorMessage">Error occurred. Could not perform the action.</div>
                 <div id="searchBox" class="search-box">
                     <select id="idType" class="id-type">
                       <option value="nid">National ID</option>
@@ -119,15 +130,6 @@
 
         <script type="text/javascript">
             jq = jQuery;
-            //jq(function() {
-            //  emr.updateBreadcrumbs();
-            //});
-
-            // global error handler
-            // jq(document).ajaxError(function(event, jqxhr) {
-            //    emr.redirectOnAuthenticationFailure(jqxhr);
-            // });
-
             jq(function(){
                 jq('#patientId').keypress(function(e) {
                    if(e.which == 13) {
@@ -137,6 +139,7 @@
             });
 
             function searchPatient() {
+                jq(".errorMessage").hide();
                 var idType = jq( "#idType" ).val();
                 var patientId = jq( "#patientId" ).val();
                 jq.ajax({
@@ -146,24 +149,25 @@
                 }).done(function( responseData ) {
                    renderMciPatient(responseData);
                 }).fail(function(error) {
-                   alert( "error occurred : " + error);
+                   jq(".errorMessage").show();
                 });
             }
 
             function downloadMciPatient(e) {
-                // var postData = {};
-                // var idType = jq( "#idType" ).val();
-                // var patientId = jq( "#patientId" ).val();
-                // postData[idType] = patientId;
-
+                jq(".errorMessage").hide();
                 jq.ajax({
                    type: "GET",
                    url: "/openmrs/ws/mci/download?hid=" + jq(".download-btn").attr("data-hid"),
                    dataType: "json"
                 }).done(function( responseData ) {
-                   window.location = "/registration/#/patient/" + responseData.uuid;
+                    if (!responseData) {
+                       jq(".errorMessage").show();
+                    }
+                    else {
+                       window.location = "/registration/#/patient/" + responseData.uuid;
+                    }
                 }).fail(function(error) {
-                   alert( "error occurred : " + error);
+                   jq(".errorMessage").show();
                 });
             }
 
