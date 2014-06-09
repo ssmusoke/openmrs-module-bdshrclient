@@ -12,7 +12,6 @@ import org.openmrs.module.bdshrclient.util.MciProperties;
 import org.openmrs.module.bdshrclient.util.WebClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -34,11 +33,16 @@ public class MciPatientLookupController {
     @RequestMapping(method = RequestMethod.GET, value = "/search")
     @ResponseBody
     public Object search(MciPatientSearchRequest request) {
-        if (request.getNid() != null) {
-            Patient mciPatient = searchPatientByNationalId(request.getNid());
-            if (mciPatient != null) {
-                return mapToPatientUIModel(mciPatient);
-            }
+        Patient mciPatient = null;
+        if (!isBlankString(request.getNid())) {
+            mciPatient = searchPatientByNationalId(request.getNid());
+
+        } else if (!isBlankString(request.getHid())) {
+            mciPatient = searchPatientByHealthId(request.getHid());
+        }
+
+        if (mciPatient != null) {
+            return mapToPatientUIModel(mciPatient);
         }
         return null;
     }
@@ -77,6 +81,13 @@ public class MciPatientLookupController {
 
         patientModel.put("address", addressModel);
         return patientModel;
+    }
+
+    private boolean isBlankString(String value) {
+        if ((value != null) && !"".equals(value)) {
+            return false;
+        }
+        return true;
     }
 
     private Patient searchPatientByNationalId(String nid)  {
