@@ -15,7 +15,6 @@ import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
 import org.openmrs.module.bdshrclient.util.Constants;
 import org.openmrs.module.bdshrclient.util.GenderEnum;
-import org.openmrs.module.bdshrclient.util.MciProperties;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -38,9 +37,6 @@ public class ShrPatientCreatorTest {
     @Mock
     private PersonService personService;
 
-    @Mock
-    Properties properties;
-
     private ShrPatientCreator shrPatientCreator;
 
     private String nationalId = "nid-100";
@@ -61,7 +57,6 @@ public class ShrPatientCreatorTest {
         Event event = new Event("id100", "/openmrs/ws/rest/v1/patient/" + uuid + "?v=full");
         shrPatientCreator.process(event);
         verify(patientService).getPatientByUuid(anyString());
-//        verify(userService).getUserByUsername(anyString());
     }
 
     @Test
@@ -86,14 +81,6 @@ public class ShrPatientCreatorTest {
         when(userService.getUserByUsername(SHR_CLIENT_SYSTEM_NAME)).thenReturn(shrUser);
 
         assertTrue(shrPatientCreator.shouldSyncPatient(openMrsPatient));
-    }
-
-    @Test
-    public void shouldGetMciUrl() throws IOException {
-        MciProperties mciProperties = new MciProperties(properties);
-        when(properties.getProperty("mci.host")).thenReturn("localhost");
-        when(properties.getProperty("mci.port")).thenReturn("8080");
-        assertEquals("http://localhost:8080/patient", shrPatientCreator.getMciUrl(mciProperties));
     }
 
     @Test
@@ -258,10 +245,5 @@ public class ShrPatientCreatorTest {
         entry1.setUserGeneratedId(id);
         entries1.add(entry1);
         return entries1;
-    }
-
-    @Test
-    public void shouldHttpPostPatientToUrl() {
-        //TODO
     }
 }

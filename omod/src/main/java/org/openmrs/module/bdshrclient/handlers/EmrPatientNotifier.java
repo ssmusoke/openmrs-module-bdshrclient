@@ -7,6 +7,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.OpenMRSFeedClientFactory;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -28,6 +29,8 @@ public class EmrPatientNotifier {
             feedClient.processEvents();
         } catch (URISyntaxException e) {
             log.error("Invalid URI. ", e);
+        } catch (IOException e) {
+            log.error("IO exception. ", e);
         }
     }
 

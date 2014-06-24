@@ -136,6 +136,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.openmrs.module</groupId>
             <artifactId>idgen-api</artifactId>
             <version>${idGenVersion}</version>

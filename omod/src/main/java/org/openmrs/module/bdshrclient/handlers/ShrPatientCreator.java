@@ -1,12 +1,15 @@
 package org.openmrs.module.bdshrclient.handlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.client.domain.Event;
@@ -23,12 +26,12 @@ import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
 import org.openmrs.module.bdshrclient.util.GenderEnum;
-import org.openmrs.module.bdshrclient.util.MciProperties;
+import org.openmrs.module.bdshrclient.util.FreeShrClientProperties;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,12 +49,15 @@ public class ShrPatientCreator implements EventWorker {
     private PatientService patientService;
     private UserService userService;
     private PersonService personService;
+    private FreeShrClientProperties properties;
 
-    public ShrPatientCreator(AddressHierarchyService addressHierarchyService, PatientService patientService, UserService userService, PersonService personService) {
+    public ShrPatientCreator(AddressHierarchyService addressHierarchyService, PatientService patientService,
+                             UserService userService, PersonService personService) throws IOException {
         this.addressHierarchyService = addressHierarchyService;
         this.patientService = patientService;
         this.userService = userService;
         this.personService = personService;
+        properties = new FreeShrClientProperties();
     }
 
     @Override
@@ -74,8 +80,7 @@ public class ShrPatientCreator implements EventWorker {
             Patient patient = populatePatient(openMrsPatient);
             log.debug("Patient: [ " + patient + "]");
 
-            final MciProperties mciProperties = new MciProperties(new Properties());
-            String healthId = httpPost(getMciUrl(mciProperties), patient);
+            String healthId = httpPostToMci(patient);
             updateOpenMrsPatientHealthId(openMrsPatient, healthId);
 
         } catch (IOException e) {
@@ -114,11 +119,6 @@ public class ShrPatientCreator implements EventWorker {
 
         patientService.savePatient(openMrsPatient);
         log.debug(String.format("OpenMRS patient updated."));
-    }
-
-    String getMciUrl(MciProperties mciProperties) throws IOException {
-        mciProperties.loadProperties();
-        return mciProperties.getMciPatientBaseURL();
     }
 
     Patient populatePatient(org.openmrs.Patient openMrsPatient) {
@@ -200,12 +200,17 @@ public class ShrPatientCreator implements EventWorker {
         return new Address(addressLine, divisionId, districtId, upazillaId, unionId);
     }
 
-    //TODO: HttpAsyncClient
-    String httpPost(String url, Patient patient) throws IOException {
+    String httpPostToMci(Patient patient) throws IOException {
+        final String url = properties.getMciUrl();
         final String json = jsonMapper.writeValueAsString(patient);
         log.debug(String.format("HTTP post. \nURL: [%s] \nJSON:[%s]", url, json));
 
         HttpPost post = new HttpPost(url);
+        Map<String, String> headers = new HashMap<String, String>();
+        String authHeader = getAuthHeader();
+        headers.put("Authorization", authHeader);
+        post.setHeaders(toHttpHeaders(headers));
+
         StringEntity entity = new StringEntity(json);
         entity.setContentType("application/json");
         post.setEntity(entity);
@@ -215,11 +220,25 @@ public class ShrPatientCreator implements EventWorker {
         log.debug(String.format("HTTP post response status code: " + statusCode));
 
         String healthId = null;
-        if (statusCode == 200) {
+        if (statusCode == 201) {
             healthId = EntityUtils.toString(response.getEntity());
         }
         log.debug(String.format("HTTP post response health id: " + healthId));
         return healthId;
+    }
+
+    String getAuthHeader() throws IOException {
+        String auth = properties.getMciUser() + ":" + properties.getMciPassword();
+        byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("UTF-8")));
+        return "Basic " + new String(encodedAuth);
+    }
+
+    private static Header[] toHttpHeaders(Map<String, String> headers) {
+        List<Header> httpHeaders = new ArrayList<Header>();
+        for (Map.Entry<String, String> header : headers.entrySet()) {
+            httpHeaders.add(new BasicHeader(header.getKey(), header.getValue()));
+        }
+        return httpHeaders.toArray(new Header[headers.size()]);
     }
 
     @Override

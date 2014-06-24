@@ -8,7 +8,7 @@ import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
 import org.openmrs.module.bdshrclient.service.MciPatientService;
 import org.openmrs.module.bdshrclient.util.GenderEnum;
-import org.openmrs.module.bdshrclient.util.MciProperties;
+import org.openmrs.module.bdshrclient.util.FreeShrClientProperties;
 import org.openmrs.module.bdshrclient.util.WebClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 @Controller
 @RequestMapping(value = "/mci")
@@ -117,9 +116,8 @@ public class MciPatientLookupController {
 
     private String getMciPatientBaseUrl() throws IOException {
         if (mciPatientUrl == null) {
-            MciProperties mciProperties = new MciProperties(new Properties());
-            mciProperties.loadProperties();
-            mciPatientUrl = mciProperties.getMciPatientBaseURL();
+            FreeShrClientProperties freeShrClientProperties = new FreeShrClientProperties();
+            mciPatientUrl = freeShrClientProperties.getMciUrl();
         }
         return mciPatientUrl;
     }
