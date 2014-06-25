@@ -25,6 +25,7 @@ public enum GenderEnum {
 
             } catch (IllegalArgumentException e) {
                 log.error("Invalid gender value. ", e);
+                throw new RuntimeException(e);
             }
         }
         return null;

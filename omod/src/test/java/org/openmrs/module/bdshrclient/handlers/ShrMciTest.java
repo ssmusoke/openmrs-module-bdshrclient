@@ -10,6 +10,8 @@ import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
@@ -26,7 +28,7 @@ public class ShrMciTest {
     }
 
     @Test
-    public void shouldPostToMciEndpoint() throws IOException {
+    public void shouldPostToMciEndpoint() throws Exception {
         final String contentTypeHeader = "Content-Type";
         final String contentTypeJson = "application/json";
         final String authHeader = "Authorization";

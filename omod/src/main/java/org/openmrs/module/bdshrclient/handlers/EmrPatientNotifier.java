@@ -29,8 +29,10 @@ public class EmrPatientNotifier {
             feedClient.processEvents();
         } catch (URISyntaxException e) {
             log.error("Invalid URI. ", e);
+            throw new RuntimeException(e);
         } catch (IOException e) {
             log.error("IO exception. ", e);
+            throw new RuntimeException(e);
         }
     }
 

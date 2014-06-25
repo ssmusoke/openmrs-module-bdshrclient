@@ -5,10 +5,10 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
@@ -25,13 +25,20 @@ import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
-import org.openmrs.module.bdshrclient.util.GenderEnum;
 import org.openmrs.module.bdshrclient.util.FreeShrClientProperties;
+import org.openmrs.module.bdshrclient.util.GenderEnum;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,7 +50,6 @@ public class ShrPatientCreator implements EventWorker {
 
 
     private static ObjectMapper jsonMapper = new ObjectMapper();
-    private static HttpClient httpClient = HttpClientBuilder.create().build();
 
     private AddressHierarchyService addressHierarchyService;
     private PatientService patientService;
@@ -83,8 +89,9 @@ public class ShrPatientCreator implements EventWorker {
             String healthId = httpPostToMci(patient);
             updateOpenMrsPatientHealthId(openMrsPatient, healthId);
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Error while processing patient sync event.", e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -200,31 +207,40 @@ public class ShrPatientCreator implements EventWorker {
         return new Address(addressLine, divisionId, districtId, upazillaId, unionId);
     }
 
-    String httpPostToMci(Patient patient) throws IOException {
+    String httpPostToMci(Patient patient) throws IOException, ExecutionException, InterruptedException, TimeoutException {
         final String url = properties.getMciUrl();
         final String json = jsonMapper.writeValueAsString(patient);
         log.debug(String.format("HTTP post. \nURL: [%s] \nJSON:[%s]", url, json));
 
-        HttpPost post = new HttpPost(url);
-        Map<String, String> headers = new HashMap<String, String>();
-        String authHeader = getAuthHeader();
-        headers.put("Authorization", authHeader);
-        post.setHeaders(toHttpHeaders(headers));
+        CloseableHttpAsyncClient httpClient = HttpAsyncClients.createDefault();
+        try {
+            httpClient.start();
 
-        StringEntity entity = new StringEntity(json);
-        entity.setContentType("application/json");
-        post.setEntity(entity);
+            HttpPost post = new HttpPost(url);
+            Map<String, String> headers = new HashMap<String, String>();
+            String authHeader = getAuthHeader();
+            headers.put("Authorization", authHeader);
+            post.setHeaders(toHttpHeaders(headers));
 
-        HttpResponse response = httpClient.execute(post);
-        final int statusCode = response.getStatusLine().getStatusCode();
-        log.debug(String.format("HTTP post response status code: " + statusCode));
+            StringEntity entity = new StringEntity(json);
+            entity.setContentType("application/json");
+            post.setEntity(entity);
 
-        String healthId = null;
-        if (statusCode == 201) {
-            healthId = EntityUtils.toString(response.getEntity());
+            Future<HttpResponse> future = httpClient.execute(post, null);
+            HttpResponse response = future.get(10, TimeUnit.SECONDS);
+
+            final int statusCode = response.getStatusLine().getStatusCode();
+            log.debug(String.format("HTTP post response status code: " + statusCode));
+
+            if (statusCode == 201) {
+                String healthId = EntityUtils.toString(response.getEntity());
+                log.debug(String.format("HTTP post response health id: " + healthId));
+                    return healthId;
+            }
+        } finally {
+            httpClient.close();
         }
-        log.debug(String.format("HTTP post response health id: " + healthId));
-        return healthId;
+        return null;
     }
 
     String getAuthHeader() throws IOException {
