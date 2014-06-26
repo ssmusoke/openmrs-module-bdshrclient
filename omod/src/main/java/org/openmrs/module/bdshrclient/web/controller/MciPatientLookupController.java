@@ -7,9 +7,9 @@ import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
 import org.openmrs.module.bdshrclient.service.MciPatientService;
-import org.openmrs.module.bdshrclient.util.GenderEnum;
 import org.openmrs.module.bdshrclient.util.FreeShrClientProperties;
-import org.openmrs.module.bdshrclient.util.WebClient;
+import org.openmrs.module.bdshrclient.util.GenderEnum;
+import org.openmrs.module.bdshrclient.util.MciWebClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -93,9 +93,8 @@ public class MciPatientLookupController {
         String mciNationIdSearchUrl = null;
         try {
             mciNationIdSearchUrl = String.format("%s?nid=%s", getMciPatientBaseUrl(), nid);
-            WebClient webClient = new WebClient();
-            Patient mciPatient = webClient.get(mciNationIdSearchUrl, Patient.class);
-            return mciPatient;
+            MciWebClient webClient = new MciWebClient();
+            return webClient.get(mciNationIdSearchUrl, Patient.class);
         } catch (IOException e) {
             throw new RuntimeException("Error occurred while trying to query MCI", e);
         }
@@ -105,9 +104,8 @@ public class MciPatientLookupController {
         if ((hid == null) || "".equals(hid)) return null;
         try {
             String mciPatientUrl = String.format("%s/%s", getMciPatientBaseUrl(), hid);
-            WebClient webClient = new WebClient();
-            Patient mciPatient = webClient.get(mciPatientUrl, Patient.class);
-            return mciPatient;
+            MciWebClient webClient = new MciWebClient();
+            return webClient.get(mciPatientUrl, Patient.class);
         } catch (IOException e) {
             throw new RuntimeException("Error occurred while trying to query MCI", e);
         }
@@ -117,7 +115,7 @@ public class MciPatientLookupController {
     private String getMciPatientBaseUrl() throws IOException {
         if (mciPatientUrl == null) {
             FreeShrClientProperties freeShrClientProperties = new FreeShrClientProperties();
-            mciPatientUrl = freeShrClientProperties.getMciUrl();
+            mciPatientUrl = freeShrClientProperties.getMciBaseUrl();
         }
         return mciPatientUrl;
     }

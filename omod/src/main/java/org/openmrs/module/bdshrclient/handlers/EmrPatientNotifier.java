@@ -7,7 +7,6 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.OpenMRSFeedClientFactory;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -19,19 +18,17 @@ public class EmrPatientNotifier {
         OpenMRSFeedClientFactory factory = new OpenMRSFeedClientFactory();
         FeedClient feedClient = null;
         try {
-            //TODO: Should only 1 instance of ShrPatientCreator be created ?
             feedClient = factory.getFeedClient(getEmrPatientUpdateUri(),
                     new ShrPatientCreator(
                        Context.getService(AddressHierarchyService.class),
                        Context.getPatientService(),
                        Context.getUserService(),
                        Context.getPersonService()));
+
             feedClient.processEvents();
+
         } catch (URISyntaxException e) {
             log.error("Invalid URI. ", e);
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            log.error("IO exception. ", e);
             throw new RuntimeException(e);
         }
     }

@@ -49,18 +49,18 @@ public class Patient {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof Patient)) return false;
 
         Patient patient = (Patient) o;
 
-        if (!address.equals(patient.address)) return false;
-        if (!dateOfBirth.equals(patient.dateOfBirth)) return false;
+        if (address != null ? !address.equals(patient.address) : patient.address != null) return false;
+        if (dateOfBirth != null ? !dateOfBirth.equals(patient.dateOfBirth) : patient.dateOfBirth != null) return false;
         if (educationLevel != null ? !educationLevel.equals(patient.educationLevel) : patient.educationLevel != null)
             return false;
-        if (!firstName.equals(patient.firstName)) return false;
-        if (!gender.equals(patient.gender)) return false;
+        if (firstName != null ? !firstName.equals(patient.firstName) : patient.firstName != null) return false;
+        if (gender != null ? !gender.equals(patient.gender) : patient.gender != null) return false;
         if (healthId != null ? !healthId.equals(patient.healthId) : patient.healthId != null) return false;
-        if (!lastName.equals(patient.lastName)) return false;
+        if (lastName != null ? !lastName.equals(patient.lastName) : patient.lastName != null) return false;
         if (middleName != null ? !middleName.equals(patient.middleName) : patient.middleName != null) return false;
         if (nationalId != null ? !nationalId.equals(patient.nationalId) : patient.nationalId != null) return false;
         if (occupation != null ? !occupation.equals(patient.occupation) : patient.occupation != null) return false;
@@ -74,15 +74,15 @@ public class Patient {
     public int hashCode() {
         int result = nationalId != null ? nationalId.hashCode() : 0;
         result = 31 * result + (healthId != null ? healthId.hashCode() : 0);
-        result = 31 * result + firstName.hashCode();
+        result = 31 * result + (firstName != null ? firstName.hashCode() : 0);
         result = 31 * result + (middleName != null ? middleName.hashCode() : 0);
-        result = 31 * result + lastName.hashCode();
-        result = 31 * result + dateOfBirth.hashCode();
-        result = 31 * result + address.hashCode();
-        result = 31 * result + gender.hashCode();
+        result = 31 * result + (lastName != null ? lastName.hashCode() : 0);
+        result = 31 * result + (dateOfBirth != null ? dateOfBirth.hashCode() : 0);
+        result = 31 * result + (gender != null ? gender.hashCode() : 0);
         result = 31 * result + (occupation != null ? occupation.hashCode() : 0);
         result = 31 * result + (educationLevel != null ? educationLevel.hashCode() : 0);
         result = 31 * result + (primaryContact != null ? primaryContact.hashCode() : 0);
+        result = 31 * result + (address != null ? address.hashCode() : 0);
         return result;
     }
 

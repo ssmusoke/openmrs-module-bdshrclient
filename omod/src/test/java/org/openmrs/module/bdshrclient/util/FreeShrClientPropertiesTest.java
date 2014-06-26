@@ -8,8 +8,8 @@ import static org.junit.Assert.*;
 public class FreeShrClientPropertiesTest {
 
     @Test
-    public void testGetMciUrl() throws Exception {
+    public void testGetMciUrl() {
         FreeShrClientProperties freeShrClientProperties = new FreeShrClientProperties();
-        assertEquals("http://localhost:8089/patient", freeShrClientProperties.getMciUrl());
+        assertEquals("http://localhost:8089/patient", freeShrClientProperties.getMciBaseUrl());
     }
 }

@@ -9,23 +9,27 @@ public class FreeShrClientProperties {
 
     Properties properties;
 
-    public FreeShrClientProperties() throws IOException {
+    public FreeShrClientProperties() {
         this.properties = new Properties();
-        final InputStream inputStream = getClass().getClassLoader().getResourceAsStream("freeshrclient.properties");
-        properties.load(inputStream);
+        try {
+            final InputStream inputStream = getClass().getClassLoader().getResourceAsStream("freeshrclient.properties");
+            properties.load(inputStream);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public String getMciUrl() throws IOException {
+    public String getMciBaseUrl() {
         final String mciHost = properties.getProperty("mci.host");
         final String mciPort = properties.getProperty("mci.port");
         return String.format("http://%s:%s/patient", mciHost, mciPort);
     }
 
-    public String getMciUser() throws IOException {
+    public String getMciUser() {
         return properties.getProperty("mci.user");
     }
 
-    public String getMciPassword() throws IOException {
+    public String getMciPassword() {
         return properties.getProperty("mci.password");
     }
 
