@@ -28,5 +28,7 @@
             <ref bean="transactionAttributeSource"/>
         </property>
     </bean>
-	
+
+    <bean id="conceptCodeMappingService" class="org.openmrs.module.bdshrclient.service.impl.BbsCodeServiceImpl">
+    </bean>
 </beans>

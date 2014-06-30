@@ -18,12 +18,14 @@ import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.dao.PatientAttributeSearchHandler;
 import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
+import org.openmrs.module.bdshrclient.service.BbsCodeService;
 import org.openmrs.module.bdshrclient.service.MciPatientService;
 import static org.openmrs.module.bdshrclient.util.Constants.*;
-import org.openmrs.module.bdshrclient.util.GenderEnum;
+
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -33,6 +35,8 @@ import java.util.List;
 
 public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPatientService {
 
+    @Autowired
+    private BbsCodeService bbsCodeService;
 
     @Override
     public org.openmrs.Patient createOrUpdatePatient(Patient mciPatient) {
@@ -42,7 +46,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         Integer emrPatientId = new PatientAttributeSearchHandler(HEALTH_ID_ATTRIBUTE).getUniquePatientIdFor(mciPatient.getHealthId());
         org.openmrs.Patient emrPatient = emrPatientId != null ? patientService.getPatient(emrPatientId) : new org.openmrs.Patient();
 
-        emrPatient.setGender(GenderEnum.forCode(mciPatient.getGender()).name());
+        emrPatient.setGender(bbsCodeService.getGenderConcept(mciPatient.getGender()));
         setIdentifier(emrPatient);
         setPersonName(emrPatient, mciPatient);
         setPersonAddress(emrPatient, mciPatient.getAddress());
@@ -50,8 +54,8 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         addPersonAttribute(personService, emrPatient, NATIONAL_ID_ATTRIBUTE, mciPatient.getNationalId());
         addPersonAttribute(personService, emrPatient, HEALTH_ID_ATTRIBUTE, mciPatient.getHealthId());
         addPersonAttribute(personService, emrPatient, PRIMARY_CONTACT_ATTRIBUTE, mciPatient.getPrimaryContact());
-        addPersonAttribute(personService, emrPatient, OCCUPATION_ATTRIBUTE, mciPatient.getOccupation());
-        addPersonAttribute(personService, emrPatient, EDUCATION_ATTRIBUTE, mciPatient.getEducationLevel());
+        addPersonAttribute(personService, emrPatient, OCCUPATION_ATTRIBUTE, getConceptId(bbsCodeService.getOccupationConcept(mciPatient.getOccupation())));
+        addPersonAttribute(personService, emrPatient, EDUCATION_ATTRIBUTE, getConceptId(bbsCodeService.getEducationConcept(mciPatient.getEducationLevel())));
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(ISO_DATE_FORMAT);
         try {
@@ -64,6 +68,10 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         setCreator(emrPatient);
         patientService.savePatient(emrPatient);
         return emrPatient;
+    }
+
+    private String getConceptId(String conceptName) {
+        return String.valueOf(Context.getConceptService().getConceptByName(conceptName).getConceptId());
     }
 
     private void setCreator(org.openmrs.Patient emrPatient) {

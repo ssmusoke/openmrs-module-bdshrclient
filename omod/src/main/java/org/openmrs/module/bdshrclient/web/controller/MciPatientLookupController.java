@@ -6,9 +6,9 @@ import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
+import org.openmrs.module.bdshrclient.service.BbsCodeService;
 import org.openmrs.module.bdshrclient.service.MciPatientService;
 import org.openmrs.module.bdshrclient.util.FreeShrClientProperties;
-import org.openmrs.module.bdshrclient.util.GenderEnum;
 import org.openmrs.module.bdshrclient.util.MciWebClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -25,7 +25,9 @@ import java.util.Map;
 public class MciPatientLookupController {
 
     @Autowired
-    MciPatientService mciPatientService;
+    private MciPatientService mciPatientService;
+    @Autowired
+    private BbsCodeService bbsCodeService;
     private String mciPatientUrl = null;
 
 
@@ -46,7 +48,6 @@ public class MciPatientLookupController {
         return null;
     }
 
-    //@RequestMapping(method = RequestMethod.POST, value = "/download")
     @RequestMapping(method = RequestMethod.GET, value = "/download")
     @ResponseBody
     public Object download(MciPatientSearchRequest request) {
@@ -65,7 +66,7 @@ public class MciPatientLookupController {
         patientModel.put("firstName", mciPatient.getFirstName());
         patientModel.put("middleName", mciPatient.getMiddleName());
         patientModel.put("lastName", mciPatient.getLastName());
-        patientModel.put("gender", GenderEnum.forCode(mciPatient.getGender()).name());
+        patientModel.put("gender", bbsCodeService.getGenderConcept(mciPatient.getGender()));
         patientModel.put("nationalId", mciPatient.getNationalId());
         patientModel.put("healthId", mciPatient.getHealthId());
         patientModel.put("primaryContact", mciPatient.getPrimaryContact());
@@ -111,7 +112,6 @@ public class MciPatientLookupController {
         }
     }
 
-
     private String getMciPatientBaseUrl() throws IOException {
         if (mciPatientUrl == null) {
             FreeShrClientProperties freeShrClientProperties = new FreeShrClientProperties();
@@ -124,12 +124,5 @@ public class MciPatientLookupController {
         AddressHierarchyService addressHierarchyService = Context.getService(AddressHierarchyService.class);
         AddressHierarchyEntry entry = addressHierarchyService.getAddressHierarchyEntryByUserGenId(code);
         return entry.getName();
-    }
-
-    public static void main(String[] args) throws IOException {
-        MciPatientLookupController mciPatientLookupController = new MciPatientLookupController();
-        Patient nid107 = mciPatientLookupController.searchPatientByNationalId("nid107");
-        System.out.println(nid107);
-
     }
 }

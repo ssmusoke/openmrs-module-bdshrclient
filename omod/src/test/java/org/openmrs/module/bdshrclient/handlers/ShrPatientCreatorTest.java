@@ -13,10 +13,10 @@ import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
+import org.openmrs.module.bdshrclient.service.BbsCodeService;
+import org.openmrs.module.bdshrclient.service.impl.BbsCodeServiceImpl;
 import org.openmrs.module.bdshrclient.util.Constants;
-import org.openmrs.module.bdshrclient.util.GenderEnum;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -36,19 +36,21 @@ public class ShrPatientCreatorTest {
     private UserService userService;
     @Mock
     private PersonService personService;
+    private BbsCodeService bbsCodeService = new BbsCodeServiceImpl();
 
     private ShrPatientCreator shrPatientCreator;
 
     private String nationalId = "nid-100";
     private String healthId = "hid-200";
-    private String occupation = "salaried";
-    private String educationLevel = "graduate";
+    private String occupation = "agriculture";
+    private String educationLevel = "6th to 9th";
     private String primaryContact = "some contact";
 
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        shrPatientCreator = new ShrPatientCreator(addressHierarchyService, patientService, userService, personService);
+        shrPatientCreator = new ShrPatientCreator(addressHierarchyService, patientService, userService, personService,
+                bbsCodeService);
     }
 
     @Test
@@ -186,10 +188,10 @@ public class ShrPatientCreatorTest {
         p.setFirstName(givenName);
         p.setMiddleName(middleName);
         p.setLastName(familyName);
-        p.setGender(GenderEnum.getCode(gender));
+        p.setGender(bbsCodeService.getGenderCode(gender));
         p.setDateOfBirth(new SimpleDateFormat(Constants.ISO_DATE_FORMAT).format(dateOfBirth));
-        p.setOccupation(occupation);
-        p.setEducationLevel(educationLevel);
+        p.setOccupation(bbsCodeService.getOccupationCode(occupation));
+        p.setEducationLevel(bbsCodeService.getEducationCode(educationLevel));
         p.setPrimaryContact(primaryContact);
 
         Address a = new Address();

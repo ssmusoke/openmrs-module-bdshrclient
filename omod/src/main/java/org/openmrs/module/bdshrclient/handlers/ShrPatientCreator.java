@@ -15,8 +15,8 @@ import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.model.Address;
 import org.openmrs.module.bdshrclient.model.Patient;
+import org.openmrs.module.bdshrclient.service.BbsCodeService;
 import org.openmrs.module.bdshrclient.util.FreeShrClientProperties;
-import org.openmrs.module.bdshrclient.util.GenderEnum;
 import org.openmrs.module.bdshrclient.util.MciWebClient;
 
 import java.text.SimpleDateFormat;
@@ -34,15 +34,19 @@ public class ShrPatientCreator implements EventWorker {
     private PatientService patientService;
     private UserService userService;
     private PersonService personService;
+    private BbsCodeService bbsCodeService;
+
     private FreeShrClientProperties properties;
     private MciWebClient webClient;
 
     public ShrPatientCreator(AddressHierarchyService addressHierarchyService, PatientService patientService,
-                             UserService userService, PersonService personService) {
+                             UserService userService, PersonService personService,
+                             BbsCodeService bbsCodeService) {
         this.addressHierarchyService = addressHierarchyService;
         this.patientService = patientService;
         this.userService = userService;
         this.personService = personService;
+        this.bbsCodeService = bbsCodeService;
         this.properties = new FreeShrClientProperties();
         this.webClient = new MciWebClient();
     }
@@ -125,17 +129,17 @@ public class ShrPatientCreator implements EventWorker {
         patient.setFirstName(openMrsPatient.getGivenName());
         patient.setMiddleName(openMrsPatient.getMiddleName());
         patient.setLastName(openMrsPatient.getFamilyName());
-        patient.setGender(GenderEnum.getCode(openMrsPatient.getGender()));
+        patient.setGender(bbsCodeService.getGenderCode(openMrsPatient.getGender()));
         patient.setDateOfBirth(new SimpleDateFormat(ISO_DATE_FORMAT).format(openMrsPatient.getBirthdate()));
 
-        String occupation = getAttributeValue(openMrsPatient, OCCUPATION_ATTRIBUTE);
+        PersonAttribute occupation = getAttribute(openMrsPatient, OCCUPATION_ATTRIBUTE);
         if (occupation != null) {
-            patient.setOccupation(occupation);
+            patient.setOccupation(bbsCodeService.getOccupationCode(occupation.toString()));
         }
 
-        String educationLevel = getAttributeValue(openMrsPatient, EDUCATION_ATTRIBUTE);
-        if (educationLevel != null) {
-            patient.setEducationLevel(educationLevel);
+        PersonAttribute education = getAttribute(openMrsPatient, EDUCATION_ATTRIBUTE);
+        if (education != null) {
+            patient.setEducationLevel(bbsCodeService.getEducationCode(education.toString()));
         }
 
         String primaryContact = getAttributeValue(openMrsPatient, PRIMARY_CONTACT_ATTRIBUTE);
@@ -148,8 +152,12 @@ public class ShrPatientCreator implements EventWorker {
     }
 
     private String getAttributeValue(org.openmrs.Patient openMrsPatient, String attributeName) {
-        PersonAttribute attribute = openMrsPatient.getAttribute(attributeName);
+        PersonAttribute attribute = getAttribute(openMrsPatient, attributeName);
         return attribute != null ? attribute.getValue() : null;
+    }
+
+    private PersonAttribute getAttribute(org.openmrs.Patient openMrsPatient, String attributeName) {
+        return openMrsPatient.getAttribute(attributeName);
     }
 
     boolean shouldSyncPatient(org.openmrs.Patient openMrsPatient) {

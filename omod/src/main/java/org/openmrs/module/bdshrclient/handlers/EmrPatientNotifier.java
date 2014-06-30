@@ -6,6 +6,7 @@ import org.ict4h.atomfeed.client.service.FeedClient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bdshrclient.OpenMRSFeedClientFactory;
+import org.openmrs.module.bdshrclient.service.impl.BbsCodeServiceImpl;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -23,7 +24,8 @@ public class EmrPatientNotifier {
                        Context.getService(AddressHierarchyService.class),
                        Context.getPatientService(),
                        Context.getUserService(),
-                       Context.getPersonService()));
+                       Context.getPersonService(),
+                       new BbsCodeServiceImpl()));
 
             feedClient.processEvents();
 

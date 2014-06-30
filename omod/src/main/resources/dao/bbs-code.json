@@ -1,0 +1,27 @@
+{
+  "gender": {
+    "M": "1",
+    "F": "2",
+    "O": "3"
+  },
+
+  "education": {
+    "Uneducated": "1",
+    "5th Pass and Below": "2",
+    "6th to 9th": "3",
+    "10th pass": "4",
+    "12th pass": "5",
+    "Graduate and Above": "6"
+  },
+
+  "occupation": {
+    "Unemployed": "1",
+    "Agriculture": "2",
+    "Student": "3",
+    "Government": "4",
+    "Business": "5",
+    "Housewife": "6",
+    "Labour": "7",
+    "Other": "8"
+  }
+}
