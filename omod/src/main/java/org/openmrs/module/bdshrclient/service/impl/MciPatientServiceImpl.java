@@ -71,6 +71,9 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     private String getConceptId(String conceptName) {
+        if (conceptName == null) {
+            return null;
+        }
         return String.valueOf(Context.getConceptService().getConceptByName(conceptName).getConceptId());
     }
 

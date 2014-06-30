@@ -24,7 +24,7 @@ public class BbsCodeDao {
 
     private BbsCodeDao() {
         try {
-            final URL url = this.getClass().getClassLoader().getResource("dao/bbs-code.json");
+            final URL url = this.getClass().getClassLoader().getResource("bbs-code.json");
             this.dataSource = new ObjectMapper().readValue(url, new TypeReference<Map<String,Map<String, String>>>() {});
 
             this.genderDb = getDb("gender");
