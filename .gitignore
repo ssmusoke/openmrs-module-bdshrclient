@@ -1,7 +1,7 @@
 /.classpath
 /.settings
 /.project
-/target
+target
 /activemq-data
 /api/.classpath
 /api/.settings

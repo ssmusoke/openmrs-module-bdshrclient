@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.openmrs.module</groupId>
-	<artifactId>bdshrclient</artifactId>
+	<artifactId>shrclient</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>BD SHR interface Module</name>
@@ -28,15 +28,15 @@
 	</scm>
 
 	<modules>
-		<module>api</module>
-		<module>omod</module>
+		<module>shrclient-api</module>
+		<module>shrclient-omod</module>
     </modules>
 	
 	<properties>
 		<openMRSVersion>1.9.8-SNAPSHOT</openMRSVersion>
         <openMRSRuntimeVersion>1.9.3</openMRSRuntimeVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <webservicesRestModuleVersion>2.5-SNAPSHOT</webservicesRestModuleVersion>
+        <webservicesRestModuleVersion>2.5</webservicesRestModuleVersion>
         <openmrsAtomfeedVersion>2.0-SNAPSHOT</openmrsAtomfeedVersion>
         <openmrs.address.hierarchy.version>2.4-SNAPSHOT</openmrs.address.hierarchy.version>
         <atomfeed.version>1.0-SNAPSHOT</atomfeed.version>
