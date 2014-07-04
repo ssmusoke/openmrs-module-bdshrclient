@@ -28,7 +28,7 @@
     <!-- / Required Modules -->
 
     <!-- Module Activator -->
-	<activator>${project.parent.groupId}.${project.parent.artifactId}.ShrClientActivator</activator>
+	<activator>org.bahmni.module.shrclient.ShrClientActivator</activator>
 
     <!--
     <advice>

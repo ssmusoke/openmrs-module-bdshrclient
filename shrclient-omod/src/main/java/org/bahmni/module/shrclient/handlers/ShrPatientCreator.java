@@ -2,26 +2,19 @@ package org.bahmni.module.shrclient.handlers;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.bahmni.module.shrclient.mapper.PatientMapper;
 import org.bahmni.module.shrclient.model.Patient;
 import org.bahmni.module.shrclient.util.Constants;
-import org.bahmni.module.shrclient.util.FreeShrClientProperties;
+import org.bahmni.module.shrclient.util.WebClient;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.service.EventWorker;
-import org.openmrs.PersonAddress;
 import org.openmrs.PersonAttribute;
 import org.openmrs.PersonAttributeType;
 import org.openmrs.User;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.UserService;
-import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
-import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
-import org.bahmni.module.shrclient.model.Address;
-import org.bahmni.module.shrclient.service.BbsCodeService;
-import org.bahmni.module.shrclient.util.MciWebClient;
 
-import java.text.SimpleDateFormat;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,25 +22,19 @@ public class ShrPatientCreator implements EventWorker {
 
     private static final Logger log = Logger.getLogger(ShrPatientCreator.class);
 
-    private AddressHierarchyService addressHierarchyService;
     private PatientService patientService;
     private UserService userService;
     private PersonService personService;
-    private BbsCodeService bbsCodeService;
+    private PatientMapper patientMapper;
+    private WebClient webClient;
 
-    private FreeShrClientProperties properties;
-    private MciWebClient webClient;
-
-    public ShrPatientCreator(AddressHierarchyService addressHierarchyService, PatientService patientService,
-                             UserService userService, PersonService personService,
-                             BbsCodeService bbsCodeService) {
-        this.addressHierarchyService = addressHierarchyService;
+    public ShrPatientCreator(PatientService patientService, UserService userService, PersonService personService,
+                             PatientMapper patientMapper, WebClient webClient) {
         this.patientService = patientService;
         this.userService = userService;
         this.personService = personService;
-        this.bbsCodeService = bbsCodeService;
-        this.properties = new FreeShrClientProperties();
-        this.webClient = new MciWebClient();
+        this.patientMapper = patientMapper;
+        this.webClient = webClient;
     }
 
     @Override
@@ -67,10 +54,10 @@ public class ShrPatientCreator implements EventWorker {
                 log.debug(String.format("OpenMRS patient [%s] was created from SHR. Ignoring Patient Sync.", openMrsPatient));
                 return;
             }
-            Patient patient = populatePatient(openMrsPatient);
+            Patient patient = patientMapper.map(openMrsPatient);
             log.debug("Patient: [ " + patient + "]");
 
-            String healthId = webClient.post(properties.getMciBaseUrl(), patient);
+            String healthId = webClient.post("/patient", patient);
             updateOpenMrsPatientHealthId(openMrsPatient, healthId);
 
         } catch (Exception e) {
@@ -112,53 +99,6 @@ public class ShrPatientCreator implements EventWorker {
         log.debug(String.format("OpenMRS patient updated."));
     }
 
-    Patient populatePatient(org.openmrs.Patient openMrsPatient) {
-        Patient patient = new Patient();
-
-        String nationalId = getAttributeValue(openMrsPatient, Constants.NATIONAL_ID_ATTRIBUTE);
-        if (nationalId != null) {
-            patient.setNationalId(nationalId);
-        }
-
-        String healthId = getAttributeValue(openMrsPatient, Constants.HEALTH_ID_ATTRIBUTE);
-        if (healthId != null) {
-            patient.setHealthId(healthId);
-        }
-
-        patient.setFirstName(openMrsPatient.getGivenName());
-        patient.setMiddleName(openMrsPatient.getMiddleName());
-        patient.setLastName(openMrsPatient.getFamilyName());
-        patient.setGender(bbsCodeService.getGenderCode(openMrsPatient.getGender()));
-        patient.setDateOfBirth(new SimpleDateFormat(Constants.ISO_DATE_FORMAT).format(openMrsPatient.getBirthdate()));
-
-        PersonAttribute occupation = getAttribute(openMrsPatient, Constants.OCCUPATION_ATTRIBUTE);
-        if (occupation != null) {
-            patient.setOccupation(bbsCodeService.getOccupationCode(occupation.toString()));
-        }
-
-        PersonAttribute education = getAttribute(openMrsPatient, Constants.EDUCATION_ATTRIBUTE);
-        if (education != null) {
-            patient.setEducationLevel(bbsCodeService.getEducationCode(education.toString()));
-        }
-
-        String primaryContact = getAttributeValue(openMrsPatient, Constants.PRIMARY_CONTACT_ATTRIBUTE);
-        if (primaryContact != null) {
-            patient.setPrimaryContact(primaryContact);
-        }
-
-        patient.setAddress(getAddress(openMrsPatient));
-        return patient;
-    }
-
-    private String getAttributeValue(org.openmrs.Patient openMrsPatient, String attributeName) {
-        PersonAttribute attribute = getAttribute(openMrsPatient, attributeName);
-        return attribute != null ? attribute.getValue() : null;
-    }
-
-    private PersonAttribute getAttribute(org.openmrs.Patient openMrsPatient, String attributeName) {
-        return openMrsPatient.getAttribute(attributeName);
-    }
-
     boolean shouldSyncPatient(org.openmrs.Patient openMrsPatient) {
         User changedByUser = openMrsPatient.getChangedBy();
         if (changedByUser == null) {
@@ -176,23 +116,6 @@ public class ShrPatientCreator implements EventWorker {
             patientUuid = m.group(1);
         }
         return patientUuid;
-    }
-
-    private Address getAddress(org.openmrs.Patient openMrsPatient) {
-        PersonAddress openMrsPersonAddress = openMrsPatient.getPersonAddress();
-        String addressLine = openMrsPersonAddress.getAddress1();
-        String division = openMrsPersonAddress.getStateProvince();
-        String district = openMrsPersonAddress.getCountyDistrict();
-        String upazilla = openMrsPersonAddress.getAddress3();
-        String union = openMrsPersonAddress.getCityVillage();
-
-        List<AddressHierarchyLevel> levels = addressHierarchyService.getAddressHierarchyLevels();
-        String divisionId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(0), division).get(0).getUserGeneratedId();
-        String districtId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(1), district).get(0).getUserGeneratedId();
-        String upazillaId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(2), upazilla).get(0).getUserGeneratedId();
-        String unionId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), union).get(0).getUserGeneratedId();
-
-        return new Address(addressLine, divisionId, districtId, upazillaId, unionId);
     }
 
     @Override

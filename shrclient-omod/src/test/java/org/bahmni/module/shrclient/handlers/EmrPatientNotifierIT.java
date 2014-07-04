@@ -1,6 +1,5 @@
 package org.bahmni.module.shrclient.handlers;
 
-import org.bahmni.module.shrclient.handlers.EmrPatientNotifier;
 import org.junit.Before;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 
@@ -14,8 +13,8 @@ public class EmrPatientNotifierIT extends BaseModuleWebContextSensitiveTest {
 
     //@Test
     public void shouldProcessInternalPatientsEvent() {
-        EmrPatientNotifier emrPatientNotifier = new EmrPatientNotifier();
-        emrPatientNotifier.process();
+        ShrNotifier shrNotifier = new ShrNotifier();
+        shrNotifier.processPatient();
     }
 
    

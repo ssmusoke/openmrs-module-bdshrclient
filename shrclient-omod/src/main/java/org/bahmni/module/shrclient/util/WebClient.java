@@ -21,32 +21,52 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
 
-public class MciWebClient {
-    private static final Logger log = Logger.getLogger(MciWebClient.class);
+public class WebClient {
+    private static final Logger log = Logger.getLogger(WebClient.class);
+    private ObjectMapper mapper = new ObjectMapper();
+    private String user;
+    private String password;
+    private String baseUrl;
 
-    private ObjectMapper jsonMapper = new ObjectMapper();
-    private FreeShrClientProperties properties = new FreeShrClientProperties();
+    public WebClient(String user, String password, String host, String port) {
+        this.user = user;
+        this.password = password;
+        this.baseUrl = String.format("http://%s:%s", host, port);
+    }
 
-    public <T> T get(String url, Class<T> returnType) throws IOException {
+    public <T> T get(String url, Class<T> returnType) {
+        url = getUrl(url);
         log.debug("HTTP get url: " + url);
         HttpGet request = new HttpGet(URI.create(url));
         request.addHeader("accept", "application/json");
 
-        String response = getResponse(request);
-        if (StringUtils.isNotBlank(response)) {
-            return jsonMapper.readValue(response, returnType);
+        try {
+            String response = getResponse(request);
+            if (StringUtils.isNotBlank(response)) {
+                return mapper.readValue(response, returnType);
+            }
+        } catch (IOException e) {
+            log.error("Error during http get. URL: " + url, e);
+            throw new RuntimeException(e);
         }
         return null;
     }
 
-    public String post(String url, Object data) throws IOException {
+    public String post(String url, Object data) {
+        url = getUrl(url);
         log.debug("HTTP post url: " + url);
         HttpPost request = new HttpPost(URI.create(url));
-        StringEntity entity = new StringEntity(jsonMapper.writeValueAsString(data));
-        entity.setContentType("application/json");
-        request.setEntity(entity);
 
-        return getResponse(request);
+        try {
+            StringEntity entity = new StringEntity(mapper.writeValueAsString(data));
+            entity.setContentType("application/json");
+            request.setEntity(entity);
+
+            return getResponse(request);
+        } catch (IOException e) {
+            log.error("Error during http post. URL: " + url, e);
+            throw new RuntimeException(e);
+        }
     }
 
     private String getResponse(HttpRequestBase request) throws IOException {
@@ -72,8 +92,12 @@ public class MciWebClient {
         }
     }
 
-    String getAuthHeader() throws IOException {
-        String auth = properties.getMciUser() + ":" + properties.getMciPassword();
+    private String getUrl(String url) {
+        return baseUrl + url;
+    }
+
+    String getAuthHeader() {
+        String auth = user + ":" + password;
         byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("UTF-8")));
         return "Basic " + new String(encodedAuth);
     }

@@ -11,14 +11,14 @@ import org.junit.Test;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
-public class MciWebClientTest {
+public class WebClientTest {
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8089);
 
     @Test
     public void shouldGetPatient() throws Exception {
-        MciWebClient webClient = new MciWebClient();
+        WebClient webClient = new WebClient("user", "password", "localhost", "8089");
         final String acceptHeader = "accept";
         final String contentTypeJson = "application/json";
         final String authHeader = "Authorization";
@@ -39,7 +39,7 @@ public class MciWebClientTest {
                         .withHeader("Content-Type", contentTypeJson)
                         .withBody(toJson(patient))));
 
-        Patient response = webClient.get("http://localhost:8089" + url, Patient.class);
+        Patient response = webClient.get(url, Patient.class);
         assertEquals(patient, response);
 
         verify(1, getRequestedFor(urlMatching(url))
@@ -49,7 +49,7 @@ public class MciWebClientTest {
 
     @Test
     public void shouldPostPatient() throws Exception {
-        MciWebClient webClient = new MciWebClient();
+        WebClient webClient = new WebClient("user", "password", "localhost", "8089");
         final String contentTypeHeader = "Content-Type";
         final String contentTypeJson = "application/json";
         final String authHeader = "Authorization";
@@ -70,7 +70,7 @@ public class MciWebClientTest {
         address.setDivisionId("div-100");
         patient.setAddress(address);
 
-        String hid = webClient.post("http://localhost:8089" + url, patient);
+        String hid = webClient.post(url, patient);
         assertEquals("hid-100", hid);
 
         verify(1, postRequestedFor(urlMatching(url))

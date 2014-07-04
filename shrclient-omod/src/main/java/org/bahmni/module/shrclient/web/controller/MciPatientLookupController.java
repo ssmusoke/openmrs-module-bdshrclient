@@ -1,24 +1,25 @@
 package org.bahmni.module.shrclient.web.controller;
 
 
+import org.apache.commons.lang3.StringUtils;
+import org.bahmni.module.shrclient.model.Address;
 import org.bahmni.module.shrclient.model.Patient;
 import org.bahmni.module.shrclient.service.BbsCodeService;
 import org.bahmni.module.shrclient.service.MciPatientService;
-import org.bahmni.module.shrclient.util.FreeShrClientProperties;
+import org.bahmni.module.shrclient.util.WebClient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
-import org.bahmni.module.shrclient.model.Address;
-import org.bahmni.module.shrclient.util.MciWebClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.io.IOException;
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 @Controller
 @RequestMapping(value = "/mci")
@@ -28,17 +29,18 @@ public class MciPatientLookupController {
     private MciPatientService mciPatientService;
     @Autowired
     private BbsCodeService bbsCodeService;
-    private String mciPatientUrl = null;
+    @Resource(name = "mciProperties")
+    private Properties properties;
 
 
     @RequestMapping(method = RequestMethod.GET, value = "/search")
     @ResponseBody
     public Object search(MciPatientSearchRequest request) {
         Patient mciPatient = null;
-        if (!isBlankString(request.getNid())) {
+        if (StringUtils.isNotBlank(request.getNid())) {
             mciPatient = searchPatientByNationalId(request.getNid());
 
-        } else if (!isBlankString(request.getHid())) {
+        } else if (StringUtils.isNotBlank(request.getHid())) {
             mciPatient = searchPatientByHealthId(request.getHid());
         }
 
@@ -77,47 +79,29 @@ public class MciPatientLookupController {
         addressModel.put("division", getAddressEntryText(address.getDivisionId()));
         addressModel.put("district", getAddressEntryText(address.getDistrictId()));
         addressModel.put("upazilla", getAddressEntryText(address.getUpazillaId()));
-        addressModel.put("union",    getAddressEntryText(address.getUnionId()));
+        addressModel.put("union", getAddressEntryText(address.getUnionId()));
 
         patientModel.put("address", addressModel);
         return patientModel;
     }
 
-    private boolean isBlankString(String value) {
-        if ((value != null) && !"".equals(value)) {
-            return false;
-        }
-        return true;
+    private Patient searchPatientByNationalId(String nid) {
+        String url = String.format("/patient?nid=%s", nid);
+        return getMciWebClient().get(url, Patient.class);
     }
 
-    private Patient searchPatientByNationalId(String nid)  {
-        String mciNationIdSearchUrl = null;
-        try {
-            mciNationIdSearchUrl = String.format("%s?nid=%s", getMciPatientBaseUrl(), nid);
-            MciWebClient webClient = new MciWebClient();
-            return webClient.get(mciNationIdSearchUrl, Patient.class);
-        } catch (IOException e) {
-            throw new RuntimeException("Error occurred while trying to query MCI", e);
+    private Patient searchPatientByHealthId(String hid) {
+        if (StringUtils.isBlank(hid)) {
+            return null;
         }
+        return getMciWebClient().get("/patient", Patient.class);
     }
 
-    private Patient searchPatientByHealthId(String hid)  {
-        if ((hid == null) || "".equals(hid)) return null;
-        try {
-            String mciPatientUrl = String.format("%s/%s", getMciPatientBaseUrl(), hid);
-            MciWebClient webClient = new MciWebClient();
-            return webClient.get(mciPatientUrl, Patient.class);
-        } catch (IOException e) {
-            throw new RuntimeException("Error occurred while trying to query MCI", e);
-        }
-    }
-
-    private String getMciPatientBaseUrl() throws IOException {
-        if (mciPatientUrl == null) {
-            FreeShrClientProperties freeShrClientProperties = new FreeShrClientProperties();
-            mciPatientUrl = freeShrClientProperties.getMciBaseUrl();
-        }
-        return mciPatientUrl;
+    private WebClient getMciWebClient() {
+        return new WebClient(properties.getProperty("mci.user"),
+                properties.getProperty("mci.password"),
+                properties.getProperty("mci.host"),
+                properties.getProperty("mci.port"));
     }
 
     private String getAddressEntryText(String code) {
