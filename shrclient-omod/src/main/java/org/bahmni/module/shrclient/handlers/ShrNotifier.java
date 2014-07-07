@@ -13,6 +13,8 @@ import org.ict4h.atomfeed.client.service.FeedClient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -70,12 +72,20 @@ public class ShrNotifier {
                 properties.getProperty("shr.port"));
     }
 
-    private Properties getProperties(String resource) {
+    Properties getProperties(String resource) {
         try {
             Properties properties = new Properties();
-            final InputStream inputStream = getClass().getClassLoader().getResourceAsStream(resource);
+            final File file = new File(System.getProperty("user.home") + File.separator + "shr" + File.separator
+                    + "config" + File.separator + resource);
+            final InputStream inputStream;
+            if (file.exists()) {
+                inputStream = new FileInputStream(file);
+            } else {
+                inputStream = getClass().getClassLoader().getResourceAsStream(resource);
+            }
             properties.load(inputStream);
             return properties;
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
