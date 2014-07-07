@@ -2,8 +2,8 @@ package org.bahmni.module.shrclient.handlers;
 
 import org.apache.log4j.Logger;
 import org.bahmni.module.shrclient.mapper.EncounterMapper;
-import org.bahmni.module.shrclient.model.Encounter;
-import org.bahmni.module.shrclient.util.WebClient;
+import org.bahmni.module.shrclient.util.FhirRestClient;
+import org.hl7.fhir.instance.model.Encounter;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.api.EncounterService;
@@ -16,12 +16,12 @@ public class ShrEncounterCreator implements EventWorker {
     private static final Logger log = Logger.getLogger(ShrEncounterCreator.class);
     private EncounterService encounterService;
     private EncounterMapper encounterMapper;
-    private WebClient webClient;
+    private FhirRestClient fhirRestClient;
 
-    public ShrEncounterCreator(EncounterService encounterService, EncounterMapper encounterMapper, WebClient webClient) {
+    public ShrEncounterCreator(EncounterService encounterService, EncounterMapper encounterMapper, FhirRestClient fhirRestClient) {
         this.encounterService = encounterService;
         this.encounterMapper = encounterMapper;
-        this.webClient = webClient;
+        this.fhirRestClient = fhirRestClient;
     }
 
     @Override
@@ -37,7 +37,7 @@ public class ShrEncounterCreator implements EventWorker {
             Encounter encounter = encounterMapper.map(openMrsEncounter);
             log.debug("Encounter: [ " + encounter + "]");
 
-            webClient.post("/encounter", encounter);
+            fhirRestClient.post("/encounter", encounter);
 
         } catch (Exception e) {
             log.error("Error while processing patient sync event.", e);

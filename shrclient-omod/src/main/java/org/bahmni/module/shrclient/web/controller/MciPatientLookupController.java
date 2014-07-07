@@ -6,7 +6,7 @@ import org.bahmni.module.shrclient.model.Address;
 import org.bahmni.module.shrclient.model.Patient;
 import org.bahmni.module.shrclient.service.BbsCodeService;
 import org.bahmni.module.shrclient.service.MciPatientService;
-import org.bahmni.module.shrclient.util.WebClient;
+import org.bahmni.module.shrclient.util.RestClient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
@@ -97,8 +97,8 @@ public class MciPatientLookupController {
         return getMciWebClient().get("/patient", Patient.class);
     }
 
-    private WebClient getMciWebClient() {
-        return new WebClient(properties.getProperty("mci.user"),
+    private RestClient getMciWebClient() {
+        return new RestClient(properties.getProperty("mci.user"),
                 properties.getProperty("mci.password"),
                 properties.getProperty("mci.host"),
                 properties.getProperty("mci.port"));

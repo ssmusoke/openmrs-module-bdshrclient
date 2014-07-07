@@ -1,9 +1,7 @@
 package org.bahmni.module.shrclient.util;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -22,8 +20,8 @@ import java.net.URI;
 import java.nio.charset.Charset;
 
 public class WebClient {
+
     private static final Logger log = Logger.getLogger(WebClient.class);
-    private ObjectMapper mapper = new ObjectMapper();
     private String user;
     private String password;
     private String baseUrl;
@@ -34,34 +32,27 @@ public class WebClient {
         this.baseUrl = String.format("http://%s:%s", host, port);
     }
 
-    public <T> T get(String url, Class<T> returnType) {
-        url = getUrl(url);
+    public String get(String path) {
+        String url = getUrl(path);
         log.debug("HTTP get url: " + url);
-        HttpGet request = new HttpGet(URI.create(url));
-        request.addHeader("accept", "application/json");
-
         try {
-            String response = getResponse(request);
-            if (StringUtils.isNotBlank(response)) {
-                return mapper.readValue(response, returnType);
-            }
+            HttpGet request = new HttpGet(URI.create(url));
+            request.addHeader("accept", "application/json");
+            return getResponse(request);
         } catch (IOException e) {
             log.error("Error during http get. URL: " + url, e);
             throw new RuntimeException(e);
         }
-        return null;
     }
 
-    public String post(String url, Object data) {
-        url = getUrl(url);
+    public String post(String path, String data) {
+        String url = getUrl(path);
         log.debug("HTTP post url: " + url);
-        HttpPost request = new HttpPost(URI.create(url));
-
         try {
-            StringEntity entity = new StringEntity(mapper.writeValueAsString(data));
+            HttpPost request = new HttpPost(URI.create(url));
+            StringEntity entity = new StringEntity(data);
             entity.setContentType("application/json");
             request.setEntity(entity);
-
             return getResponse(request);
         } catch (IOException e) {
             log.error("Error during http post. URL: " + url, e);
@@ -73,7 +64,6 @@ public class WebClient {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         try {
             request.addHeader("Authorization", getAuthHeader());
-
             ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
                 public String handleResponse(final HttpResponse response) throws IOException {
                     int status = response.getStatusLine().getStatusCode();
@@ -92,11 +82,11 @@ public class WebClient {
         }
     }
 
-    private String getUrl(String url) {
-        return baseUrl + url;
+    private String getUrl(String path) {
+        return baseUrl + path;
     }
 
-    String getAuthHeader() {
+    public String getAuthHeader() {
         String auth = user + ":" + password;
         byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("UTF-8")));
         return "Basic " + new String(encodedAuth);

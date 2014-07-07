@@ -1,8 +1,8 @@
 package org.bahmni.module.shrclient.handlers;
 
 import org.bahmni.module.shrclient.mapper.EncounterMapper;
-import org.bahmni.module.shrclient.model.Encounter;
-import org.bahmni.module.shrclient.util.WebClient;
+import org.bahmni.module.shrclient.util.FhirRestClient;
+import org.hl7.fhir.instance.model.Encounter;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,13 +26,13 @@ public class ShrEncounterCreatorTest {
     @Mock
     private EncounterMapper encounterMapper;
     @Mock
-    private WebClient webClient;
+    private FhirRestClient fhirRestClient;
     private ShrEncounterCreator shrEncounterCreator;
 
     @Before
     public void setup() {
         initMocks(this);
-        shrEncounterCreator = new ShrEncounterCreator(encounterService, encounterMapper, webClient);
+        shrEncounterCreator = new ShrEncounterCreator(encounterService, encounterMapper, fhirRestClient);
     }
 
     @Test
@@ -49,7 +49,7 @@ public class ShrEncounterCreatorTest {
 
         verify(encounterService).getEncounterByUuid(uuid);
         verify(encounterMapper).map(openMrsEncounter);
-        verify(webClient).post(anyString(), eq(encounter));
+        verify(fhirRestClient).post(anyString(), eq(encounter));
     }
 
     @Test

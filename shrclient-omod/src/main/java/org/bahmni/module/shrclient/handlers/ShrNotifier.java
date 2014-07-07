@@ -6,7 +6,8 @@ import org.bahmni.module.shrclient.OpenMRSFeedClientFactory;
 import org.bahmni.module.shrclient.mapper.EncounterMapper;
 import org.bahmni.module.shrclient.mapper.PatientMapper;
 import org.bahmni.module.shrclient.service.impl.BbsCodeServiceImpl;
-import org.bahmni.module.shrclient.util.WebClient;
+import org.bahmni.module.shrclient.util.FhirRestClient;
+import org.bahmni.module.shrclient.util.RestClient;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.ict4h.atomfeed.client.service.FeedClient;
 import org.openmrs.api.context.Context;
@@ -19,6 +20,7 @@ import java.net.URISyntaxException;
 import java.util.Properties;
 
 public class ShrNotifier {
+
     private static final Logger log = Logger.getLogger(ShrNotifier.class);
 
     private static final String OPENMRS_PATIENT_FEED_URI = "openmrs://events/patient/recent";
@@ -52,17 +54,17 @@ public class ShrNotifier {
         }
     }
 
-    private WebClient getMciWebClient() {
+    private RestClient getMciWebClient() {
         Properties properties = getProperties("mci.properties");
-        return new WebClient(properties.getProperty("mci.user"),
+        return new RestClient(properties.getProperty("mci.user"),
                 properties.getProperty("mci.password"),
                 properties.getProperty("mci.host"),
                 properties.getProperty("mci.port"));
     }
 
-    private WebClient getShrWebClient() {
+    private FhirRestClient getShrWebClient() {
         Properties properties = getProperties("shr.properties");
-        return new WebClient(properties.getProperty("shr.user"),
+        return new FhirRestClient(properties.getProperty("shr.user"),
                 properties.getProperty("shr.password"),
                 properties.getProperty("shr.host"),
                 properties.getProperty("shr.port"));

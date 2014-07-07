@@ -1,7 +1,7 @@
 package org.bahmni.module.shrclient.handlers;
 
 import org.bahmni.module.shrclient.mapper.PatientMapper;
-import org.bahmni.module.shrclient.util.WebClient;
+import org.bahmni.module.shrclient.util.RestClient;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +34,7 @@ public class ShrPatientCreatorTest {
     @Mock
     private PatientMapper patientMapper;
     @Mock
-    private WebClient webClient;
+    private RestClient restClient;
 
     private ShrPatientCreator shrPatientCreator;
 
@@ -43,7 +43,7 @@ public class ShrPatientCreatorTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        shrPatientCreator = new ShrPatientCreator(patientService, userService, personService, patientMapper, webClient);
+        shrPatientCreator = new ShrPatientCreator(patientService, userService, personService, patientMapper, restClient);
     }
 
     @Test
@@ -60,7 +60,7 @@ public class ShrPatientCreatorTest {
 //
 //        verify(patientService).getPatientByUuid(uuid);
 //        verify(patientMapper).map(openMrsPatient);
-//        verify(webClient).post(anyString(), eq(patient));
+//        verify(restClient).post(anyString(), eq(patient));
 
         shrPatientCreator.process(event);
         verify(patientService).getPatientByUuid(anyString());

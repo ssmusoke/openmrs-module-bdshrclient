@@ -5,7 +5,7 @@ import org.apache.log4j.Logger;
 import org.bahmni.module.shrclient.mapper.PatientMapper;
 import org.bahmni.module.shrclient.model.Patient;
 import org.bahmni.module.shrclient.util.Constants;
-import org.bahmni.module.shrclient.util.WebClient;
+import org.bahmni.module.shrclient.util.RestClient;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.PersonAttribute;
@@ -26,15 +26,15 @@ public class ShrPatientCreator implements EventWorker {
     private UserService userService;
     private PersonService personService;
     private PatientMapper patientMapper;
-    private WebClient webClient;
+    private RestClient restClient;
 
     public ShrPatientCreator(PatientService patientService, UserService userService, PersonService personService,
-                             PatientMapper patientMapper, WebClient webClient) {
+                             PatientMapper patientMapper, RestClient restClient) {
         this.patientService = patientService;
         this.userService = userService;
         this.personService = personService;
         this.patientMapper = patientMapper;
-        this.webClient = webClient;
+        this.restClient = restClient;
     }
 
     @Override
@@ -57,7 +57,7 @@ public class ShrPatientCreator implements EventWorker {
             Patient patient = patientMapper.map(openMrsPatient);
             log.debug("Patient: [ " + patient + "]");
 
-            String healthId = webClient.post("/patient", patient);
+            String healthId = restClient.post("/patient", patient);
             updateOpenMrsPatientHealthId(openMrsPatient, healthId);
 
         } catch (Exception e) {

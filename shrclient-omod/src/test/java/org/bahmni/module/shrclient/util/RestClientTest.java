@@ -11,18 +11,18 @@ import org.junit.Test;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
-public class WebClientTest {
+public class RestClientTest {
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8089);
 
     @Test
     public void shouldGetPatient() throws Exception {
-        WebClient webClient = new WebClient("user", "password", "localhost", "8089");
+        RestClient restClient = new RestClient("user", "password", "localhost", "8089");
         final String acceptHeader = "accept";
         final String contentTypeJson = "application/json";
         final String authHeader = "Authorization";
-        final String authHeaderValue = webClient.getAuthHeader();
+        final String authHeaderValue = restClient.getAuthHeader();
         final String url = "/patient/100";
 
         final Patient patient = new Patient();
@@ -39,7 +39,7 @@ public class WebClientTest {
                         .withHeader("Content-Type", contentTypeJson)
                         .withBody(toJson(patient))));
 
-        Patient response = webClient.get(url, Patient.class);
+        Patient response = restClient.get(url, Patient.class);
         assertEquals(patient, response);
 
         verify(1, getRequestedFor(urlMatching(url))
@@ -49,11 +49,11 @@ public class WebClientTest {
 
     @Test
     public void shouldPostPatient() throws Exception {
-        WebClient webClient = new WebClient("user", "password", "localhost", "8089");
+        RestClient restClient = new RestClient("user", "password", "localhost", "8089");
         final String contentTypeHeader = "Content-Type";
         final String contentTypeJson = "application/json";
         final String authHeader = "Authorization";
-        final String authHeaderValue = webClient.getAuthHeader();
+        final String authHeaderValue = restClient.getAuthHeader();
         String url = "/patient";
 
         stubFor(post(urlEqualTo(url))
@@ -70,7 +70,7 @@ public class WebClientTest {
         address.setDivisionId("div-100");
         patient.setAddress(address);
 
-        String hid = webClient.post(url, patient);
+        String hid = restClient.post(url, patient);
         assertEquals("hid-100", hid);
 
         verify(1, postRequestedFor(urlMatching(url))
