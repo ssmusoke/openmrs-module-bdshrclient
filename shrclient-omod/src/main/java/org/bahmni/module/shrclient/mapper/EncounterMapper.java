@@ -1,7 +1,6 @@
 package org.bahmni.module.shrclient.mapper;
 
 
-import org.bahmni.module.shrclient.util.Constants;
 import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Enumeration;
 import org.hl7.fhir.instance.model.ResourceReference;
@@ -48,7 +47,8 @@ public class EncounterMapper {
     }
 
     private void setSubject(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {
-        encounter.setSubject(new ResourceReference().setReferenceSimple(openMrsEncounter.getPatient().getAttribute(Constants.HEALTH_ID_ATTRIBUTE).getValue()));
+//        encounter.setSubject(new ResourceReference().setReferenceSimple(openMrsEncounter.getPatient().getAttribute(Constants.HEALTH_ID_ATTRIBUTE).getValue()));
+        encounter.setSubject(new ResourceReference().setReferenceSimple(openMrsEncounter.getPatient().getUuid()));
     }
 
     private void setParticipant(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {

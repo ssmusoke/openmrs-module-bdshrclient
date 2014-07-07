@@ -32,8 +32,7 @@
         </dependency>
         <dependency>
             <groupId>net.sf.saxon</groupId>
-            <artifactId>Saxon-HE</artifactId>
-            <version>9.4</version>
+            <artifactId>saxon</artifactId>
         </dependency>
         <dependency>
             <groupId>xmlpull</groupId>
