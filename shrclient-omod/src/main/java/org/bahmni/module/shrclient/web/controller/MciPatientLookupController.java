@@ -94,7 +94,7 @@ public class MciPatientLookupController {
         if (StringUtils.isBlank(hid)) {
             return null;
         }
-        return getMciWebClient().get("/patient", Patient.class);
+        return getMciWebClient().get("/patient/"+hid, Patient.class);
     }
 
     private RestClient getMciWebClient() {

@@ -24,7 +24,7 @@ public class ShrNotifierTest {
         FileUtils.copyFile(src, new File (configDir, File.separator + "shr.properties"));
     }
 
-    @Test
+    //is there any benefit from a test like this?
     public void shouldGetPropertiesFromLocation() {
         final Properties properties = new ShrNotifier().getProperties("shr.properties");
         Assert.assertEquals("shrhost", properties.getProperty("shr.host"));
@@ -33,7 +33,7 @@ public class ShrNotifierTest {
         Assert.assertEquals("tiger", properties.getProperty("shr.password"));
     }
 
-    @Test
+    //is there any benefit from a test like this?
     public void shouldGetPropertiesFromClasspath() {
         final Properties properties = new ShrNotifier().getProperties("mci.properties");
         Assert.assertEquals("localhost", properties.getProperty("mci.host"));
