@@ -53,6 +53,7 @@
                 <groupId>net.sf.saxon</groupId>
                 <artifactId>saxon</artifactId>
                 <version>8.7</version>
+                <scope>provided</scope>
             </dependency>
 			<dependency>
 				<groupId>org.openmrs.api</groupId>
