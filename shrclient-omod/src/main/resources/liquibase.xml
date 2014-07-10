@@ -45,4 +45,17 @@
             insert into provider (person_id, identifier, creator, date_created, uuid, name) values ((select person_id from person where uuid = @puuid), 'SHRCLIENTSYSTEM', 1, now(), uuid(), 'shrclientsystem');
         </sql>
     </changeSet>
+
+    <changeSet id="bdshrclient-100714" author="tw" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from chunking_history;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            truncate chunking_history;
+            insert into chunking_history (chunk_length, start) values (100, 1);
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
