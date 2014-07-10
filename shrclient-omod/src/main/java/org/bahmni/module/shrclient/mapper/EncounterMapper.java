@@ -9,12 +9,17 @@ import org.openmrs.EncounterProvider;
 import org.openmrs.PersonAttribute;
 import org.openmrs.VisitType;
 
+import java.util.Set;
+
 public class EncounterMapper {
 
     // TODO: Not complete yet
     public Encounter map(org.openmrs.Encounter openMrsEncounter) {
         Encounter encounter = new Encounter();
-        encounter.setIndication(new ResourceReference().setReferenceSimple(openMrsEncounter.getUuid()));
+        final ResourceReference encounterRef = new ResourceReference();
+        encounterRef.setReferenceSimple(openMrsEncounter.getUuid());
+        encounterRef.setDisplaySimple("encounter");
+        encounter.setIndication(encounterRef);
         setStatus(encounter);
         setClass(openMrsEncounter, encounter);
         setSubject(openMrsEncounter, encounter);
@@ -22,19 +27,8 @@ public class EncounterMapper {
         setServiceProvider(encounter);
         setIdentifiers(encounter, openMrsEncounter);
         setType(encounter, openMrsEncounter);
-        //setDiagnosis(openMrsEncounter, encounter);
         return encounter;
     }
-
-//    private void setDiagnosis(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {
-//        Set<Obs> allObs = openMrsEncounter.getAllObs(true);
-//        ConceptClass diagnosisClass = Context.getConceptService().getConceptClassByName("Diagnosis");
-//        for (Obs obs : allObs) {
-//            if(obs.getConcept().getConceptClass().getName().equals("Diagnosis")) {
-//                dignosisMapper.map(obs);
-//            }
-//        }
-//    }
 
     private void setType(Encounter encounter, org.openmrs.Encounter openMrsEncounter) {
         encounter.addType().setTextSimple(openMrsEncounter.getEncounterType().getName());
@@ -72,7 +66,10 @@ public class EncounterMapper {
 
     private void setParticipant(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {
         Encounter.EncounterParticipantComponent encounterParticipantComponent = encounter.addParticipant();
-        EncounterProvider encounterProvider = openMrsEncounter.getEncounterProviders().iterator().next();
-        encounterParticipantComponent.setIndividual(new ResourceReference().setReferenceSimple(encounterProvider.getProvider().getUuid()));
+        final Set<EncounterProvider> encounterProviders = openMrsEncounter.getEncounterProviders();
+        if (!encounterProviders.isEmpty()) {
+            EncounterProvider encounterProvider = encounterProviders.iterator().next();
+            encounterParticipantComponent.setIndividual(new ResourceReference().setReferenceSimple(encounterProvider.getProvider().getUuid()));
+        }
     }
 }
