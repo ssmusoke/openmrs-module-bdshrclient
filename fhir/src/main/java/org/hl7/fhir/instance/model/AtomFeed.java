@@ -86,5 +86,4 @@ public class AtomFeed extends AtomBase {
     }
     return false;
   }
-
 }
