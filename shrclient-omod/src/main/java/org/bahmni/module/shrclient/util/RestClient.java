@@ -1,6 +1,7 @@
 package org.bahmni.module.shrclient.util;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -22,6 +23,20 @@ public class RestClient {
             String response = webClient.get(url);
             if (StringUtils.isNotBlank(response)) {
                 return mapper.readValue(response, returnType);
+            } else {
+                return null;
+            }
+        } catch (IOException e) {
+            log.error("Error Mapping response to : " + url, e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public <T> T get(String url, TypeReference valueTypeRef) {
+        try {
+            String response = webClient.get(url);
+            if (StringUtils.isNotBlank(response)) {
+                return mapper.readValue(response, valueTypeRef);
             } else {
                 return null;
             }

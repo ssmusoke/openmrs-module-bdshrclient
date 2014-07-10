@@ -1,0 +1,615 @@
+[
+  {
+    "encounterId": "2bc9daed-116c-4ed1-8e7d-1f5aaa4793dc",
+    "healthId": "HIDA436721",
+    "date": "2014-07-10T19:17Z",
+    "content": {
+      "resourceType": "Bundle",
+      "title": "Encounter",
+      "id": "dc1f5f99-fb2f-4ba8-bf24-14ccdee498f9",
+      "updated": "2014-07-10T16:05:09+05:30",
+      "entry": [
+        {
+          "title": "Composition",
+          "id": "Encounter - 26504add-2d96-44d0-a2f6-d849dc090254",
+          "content": {
+            "resourceType": "Composition",
+            "identifier": {
+              "value": "Encounter - 26504add-2d96-44d0-a2f6-d849dc090254"
+            },
+            "date": "2014-07-10T16:05:09+05:30",
+            "status": "final",
+            "encounter": {
+              "reference": "26504add-2d96-44d0-a2f6-d849dc090254"
+            },
+            "section": [
+              {
+                "content": {
+                  "reference": "26504add-2d96-44d0-a2f6-d849dc090254",
+                  "display": "encounter"
+                }
+              },
+              {
+                "content": {
+                  "reference": "cf64a660-973b-41ec-9efe-2c988dd0c904",
+                  "display": "diagnosis"
+                }
+              },
+              {
+                "content": {
+                  "reference": "cdf1f685-71a4-4909-b4f4-3a58af88b9b3",
+                  "display": "diagnosis"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "title": "Encounter",
+          "id": "26504add-2d96-44d0-a2f6-d849dc090254",
+          "content": {
+            "resourceType": "Encounter",
+            "identifier": [
+              {
+                "value": "26504add-2d96-44d0-a2f6-d849dc090254"
+              }
+            ],
+            "status": "finished",
+            "class": "outpatient",
+            "type": [
+              {
+                "text": "OPD"
+              }
+            ],
+            "subject": {
+              "reference": "HIDA764177"
+            },
+            "participant": [
+              {
+                "individual": {
+                  "reference": "1cbd8e35-5bcb-4914-a982-be14817b4ca2"
+                }
+              }
+            ],
+            "indication": {
+              "reference": "26504add-2d96-44d0-a2f6-d849dc090254"
+            },
+            "serviceProvider": {
+              "reference": "Bahmni"
+            }
+          }
+        },
+        {
+          "title": "diagnosis",
+          "id": "cf64a660-973b-41ec-9efe-2c988dd0c904",
+          "content": {
+            "resourceType": "Condition",
+            "identifier": [
+              {
+                "value": "cf64a660-973b-41ec-9efe-2c988dd0c904"
+              }
+            ],
+            "subject": {
+              "reference": "HIDA764177"
+            },
+            "encounter": {
+              "reference": "26504add-2d96-44d0-a2f6-d849dc090254"
+            },
+            "asserter": {
+              "reference": "1cbd8e35-5bcb-4914-a982-be14817b4ca2"
+            },
+            "code": {
+              "coding": [
+                {
+                  "system": "http://192.168.33.18/openmrs/ws/rest/v1/concept/96f64eb2-4d94-40ab-a386-a62ba03ff6b2",
+                  "code": "A00.0",
+                  "display": "Cholera Vibrio"
+                }
+              ]
+            },
+            "category": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/vs/condition-category",
+                  "code": "diagnosis",
+                  "display": "diagnosis"
+                }
+              ]
+            },
+            "status": "confirmed",
+            "severity": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/vs/condition-severity",
+                  "code": "6736007",
+                  "display": "Moderate"
+                }
+              ]
+            },
+            "onsetDateTime": "2014-07-10T16:05:31+05:30"
+          }
+        },
+        {
+          "title": "diagnosis",
+          "id": "cdf1f685-71a4-4909-b4f4-3a58af88b9b3",
+          "content": {
+            "resourceType": "Condition",
+            "identifier": [
+              {
+                "value": "cdf1f685-71a4-4909-b4f4-3a58af88b9b3"
+              }
+            ],
+            "subject": {
+              "reference": "HIDA764177"
+            },
+            "encounter": {
+              "reference": "26504add-2d96-44d0-a2f6-d849dc090254"
+            },
+            "asserter": {
+              "reference": "1cbd8e35-5bcb-4914-a982-be14817b4ca2"
+            },
+            "code": {
+              "coding": [
+                {
+                  "system": "http://192.168.33.18/openmrs/ws/rest/v1/concept/f34f6020-9e33-4332-b7a5-bc9d464cb438",
+                  "code": "f34f6020-9e33-4332-b7a5-bc9d464cb438",
+                  "display": "TestWithoutRefTerm"
+                }
+              ]
+            },
+            "category": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/vs/condition-category",
+                  "code": "diagnosis",
+                  "display": "diagnosis"
+                }
+              ]
+            },
+            "status": "provisional",
+            "severity": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/vs/condition-severity",
+                  "code": "24484000",
+                  "display": "Severe"
+                }
+              ]
+            },
+            "onsetDateTime": "2014-07-10T16:05:31+05:30"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "encounterId": "21b2cc15-c39b-4d5a-ae49-7eba0e77063b",
+    "healthId": "HIDA436721",
+    "date": "2012-01-04T09:10:14Z",
+    "content": {
+      "resourceType": "Bundle",
+      "title": "Encounter",
+      "updated": "2012-09-20T12:04:45.6787909+00:00",
+      "id": "urn:uuid:50ea3e5e-b6a7-4f55-956c-caef491bbc08",
+      "category": [
+        {
+          "term": "[Tag Term]",
+          "label": "[Tag Label]",
+          "scheme": "[Tag Scheme]"
+        }
+      ],
+      "totalResults": 3,
+      "entry": [
+        {
+          "title": "Encounter between patient X and Doctor Y",
+          "id": "urn:uuid:abcDa3e5e-b6a7-4f55-956c-caef491aYh1x",
+          "content": {
+            "resourceType": "Composition",
+            "identifier": {
+              "value": "Encounter-1234"
+            },
+            "date": "2012-01-04T09:10:14Z",
+            "type": {},
+            "status": "final",
+            "confidentiality": {},
+            "subject": {},
+            "author": [
+              {}
+            ],
+            "section": [
+              {
+                "resourceType": "Encounter",
+                "text": {
+                  "status": "generated"
+                },
+                "status": "finished",
+                "class": "outpatient",
+                "subject": {
+                  "reference": "HIDA436721"
+                },
+                "participant": [
+                  {
+                    "individual": {
+                      "reference": "http://providers.twhosted.com/D101"
+                    }
+                  }
+                ],
+                "serviceProvider": {},
+                "identifier": [
+                  {}
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "signature": "<signature xmlns=\"http://www.w3.org/2000/09/xmldsig\">...</signature>"
+    }
+  },
+  {
+    "encounterId": "39a3acb8-e46f-490e-b6f0-acbd469a949c",
+    "healthId": "HIDA436721",
+    "date": "2014-07-10T19:17Z",
+    "content": {
+      "resourceType": "Bundle",
+      "title": "Encounter",
+      "id": "dc1f5f99-fb2f-4ba8-bf24-14ccdee498f9",
+      "updated": "2014-07-10T16:05:09+05:30",
+      "entry": [
+        {
+          "title": "Composition",
+          "id": "Encounter - 26504add-2d96-44d0-a2f6-d849dc090254",
+          "content": {
+            "resourceType": "Composition",
+            "identifier": {
+              "value": "Encounter - 26504add-2d96-44d0-a2f6-d849dc090254"
+            },
+            "date": "2014-07-10T16:05:09+05:30",
+            "status": "final",
+            "encounter": {
+              "reference": "26504add-2d96-44d0-a2f6-d849dc090254"
+            },
+            "section": [
+              {
+                "content": {
+                  "reference": "26504add-2d96-44d0-a2f6-d849dc090254",
+                  "display": "encounter"
+                }
+              },
+              {
+                "content": {
+                  "reference": "cf64a660-973b-41ec-9efe-2c988dd0c904",
+                  "display": "diagnosis"
+                }
+              },
+              {
+                "content": {
+                  "reference": "cdf1f685-71a4-4909-b4f4-3a58af88b9b3",
+                  "display": "diagnosis"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "title": "Encounter",
+          "id": "26504add-2d96-44d0-a2f6-d849dc090254",
+          "content": {
+            "resourceType": "Encounter",
+            "identifier": [
+              {
+                "value": "26504add-2d96-44d0-a2f6-d849dc090254"
+              }
+            ],
+            "status": "finished",
+            "class": "outpatient",
+            "type": [
+              {
+                "text": "OPD"
+              }
+            ],
+            "subject": {
+              "reference": "HIDA764177"
+            },
+            "participant": [
+              {
+                "individual": {
+                  "reference": "1cbd8e35-5bcb-4914-a982-be14817b4ca2"
+                }
+              }
+            ],
+            "indication": {
+              "reference": "26504add-2d96-44d0-a2f6-d849dc090254"
+            },
+            "serviceProvider": {
+              "reference": "Bahmni"
+            }
+          }
+        },
+        {
+          "title": "diagnosis",
+          "id": "cf64a660-973b-41ec-9efe-2c988dd0c904",
+          "content": {
+            "resourceType": "Condition",
+            "identifier": [
+              {
+                "value": "cf64a660-973b-41ec-9efe-2c988dd0c904"
+              }
+            ],
+            "subject": {
+              "reference": "HIDA764177"
+            },
+            "encounter": {
+              "reference": "26504add-2d96-44d0-a2f6-d849dc090254"
+            },
+            "asserter": {
+              "reference": "1cbd8e35-5bcb-4914-a982-be14817b4ca2"
+            },
+            "code": {
+              "coding": [
+                {
+                  "system": "http://192.168.33.18/openmrs/ws/rest/v1/concept/96f64eb2-4d94-40ab-a386-a62ba03ff6b2",
+                  "code": "A00.0",
+                  "display": "Cholera Vibrio"
+                }
+              ]
+            },
+            "category": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/vs/condition-category",
+                  "code": "diagnosis",
+                  "display": "diagnosis"
+                }
+              ]
+            },
+            "status": "confirmed",
+            "severity": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/vs/condition-severity",
+                  "code": "6736007",
+                  "display": "Moderate"
+                }
+              ]
+            },
+            "onsetDateTime": "2014-07-10T16:05:31+05:30"
+          }
+        },
+        {
+          "title": "diagnosis",
+          "id": "cdf1f685-71a4-4909-b4f4-3a58af88b9b3",
+          "content": {
+            "resourceType": "Condition",
+            "identifier": [
+              {
+                "value": "cdf1f685-71a4-4909-b4f4-3a58af88b9b3"
+              }
+            ],
+            "subject": {
+              "reference": "HIDA764177"
+            },
+            "encounter": {
+              "reference": "26504add-2d96-44d0-a2f6-d849dc090254"
+            },
+            "asserter": {
+              "reference": "1cbd8e35-5bcb-4914-a982-be14817b4ca2"
+            },
+            "code": {
+              "coding": [
+                {
+                  "system": "http://192.168.33.18/openmrs/ws/rest/v1/concept/f34f6020-9e33-4332-b7a5-bc9d464cb438",
+                  "code": "f34f6020-9e33-4332-b7a5-bc9d464cb438",
+                  "display": "TestWithoutRefTerm"
+                }
+              ]
+            },
+            "category": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/vs/condition-category",
+                  "code": "diagnosis",
+                  "display": "diagnosis"
+                }
+              ]
+            },
+            "status": "provisional",
+            "severity": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/vs/condition-severity",
+                  "code": "24484000",
+                  "display": "Severe"
+                }
+              ]
+            },
+            "onsetDateTime": "2014-07-10T16:05:31+05:30"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "encounterId": "f3ba7881-cb58-4c08-af41-114c05865250",
+    "healthId": "HIDA436721",
+    "date": "2014-07-10T19:16Z",
+    "content": {
+      "resourceType": "Bundle",
+      "title": "Encounter",
+      "id": "dc1f5f99-fb2f-4ba8-bf24-14ccdee498f9",
+      "updated": "2014-07-10T16:05:09+05:30",
+      "entry": [
+        {
+          "title": "Composition",
+          "id": "Encounter - 26504add-2d96-44d0-a2f6-d849dc090254",
+          "content": {
+            "resourceType": "Composition",
+            "identifier": {
+              "value": "Encounter - 26504add-2d96-44d0-a2f6-d849dc090254"
+            },
+            "date": "2014-07-10T16:05:09+05:30",
+            "status": "final",
+            "encounter": {
+              "reference": "26504add-2d96-44d0-a2f6-d849dc090254"
+            },
+            "section": [
+              {
+                "content": {
+                  "reference": "26504add-2d96-44d0-a2f6-d849dc090254",
+                  "display": "encounter"
+                }
+              },
+              {
+                "content": {
+                  "reference": "cf64a660-973b-41ec-9efe-2c988dd0c904",
+                  "display": "diagnosis"
+                }
+              },
+              {
+                "content": {
+                  "reference": "cdf1f685-71a4-4909-b4f4-3a58af88b9b3",
+                  "display": "diagnosis"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "title": "Encounter",
+          "id": "26504add-2d96-44d0-a2f6-d849dc090254",
+          "content": {
+            "resourceType": "Encounter",
+            "identifier": [
+              {
+                "value": "26504add-2d96-44d0-a2f6-d849dc090254"
+              }
+            ],
+            "status": "finished",
+            "class": "outpatient",
+            "type": [
+              {
+                "text": "OPD"
+              }
+            ],
+            "subject": {
+              "reference": "HIDA764177"
+            },
+            "participant": [
+              {
+                "individual": {
+                  "reference": "1cbd8e35-5bcb-4914-a982-be14817b4ca2"
+                }
+              }
+            ],
+            "indication": {
+              "reference": "26504add-2d96-44d0-a2f6-d849dc090254"
+            },
+            "serviceProvider": {
+              "reference": "Bahmni"
+            }
+          }
+        },
+        {
+          "title": "diagnosis",
+          "id": "cf64a660-973b-41ec-9efe-2c988dd0c904",
+          "content": {
+            "resourceType": "Condition",
+            "identifier": [
+              {
+                "value": "cf64a660-973b-41ec-9efe-2c988dd0c904"
+              }
+            ],
+            "subject": {
+              "reference": "HIDA764177"
+            },
+            "encounter": {
+              "reference": "26504add-2d96-44d0-a2f6-d849dc090254"
+            },
+            "asserter": {
+              "reference": "1cbd8e35-5bcb-4914-a982-be14817b4ca2"
+            },
+            "code": {
+              "coding": [
+                {
+                  "system": "http://192.168.33.18/openmrs/ws/rest/v1/concept/96f64eb2-4d94-40ab-a386-a62ba03ff6b2",
+                  "code": "A00.0",
+                  "display": "Cholera Vibrio"
+                }
+              ]
+            },
+            "category": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/vs/condition-category",
+                  "code": "diagnosis",
+                  "display": "diagnosis"
+                }
+              ]
+            },
+            "status": "confirmed",
+            "severity": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/vs/condition-severity",
+                  "code": "6736007",
+                  "display": "Moderate"
+                }
+              ]
+            },
+            "onsetDateTime": "2014-07-10T16:05:31+05:30"
+          }
+        },
+        {
+          "title": "diagnosis",
+          "id": "cdf1f685-71a4-4909-b4f4-3a58af88b9b3",
+          "content": {
+            "resourceType": "Condition",
+            "identifier": [
+              {
+                "value": "cdf1f685-71a4-4909-b4f4-3a58af88b9b3"
+              }
+            ],
+            "subject": {
+              "reference": "HIDA764177"
+            },
+            "encounter": {
+              "reference": "26504add-2d96-44d0-a2f6-d849dc090254"
+            },
+            "asserter": {
+              "reference": "1cbd8e35-5bcb-4914-a982-be14817b4ca2"
+            },
+            "code": {
+              "coding": [
+                {
+                  "system": "http://192.168.33.18/openmrs/ws/rest/v1/concept/f34f6020-9e33-4332-b7a5-bc9d464cb438",
+                  "code": "f34f6020-9e33-4332-b7a5-bc9d464cb438",
+                  "display": "TestWithoutRefTerm"
+                }
+              ]
+            },
+            "category": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/vs/condition-category",
+                  "code": "diagnosis",
+                  "display": "diagnosis"
+                }
+              ]
+            },
+            "status": "provisional",
+            "severity": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/vs/condition-severity",
+                  "code": "24484000",
+                  "display": "Severe"
+                }
+              ]
+            },
+            "onsetDateTime": "2014-07-10T16:05:31+05:30"
+          }
+        }
+      ]
+    }
+  }
+]

@@ -1,12 +1,14 @@
 package org.bahmni.module.shrclient.web.controller;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.StringUtils;
 import org.bahmni.module.shrclient.model.Address;
 import org.bahmni.module.shrclient.model.Patient;
 import org.bahmni.module.shrclient.service.BbsCodeService;
 import org.bahmni.module.shrclient.service.MciPatientService;
 import org.bahmni.module.shrclient.util.RestClient;
+import org.bahmni.module.shrclient.web.controller.dto.EncounterBundle;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -30,8 +33,9 @@ public class MciPatientLookupController {
     @Autowired
     private BbsCodeService bbsCodeService;
     @Resource(name = "mciProperties")
-    private Properties properties;
-
+    private Properties mciProperties;
+    @Resource(name = "shrProperties")
+    private Properties shrProperties;
 
     @RequestMapping(method = RequestMethod.GET, value = "/search")
     @ResponseBody
@@ -53,14 +57,26 @@ public class MciPatientLookupController {
     @RequestMapping(method = RequestMethod.GET, value = "/download")
     @ResponseBody
     public Object download(MciPatientSearchRequest request) {
-        Patient mciPatient = searchPatientByHealthId(request.getHid());
+        final String healthId = request.getHid();
+        Patient mciPatient = searchPatientByHealthId(healthId);
         if (mciPatient != null) {
             Map<String, String> downloadResponse = new HashMap<String, String>();
             org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(mciPatient);
+            if (emrPatient != null) {
+                createOrUpdateEncounters(healthId);
+            }
             downloadResponse.put("uuid", emrPatient.getUuid());
             return downloadResponse;
         }
         return null;
+    }
+
+    private void createOrUpdateEncounters(String healthId) {
+        final String url = String.format("/patients/%s/encounters", healthId);
+        List<EncounterBundle> bundles = getShrRestClient().get(url, new TypeReference<List<EncounterBundle>>() {
+        });
+        //TODO
+        System.out.println(bundles);
     }
 
     private Map<String, Object> mapToPatientUIModel(Patient mciPatient) {
@@ -87,21 +103,28 @@ public class MciPatientLookupController {
 
     private Patient searchPatientByNationalId(String nid) {
         String url = String.format("/patient?nid=%s", nid);
-        return getMciWebClient().get(url, Patient.class);
+        return getMciRestClient().get(url, Patient.class);
     }
 
     private Patient searchPatientByHealthId(String hid) {
         if (StringUtils.isBlank(hid)) {
             return null;
         }
-        return getMciWebClient().get("/patient/"+hid, Patient.class);
+        return getMciRestClient().get("/patient/" + hid, Patient.class);
     }
 
-    private RestClient getMciWebClient() {
-        return new RestClient(properties.getProperty("mci.user"),
-                properties.getProperty("mci.password"),
-                properties.getProperty("mci.host"),
-                properties.getProperty("mci.port"));
+    private RestClient getMciRestClient() {
+        return new RestClient(mciProperties.getProperty("mci.user"),
+                mciProperties.getProperty("mci.password"),
+                mciProperties.getProperty("mci.host"),
+                mciProperties.getProperty("mci.port"));
+    }
+
+    private RestClient getShrRestClient() {
+        return new RestClient(shrProperties.getProperty("shr.user"),
+                shrProperties.getProperty("shr.password"),
+                shrProperties.getProperty("shr.host"),
+                shrProperties.getProperty("shr.port"));
     }
 
     private String getAddressEntryText(String code) {
