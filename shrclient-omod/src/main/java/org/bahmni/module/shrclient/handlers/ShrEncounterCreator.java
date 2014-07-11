@@ -1,8 +1,9 @@
 package org.bahmni.module.shrclient.handlers;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.bahmni.module.shrclient.mapper.EncounterMapper;
-import org.bahmni.module.shrclient.util.FhirRestClient;
+import org.bahmni.module.shrclient.util.*;
 import org.hl7.fhir.instance.model.*;
 import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Enumeration;
@@ -63,12 +64,19 @@ public class ShrEncounterCreator implements EventWorker {
             addEncounterSection(encounter, composition);
             addConditionSections(conditionList, composition);
 
+            PersonAttribute healthIdAttribute = openMrsEncounter.getPatient().getAttribute(org.bahmni.module.shrclient.util.Constants.HEALTH_ID_ATTRIBUTE);
+            if (healthIdAttribute == null) {
+                return;
+            }
+
+            String healthId = healthIdAttribute.getValue();
+            if (StringUtils.isBlank(healthId)) {
+                return;
+            }
 
             AtomFeed atomFeed = new AtomFeed();
             addEntriesToDocument(atomFeed, composition, encounter, conditionList);
-//            fhirRestClient.post("/encounter", composition);
-            fhirRestClient.post("/encounter", atomFeed);
-
+            fhirRestClient.post(String.format("/patients/%s/encounters", healthId), atomFeed);
         } catch (Exception e) {
             log.error("Error while processing patient sync event.", e);
             throw new RuntimeException(e);

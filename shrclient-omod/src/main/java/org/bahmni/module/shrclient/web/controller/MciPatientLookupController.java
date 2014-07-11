@@ -63,7 +63,7 @@ public class MciPatientLookupController {
             Map<String, String> downloadResponse = new HashMap<String, String>();
             org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(mciPatient);
             if (emrPatient != null) {
-                createOrUpdateEncounters(healthId);
+                createOrUpdateEncounters(healthId, emrPatient);
             }
             downloadResponse.put("uuid", emrPatient.getUuid());
             return downloadResponse;
@@ -71,12 +71,10 @@ public class MciPatientLookupController {
         return null;
     }
 
-    private void createOrUpdateEncounters(String healthId) {
+    private void createOrUpdateEncounters(String healthId, org.openmrs.Patient emrPatient) {
         final String url = String.format("/patients/%s/encounters", healthId);
-        List<EncounterBundle> bundles = getShrRestClient().get(url, new TypeReference<List<EncounterBundle>>() {
-        });
-        //TODO
-        System.out.println(bundles);
+        List<EncounterBundle> bundles = getShrRestClient().get(url, new TypeReference<List<EncounterBundle>>(){});
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles);
     }
 
     private Map<String, Object> mapToPatientUIModel(Patient mciPatient) {

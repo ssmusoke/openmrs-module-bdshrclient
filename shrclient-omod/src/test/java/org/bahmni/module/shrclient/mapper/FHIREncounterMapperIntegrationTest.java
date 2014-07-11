@@ -49,6 +49,8 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         assertEquals("26504add-2d96-44d0-a2f6-d849dc090254", emrEncounter.getUuid());
         assertNotNull(emrEncounter.getEncounterDatetime());
         assertNotNull(emrEncounter.getEncounterType());
+
+        assertNotNull(emrEncounter.getVisit());
 //        Assert.assertNotNull(emrEncounter.getVisit());
 //        Assert.assertNotNull(emrEncounter.getEncounterDatetime());
 //        Assert.assertEquals("uuid", emrEncounter.getUuid());

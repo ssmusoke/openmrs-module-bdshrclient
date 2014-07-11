@@ -6,6 +6,7 @@ import org.bahmni.module.shrclient.model.Patient;
 import org.bahmni.module.shrclient.service.BbsCodeService;
 import org.bahmni.module.shrclient.service.MciPatientService;
 import org.bahmni.module.shrclient.util.Constants;
+import org.bahmni.module.shrclient.web.controller.dto.EncounterBundle;
 import org.openmrs.PatientIdentifier;
 import org.openmrs.PatientIdentifierType;
 import org.openmrs.PersonAddress;
@@ -68,6 +69,35 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         setCreator(emrPatient);
         patientService.savePatient(emrPatient);
         return emrPatient;
+    }
+
+    @Override
+    public PatientIdentifier generateIdentifier() {
+        IdentifierSourceService identifierSourceService = Context.getService(IdentifierSourceService.class);
+        List<IdentifierSource> allIdentifierSources = identifierSourceService.getAllIdentifierSources(false);
+        for (IdentifierSource identifierSource : allIdentifierSources) {
+            if (((SequentialIdentifierGenerator)identifierSource).getPrefix().equals(Constants.IDENTIFIER_SOURCE_NAME)) {
+                String identifier = identifierSourceService.generateIdentifier(identifierSource, "MCI Patient");
+                PatientIdentifierType identifierType = getPatientIdentifierType();
+                return new PatientIdentifier(identifier, identifierType, null);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles) {
+        for (EncounterBundle bundle : bundles) {
+            updateEncounter(bundle);
+        }
+    }
+
+    private void updateEncounter(EncounterBundle bundle) {
+        System.out.println("************** ENCOUNTER INFO *****************");
+        System.out.println("Encounter ID:" + bundle.getEncounterId());
+        System.out.println("Health ID:" + bundle.getHealthId());
+        System.out.println("Encounter Details:" + bundle.getResourceOrFeed().getFeed());
+        System.out.println("*******************************");
     }
 
     private String getConceptId(String conceptName) {
@@ -165,17 +195,5 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
 
-    public PatientIdentifier generateIdentifier() {
-        IdentifierSourceService identifierSourceService = Context.getService(IdentifierSourceService.class);
-        List<IdentifierSource> allIdentifierSources = identifierSourceService.getAllIdentifierSources(false);
-        for (IdentifierSource identifierSource : allIdentifierSources) {
-            if (((SequentialIdentifierGenerator)identifierSource).getPrefix().equals(Constants.IDENTIFIER_SOURCE_NAME)) {
-                String identifier = identifierSourceService.generateIdentifier(identifierSource, "MCI Patient");
-                PatientIdentifierType identifierType = getPatientIdentifierType();
-                return new PatientIdentifier(identifier, identifierType, null);
-            }
-        }
-        return null;
-    }
 
 }

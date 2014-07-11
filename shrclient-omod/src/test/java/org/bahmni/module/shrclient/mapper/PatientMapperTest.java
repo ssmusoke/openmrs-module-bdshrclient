@@ -1,5 +1,6 @@
 package org.bahmni.module.shrclient.mapper;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.bahmni.module.shrclient.model.Address;
 import org.bahmni.module.shrclient.model.Patient;
 import org.bahmni.module.shrclient.service.BbsCodeService;
@@ -156,5 +157,32 @@ public class PatientMapperTest {
         entry1.setUserGeneratedId(id);
         entries1.add(entry1);
         return entries1;
+    }
+
+    @Test
+    public void dummy () {
+        Date now = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(now);
+
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+
+        Date beginTime = new Date(cal.getTimeInMillis());
+
+        cal.set(Calendar.HOUR_OF_DAY, 23);
+        cal.set(Calendar.MINUTE, 59);
+        cal.set(Calendar.SECOND, 59);
+        cal.set(Calendar.MILLISECOND, 0);
+
+        Date endTime = new Date(cal.getTimeInMillis());
+
+        System.out.println("current:" + now);
+        System.out.println("begin:" + beginTime);
+        System.out.println("end:" + endTime);
+
+
     }
 }
