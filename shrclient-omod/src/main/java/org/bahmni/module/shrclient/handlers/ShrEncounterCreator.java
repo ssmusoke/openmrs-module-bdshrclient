@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.bahmni.module.shrclient.mapper.EncounterMapper;
 import org.bahmni.module.shrclient.util.*;
+import org.bahmni.module.shrclient.util.Constants;
 import org.hl7.fhir.instance.model.*;
 import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Enumeration;
@@ -12,6 +13,8 @@ import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.*;
 import org.openmrs.ConceptMap;
 import org.openmrs.api.EncounterService;
+import org.openmrs.api.UserService;
+import org.openmrs.api.context.Context;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -26,12 +29,14 @@ public class ShrEncounterCreator implements EventWorker {
     private Map<String, String> severityCodes = new HashMap<String, String>();
     private final Map<String,Condition.ConditionStatus> diaConditionStatus = new HashMap<String, Condition.ConditionStatus>();
     private final Map<String,String> diaConditionSeverity = new HashMap<String, String>();
+    private UserService userService;
 
 
-    public ShrEncounterCreator(EncounterService encounterService, EncounterMapper encounterMapper, FhirRestClient fhirRestClient) {
+    public ShrEncounterCreator(EncounterService encounterService, EncounterMapper encounterMapper, FhirRestClient fhirRestClient, UserService userService) {
         this.encounterService = encounterService;
         this.encounterMapper = encounterMapper;
         this.fhirRestClient = fhirRestClient;
+        this.userService = userService;
 
         severityCodes.put("Moderate", "6736007");
         severityCodes.put("Severe", "24484000");
@@ -56,6 +61,12 @@ public class ShrEncounterCreator implements EventWorker {
                 log.debug(String.format("No OpenMRS encounter exists with uuid: [%s].", uuid));
                 return;
             }
+
+            if (!shouldSyncEncounter(openMrsEncounter)) {
+                return;
+            }
+
+
             Encounter encounter = encounterMapper.map(openMrsEncounter);
             log.debug("Encounter: [ " + encounter + "]");
             final List<Condition> conditionList = getConditions(openMrsEncounter, encounter);
@@ -76,11 +87,22 @@ public class ShrEncounterCreator implements EventWorker {
 
             AtomFeed atomFeed = new AtomFeed();
             addEntriesToDocument(atomFeed, composition, encounter, conditionList);
+//            fhirRestClient.post("/encounter", composition);
             fhirRestClient.post(String.format("/patients/%s/encounters", healthId), atomFeed);
+
         } catch (Exception e) {
             log.error("Error while processing patient sync event.", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private boolean shouldSyncEncounter(org.openmrs.Encounter openMrsEncounter) {
+        User changedByUser = openMrsEncounter.getChangedBy();
+        if (changedByUser == null) {
+            changedByUser = openMrsEncounter.getCreator();
+        }
+        User shrClientSystemUser = userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME);
+        return !shrClientSystemUser.getId().equals(changedByUser.getId());
     }
 
     private void addEntriesToDocument(AtomFeed atomFeed, Composition composition, Encounter encounter, List<Condition> conditionList) {

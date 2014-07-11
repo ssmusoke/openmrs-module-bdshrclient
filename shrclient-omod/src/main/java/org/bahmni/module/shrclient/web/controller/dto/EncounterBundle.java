@@ -3,6 +3,7 @@ package org.bahmni.module.shrclient.web.controller.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.hl7.fhir.instance.formats.ParserBase;
+import org.hl7.fhir.instance.model.AtomFeed;
 
 public class EncounterBundle {
 
@@ -28,6 +29,22 @@ public class EncounterBundle {
 
     public ParserBase.ResourceOrFeed getResourceOrFeed() {
         return resourceOrFeed;
+    }
+
+    public void setEncounterId(String encounterId) {
+        this.encounterId = encounterId;
+    }
+
+    public void setHealthId(String healthId) {
+        this.healthId = healthId;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    public void addContent(ParserBase.ResourceOrFeed resourceOrFeed) {
+        this.resourceOrFeed = resourceOrFeed;
     }
 }
 

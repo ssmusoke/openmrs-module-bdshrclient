@@ -4,7 +4,7 @@ package org.bahmni.module.shrclient.mapper;
 import org.apache.commons.lang.time.DateUtils;
 import org.bahmni.module.shrclient.dao.PatientAttributeSearchHandler;
 import org.bahmni.module.shrclient.util.Constants;
-import org.hl7.fhir.instance.model.Encounter;
+import org.hl7.fhir.instance.model.*;
 import org.joda.time.DateTime;
 import org.openmrs.EncounterType;
 import org.openmrs.Patient;
@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 
 @Component
 public class FHIREncounterMapper {
@@ -32,24 +33,27 @@ public class FHIREncounterMapper {
     @Autowired
     VisitService visitService;
 
-    public org.openmrs.Encounter map(Encounter fhirEncounter, String date) throws ParseException {
+    public org.openmrs.Encounter map(Encounter fhirEncounter, String date, Patient emrPatient) throws ParseException {
         org.openmrs.Encounter emrEncounter = new org.openmrs.Encounter();
+
         final SimpleDateFormat ISODateFomat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
         Date encounterDate = ISODateFomat.parse(date);
         emrEncounter.setEncounterDatetime(encounterDate);
         emrEncounter.setUuid(fhirEncounter.getIdentifier().get(0).getValueSimple());
+
         final String encounterTypeName = fhirEncounter.getType().get(0).getTextSimple();
         final EncounterType encounterType = encounterService.getEncounterType(encounterTypeName);
         emrEncounter.setEncounterType(encounterType);
+        org.hl7.fhir.instance.model.Enumeration<Encounter.EncounterClass> fhirEncounterClass = fhirEncounter.getClass_();
 
-//        String patientHid = fhirEncounter.getSubject().getReferenceSimple();
-//        Integer emrPatientId = new PatientAttributeSearchHandler(Constants.HEALTH_ID_ATTRIBUTE).getUniquePatientIdFor(patientHid);
-//        org.openmrs.Patient emrPatient = emrPatientId != null ? patientService.getPatient(emrPatientId) : new org.openmrs.Patient();
-
-        org.openmrs.Patient emrPatient = patientService.getPatient(1);
-
-        Visit visit = findOrInitializeVisit(emrPatient, encounterDate, "OPD");
+        String visitType = "OPD";
+        if (fhirEncounterClass.getValue().equals(Encounter.EncounterClass.inpatient)) {
+           visitType = "IPD";
+        }
+        Visit visit = findOrInitializeVisit(emrPatient, encounterDate, visitType);
+        emrEncounter.setPatient(emrPatient);
         emrEncounter.setVisit(visit);
+        visit.addEncounter(emrEncounter);
 
         return emrEncounter;
     }

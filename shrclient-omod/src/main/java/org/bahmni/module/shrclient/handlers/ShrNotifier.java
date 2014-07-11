@@ -41,7 +41,7 @@ public class ShrNotifier {
         process(OPENMRS_ENCOUNTER_FEED_URI, new ShrEncounterCreator(
                 Context.getEncounterService(),
                 new EncounterMapper(),
-                getShrWebClient()));
+                getShrWebClient(), Context.getUserService()));
     }
 
     private void process(String feedURI, EventWorker eventWorker) {

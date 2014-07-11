@@ -10,6 +10,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.openmrs.api.EncounterService;
+import org.openmrs.api.UserService;
 
 import java.io.IOException;
 
@@ -27,12 +28,16 @@ public class ShrEncounterCreatorTest {
     private EncounterMapper encounterMapper;
     @Mock
     private FhirRestClient fhirRestClient;
+
+    @Mock
+    private UserService userService;
+
     private ShrEncounterCreator shrEncounterCreator;
 
     @Before
     public void setup() {
         initMocks(this);
-        shrEncounterCreator = new ShrEncounterCreator(encounterService, encounterMapper, fhirRestClient);
+        shrEncounterCreator = new ShrEncounterCreator(encounterService, encounterMapper, fhirRestClient, userService);
     }
 
     @Ignore
