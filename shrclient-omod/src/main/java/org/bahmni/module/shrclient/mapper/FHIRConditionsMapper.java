@@ -42,6 +42,15 @@ public class FHIRConditionsMapper {
             Concept codedDiagnosis = conceptService.getConceptByName("Coded Diagnosis");
             Concept visitDiagnosis = conceptService.getConceptByName("Visit Diagnoses");
 
+            Concept bahmniInitialDiagnosis = conceptService.getConceptByName("Bahmni Initial Diagnosis");
+            Concept bahmniDiagnosisStatus = conceptService.getConceptByName("Bahmni Diagnosis Status");
+            Concept bahmniDiagnosisRevised = conceptService.getConceptByName("Bahmni Diagnosis Revised");
+
+            Concept falseConcept = conceptService.getConceptByName("False");
+
+
+
+
             Concept diagnosisConceptAnswer = identifyDiagnosisConcept(condition);
             Concept diagnosisSeverityAnswer = identifyDiagnosisSeverity(condition, diagnosisOrder);
             Concept diagnosisCertaintyAnswer = identifyDiagnosisCertainty(condition, diagnosisCertainty);
@@ -53,20 +62,38 @@ public class FHIRConditionsMapper {
             orderObs.setConcept(diagnosisOrder);
             orderObs.setPerson(emrPatient);
             orderObs.setValueCoded(diagnosisSeverityAnswer);
+            visitDiagnosisObs.addGroupMember(orderObs);
 
             Obs certaintyObs = new Obs();
             certaintyObs.setConcept(diagnosisCertainty);
             certaintyObs.setPerson(emrPatient);
             certaintyObs.setValueCoded(diagnosisCertaintyAnswer);
+            visitDiagnosisObs.addGroupMember(certaintyObs);
 
             Obs codedObs = new Obs();
             codedObs.setConcept(codedDiagnosis);
             codedObs.setPerson(emrPatient);
             codedObs.setValueCoded(diagnosisConceptAnswer);
-
-            visitDiagnosisObs.addGroupMember(orderObs);
-            visitDiagnosisObs.addGroupMember(certaintyObs);
             visitDiagnosisObs.addGroupMember(codedObs);
+
+
+            Obs bahmniInitDiagObs = new Obs();
+            bahmniInitDiagObs.setConcept(bahmniInitialDiagnosis);
+            bahmniInitDiagObs.setPerson(emrPatient);
+            bahmniInitDiagObs.setValueText(visitDiagnosisObs.getUuid());
+            visitDiagnosisObs.addGroupMember(bahmniInitDiagObs);
+
+            Obs bahmniDiagStatusObs = new Obs();
+            bahmniDiagStatusObs.setConcept(bahmniDiagnosisStatus);
+            bahmniDiagStatusObs.setValueCoded(falseConcept);
+            bahmniDiagStatusObs.setPerson(emrPatient);
+            visitDiagnosisObs.addGroupMember(bahmniDiagStatusObs);
+
+            Obs bahmniDiagRevisedObs = new Obs();
+            bahmniDiagRevisedObs.setConcept(bahmniDiagnosisRevised);
+            bahmniDiagRevisedObs.setValueBoolean(false);
+            bahmniDiagRevisedObs.setPerson(emrPatient);
+            visitDiagnosisObs.addGroupMember(bahmniDiagRevisedObs);
 
             newEmrEncounter.addObs(visitDiagnosisObs);
         }
