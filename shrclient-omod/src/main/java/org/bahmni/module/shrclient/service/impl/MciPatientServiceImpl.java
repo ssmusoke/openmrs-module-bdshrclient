@@ -2,6 +2,7 @@ package org.bahmni.module.shrclient.service.impl;
 
 import org.apache.log4j.Logger;
 import org.bahmni.module.shrclient.dao.PatientAttributeSearchHandler;
+import org.bahmni.module.shrclient.mapper.FHIRConditionsMapper;
 import org.bahmni.module.shrclient.mapper.FHIREncounterMapper;
 import org.bahmni.module.shrclient.model.Address;
 import org.bahmni.module.shrclient.model.Patient;
@@ -10,9 +11,9 @@ import org.bahmni.module.shrclient.service.MciPatientService;
 import org.bahmni.module.shrclient.util.Constants;
 import org.bahmni.module.shrclient.util.FHIRFeedHelper;
 import org.bahmni.module.shrclient.web.controller.dto.EncounterBundle;
-import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.Composition;
+import org.hl7.fhir.instance.model.Condition;
 import org.hl7.fhir.instance.model.Encounter;
 import org.openmrs.*;
 import org.openmrs.api.*;
@@ -28,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -45,6 +47,13 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     @Autowired
     FHIREncounterMapper fhirEncounterMapper;
+
+    @Autowired
+    FHIRConditionsMapper fhirConditionsMapper;
+
+
+    @Autowired
+    ProviderService providerService;
 
     private static final Logger logger = Logger.getLogger(MciPatientServiceImpl.class);
 
@@ -131,8 +140,13 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         setCreator(newEmrEncounter, systemUser);
         setCreator(newEmrEncounter.getVisit(), systemUser);
 
-        //FHIRFeedHelper.getConditions()
+        List<Condition> conditions = FHIRFeedHelper.getConditions(feed);
+        fhirConditionsMapper.map(emrPatient, newEmrEncounter, conditions);
 
+        Collection<Provider> providersByPerson = providerService.getProvidersByPerson(systemUser.getPerson());
+        if ((providersByPerson != null) & !providersByPerson.isEmpty()) {
+            newEmrEncounter.addProvider(encounterService.getEncounterRoleByUuid(EncounterRole.UNKNOWN_ENCOUNTER_ROLE_UUID), providersByPerson.iterator().next());
+        }
         visitService.saveVisit(newEmrEncounter.getVisit());
 
     }

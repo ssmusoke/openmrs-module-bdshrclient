@@ -18,6 +18,7 @@ import org.springframework.core.io.Resource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.hl7.fhir.instance.formats.ParserBase.*;
 import static org.junit.Assert.assertEquals;
@@ -72,6 +73,13 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
 
         assertNotNull(emrEncounter.getVisit());
         assertEquals("ad41fb41-a41a-4ad6-8835-2f59099acf5a", emrEncounter.getVisit().getUuid());
+
+
+        List<Condition> conditions = FHIRFeedHelper.getConditions(encounterBundle);
+        assertEquals(2, conditions.size());
+        assertEquals("HIDA764177", conditions.get(0).getSubject().getReferenceSimple());
+
+        Set<Obs> allObs = emrEncounter.getAllObs();
 
 //        Assert.assertNotNull(emrEncounter.getVisit());
 //        Assert.assertNotNull(emrEncounter.getEncounterDatetime());

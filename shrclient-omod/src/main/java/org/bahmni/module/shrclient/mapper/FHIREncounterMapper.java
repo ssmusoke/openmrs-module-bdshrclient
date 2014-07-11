@@ -54,7 +54,6 @@ public class FHIREncounterMapper {
         emrEncounter.setPatient(emrPatient);
         emrEncounter.setVisit(visit);
         visit.addEncounter(emrEncounter);
-
         return emrEncounter;
     }
 

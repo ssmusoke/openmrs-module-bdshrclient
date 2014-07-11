@@ -209,19 +209,32 @@ public class ShrEncounterCreator implements EventWorker {
         CodeableConcept diagnosisCode = new CodeableConcept();
         Coding coding = diagnosisCode.addCoding();
         //TODO to change to reference term code
-        coding.setCodeSimple(getReferenceCode(obsConcept));
-        //TODO: put in the right URL. To be mapped
-        coding.setSystemSimple("http://192.168.33.18/openmrs/ws/rest/v1/concept/" + obsConcept.getUuid());
-        coding.setDisplaySimple(obsConcept.getDisplayString());
+        DiagnosisCoding refCoding = getReferenceCode(obsConcept);
+        coding.setCodeSimple(refCoding.code);
+        coding.setSystemSimple(refCoding.source);
+        coding.setDisplaySimple(obsConcept.getName().getName());
         return diagnosisCode;
     }
 
-    private String getReferenceCode(Concept obsConcept) {
+    private class DiagnosisCoding {
+        String code;
+        String source;
+    }
+
+    private DiagnosisCoding getReferenceCode(Concept obsConcept) {
         Collection<org.openmrs.ConceptMap> conceptMappings = obsConcept.getConceptMappings();
         for (ConceptMap mapping : conceptMappings) {
-            return mapping.getConceptReferenceTerm().getCode();
+            DiagnosisCoding diagnosisCoding = new DiagnosisCoding();
+            ConceptReferenceTerm conceptReferenceTerm = mapping.getConceptReferenceTerm();
+            diagnosisCoding.code = conceptReferenceTerm.getCode();
+            diagnosisCoding.source = conceptReferenceTerm.getConceptSource().getName();
+            return diagnosisCoding;
         }
-        return obsConcept.getUuid();
+        DiagnosisCoding defaultCoding = new DiagnosisCoding();
+        defaultCoding.code = obsConcept.getUuid();
+        //TODO: put in the right URL. To be mapped
+        defaultCoding.source = "http://192.168.33.18/openmrs/ws/rest/v1/concept/" + obsConcept.getUuid();
+        return defaultCoding;
     }
 
     private CodeableConcept getDiagnosisSeverity(Concept valueCoded) {
