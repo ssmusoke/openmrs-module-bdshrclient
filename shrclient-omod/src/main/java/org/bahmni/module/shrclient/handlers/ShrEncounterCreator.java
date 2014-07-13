@@ -14,7 +14,6 @@ import org.openmrs.*;
 import org.openmrs.ConceptMap;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.UserService;
-import org.openmrs.api.context.Context;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -23,6 +22,20 @@ import java.util.regex.Pattern;
 public class ShrEncounterCreator implements EventWorker {
 
     private static final Logger log = Logger.getLogger(ShrEncounterCreator.class);
+    public static final String FHIR_CONDITION_CODE_DIAGNOSIS = "diagnosis";
+    public static final String TERMINOLOGY_SERVER_CONCEPT_URL = "http://192.168.33.18/openmrs/ws/rest/v1/concept/";
+    public static final String FHIR_CONDITION_CATEGORY_URL = "http://hl7.org/fhir/vs/condition-category";
+    public static final String FHIR_CONDITION_SEVERITY_URL = "http://hl7.org/fhir/vs/condition-severity";
+    public static final String SEVERITY_MODERATE = "Moderate";
+    public static final String SEVERITY_SEVERE = "Severe";
+    public static final String SNOMED_VALUE_MODERATE_SEVERTY = "6736007";
+    public static final String SNOMED_VALUE_SEVERE_SEVERITY = "24484000";
+    public static final String DIAGNOSIS_PRESUMED = "Presumed";
+    public static final String DIAGNOSIS_CONFIRMED = "Confirmed";
+    public static final String MRS_SEVERITY_PRIMARY = "Primary";
+    public static final String MRS_SEVERITY_SECONDARY = "Secondary";
+
+
     private EncounterService encounterService;
     private EncounterMapper encounterMapper;
     private FhirRestClient fhirRestClient;
@@ -38,16 +51,14 @@ public class ShrEncounterCreator implements EventWorker {
         this.fhirRestClient = fhirRestClient;
         this.userService = userService;
 
-        severityCodes.put("Moderate", "6736007");
-        severityCodes.put("Severe", "24484000");
+        severityCodes.put(SEVERITY_MODERATE, SNOMED_VALUE_MODERATE_SEVERTY);
+        severityCodes.put(SEVERITY_SEVERE, SNOMED_VALUE_SEVERE_SEVERITY);
 
-        diaConditionStatus.put("Presumed", Condition.ConditionStatus.provisional);
-        diaConditionStatus.put("Confirmed", Condition.ConditionStatus.confirmed);
+        diaConditionStatus.put(DIAGNOSIS_PRESUMED, Condition.ConditionStatus.provisional);
+        diaConditionStatus.put(DIAGNOSIS_CONFIRMED, Condition.ConditionStatus.confirmed);
 
-        diaConditionSeverity.put("Primary", "Moderate");
-        diaConditionSeverity.put("Secondary", "Severe");
-
-
+        diaConditionSeverity.put(MRS_SEVERITY_PRIMARY, SEVERITY_MODERATE);
+        diaConditionSeverity.put(MRS_SEVERITY_SECONDARY, SEVERITY_SEVERE);
 
     }
 
@@ -71,10 +82,8 @@ public class ShrEncounterCreator implements EventWorker {
             log.debug("Encounter: [ " + encounter + "]");
             final List<Condition> conditionList = getConditions(openMrsEncounter, encounter);
             Composition composition = createComposition(openMrsEncounter, encounter);
-
             addEncounterSection(encounter, composition);
             addConditionSections(conditionList, composition);
-
             PersonAttribute healthIdAttribute = openMrsEncounter.getPatient().getAttribute(org.bahmni.module.shrclient.util.Constants.HEALTH_ID_ATTRIBUTE);
             if (healthIdAttribute == null) {
                 return;
@@ -167,73 +176,82 @@ public class ShrEncounterCreator implements EventWorker {
         List<Condition> diagnoses = new ArrayList<Condition>();
         for (Obs obs : allObs) {
             if (obs.getConcept().getName().getName().equalsIgnoreCase("Visit Diagnoses")) {
-                Condition condition = new Condition();
-                condition.setEncounter(encounter.getIndication());
-                condition.setSubject(encounter.getSubject());
-                condition.setAsserter(getParticipant(encounter));
-                condition.setCategory(getDiagnosisCategory());
-
-                final Set<Obs> obsMembers = obs.getGroupMembers(false);
-                for (Obs member : obsMembers) {
-                    final String memberConceptName = member.getConcept().getName().getName();
-                    if (memberConceptName.equalsIgnoreCase("Coded Diagnosis")) {
-                        condition.setCode(getDiagnosisCode(member.getValueCoded()));
-                    }
-                    else if (memberConceptName.equalsIgnoreCase("Diagnosis Certainty")) {
-                        Concept diagnosisStatus = member.getValueCoded();
-                        Condition.ConditionStatus status = diaConditionStatus.get(diagnosisStatus.getName().getName());
-                        if (status != null) {
-                            condition.setStatus(new Enumeration<Condition.ConditionStatus>(status));
-                        } else {
-                            condition.setStatus(new Enumeration<Condition.ConditionStatus>(Condition.ConditionStatus.confirmed));
-                        }
-                    }
-                    else if (memberConceptName.equalsIgnoreCase("Diagnosis order")) {
-                        condition.setSeverity(getDiagnosisSeverity(member.getValueCoded()));
-                    }
-                }
-
-                DateTime onsetDate = new DateTime();
-                onsetDate.setValue(new DateAndTime(obs.getObsDatetime()));
-                condition.setOnset(onsetDate);
-
-                Identifier identifier = condition.addIdentifier();
-                identifier.setValueSimple(obs.getUuid());
-                diagnoses.add(condition);
+                diagnoses.add(createFHIRCondition(encounter, obs));
             }
         }
         return diagnoses;
+    }
+
+    private Condition createFHIRCondition(Encounter encounter, Obs obs) {
+        Condition condition = new Condition();
+        condition.setEncounter(encounter.getIndication());
+        condition.setSubject(encounter.getSubject());
+        condition.setAsserter(getParticipant(encounter));
+        condition.setCategory(getDiagnosisCategory());
+
+        final Set<Obs> obsMembers = obs.getGroupMembers(false);
+        for (Obs member : obsMembers) {
+            final String memberConceptName = member.getConcept().getName().getName();
+            if (memberConceptName.equalsIgnoreCase("Coded Diagnosis")) {
+                condition.setCode(getDiagnosisCode(member.getValueCoded()));
+            }
+            else if (memberConceptName.equalsIgnoreCase("Diagnosis Certainty")) {
+                condition.setStatus(getConditionStatus(member));
+            }
+            else if (memberConceptName.equalsIgnoreCase("Diagnosis order")) {
+                condition.setSeverity(getDiagnosisSeverity(member.getValueCoded()));
+            }
+        }
+
+        DateTime onsetDate = new DateTime();
+        onsetDate.setValue(new DateAndTime(obs.getObsDatetime()));
+        condition.setOnset(onsetDate);
+
+        Identifier identifier = condition.addIdentifier();
+        identifier.setValueSimple(obs.getUuid());
+        return condition;
+    }
+
+    private Enumeration<Condition.ConditionStatus> getConditionStatus(Obs member) {
+        Concept diagnosisStatus = member.getValueCoded();
+        Condition.ConditionStatus status = diaConditionStatus.get(diagnosisStatus.getName().getName());
+        if (status != null) {
+            return new Enumeration<Condition.ConditionStatus>(status);
+        } else {
+            return new Enumeration<Condition.ConditionStatus>(Condition.ConditionStatus.confirmed);
+        }
     }
 
     private CodeableConcept getDiagnosisCode(Concept obsConcept) {
         CodeableConcept diagnosisCode = new CodeableConcept();
         Coding coding = diagnosisCode.addCoding();
         //TODO to change to reference term code
-        DiagnosisCoding refCoding = getReferenceCode(obsConcept);
+        ConceptCoding refCoding = getReferenceCode(obsConcept);
         coding.setCodeSimple(refCoding.code);
         coding.setSystemSimple(refCoding.source);
         coding.setDisplaySimple(obsConcept.getName().getName());
         return diagnosisCode;
     }
 
-    private class DiagnosisCoding {
+    private class ConceptCoding {
         String code;
         String source;
     }
 
-    private DiagnosisCoding getReferenceCode(Concept obsConcept) {
+    private ConceptCoding getReferenceCode(Concept obsConcept) {
         Collection<org.openmrs.ConceptMap> conceptMappings = obsConcept.getConceptMappings();
         for (ConceptMap mapping : conceptMappings) {
-            DiagnosisCoding diagnosisCoding = new DiagnosisCoding();
+            //TODO right now returning the first matching term
+            ConceptCoding coding = new ConceptCoding();
             ConceptReferenceTerm conceptReferenceTerm = mapping.getConceptReferenceTerm();
-            diagnosisCoding.code = conceptReferenceTerm.getCode();
-            diagnosisCoding.source = conceptReferenceTerm.getConceptSource().getName();
-            return diagnosisCoding;
+            coding.code = conceptReferenceTerm.getCode();
+            coding.source = conceptReferenceTerm.getConceptSource().getName();
+            return coding;
         }
-        DiagnosisCoding defaultCoding = new DiagnosisCoding();
+        ConceptCoding defaultCoding = new ConceptCoding();
         defaultCoding.code = obsConcept.getUuid();
         //TODO: put in the right URL. To be mapped
-        defaultCoding.source = "http://192.168.33.18/openmrs/ws/rest/v1/concept/" + obsConcept.getUuid();
+        defaultCoding.source = TERMINOLOGY_SERVER_CONCEPT_URL + obsConcept.getUuid();
         return defaultCoding;
     }
 
@@ -246,18 +264,18 @@ public class ShrEncounterCreator implements EventWorker {
             coding.setDisplaySimple(severity);
             coding.setCodeSimple(severityCodes.get(severity));
         } else {
-            coding.setDisplaySimple("Moderate");
-            coding.setCodeSimple(severityCodes.get("Moderate"));
+            coding.setDisplaySimple(SEVERITY_MODERATE);
+            coding.setCodeSimple(severityCodes.get(SEVERITY_MODERATE));
         }
-        coding.setSystemSimple("http://hl7.org/fhir/vs/condition-severity");
+        coding.setSystemSimple(FHIR_CONDITION_SEVERITY_URL);
         return conditionSeverity;
     }
 
     private CodeableConcept getDiagnosisCategory() {
         CodeableConcept conditionCategory = new CodeableConcept();
         Coding coding = conditionCategory.addCoding();
-        coding.setCodeSimple("diagnosis");
-        coding.setSystemSimple("http://hl7.org/fhir/vs/condition-category");
+        coding.setCodeSimple(FHIR_CONDITION_CODE_DIAGNOSIS);
+        coding.setSystemSimple(FHIR_CONDITION_CATEGORY_URL);
         coding.setDisplaySimple("diagnosis");
         return conditionCategory;
     }
@@ -277,10 +295,6 @@ public class ShrEncounterCreator implements EventWorker {
         composition.setStatus(new Enumeration<Composition.CompositionStatus>(Composition.CompositionStatus.final_));
         composition.setIdentifier(new Identifier().setValueSimple("Encounter - " + openMrsEncounter.getUuid()));
         return composition;
-    }
-
-    Encounter populateEncounter(org.openmrs.Encounter openMrsEncounter) {
-        return new Encounter();
     }
 
     String getUuid(String content) {

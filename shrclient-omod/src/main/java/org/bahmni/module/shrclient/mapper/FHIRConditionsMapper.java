@@ -102,7 +102,7 @@ public class FHIRConditionsMapper {
     }
 
     private Concept identifyDiagnosisCertainty(Condition condition, Concept diagnosisCertainty) {
-        Enumeration<Condition.ConditionStatus> conditionStatus = condition.getStatus();
+        Condition.ConditionStatus conditionStatus = condition.getStatus().getValue();
         String status = diaConditionStatus.get(conditionStatus);
 
         Concept certaintyAnswerConcept = null;

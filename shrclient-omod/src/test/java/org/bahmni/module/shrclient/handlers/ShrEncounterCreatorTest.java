@@ -68,10 +68,4 @@ public class ShrEncounterCreatorTest {
         assertEquals(uuid, shrEncounterCreator.getUuid(content));
     }
 
-    @Ignore
-    @Test
-    public void shouldPopulateShrEncounterFromOpenMrsEncounter() {
-        final Encounter encounter = shrEncounterCreator.populateEncounter(new org.openmrs.Encounter());
-        assertNotNull(encounter);
-    }
 }
