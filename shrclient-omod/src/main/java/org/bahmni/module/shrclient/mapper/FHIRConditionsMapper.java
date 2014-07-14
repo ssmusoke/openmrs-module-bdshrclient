@@ -3,7 +3,6 @@ package org.bahmni.module.shrclient.mapper;
 import org.hl7.fhir.instance.model.CodeableConcept;
 import org.hl7.fhir.instance.model.Coding;
 import org.hl7.fhir.instance.model.Condition;
-import org.hl7.fhir.instance.model.Enumeration;
 import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,59 +45,43 @@ public class FHIRConditionsMapper {
             Concept bahmniDiagnosisStatus = conceptService.getConceptByName("Bahmni Diagnosis Status");
             Concept bahmniDiagnosisRevised = conceptService.getConceptByName("Bahmni Diagnosis Revised");
 
-            Concept falseConcept = conceptService.getConceptByName("False");
-
-
-
-
             Concept diagnosisConceptAnswer = identifyDiagnosisConcept(condition);
             Concept diagnosisSeverityAnswer = identifyDiagnosisSeverity(condition, diagnosisOrder);
             Concept diagnosisCertaintyAnswer = identifyDiagnosisCertainty(condition, diagnosisCertainty);
 
             visitDiagnosisObs.setConcept(visitDiagnosis);
+            visitDiagnosisObs.setPerson(emrPatient);
 
-
-            Obs orderObs = new Obs();
-            orderObs.setConcept(diagnosisOrder);
-            orderObs.setPerson(emrPatient);
+            Obs orderObs = addToObsGroup(emrPatient, visitDiagnosisObs, diagnosisOrder);
             orderObs.setValueCoded(diagnosisSeverityAnswer);
-            visitDiagnosisObs.addGroupMember(orderObs);
 
-            Obs certaintyObs = new Obs();
-            certaintyObs.setConcept(diagnosisCertainty);
-            certaintyObs.setPerson(emrPatient);
+            Obs certaintyObs = addToObsGroup(emrPatient, visitDiagnosisObs, diagnosisCertainty);
             certaintyObs.setValueCoded(diagnosisCertaintyAnswer);
-            visitDiagnosisObs.addGroupMember(certaintyObs);
 
-            Obs codedObs = new Obs();
-            codedObs.setConcept(codedDiagnosis);
-            codedObs.setPerson(emrPatient);
+            Obs codedObs = addToObsGroup(emrPatient, visitDiagnosisObs, codedDiagnosis);
             codedObs.setValueCoded(diagnosisConceptAnswer);
-            visitDiagnosisObs.addGroupMember(codedObs);
 
-
-            Obs bahmniInitDiagObs = new Obs();
-            bahmniInitDiagObs.setConcept(bahmniInitialDiagnosis);
-            bahmniInitDiagObs.setPerson(emrPatient);
+            Obs bahmniInitDiagObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniInitialDiagnosis);
             bahmniInitDiagObs.setValueText(visitDiagnosisObs.getUuid());
-            visitDiagnosisObs.addGroupMember(bahmniInitDiagObs);
 
-            Obs bahmniDiagStatusObs = new Obs();
-            bahmniDiagStatusObs.setConcept(bahmniDiagnosisStatus);
-            bahmniDiagStatusObs.setValueCoded(falseConcept);
-            bahmniDiagStatusObs.setPerson(emrPatient);
-            visitDiagnosisObs.addGroupMember(bahmniDiagStatusObs);
+            Obs bahmniDiagStatusObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniDiagnosisStatus);
+            bahmniDiagStatusObs.setValueBoolean(false);
 
-            Obs bahmniDiagRevisedObs = new Obs();
-            bahmniDiagRevisedObs.setConcept(bahmniDiagnosisRevised);
+            Obs bahmniDiagRevisedObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniDiagnosisRevised);
             bahmniDiagRevisedObs.setValueBoolean(false);
-            bahmniDiagRevisedObs.setPerson(emrPatient);
-            visitDiagnosisObs.addGroupMember(bahmniDiagRevisedObs);
 
             newEmrEncounter.addObs(visitDiagnosisObs);
         }
 
 
+    }
+
+    private Obs addToObsGroup(Patient emrPatient, Obs visitDiagnosisObs, Concept obsConcept) {
+        Obs orderObs = new Obs();
+        orderObs.setConcept(obsConcept);
+        orderObs.setPerson(emrPatient);
+        visitDiagnosisObs.addGroupMember(orderObs);
+        return orderObs;
     }
 
     private Concept identifyDiagnosisCertainty(Condition condition, Concept diagnosisCertainty) {
@@ -164,7 +147,6 @@ public class FHIRConditionsMapper {
             String diagnosisCode = coding.getCodeSimple();
             String systemSimple = coding.getSystemSimple();
             String diagnosisName = coding.getDisplaySimple();
-            Concept diagnosisConcept = null;
             if (systemSimple.startsWith("ICD10")) {
                 ConceptSource conceptSource = conceptService.getConceptSourceByName(systemSimple);
                 //ConceptReferenceTerm referenceTerm = conceptService.getConceptReferenceTermByCode(diagnosisCode, conceptSource);
