@@ -1,5 +1,6 @@
 package org.bahmni.module.shrclient.dao;
 
+import org.apache.log4j.Logger;
 import org.openmrs.util.DatabaseUpdater;
 
 import java.sql.Connection;
@@ -9,7 +10,10 @@ import java.sql.SQLException;
 
 
 public class PatientAttributeSearchHandler {
+
     private String attrName;
+
+    private Logger logger = Logger.getLogger(PatientAttributeSearchHandler.class);
 
     public PatientAttributeSearchHandler(String attrName) {
         this.attrName = attrName;
@@ -17,9 +21,9 @@ public class PatientAttributeSearchHandler {
 
     public Integer getUniquePatientIdFor(String attrValue) {
         String query = "select distinct p.patient_id from person_attribute_type pat" +
-                       " join person_attribute pa on pa.person_attribute_type_id = pat.person_attribute_type_id" +
-                       " join patient p on pa.person_id = p.patient_id" +
-                       " where pat.name = ? and pa.value = ?";
+                " join person_attribute pa on pa.person_attribute_type_id = pat.person_attribute_type_id" +
+                " join patient p on pa.person_id = p.patient_id" +
+                " where pat.name = ? and pa.value = ?";
         Connection conn = null;
         PreparedStatement statement = null;
         ResultSet resultSet = null;
@@ -41,12 +45,7 @@ public class PatientAttributeSearchHandler {
                 if (resultSet != null) resultSet.close();
                 if (statement != null) statement.close();
             } catch (SQLException e) {
-                //logger.warn("Could not close db statement or resultset", e);
-            }
-            try {
-                if (conn != null) conn.close();
-            } catch (SQLException e) {
-                throw new RuntimeException("Error occurred while identifying Patient", e);
+                logger.warn("Could not close db statement or resultset", e);
             }
         }
         return emrPatientId;
