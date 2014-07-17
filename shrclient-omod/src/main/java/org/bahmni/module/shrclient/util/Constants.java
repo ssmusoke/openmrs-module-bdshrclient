@@ -13,4 +13,5 @@ public class Constants {
     public static final String IDENTIFIER_SOURCE_NAME = "BAM";
     public static final String EMR_PRIMARY_IDENTIFIER_TYPE = "emr.primaryIdentifierType";
 
+    public static final String MCI_PATIENT_URL = "/api/v1/patients";
 }

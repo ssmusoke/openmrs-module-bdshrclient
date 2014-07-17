@@ -57,7 +57,7 @@ public class ShrPatientCreator implements EventWorker {
             Patient patient = patientMapper.map(openMrsPatient);
             log.debug("Patient: [ " + patient + "]");
 
-            String healthId = restClient.post("/patient", patient);
+            String healthId = restClient.post(Constants.MCI_PATIENT_URL, patient);
             updateOpenMrsPatientHealthId(openMrsPatient, healthId);
 
         } catch (Exception e) {

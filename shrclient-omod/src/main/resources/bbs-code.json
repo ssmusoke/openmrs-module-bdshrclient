@@ -6,22 +6,22 @@
   },
 
   "education": {
-    "Uneducated": "1",
-    "5th Pass and Below": "2",
-    "6th to 9th": "3",
-    "10th pass": "4",
-    "12th pass": "5",
-    "Graduate and Above": "6"
+    "Uneducated": "01",
+    "5th Pass and Below": "02",
+    "6th to 9th": "03",
+    "10th pass": "04",
+    "12th pass": "05",
+    "Graduate and Above": "06"
   },
 
   "occupation": {
-    "Unemployed": "1",
-    "Agriculture": "2",
-    "Student": "3",
-    "Government": "4",
-    "Business": "5",
-    "Housewife": "6",
-    "Labour": "7",
-    "Other": "8"
+    "Unemployed": "01",
+    "Agriculture": "02",
+    "Student": "03",
+    "Government": "04",
+    "Business": "05",
+    "Housewife": "06",
+    "Labour": "07",
+    "Other": "08"
   }
 }

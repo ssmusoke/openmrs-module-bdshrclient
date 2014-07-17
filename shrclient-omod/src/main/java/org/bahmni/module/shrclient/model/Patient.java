@@ -39,7 +39,7 @@ public class Patient {
     @JsonInclude(NON_EMPTY)
     private String educationLevel;
 
-    @JsonProperty("primary_contact")
+    @JsonProperty("fathers_first_name")
     @JsonInclude(NON_EMPTY)
     private String primaryContact;
 

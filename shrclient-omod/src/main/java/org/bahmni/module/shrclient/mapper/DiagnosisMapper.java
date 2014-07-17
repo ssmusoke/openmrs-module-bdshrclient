@@ -10,47 +10,20 @@ import java.util.*;
 
 public class DiagnosisMapper {
 
-    public static final String FHIR_CONDITION_CODE_DIAGNOSIS = "diagnosis";
+    //TODO temporary. To read TR concept URL from mapping
     public static final String TERMINOLOGY_SERVER_CONCEPT_URL = "http://192.168.33.18/openmrs/ws/rest/v1/concept/";
-    public static final String FHIR_CONDITION_CATEGORY_URL = "http://hl7.org/fhir/vs/condition-category";
-    public static final String FHIR_CONDITION_SEVERITY_URL = "http://hl7.org/fhir/vs/condition-severity";
-    public static final String SEVERITY_MODERATE = "Moderate";
-    public static final String SEVERITY_SEVERE = "Severe";
-    public static final String SNOMED_VALUE_MODERATE_SEVERTY = "6736007";
-    public static final String SNOMED_VALUE_SEVERE_SEVERITY = "24484000";
-    public static final String DIAGNOSIS_PRESUMED = "Presumed";
-    public static final String DIAGNOSIS_CONFIRMED = "Confirmed";
-    public static final String MRS_SEVERITY_PRIMARY = "Primary";
-    public static final String MRS_SEVERITY_SECONDARY = "Secondary";
 
-    private Map<String, String> severityCodes = new HashMap<String, String>();
     private final Map<String,Condition.ConditionStatus> diaConditionStatus = new HashMap<String, Condition.ConditionStatus>();
     private final Map<String,String> diaConditionSeverity = new HashMap<String, String>();
-
-
-//+--------+--------------+----------+--------------------------+------------+-------------+--------------------+
-//| obs_id | obs_group_id | class    | name                     | concept_id | value_coded | name               |
-//+--------+--------------+----------+--------------------------+------------+-------------+--------------------+
-//|     84 |         NULL | ConvSet  | Visit Diagnoses          |         13 |        NULL | NULL               |
-//|     85 |           84 | Question | Diagnosis order          |         19 |          21 | Primary/Secondary  |
-//|     86 |           84 | Question | Diagnosis Certainty      |         16 |          18 | Confirmed/Presumed |
-//|     87 |           84 | Question | Coded Diagnosis          |         15 |         181 | TestWithoutRefTerm |
-//|     88 |           84 | Misc     | Bahmni Initial Diagnosis |         50 |        NULL | NULL               |
-//|     89 |           84 | Misc     | Bahmni Diagnosis Status  |         49 |        NULL | NULL               |
-//|     90 |           84 | Misc     | Bahmni Diagnosis Revised |         51 |           2 | False              |
-//|     90 |           84 | Misc     | Bahmni Diagnosis Revised |         51 |           2 | No                 |
-//+--------+--------------+----------+--------------------------+------------+-------------+--------------------+
-
+    private final FHIRProperties fhirProperties;
 
     public DiagnosisMapper() {
-        severityCodes.put(SEVERITY_MODERATE, SNOMED_VALUE_MODERATE_SEVERTY);
-        severityCodes.put(SEVERITY_SEVERE, SNOMED_VALUE_SEVERE_SEVERITY);
+        fhirProperties = new FHIRProperties();
+        diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_PRESUMED, Condition.ConditionStatus.provisional);
+        diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_CONFIRMED, Condition.ConditionStatus.confirmed);
 
-        diaConditionStatus.put(DIAGNOSIS_PRESUMED, Condition.ConditionStatus.provisional);
-        diaConditionStatus.put(DIAGNOSIS_CONFIRMED, Condition.ConditionStatus.confirmed);
-
-        diaConditionSeverity.put(MRS_SEVERITY_PRIMARY, SEVERITY_MODERATE);
-        diaConditionSeverity.put(MRS_SEVERITY_SECONDARY, SEVERITY_SEVERE);
+        diaConditionSeverity.put(MRSProperties.MRS_DIAGNOSIS_SEVERITY_PRIMARY, FHIRProperties.FHIR_SEVERITY_MODERATE);
+        diaConditionSeverity.put(MRSProperties.MRS_DIAGNOSIS_SEVERITY_SECONDARY, FHIRProperties.FHIR_SEVERITY_SEVERE);
 
     }
 
@@ -58,7 +31,7 @@ public class DiagnosisMapper {
         Set<Obs> allObs = openMrsEncounter.getAllObs(true);
         List<Condition> diagnoses = new ArrayList<Condition>();
         for (Obs obs : allObs) {
-            if (obs.getConcept().getName().getName().equalsIgnoreCase("Visit Diagnoses")) {
+            if (isDiagnosisObservation(obs)) {
                 diagnoses.add(createFHIRCondition(encounter, obs));
             }
         }
@@ -75,14 +48,14 @@ public class DiagnosisMapper {
 
         final Set<Obs> obsMembers = obs.getGroupMembers(false);
         for (Obs member : obsMembers) {
-            final String memberConceptName = member.getConcept().getName().getName();
-            if (memberConceptName.equalsIgnoreCase("Coded Diagnosis")) {
+            Concept memberConcept = member.getConcept();
+            if (isCodedDiagnosisObservation(memberConcept)) {
                 condition.setCode(getDiagnosisCode(member.getValueCoded()));
             }
-            else if (memberConceptName.equalsIgnoreCase("Diagnosis Certainty")) {
+            else if (isDiagnosisCertaintyObservation(memberConcept)) {
                 condition.setStatus(getConditionStatus(member));
             }
-            else if (memberConceptName.equalsIgnoreCase("Diagnosis order")) {
+            else if (isDiagnosisOrderObservation(memberConcept)) {
                 condition.setSeverity(getDiagnosisSeverity(member.getValueCoded()));
             }
         }
@@ -95,6 +68,26 @@ public class DiagnosisMapper {
         identifier.setValueSimple(obs.getUuid());
         return condition;
     }
+
+    private boolean isDiagnosisOrderObservation(Concept concept) {
+        String conceptName = concept.getName().getName();
+        return conceptName.equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_DIAGNOSIS_ORDER);
+    }
+
+    private boolean isDiagnosisCertaintyObservation(Concept concept) {
+        String conceptName = concept.getName().getName();
+        return conceptName.equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_DIAGNOSIS_CERTAINTY);
+    }
+
+    private boolean isCodedDiagnosisObservation(Concept concept) {
+        String conceptName = concept.getName().getName();
+        return conceptName.equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_CODED_DIAGNOSIS);
+    }
+
+    private boolean isDiagnosisObservation(Obs obs) {
+        return obs.getConcept().getName().getName().equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_VISIT_DIAGNOSES);
+    }
+
 
     private ResourceReference getParticipant(Encounter encounter) {
         List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
@@ -153,21 +146,21 @@ public class DiagnosisMapper {
         String severity = diaConditionSeverity.get(valueCoded.getName().getName());
         if (severity != null) {
             coding.setDisplaySimple(severity);
-            coding.setCodeSimple(severityCodes.get(severity));
+            coding.setCodeSimple(fhirProperties.getSeverityCode(severity));
         } else {
-            coding.setDisplaySimple(SEVERITY_MODERATE);
-            coding.setCodeSimple(severityCodes.get(SEVERITY_MODERATE));
+            coding.setDisplaySimple(FHIRProperties.FHIR_SEVERITY_MODERATE);
+            coding.setCodeSimple(fhirProperties.getSeverityCode(FHIRProperties.FHIR_SEVERITY_MODERATE));
         }
-        coding.setSystemSimple(FHIR_CONDITION_SEVERITY_URL);
+        coding.setSystemSimple(FHIRProperties.FHIR_CONDITION_SEVERITY_URL);
         return conditionSeverity;
     }
 
     private CodeableConcept getDiagnosisCategory() {
         CodeableConcept conditionCategory = new CodeableConcept();
         Coding coding = conditionCategory.addCoding();
-        coding.setCodeSimple(FHIR_CONDITION_CODE_DIAGNOSIS);
-        coding.setSystemSimple(FHIR_CONDITION_CATEGORY_URL);
-        coding.setDisplaySimple("diagnosis");
+        coding.setCodeSimple(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS);
+        coding.setSystemSimple(FHIRProperties.FHIR_CONDITION_CATEGORY_URL);
+        coding.setDisplaySimple(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS);
         return conditionCategory;
     }
 }

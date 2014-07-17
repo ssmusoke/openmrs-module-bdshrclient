@@ -7,6 +7,7 @@ import org.bahmni.module.shrclient.model.Address;
 import org.bahmni.module.shrclient.model.Patient;
 import org.bahmni.module.shrclient.service.BbsCodeService;
 import org.bahmni.module.shrclient.service.MciPatientService;
+import org.bahmni.module.shrclient.util.Constants;
 import org.bahmni.module.shrclient.util.RestClient;
 import org.bahmni.module.shrclient.web.controller.dto.EncounterBundle;
 import org.openmrs.api.context.Context;
@@ -100,7 +101,7 @@ public class MciPatientLookupController {
     }
 
     private Patient searchPatientByNationalId(String nid) {
-        String url = String.format("/patient?nid=%s", nid);
+        String url = String.format("%s?nid=%s", Constants.MCI_PATIENT_URL, nid);
         return getMciRestClient().get(url, Patient.class);
     }
 
@@ -108,7 +109,7 @@ public class MciPatientLookupController {
         if (StringUtils.isBlank(hid)) {
             return null;
         }
-        return getMciRestClient().get("/patient/" + hid, Patient.class);
+        return getMciRestClient().get(Constants.MCI_PATIENT_URL + "/" + hid, Patient.class);
     }
 
     private RestClient getMciRestClient() {

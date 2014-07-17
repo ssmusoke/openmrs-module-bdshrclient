@@ -116,6 +116,19 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         }
     }
 
+//+--------+--------------+----------+--------------------------+------------+-------------+--------------------+
+//| obs_id | obs_group_id | class    | name                     | concept_id | value_coded | name               |
+//+--------+--------------+----------+--------------------------+------------+-------------+--------------------+
+//|     84 |         NULL | ConvSet  | Visit Diagnoses          |         13 |        NULL | NULL               |
+//|     85 |           84 | Question | Diagnosis order          |         19 |          21 | Primary/Secondary  |
+//|     86 |           84 | Question | Diagnosis Certainty      |         16 |          18 | Confirmed/Presumed |
+//|     87 |           84 | Question | Coded Diagnosis          |         15 |         181 | Vibrio Cholera     |
+//|     88 |           84 | Misc     | Bahmni Initial Diagnosis |         50 |        NULL | NULL               | //addl metadata
+//|     89 |           84 | Misc     | Bahmni Diagnosis Status  |         49 |        NULL | NULL               | //addl metadata
+//|     90 |           84 | Misc     | Bahmni Diagnosis Revised |         51 |           2 | False              | //addl metadata
+//+--------+--------------+----------+--------------------------+------------+-------------+--------------------+
+
+
     private void updateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle) throws Exception {
         logger.debug("************** ENCOUNTER INFO *****************");
         String fhirEncounterId = encounterBundle.getEncounterId();
