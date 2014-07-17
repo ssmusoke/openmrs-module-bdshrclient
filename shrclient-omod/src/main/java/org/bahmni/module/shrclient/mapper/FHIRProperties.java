@@ -4,7 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FHIRProperties {
-    public static final String FHIR_CONDITION_CODE_DIAGNOSIS = "diagnosis";
+    public static final String FHIR_CONDITION_CODE_DIAGNOSIS = "Diagnosis";
+    public static final String FHIR_CONDITION_CODE_CHIEF_COMPLAINT = "Complaint";
+
     public static final String FHIR_CONDITION_CATEGORY_URL = "http://hl7.org/fhir/vs/condition-category";
     public static final String FHIR_CONDITION_SEVERITY_URL = "http://hl7.org/fhir/vs/condition-severity";
     public static final String SNOMED_VALUE_MODERATE_SEVERTY = "6736007";

@@ -10,9 +10,6 @@ import java.util.*;
 
 public class DiagnosisMapper {
 
-    //TODO temporary. To read TR concept URL from mapping
-    public static final String TERMINOLOGY_SERVER_CONCEPT_URL = "http://192.168.33.18/openmrs/ws/rest/v1/concept/";
-
     private final Map<String,Condition.ConditionStatus> diaConditionStatus = new HashMap<String, Condition.ConditionStatus>();
     private final Map<String,String> diaConditionSeverity = new HashMap<String, String>();
     private final FHIRProperties fhirProperties;
@@ -136,7 +133,8 @@ public class DiagnosisMapper {
         ConceptCoding defaultCoding = new ConceptCoding();
         defaultCoding.code = obsConcept.getUuid();
         //TODO: put in the right URL. To be mapped
-        defaultCoding.source = TERMINOLOGY_SERVER_CONCEPT_URL + obsConcept.getUuid();
+        //TODO temporary. To read TR concept URL from mapping
+        defaultCoding.source = org.bahmni.module.shrclient.util.Constants.TERMINOLOGY_SERVER_CONCEPT_URL + obsConcept.getUuid();
         return defaultCoding;
     }
 

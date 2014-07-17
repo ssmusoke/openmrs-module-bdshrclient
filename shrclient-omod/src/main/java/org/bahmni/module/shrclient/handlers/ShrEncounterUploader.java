@@ -2,6 +2,7 @@ package org.bahmni.module.shrclient.handlers;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.bahmni.module.shrclient.mapper.ChiefComplaintMapper;
 import org.bahmni.module.shrclient.mapper.DiagnosisMapper;
 import org.bahmni.module.shrclient.mapper.EncounterMapper;
 import org.bahmni.module.shrclient.util.Constants;
@@ -29,6 +30,7 @@ public class ShrEncounterUploader implements EventWorker {
     private DiagnosisMapper diagnosisMapper;
     private FhirRestClient fhirRestClient;
     private UserService userService;
+    private ChiefComplaintMapper chiefComplaintMapper;
 
 
     public ShrEncounterUploader(EncounterService encounterService, EncounterMapper encounterMapper, DiagnosisMapper diagnosisMapper, FhirRestClient fhirRestClient, UserService userService) {
@@ -61,14 +63,16 @@ public class ShrEncounterUploader implements EventWorker {
             String healthId = healthIdAttribute.getValue();
             Encounter encounter = encounterMapper.map(openMrsEncounter);
             log.debug("Uploading patient encounter to SHR : [ " + encounter + "]");
-            final List<Condition> conditionList = diagnosisMapper.map(openMrsEncounter, encounter);
+            final List<Condition> diagConditionList = diagnosisMapper.map(openMrsEncounter, encounter);
+            final List<Condition> chiefComplaintConditionList = chiefComplaintMapper.map(openMrsEncounter, encounter);
             Composition composition = createComposition(openMrsEncounter, encounter);
             addEncounterSection(encounter, composition);
-            addConditionSections(conditionList, composition);
+            addConditionSections(diagConditionList, composition, "Diagnosis");
+            addConditionSections(chiefComplaintConditionList, composition, "Complaint");
 
             AtomFeed atomFeed = new AtomFeed();
-            addEntriesToDocument(atomFeed, composition, encounter, conditionList);
-            //fhirRestClient.post("/encounter", composition);
+            addEntriesToDocument(atomFeed, composition, encounter, diagConditionList, chiefComplaintConditionList);
+//            fhirRestClient.post("/encounter", composition);
             fhirRestClient.post(String.format("/patients/%s/encounters", healthId), atomFeed);
 
         } catch (Exception e) {
@@ -86,7 +90,7 @@ public class ShrEncounterUploader implements EventWorker {
         return !shrClientSystemUser.getId().equals(changedByUser.getId());
     }
 
-    private void addEntriesToDocument(AtomFeed atomFeed, Composition composition, Encounter encounter, List<Condition> conditionList) {
+    private void addEntriesToDocument(AtomFeed atomFeed, Composition composition, Encounter encounter, List<Condition> diagConditionList, List<Condition> chiefComplaintConditionList) {
         atomFeed.setTitle("Encounter");
         atomFeed.setUpdated(composition.getDateSimple());
         atomFeed.setId(UUID.randomUUID().toString());
@@ -103,22 +107,30 @@ public class ShrEncounterUploader implements EventWorker {
         encounterEntry.setTitle("Encounter");
         atomFeed.addEntry(encounterEntry);
 
-        for (Condition condition : conditionList) {
-            AtomEntry conditionEntry = new AtomEntry();
-            conditionEntry.setId(condition.getIdentifier().get(0).getValueSimple());
-            conditionEntry.setTitle("diagnosis");
-            conditionEntry.setResource(condition);
-            atomFeed.addEntry(conditionEntry);
+        for (Condition condition : diagConditionList) {
+            createNewAtomEntry(atomFeed, condition, "Diagnosis");
+        }
+
+        for (Condition condition : chiefComplaintConditionList) {
+            createNewAtomEntry(atomFeed, condition, "Complaint");
         }
     }
 
-    private void addConditionSections(List<Condition> conditionList, Composition composition) {
+    private void createNewAtomEntry(AtomFeed atomFeed, Condition condition, String title) {
+        AtomEntry conditionEntry = new AtomEntry();
+        conditionEntry.setId(condition.getIdentifier().get(0).getValueSimple());
+        conditionEntry.setTitle(title);
+        conditionEntry.setResource(condition);
+        atomFeed.addEntry(conditionEntry);
+    }
+
+    private void addConditionSections(List<Condition> conditionList, Composition composition, String display) {
         for (Condition condition : conditionList) {
             List<Identifier> identifiers = condition.getIdentifier();
             String conditionUuid = identifiers.get(0).getValueSimple();
             ResourceReference conditionRef = new ResourceReference();
             conditionRef.setReferenceSimple(conditionUuid);
-            conditionRef.setDisplaySimple("diagnosis");
+            conditionRef.setDisplaySimple(display);
             composition.addSection().setContent(conditionRef);
         }
     }

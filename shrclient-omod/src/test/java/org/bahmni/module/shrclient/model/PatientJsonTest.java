@@ -1,8 +1,6 @@
 package org.bahmni.module.shrclient.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bahmni.module.shrclient.model.Address;
-import org.bahmni.module.shrclient.model.Patient;
 import org.junit.Before;
 import org.junit.Test;
 
