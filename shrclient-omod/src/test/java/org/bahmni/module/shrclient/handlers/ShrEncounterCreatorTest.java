@@ -38,12 +38,12 @@ public class ShrEncounterCreatorTest {
     @Mock
     private UserService userService;
 
-    private ShrEncounterCreator shrEncounterCreator;
+    private ShrEncounterUploader shrEncounterUploader;
 
     @Before
     public void setup() {
         initMocks(this);
-        shrEncounterCreator = new ShrEncounterCreator(encounterService, encounterMapper, diagnosisMapper, fhirRestClient, userService);
+        shrEncounterUploader = new ShrEncounterUploader(encounterService, encounterMapper, diagnosisMapper, fhirRestClient, userService);
     }
 
     @Ignore
@@ -59,7 +59,7 @@ public class ShrEncounterCreatorTest {
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(encounterMapper.map(openMrsEncounter)).thenReturn(encounter);
         when(diagnosisMapper.map(openMrsEncounter, encounter)).thenReturn(conditions);
-        shrEncounterCreator.process(event);
+        shrEncounterUploader.process(event);
 
         verify(encounterService).getEncounterByUuid(uuid);
         verify(encounterMapper).map(openMrsEncounter);
@@ -71,7 +71,7 @@ public class ShrEncounterCreatorTest {
         final String uuid = "123abc456";
         final String content = "/openmrs/ws/rest/v1/encounter/" + uuid +
                 "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))";
-        assertEquals(uuid, shrEncounterCreator.getUuid(content));
+        assertEquals(uuid, shrEncounterUploader.getUuid(content));
     }
 
 }

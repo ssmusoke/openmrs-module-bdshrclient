@@ -7,10 +7,11 @@ import org.bahmni.module.shrclient.mapper.EncounterMapper;
 import org.bahmni.module.shrclient.util.Constants;
 import org.bahmni.module.shrclient.util.FhirRestClient;
 import org.hl7.fhir.instance.model.*;
+import org.hl7.fhir.instance.model.Encounter;
 import org.ict4h.atomfeed.client.domain.Event;
+import org.ict4h.atomfeed.client.exceptions.AtomFeedClientException;
 import org.ict4h.atomfeed.client.service.EventWorker;
-import org.openmrs.PersonAttribute;
-import org.openmrs.User;
+import org.openmrs.*;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.UserService;
 
@@ -19,9 +20,9 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ShrEncounterCreator implements EventWorker {
+public class ShrEncounterUploader implements EventWorker {
 
-    private static final Logger log = Logger.getLogger(ShrEncounterCreator.class);
+    private static final Logger log = Logger.getLogger(ShrEncounterUploader.class);
 
     private EncounterService encounterService;
     private EncounterMapper encounterMapper;
@@ -30,7 +31,7 @@ public class ShrEncounterCreator implements EventWorker {
     private UserService userService;
 
 
-    public ShrEncounterCreator(EncounterService encounterService, EncounterMapper encounterMapper, DiagnosisMapper diagnosisMapper, FhirRestClient fhirRestClient, UserService userService) {
+    public ShrEncounterUploader(EncounterService encounterService, EncounterMapper encounterMapper, DiagnosisMapper diagnosisMapper, FhirRestClient fhirRestClient, UserService userService) {
         this.encounterService = encounterService;
         this.encounterMapper = encounterMapper;
         this.diagnosisMapper = diagnosisMapper;
@@ -48,31 +49,26 @@ public class ShrEncounterCreator implements EventWorker {
                 log.debug(String.format("No OpenMRS encounter exists with uuid: [%s].", uuid));
                 return;
             }
-
             if (!shouldSyncEncounter(openMrsEncounter)) {
                 return;
             }
+            org.openmrs.Patient emrPatient = openMrsEncounter.getPatient();
+            PersonAttribute healthIdAttribute = emrPatient.getAttribute(org.bahmni.module.shrclient.util.Constants.HEALTH_ID_ATTRIBUTE);
+            if ((healthIdAttribute == null) || (StringUtils.isBlank(healthIdAttribute.getValue()))) {
+                throw new AtomFeedClientException(String.format("Patient [%s] is not yet synced to MCI.", emrPatient.getUuid()));
+            }
 
-
+            String healthId = healthIdAttribute.getValue();
             Encounter encounter = encounterMapper.map(openMrsEncounter);
-            log.debug("Encounter: [ " + encounter + "]");
+            log.debug("Uploading patient encounter to SHR : [ " + encounter + "]");
             final List<Condition> conditionList = diagnosisMapper.map(openMrsEncounter, encounter);
             Composition composition = createComposition(openMrsEncounter, encounter);
             addEncounterSection(encounter, composition);
             addConditionSections(conditionList, composition);
-            PersonAttribute healthIdAttribute = openMrsEncounter.getPatient().getAttribute(org.bahmni.module.shrclient.util.Constants.HEALTH_ID_ATTRIBUTE);
-            if (healthIdAttribute == null) {
-                return;
-            }
-
-            String healthId = healthIdAttribute.getValue();
-            if (StringUtils.isBlank(healthId)) {
-                return;
-            }
 
             AtomFeed atomFeed = new AtomFeed();
             addEntriesToDocument(atomFeed, composition, encounter, conditionList);
-//            fhirRestClient.post("/encounter", composition);
+            //fhirRestClient.post("/encounter", composition);
             fhirRestClient.post(String.format("/patients/%s/encounters", healthId), atomFeed);
 
         } catch (Exception e) {
@@ -142,13 +138,13 @@ public class ShrEncounterCreator implements EventWorker {
     }
 
     String getUuid(String content) {
-        String patientUuid = null;
+        String encounterUuid = null;
         Pattern p = Pattern.compile("^\\/openmrs\\/ws\\/rest\\/v1\\/encounter\\/(.*)\\?v=.*");
         Matcher m = p.matcher(content);
         if (m.matches()) {
-            patientUuid = m.group(1);
+            encounterUuid = m.group(1);
         }
-        return patientUuid;
+        return encounterUuid;
     }
 
     @Override

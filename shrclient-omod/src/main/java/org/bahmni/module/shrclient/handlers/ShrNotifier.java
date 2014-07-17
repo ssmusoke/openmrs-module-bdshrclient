@@ -39,7 +39,7 @@ public class ShrNotifier {
     }
 
     public void processEncounter() {
-        process(OPENMRS_ENCOUNTER_FEED_URI, new ShrEncounterCreator(
+        process(OPENMRS_ENCOUNTER_FEED_URI, new ShrEncounterUploader(
                 Context.getEncounterService(),
                 new EncounterMapper(),
                 new DiagnosisMapper(),
