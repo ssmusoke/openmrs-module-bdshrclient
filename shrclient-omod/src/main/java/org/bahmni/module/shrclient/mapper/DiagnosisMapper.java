@@ -1,13 +1,16 @@
 package org.bahmni.module.shrclient.mapper;
 
 import org.hl7.fhir.instance.model.*;
+import org.hl7.fhir.instance.model.Date;
 import org.hl7.fhir.instance.model.Enumeration;
 import org.openmrs.Concept;
 import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.Obs;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+@Component
 public class DiagnosisMapper {
 
     private final Map<String,Condition.ConditionStatus> diaConditionStatus = new HashMap<String, Condition.ConditionStatus>();
@@ -57,9 +60,9 @@ public class DiagnosisMapper {
             }
         }
 
-        DateTime onsetDate = new DateTime();
+        Date onsetDate = new Date();
         onsetDate.setValue(new DateAndTime(obs.getObsDatetime()));
-        condition.setOnset(onsetDate);
+        condition.setDateAsserted(onsetDate);
 
         Identifier identifier = condition.addIdentifier();
         identifier.setValueSimple(obs.getUuid());
@@ -88,7 +91,7 @@ public class DiagnosisMapper {
 
     private ResourceReference getParticipant(Encounter encounter) {
         List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
-        if ((participants != null) || participants.isEmpty()) {
+        if ((participants != null) && !participants.isEmpty()) {
             return participants.get(0).getIndividual();
         }
         return null;

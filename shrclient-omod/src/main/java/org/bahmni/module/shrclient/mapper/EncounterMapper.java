@@ -8,9 +8,11 @@ import org.hl7.fhir.instance.model.ResourceReference;
 import org.openmrs.EncounterProvider;
 import org.openmrs.PersonAttribute;
 import org.openmrs.VisitType;
+import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
+@Component
 public class EncounterMapper {
 
     // TODO: Not complete yet

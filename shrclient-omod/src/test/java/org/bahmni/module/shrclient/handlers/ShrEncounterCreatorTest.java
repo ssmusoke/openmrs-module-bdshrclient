@@ -6,21 +6,20 @@ import org.bahmni.module.shrclient.util.FhirRestClient;
 import org.hl7.fhir.instance.model.Condition;
 import org.hl7.fhir.instance.model.Encounter;
 import org.ict4h.atomfeed.client.domain.Event;
+import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.UserService;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 public class ShrEncounterCreatorTest {
 
