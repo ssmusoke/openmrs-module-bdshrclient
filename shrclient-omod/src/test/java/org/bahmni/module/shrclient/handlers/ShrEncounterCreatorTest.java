@@ -1,5 +1,6 @@
 package org.bahmni.module.shrclient.handlers;
 
+import org.bahmni.module.shrclient.mapper.ChiefComplaintMapper;
 import org.bahmni.module.shrclient.mapper.DiagnosisMapper;
 import org.bahmni.module.shrclient.mapper.EncounterMapper;
 import org.bahmni.module.shrclient.util.FhirRestClient;
@@ -32,6 +33,9 @@ public class ShrEncounterCreatorTest {
     private DiagnosisMapper diagnosisMapper;
 
     @Mock
+    private ChiefComplaintMapper chiefComplaintMapper;
+
+    @Mock
     private FhirRestClient fhirRestClient;
 
     @Mock
@@ -42,7 +46,7 @@ public class ShrEncounterCreatorTest {
     @Before
     public void setup() {
         initMocks(this);
-        shrEncounterUploader = new ShrEncounterUploader(encounterService, encounterMapper, diagnosisMapper, fhirRestClient, userService);
+        shrEncounterUploader = new ShrEncounterUploader(encounterService, encounterMapper, diagnosisMapper, chiefComplaintMapper, userService, fhirRestClient);
     }
 
     @Ignore

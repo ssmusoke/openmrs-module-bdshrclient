@@ -3,6 +3,7 @@ package org.bahmni.module.shrclient.handlers;
 
 import org.apache.log4j.Logger;
 import org.bahmni.module.shrclient.OpenMRSFeedClientFactory;
+import org.bahmni.module.shrclient.mapper.ChiefComplaintMapper;
 import org.bahmni.module.shrclient.mapper.DiagnosisMapper;
 import org.bahmni.module.shrclient.mapper.EncounterMapper;
 import org.bahmni.module.shrclient.mapper.PatientMapper;
@@ -43,8 +44,10 @@ public class ShrNotifier {
                 Context.getEncounterService(),
                 new EncounterMapper(),
                 new DiagnosisMapper(),
-                getShrWebClient(),
-                Context.getUserService()));
+                new ChiefComplaintMapper(),
+                Context.getUserService(),
+                getShrWebClient()
+        ));
     }
 
     private void process(String feedURI, EventWorker eventWorker) {

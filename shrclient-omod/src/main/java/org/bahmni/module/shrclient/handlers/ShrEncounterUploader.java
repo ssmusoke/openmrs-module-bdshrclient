@@ -33,10 +33,11 @@ public class ShrEncounterUploader implements EventWorker {
     private ChiefComplaintMapper chiefComplaintMapper;
 
 
-    public ShrEncounterUploader(EncounterService encounterService, EncounterMapper encounterMapper, DiagnosisMapper diagnosisMapper, FhirRestClient fhirRestClient, UserService userService) {
+    public ShrEncounterUploader(EncounterService encounterService, EncounterMapper encounterMapper, DiagnosisMapper diagnosisMapper, ChiefComplaintMapper chiefComplaintMapper, UserService userService, FhirRestClient fhirRestClient) {
         this.encounterService = encounterService;
         this.encounterMapper = encounterMapper;
         this.diagnosisMapper = diagnosisMapper;
+        this.chiefComplaintMapper = chiefComplaintMapper;
         this.fhirRestClient = fhirRestClient;
         this.userService = userService;
     }

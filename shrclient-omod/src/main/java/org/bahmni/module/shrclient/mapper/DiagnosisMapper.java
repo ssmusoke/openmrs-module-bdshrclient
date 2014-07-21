@@ -1,5 +1,7 @@
 package org.bahmni.module.shrclient.mapper;
 
+import org.bahmni.module.shrclient.util.ConceptCoding;
+import org.bahmni.module.shrclient.util.FHIRHelpers;
 import org.hl7.fhir.instance.model.*;
 import org.hl7.fhir.instance.model.Date;
 import org.hl7.fhir.instance.model.Enumeration;
@@ -16,9 +18,11 @@ public class DiagnosisMapper {
     private final Map<String,Condition.ConditionStatus> diaConditionStatus = new HashMap<String, Condition.ConditionStatus>();
     private final Map<String,String> diaConditionSeverity = new HashMap<String, String>();
     private final FHIRProperties fhirProperties;
+    private final FHIRHelpers fhirHelpers;
 
     public DiagnosisMapper() {
         fhirProperties = new FHIRProperties();
+        fhirHelpers = new FHIRHelpers();
         diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_PRESUMED, Condition.ConditionStatus.provisional);
         diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_CONFIRMED, Condition.ConditionStatus.confirmed);
 
@@ -108,60 +112,40 @@ public class DiagnosisMapper {
     }
 
     private CodeableConcept getDiagnosisCode(Concept obsConcept) {
-        CodeableConcept diagnosisCode = new CodeableConcept();
-        Coding coding = diagnosisCode.addCoding();
         //TODO to change to reference term code
         ConceptCoding refCoding = getReferenceCode(obsConcept);
-        coding.setCodeSimple(refCoding.code);
-        coding.setSystemSimple(refCoding.source);
-        coding.setDisplaySimple(obsConcept.getName().getName());
-        return diagnosisCode;
+        return fhirHelpers.getFHIRCodeableConcept(refCoding.getCode(), refCoding.getSource(), obsConcept.getName().getName());
     }
 
-    private class ConceptCoding {
-        String code;
-        String source;
-    }
 
     private ConceptCoding getReferenceCode(Concept obsConcept) {
         Collection<org.openmrs.ConceptMap> conceptMappings = obsConcept.getConceptMappings();
         for (org.openmrs.ConceptMap mapping : conceptMappings) {
             //TODO right now returning the first matching term
-            ConceptCoding coding = new ConceptCoding();
             ConceptReferenceTerm conceptReferenceTerm = mapping.getConceptReferenceTerm();
-            coding.code = conceptReferenceTerm.getCode();
-            coding.source = conceptReferenceTerm.getConceptSource().getName();
+            ConceptCoding coding = new ConceptCoding();
+            coding.setCode(conceptReferenceTerm.getCode());
+            coding.setSource(conceptReferenceTerm.getConceptSource().getName());
             return coding;
         }
         ConceptCoding defaultCoding = new ConceptCoding();
-        defaultCoding.code = obsConcept.getUuid();
+        defaultCoding.setCode(obsConcept.getUuid());
         //TODO: put in the right URL. To be mapped
         //TODO temporary. To read TR concept URL from mapping
-        defaultCoding.source = org.bahmni.module.shrclient.util.Constants.TERMINOLOGY_SERVER_CONCEPT_URL + obsConcept.getUuid();
+        defaultCoding.setSource(org.bahmni.module.shrclient.util.Constants.TERMINOLOGY_SERVER_CONCEPT_URL + obsConcept.getUuid());
         return defaultCoding;
     }
 
     private CodeableConcept getDiagnosisSeverity(Concept valueCoded) {
-        CodeableConcept conditionSeverity = new CodeableConcept();
-        Coding coding = conditionSeverity.addCoding();
         String severity = diaConditionSeverity.get(valueCoded.getName().getName());
-        if (severity != null) {
-            coding.setDisplaySimple(severity);
-            coding.setCodeSimple(fhirProperties.getSeverityCode(severity));
-        } else {
-            coding.setDisplaySimple(FHIRProperties.FHIR_SEVERITY_MODERATE);
-            coding.setCodeSimple(fhirProperties.getSeverityCode(FHIRProperties.FHIR_SEVERITY_MODERATE));
+        if(severity == null) {
+            severity = FHIRProperties.FHIR_SEVERITY_MODERATE;
         }
-        coding.setSystemSimple(FHIRProperties.FHIR_CONDITION_SEVERITY_URL);
-        return conditionSeverity;
+        return fhirHelpers.getFHIRCodeableConcept(fhirProperties.getSeverityCode(severity), severity, FHIRProperties.FHIR_CONDITION_SEVERITY_URL);
     }
 
     private CodeableConcept getDiagnosisCategory() {
-        CodeableConcept conditionCategory = new CodeableConcept();
-        Coding coding = conditionCategory.addCoding();
-        coding.setCodeSimple(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS);
-        coding.setSystemSimple(FHIRProperties.FHIR_CONDITION_CATEGORY_URL);
-        coding.setDisplaySimple(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS);
-        return conditionCategory;
+        return fhirHelpers.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS,
+                FHIRProperties.FHIR_CONDITION_CATEGORY_URL, FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS);
     }
 }

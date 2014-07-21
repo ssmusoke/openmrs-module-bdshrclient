@@ -1,6 +1,8 @@
 package org.bahmni.module.shrclient.mapper;
 
+import org.bahmni.module.shrclient.util.ConceptCoding;
 import org.bahmni.module.shrclient.util.Constants;
+import org.bahmni.module.shrclient.util.FHIRHelpers;
 import org.hl7.fhir.instance.model.*;
 import org.joda.time.DateTime;
 import org.openmrs.Concept;
@@ -16,6 +18,11 @@ import java.util.Set;
 @Component
 public class ChiefComplaintMapper {
 
+    private FHIRHelpers fhirHelpers;
+
+    public ChiefComplaintMapper() {
+        this.fhirHelpers = new FHIRHelpers();
+    }
 
     public List<Condition> map(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {
         Set<Obs> allObs = openMrsEncounter.getObsAtTopLevel(false);
@@ -73,16 +80,8 @@ public class ChiefComplaintMapper {
     }
 
     private CodeableConcept getChiefComplaintSevirity() {
-        CodeableConcept conditionSeverity = new CodeableConcept();
-        Coding coding = conditionSeverity.addCoding();
-        coding.setDisplaySimple(FHIRProperties.FHIR_SEVERITY_MODERATE);
-        coding.setCodeSimple(FHIRProperties.SNOMED_VALUE_MODERATE_SEVERTY);
-        coding.setSystemSimple(FHIRProperties.FHIR_CONDITION_SEVERITY_URL);
-        return conditionSeverity;
-    }
-
-    private Enumeration<Condition.ConditionStatus> getConditionStatus(Obs member) {
-        return null;
+        return fhirHelpers.getFHIRCodeableConcept(FHIRProperties.SNOMED_VALUE_MODERATE_SEVERTY,
+                FHIRProperties.FHIR_CONDITION_SEVERITY_URL, FHIRProperties.FHIR_SEVERITY_MODERATE);
     }
 
     private ResourceReference getParticipant(Encounter encounter) {
@@ -94,44 +93,34 @@ public class ChiefComplaintMapper {
     }
 
     private CodeableConcept getChiefComplaintCategory() {
-        CodeableConcept conditionCategory = new CodeableConcept();
-        Coding coding = conditionCategory.addCoding();
-        coding.setCodeSimple(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT);
-        coding.setSystemSimple(FHIRProperties.FHIR_CONDITION_CATEGORY_URL);
-        coding.setDisplaySimple("Complaint");
+        CodeableConcept conditionCategory = fhirHelpers.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT,
+                FHIRProperties.FHIR_CONDITION_CATEGORY_URL, "Complaint");
         return conditionCategory;
     }
 
-    private class ConceptCoding {
-        String code;
-        String source;
-    }
 
     private CodeableConcept getChiefComplaintCode(Concept obsConcept) {
-        CodeableConcept diagnosisCode = new CodeableConcept();
-        Coding coding = diagnosisCode.addCoding();
         //TODO to change to reference term code
         ConceptCoding refCoding = getReferenceCode(obsConcept);
-        coding.setCodeSimple(refCoding.code);
-        coding.setSystemSimple(refCoding.source);
-        coding.setDisplaySimple(obsConcept.getName().getName());
-        return diagnosisCode;
+        final String conceptName = obsConcept.getName().getName();
+        return fhirHelpers.getFHIRCodeableConcept(refCoding.getCode(), refCoding.getSource(), conceptName);
     }
 
     private ConceptCoding getReferenceCode(Concept obsConcept) {
         Collection<org.openmrs.ConceptMap> conceptMappings = obsConcept.getConceptMappings();
         for (org.openmrs.ConceptMap mapping : conceptMappings) {
             //TODO right now returning the first mapping
-            ConceptCoding coding = new ConceptCoding();
             ConceptReferenceTerm conceptReferenceTerm = mapping.getConceptReferenceTerm();
-            coding.code = conceptReferenceTerm.getCode();
-            coding.source = conceptReferenceTerm.getConceptSource().getName();
+            //TODO right now returning the first mapping
+            ConceptCoding coding = new ConceptCoding();
+            coding.setCode(conceptReferenceTerm.getCode());
+            coding.setSource(conceptReferenceTerm.getConceptSource().getName());
             return coding;
         }
         ConceptCoding defaultCoding = new ConceptCoding();
-        defaultCoding.code = obsConcept.getUuid();
+        defaultCoding.setCode(obsConcept.getUuid());
         //TODO: put in the right URL. To be mapped
-        defaultCoding.source = Constants.TERMINOLOGY_SERVER_CONCEPT_URL + obsConcept.getUuid();
+        defaultCoding.setSource(Constants.TERMINOLOGY_SERVER_CONCEPT_URL + obsConcept.getUuid());
         return defaultCoding;
     }
 }
