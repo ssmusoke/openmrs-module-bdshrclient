@@ -19,7 +19,7 @@
             <ref bean="transactionManager"/>
         </property>
         <property name="target">
-            <bean class="org.bahmni.module.shrclient.service.impl.MciPatientServiceImpl">
+            <bean class="org.openmrs.module.shrclient.service.impl.MciPatientServiceImpl">
             </bean>
         </property>
         <property name="preInterceptors">
@@ -30,7 +30,7 @@
         </property>
     </bean>
 
-    <bean id="conceptCodeMappingService" class="org.bahmni.module.shrclient.service.impl.BbsCodeServiceImpl">
+    <bean id="conceptCodeMappingService" class="org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl">
     </bean>
 
     <util:properties id="mciProperties" location="classpath:mci.properties" />

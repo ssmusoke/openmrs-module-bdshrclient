@@ -28,7 +28,7 @@
     <!-- / Required Modules -->
 
     <!-- Module Activator -->
-	<activator>org.bahmni.module.shrclient.ShrClientActivator</activator>
+	<activator>org.openmrs.module.shrclient.ShrClientActivator</activator>
 
     <!--
     <advice>

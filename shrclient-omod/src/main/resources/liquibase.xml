@@ -14,7 +14,7 @@
 
         <insert tableName="scheduler_task_config">
             <column name="name" value="Bahmni sync task"/>
-            <column name="schedulable_class" value="org.bahmni.module.shrclient.scheduler.tasks.BahmniSyncTask"/>
+            <column name="schedulable_class" value="org.openmrs.module.shrclient.scheduler.tasks.BahmniSyncTask"/>
             <column name="start_time" valueDate=" now() "/>
             <column name="start_time_pattern" value="MM/dd/yyyy HH:mm:ss"/>
             <column name="repeat_interval" value="60"/>
