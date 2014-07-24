@@ -29,7 +29,7 @@ import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.bahmni.mapper.encounter.emr.FHIRConditionsMapper;
 import org.openmrs.module.bahmni.mapper.encounter.emr.FHIREncounterMapper;
 import org.openmrs.module.bahmni.utils.Constants;
-import org.openmrs.module.bahmni.utils.FHIRFeedHelper;
+import org.openmrs.module.shrclient.util.FHIRFeedHelper;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
@@ -132,17 +132,12 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     private void updateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle) throws Exception {
-        logger.debug("************** ENCOUNTER INFO *****************");
         String fhirEncounterId = encounterBundle.getEncounterId();
-        logger.debug("Encounter ID:" + fhirEncounterId);
-        logger.debug("Health ID:" + encounterBundle.getHealthId());
         AtomFeed feed = encounterBundle.getResourceOrFeed().getFeed();
-        logger.debug("Encounter Details:" + feed);
-        logger.debug("***********************************************");
+        logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), fhirEncounterId));
 
         Composition composition = FHIRFeedHelper.getComposition(feed);
         Encounter encounter = FHIRFeedHelper.getEncounter(feed);
-
 
         String localEncounterId = encounter.getIdentifier().get(0).getValueSimple();
         org.openmrs.Encounter localEncounter = encounterService.getEncounterByUuid(localEncounterId);
