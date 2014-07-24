@@ -67,6 +67,13 @@ public class ChiefComplaintMapper {
             else if (memberConceptName.equalsIgnoreCase("Chief Complaint Duration")) {
                 condition.setOnset(getOnsetDate(member));
             }
+            else if(memberConceptName.equalsIgnoreCase("Non-Coded Chief Complaint")) {
+                //TODO : Put right Values
+                final CodeableConcept nonCodedChiefComplaint = fhirHelpers.getFHIRCodeableConcept(member.getValueText(),
+                        Constants.TERMINOLOGY_SERVER_CONCEPT_URL + member.getValueText(),
+                        member.getValueText());
+                condition.setCode(nonCodedChiefComplaint);
+            }
         }
 
         Identifier identifier = condition.addIdentifier();
