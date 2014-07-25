@@ -1,4 +1,4 @@
-package org.openmrs.module.bahmni.mapper.encounter.emr;
+package org.openmrs.module.fhir.mapper.emr;
 
 
 import org.apache.commons.lang.time.DateUtils;

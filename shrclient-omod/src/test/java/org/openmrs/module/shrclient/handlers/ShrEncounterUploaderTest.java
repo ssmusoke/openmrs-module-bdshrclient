@@ -17,8 +17,8 @@ import org.openmrs.PersonAttributeType;
 import org.openmrs.User;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.UserService;
-import org.openmrs.module.bahmni.mapper.encounter.fhir.CompositionBundleCreator;
-import org.openmrs.module.bahmni.utils.Constants;
+import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
+import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.util.FhirRestClient;
 
 import java.io.IOException;

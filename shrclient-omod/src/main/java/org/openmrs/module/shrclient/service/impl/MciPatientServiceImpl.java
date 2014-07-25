@@ -2,8 +2,6 @@ package org.openmrs.module.shrclient.service.impl;
 
 import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Composition;
-import org.hl7.fhir.instance.model.Condition;
 import org.hl7.fhir.instance.model.Encounter;
 import org.openmrs.EncounterRole;
 import org.openmrs.PatientIdentifier;
@@ -26,10 +24,9 @@ import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
-import org.openmrs.module.bahmni.mapper.encounter.emr.FHIRConditionsMapper;
-import org.openmrs.module.bahmni.mapper.encounter.emr.FHIREncounterMapper;
-import org.openmrs.module.bahmni.utils.Constants;
-import org.openmrs.module.shrclient.util.FHIRFeedHelper;
+import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
+import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
@@ -61,11 +58,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     VisitService visitService;
 
     @Autowired
-    FHIREncounterMapper fhirEncounterMapper;
-
-    @Autowired
-    FHIRConditionsMapper fhirConditionsMapper;
-
+    FHIRMapper fhirMapper;
 
     @Autowired
     ProviderService providerService;
@@ -136,22 +129,15 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         AtomFeed feed = encounterBundle.getResourceOrFeed().getFeed();
         logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), fhirEncounterId));
 
-        Composition composition = FHIRFeedHelper.getComposition(feed);
         Encounter encounter = FHIRFeedHelper.getEncounter(feed);
 
-        String localEncounterId = encounter.getIdentifier().get(0).getValueSimple();
-        org.openmrs.Encounter localEncounter = encounterService.getEncounterByUuid(localEncounterId);
-        if (localEncounter != null) {
-            return;
-        }
+        if (!shouldSyncEncounter(encounter)) return;
 
-        org.openmrs.Encounter newEmrEncounter = fhirEncounterMapper.map(encounter, composition.getDateSimple().toString(), emrPatient);
+        org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, feed, encounter);
+
         User systemUser = getShrClientSystemUser();
         setCreator(newEmrEncounter, systemUser);
         setCreator(newEmrEncounter.getVisit(), systemUser);
-
-        List<Condition> conditions = FHIRFeedHelper.getConditions(feed);
-        fhirConditionsMapper.map(emrPatient, newEmrEncounter, conditions);
 
         Collection<Provider> providersByPerson = providerService.getProvidersByPerson(systemUser.getPerson());
         if ((providersByPerson != null) & !providersByPerson.isEmpty()) {
@@ -159,6 +145,15 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         }
         visitService.saveVisit(newEmrEncounter.getVisit());
 
+    }
+
+    private boolean shouldSyncEncounter(Encounter encounter) {
+        String localEncounterId = encounter.getIdentifier().get(0).getValueSimple();
+        org.openmrs.Encounter localEncounter = encounterService.getEncounterByUuid(localEncounterId);
+        if (localEncounter != null) {
+            return false;
+        }
+        return true;
     }
 
 
@@ -184,6 +179,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         } else {
             emrPatient.setChangedBy(systemUser);
         }
+
     }
 
     private void setCreator(org.openmrs.Encounter encounter, User systemUser) {

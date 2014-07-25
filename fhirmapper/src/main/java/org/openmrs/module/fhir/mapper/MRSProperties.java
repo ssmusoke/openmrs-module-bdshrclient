@@ -1,4 +1,4 @@
-package org.openmrs.module.bahmni.mapper.encounter;
+package org.openmrs.module.fhir.mapper;
 
 
 public class MRSProperties {

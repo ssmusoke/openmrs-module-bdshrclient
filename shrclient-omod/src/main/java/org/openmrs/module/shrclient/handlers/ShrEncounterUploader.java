@@ -10,7 +10,7 @@ import org.openmrs.PersonAttribute;
 import org.openmrs.User;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.UserService;
-import org.openmrs.module.bahmni.mapper.encounter.fhir.CompositionBundleCreator;
+import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
 import org.openmrs.module.shrclient.util.FhirRestClient;
 
 import java.util.regex.Matcher;
@@ -48,12 +48,14 @@ public class ShrEncounterUploader implements EventWorker {
                 return;
             }
             org.openmrs.Patient emrPatient = openMrsEncounter.getPatient();
-            PersonAttribute healthIdAttribute = emrPatient.getAttribute(org.openmrs.module.bahmni.utils.Constants.HEALTH_ID_ATTRIBUTE);
+            PersonAttribute healthIdAttribute = emrPatient.getAttribute(org.openmrs.module.fhir.utils.Constants.HEALTH_ID_ATTRIBUTE);
             if ((healthIdAttribute == null) || (StringUtils.isBlank(healthIdAttribute.getValue()))) {
                 throw new AtomFeedClientException(String.format("Patient [%s] is not yet synced to MCI.", emrPatient.getUuid()));
             }
 
             String healthId = healthIdAttribute.getValue();
+
+            log.debug("Uploading patient encounter to SHR : [ " + openMrsEncounter.getUuid() + "]");
             AtomFeed atomFeed = bundleCreator.compose(openMrsEncounter);
 //            fhirRestClient.post("/encounter", composition);
             fhirRestClient.post(String.format("/patients/%s/encounters", healthId), atomFeed);
@@ -69,7 +71,7 @@ public class ShrEncounterUploader implements EventWorker {
         if (changedByUser == null) {
             changedByUser = openMrsEncounter.getCreator();
         }
-        User shrClientSystemUser = userService.getUserByUsername(org.openmrs.module.bahmni.utils.Constants.SHR_CLIENT_SYSTEM_NAME);
+        User shrClientSystemUser = userService.getUserByUsername(org.openmrs.module.fhir.utils.Constants.SHR_CLIENT_SYSTEM_NAME);
         return !shrClientSystemUser.getId().equals(changedByUser.getId());
     }
 

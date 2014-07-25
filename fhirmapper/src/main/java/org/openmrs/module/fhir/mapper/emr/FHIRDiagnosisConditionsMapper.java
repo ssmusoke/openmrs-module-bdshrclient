@@ -1,4 +1,4 @@
-package org.openmrs.module.bahmni.mapper.encounter.emr;
+package org.openmrs.module.fhir.mapper.emr;
 
 import org.hl7.fhir.instance.model.CodeableConcept;
 import org.hl7.fhir.instance.model.Coding;
@@ -15,7 +15,7 @@ import java.util.Map;
 
 
 @Component
-public class FHIRConditionsMapper {
+public class FHIRDiagnosisConditionsMapper {
 
     private final Map<Condition.ConditionStatus, String> diaConditionStatus = new HashMap<Condition.ConditionStatus, String>();
     @Autowired
@@ -23,7 +23,7 @@ public class FHIRConditionsMapper {
 
     private final Map<String,String> diaConditionSeverity = new HashMap<String, String>();
 
-    public FHIRConditionsMapper() {
+    public FHIRDiagnosisConditionsMapper() {
         diaConditionSeverity.put("Moderate", "Primary");
         diaConditionSeverity.put("Severe", "Secondary");
 
@@ -31,8 +31,8 @@ public class FHIRConditionsMapper {
         diaConditionStatus.put(Condition.ConditionStatus.confirmed, "Confirmed");
     }
 
-    public void map(Patient emrPatient, Encounter newEmrEncounter, List<Condition> conditions) {
-        for (Condition condition : conditions) {
+    public void map(Patient emrPatient, Encounter newEmrEncounter, Condition condition) {
+
 
             Obs visitDiagnosisObs = new Obs();
 
@@ -71,9 +71,6 @@ public class FHIRConditionsMapper {
             bahmniDiagRevisedObs.setValueBoolean(false);
 
             newEmrEncounter.addObs(visitDiagnosisObs);
-        }
-
-
     }
 
     private Obs addToObsGroup(Patient emrPatient, Obs visitDiagnosisObs, Concept obsConcept) {

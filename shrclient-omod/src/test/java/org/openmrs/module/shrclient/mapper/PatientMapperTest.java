@@ -4,7 +4,7 @@ import org.openmrs.module.shrclient.model.Address;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;
-import org.openmrs.module.bahmni.utils.Constants;
+import org.openmrs.module.fhir.utils.Constants;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

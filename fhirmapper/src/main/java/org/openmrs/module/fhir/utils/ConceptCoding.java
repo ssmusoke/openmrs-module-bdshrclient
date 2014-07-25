@@ -1,4 +1,4 @@
-package org.openmrs.module.bahmni.utils;
+package org.openmrs.module.fhir.utils;
 
 public class ConceptCoding {
     private String code;

@@ -1,4 +1,4 @@
-package org.openmrs.module.bahmni.mapper.encounter.emr;
+package org.openmrs.module.fhir.mapper.emr;
 
 import org.hl7.fhir.instance.formats.JsonParser;
 import org.hl7.fhir.instance.formats.ParserBase;
@@ -13,7 +13,7 @@ import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
-import org.openmrs.module.bahmni.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -31,7 +31,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
     private FHIREncounterMapper fhirEncounterMapper;
 
     @Autowired
-    private FHIRConditionsMapper fhirConditionsMapper;
+    private FHIRMapper fhirMapper;
 
     @Autowired
     private PatientService patientService;
@@ -83,51 +83,26 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
 
         Assert.assertNotNull(emrEncounter.getVisit());
         Assert.assertEquals("ad41fb41-a41a-4ad6-8835-2f59099acf5a", emrEncounter.getVisit().getUuid());
-
-//        Assert.assertNotNull(emrEncounter.getVisit());
-//        Assert.assertNotNull(emrEncounter.getEncounterDatetime());
-//        Assert.assertEquals("uuid", emrEncounter.getUuid());
-//        Assert.assertNotNull(emrEncounter.getEncounterProviders());
-//        Assert.assertNotNull(emrEncounter.getEncounterType());
     }
 
     @Test
     public void shouldMapFhirCondition() throws Exception {
-        executeDataSet("shrClientEncounterReverseSyncTestDS.xml");
         final AtomFeed encounterBundle = loadSampleFHIREncounter().getFeed();
 
         List<Condition> conditions = FHIRFeedHelper.getConditions(encounterBundle);
+        final Encounter encounter = FHIRFeedHelper.getEncounter(encounterBundle);
         Assert.assertEquals(2, conditions.size());
         Assert.assertEquals("HIDA764177", conditions.get(0).getSubject().getReferenceSimple());
 
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
-        org.openmrs.Encounter emrEncounter = new org.openmrs.Encounter();
 
-        fhirConditionsMapper.map(emrPatient, emrEncounter, conditions);
+        final org.openmrs.Encounter emrEncounter = fhirMapper.map(emrPatient, encounterBundle, encounter);
 
         final Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);
+        Assert.assertEquals(1, visitObs.size());
         Obs firstObs = visitObs.iterator().next();
-        Assert.assertEquals(2, visitObs.size());
         Assert.assertNotNull(firstObs.getGroupMembers());
         Assert.assertNotNull(firstObs.getPerson());
         Assert.assertNotNull(firstObs.getEncounter());
     }
-
-//    @Test
-//    public void shouldSaveEncounter() throws Exception {
-//        org.openmrs.Patient emrPatient = patientService.getPatient(1);
-//        List<EncounterBundle> bundles = new ArrayList<EncounterBundle>();
-//        EncounterBundle bundle = new EncounterBundle();
-//        bundle.setEncounterId("shr-enc-id");
-//        bundle.setDate(new Date().toString());
-//        bundle.setHealthId("HIDA764177");
-//        bundle.addContent(loadSampleFHIREncounter());
-//        bundles.add(bundle);
-//        mciPatientService.createOrUpdateEncounters(emrPatient, bundles);
-//
-//        List<org.openmrs.Encounter> encountersByPatient = encounterService.getEncountersByPatient(emrPatient);
-//        Assert.assertEquals(1, encountersByPatient.size());
-//    }
-
-
 }

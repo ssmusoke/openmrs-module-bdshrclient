@@ -1,7 +1,7 @@
-package org.openmrs.module.bahmni.mapper.encounter.fhir;
+package org.openmrs.module.fhir.mapper.bundler;
 
 
-import org.openmrs.module.bahmni.utils.Constants;
+import org.openmrs.module.fhir.utils.Constants;
 import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Enumeration;
 import org.hl7.fhir.instance.model.ResourceReference;

@@ -1,4 +1,4 @@
-package org.openmrs.module.bahmni.mapper.encounter.fhir;
+package org.openmrs.module.fhir.mapper.bundler;
 
 import org.hl7.fhir.instance.model.CodeableConcept;
 import org.hl7.fhir.instance.model.Condition;
@@ -6,46 +6,58 @@ import org.hl7.fhir.instance.model.DateAndTime;
 import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Enumeration;
 import org.hl7.fhir.instance.model.Identifier;
+import org.hl7.fhir.instance.model.Resource;
 import org.hl7.fhir.instance.model.ResourceReference;
 import org.joda.time.DateTime;
 import org.openmrs.Concept;
 import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.Obs;
-import org.openmrs.module.bahmni.mapper.encounter.FHIRProperties;
-import org.openmrs.module.bahmni.utils.ConceptCoding;
-import org.openmrs.module.bahmni.utils.Constants;
-import org.openmrs.module.bahmni.utils.FHIRHelpers;
+import org.openmrs.module.fhir.mapper.FHIRProperties;
+import org.openmrs.module.fhir.utils.ConceptCoding;
+import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.fhir.utils.FHIRHelpers;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Component
-public class ChiefComplaintMapper {
+public class ChiefComplaintMapper implements EmrResourceHandler{
 
     private FHIRHelpers fhirHelpers;
     public ChiefComplaintMapper() {
         this.fhirHelpers = new FHIRHelpers();
     }
 
-    public List<Condition> map(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {
-        Set<Obs> allObs = openMrsEncounter.getObsAtTopLevel(false);
-        List<Condition> chiefComplaints = new ArrayList<Condition>();
-        for (Obs obs : allObs) {
-            if (obs.getConcept().getName().getName().equalsIgnoreCase("History and Examination")) {
-                for (Obs member : obs.getGroupMembers()) {
-                    if (member.getConcept().getName().getName().equalsIgnoreCase("Chief Complaint Data")) {
-                        chiefComplaints.add(createFHIRCondition(encounter, member));
-                    }
+
+    @Override
+    public boolean handles(Obs observation) {
+        if(observation.getConcept().getName().getName().equalsIgnoreCase("History and Examination")) {
+            for (Obs member : observation.getGroupMembers()) {
+                if(member.getConcept().getName().getName().equalsIgnoreCase("Chief Complaint Data")) {
+                    return true;
                 }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public List<EmrResource> map(Obs obs, Encounter fhirEncounter) {
+        List<EmrResource> chiefComplaints = new ArrayList<EmrResource>();
+        for (Obs member : obs.getGroupMembers()) {
+            if (member.getConcept().getName().getName().equalsIgnoreCase("Chief Complaint Data")) {
+                chiefComplaints.add(createFHIRCondition(fhirEncounter, member));
             }
         }
         return chiefComplaints;
     }
 
-    private Condition createFHIRCondition(Encounter encounter, Obs obs) {
+    private EmrResource createFHIRCondition(Encounter encounter, Obs obs) {
         Condition condition = new Condition();
         condition.setEncounter(encounter.getIndication());
         condition.setSubject(encounter.getSubject());
@@ -79,7 +91,7 @@ public class ChiefComplaintMapper {
         Identifier identifier = condition.addIdentifier();
         identifier.setValueSimple(obs.getUuid());
 
-        return condition;
+        return new EmrResource("Complaint", condition.getIdentifier(), condition);
     }
 
     private org.hl7.fhir.instance.model.DateTime getOnsetDate(Obs member) {

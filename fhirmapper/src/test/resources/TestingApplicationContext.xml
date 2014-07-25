@@ -11,7 +11,7 @@
 		http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 
-    <context:component-scan base-package="org.openmrs.module.bahmni"/>
+    <context:component-scan base-package="org.openmrs.module.fhir"/>
 
     <bean id="sessionFactory" class="org.openmrs.api.db.hibernate.HibernateSessionFactoryBean">
         <property name="configLocations">

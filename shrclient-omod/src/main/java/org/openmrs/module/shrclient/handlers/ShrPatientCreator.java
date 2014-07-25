@@ -3,7 +3,7 @@ package org.openmrs.module.shrclient.handlers;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
-import org.openmrs.module.bahmni.utils.Constants;
+import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.ict4h.atomfeed.client.domain.Event;

@@ -2,7 +2,7 @@ package org.openmrs.module.shrclient.handlers;
 
 
 import org.apache.log4j.Logger;
-import org.openmrs.module.bahmni.mapper.encounter.fhir.CompositionBundleCreator;
+import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
 import org.openmrs.module.shrclient.OpenMRSFeedClientFactory;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;

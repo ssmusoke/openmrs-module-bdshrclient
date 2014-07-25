@@ -10,6 +10,6 @@
 
     <!-- Annotation based controllers -->
     <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping"/>
-    <context:component-scan base-package="org.openmrs.module.bahmni.mapper" />
+    <context:component-scan base-package="org.openmrs.module.fhir.mapper" />
 
 </beans>

@@ -1,8 +1,8 @@
-package org.openmrs.module.bahmni.mapper.encounter.fhir;
+package org.openmrs.module.fhir.mapper.bundler;
 
-import org.openmrs.module.bahmni.mapper.encounter.FHIRProperties;
-import org.openmrs.module.bahmni.mapper.encounter.MRSProperties;
-import org.openmrs.module.bahmni.utils.*;
+import org.openmrs.module.fhir.mapper.FHIRProperties;
+import org.openmrs.module.fhir.mapper.MRSProperties;
+import org.openmrs.module.fhir.utils.*;
 import org.hl7.fhir.instance.model.*;
 import org.hl7.fhir.instance.model.Date;
 import org.hl7.fhir.instance.model.Enumeration;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Component("fhirDiagnosisMapper")
-public class DiagnosisMapper {
+public class DiagnosisMapper implements EmrResourceHandler {
 
     private final Map<String,Condition.ConditionStatus> diaConditionStatus = new HashMap<String, Condition.ConditionStatus>();
     private final Map<String,String> diaConditionSeverity = new HashMap<String, String>();
@@ -32,19 +32,19 @@ public class DiagnosisMapper {
 
     }
 
-    public List<Condition> map(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {
-        Set<Obs> allObs = openMrsEncounter.getAllObs(true);
-        List<Condition> diagnoses = new ArrayList<Condition>();
-        for (Obs obs : allObs) {
-            if (isDiagnosisObservation(obs)) {
-                diagnoses.add(createFHIRCondition(encounter, obs));
-            }
-        }
-        return diagnoses;
-
+    @Override
+    public boolean handles(Obs observation) {
+        return observation.getConcept().getName().getName().equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_VISIT_DIAGNOSES);
     }
 
-    private Condition createFHIRCondition(Encounter encounter, Obs obs) {
+    @Override
+    public List<EmrResource> map(Obs obs, Encounter fhirEncounter) {
+        List<EmrResource> diagnoses = new ArrayList<EmrResource>();
+        diagnoses.add(createFHIRCondition(fhirEncounter, obs));
+        return diagnoses;
+    }
+
+    private EmrResource createFHIRCondition(Encounter encounter, Obs obs) {
         Condition condition = new Condition();
         condition.setEncounter(encounter.getIndication());
         condition.setSubject(encounter.getSubject());
@@ -71,7 +71,8 @@ public class DiagnosisMapper {
 
         Identifier identifier = condition.addIdentifier();
         identifier.setValueSimple(obs.getUuid());
-        return condition;
+
+        return new EmrResource("Diagnosis", condition.getIdentifier(), condition);
     }
 
     private boolean isDiagnosisOrderObservation(Concept concept) {
@@ -133,7 +134,7 @@ public class DiagnosisMapper {
         defaultCoding.setCode(obsConcept.getUuid());
         //TODO: put in the right URL. To be mapped
         //TODO temporary. To read TR concept URL from mapping
-        defaultCoding.setSource(org.openmrs.module.bahmni.utils.Constants.TERMINOLOGY_SERVER_CONCEPT_URL + obsConcept.getUuid());
+        defaultCoding.setSource(org.openmrs.module.fhir.utils.Constants.TERMINOLOGY_SERVER_CONCEPT_URL + obsConcept.getUuid());
         return defaultCoding;
     }
 
@@ -149,4 +150,6 @@ public class DiagnosisMapper {
         return fhirHelpers.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS,
                 FHIRProperties.FHIR_CONDITION_CATEGORY_URL, FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS);
     }
+
+
 }

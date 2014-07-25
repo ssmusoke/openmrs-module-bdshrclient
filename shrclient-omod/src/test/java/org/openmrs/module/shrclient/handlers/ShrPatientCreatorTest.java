@@ -1,6 +1,6 @@
 package org.openmrs.module.shrclient.handlers;
 
-import org.openmrs.module.bahmni.utils.Constants;
+import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.ict4h.atomfeed.client.domain.Event;

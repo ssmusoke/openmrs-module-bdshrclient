@@ -96,7 +96,7 @@
                 "code": {
                     "coding": [
                         {
-                            "system": "http://192.168.33.18:8080/openmrs/ws/rest/v1/concept/96f64eb2-4d94-40ab-a386-a62ba03ff6b2",
+                            "system": "http://192.168.33.18/openmrs/ws/rest/v1/concept/96f64eb2-4d94-40ab-a386-a62ba03ff6b2",
                             "code": "A00.0",
                             "display": "Cholera Vibrio"
                         }
@@ -125,32 +125,30 @@
             }
         },
         {
-            "title": "Complaint",
-            "id": "a6975b3f-8195-49a5-a3d6-de0dfa96a24a",
+            "title": "diagnosis",
+            "id": "cdf1f685-71a4-4909-b4f4-3a58af88b9b3",
             "content": {
                 "resourceType": "Condition",
                 "identifier": [
                     {
-                        "value": "a6975b3f-8195-49a5-a3d6-de0dfa96a24a"
+                        "value": "cdf1f685-71a4-4909-b4f4-3a58af88b9b3"
                     }
                 ],
                 "subject": {
-                    "reference": "5892401485081214977"
+                    "reference": "HIDA764177"
                 },
                 "encounter": {
-                    "reference": "d87b8d00-0321-4d31-9b7c-6ec572853e7a",
-                    "display": "encounter"
+                    "reference": "26504add-2d96-44d0-a2f6-d849dc090254"
                 },
                 "asserter": {
-                    "reference": "7e2bd1c6-2370-418c-b2f7-1e46febc4ee0"
+                    "reference": "1cbd8e35-5bcb-4914-a982-be14817b4ca2"
                 },
-                "dateAsserted": "2014-07-24T12:00:00+05:30",
                 "code": {
                     "coding": [
                         {
-                            "system": "http://192.168.33.18:8080/openmrs/ws/rest/v1/concept/12f3c23e-1e94-48d9-b92b-4d7c86cef5cd",
-                            "code": "M79.605",
-                            "display": "Pain in left leg"
+                            "system": "http://192.168.33.18/openmrs/ws/rest/v1/concept/f34f6020-9e33-4332-b7a5-bc9d464cb438",
+                            "code": "f34f6020-9e33-4332-b7a5-bc9d464cb438",
+                            "display": "TestWithoutRefTerm"
                         }
                     ]
                 },
@@ -158,22 +156,22 @@
                     "coding": [
                         {
                             "system": "http://hl7.org/fhir/vs/condition-category",
-                            "code": "Complaint",
-                            "display": "Complaint"
+                            "code": "diagnosis",
+                            "display": "diagnosis"
                         }
                     ]
                 },
-                "status": "confirmed",
+                "status": "provisional",
                 "severity": {
                     "coding": [
                         {
                             "system": "http://hl7.org/fhir/vs/condition-severity",
-                            "code": "6736007",
-                            "display": "Moderate"
+                            "code": "24484000",
+                            "display": "Severe"
                         }
                     ]
                 },
-                "onsetDateTime": "2014-07-03T12:00:00+05:30"
+                "onsetDateTime": "2014-07-10T16:05:31+05:30"
             }
         }
     ]

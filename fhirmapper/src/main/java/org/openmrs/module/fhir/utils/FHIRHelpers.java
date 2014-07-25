@@ -1,4 +1,4 @@
-package org.openmrs.module.bahmni.utils;
+package org.openmrs.module.fhir.utils;
 
 import org.hl7.fhir.instance.model.CodeableConcept;
 import org.hl7.fhir.instance.model.Coding;
