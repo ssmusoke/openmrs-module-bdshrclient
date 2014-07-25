@@ -3,8 +3,11 @@ package org.openmrs.module.fhir.mapper.emr;
 import org.hl7.fhir.instance.model.CodeableConcept;
 import org.hl7.fhir.instance.model.Coding;
 import org.hl7.fhir.instance.model.Condition;
+import org.hl7.fhir.instance.model.Resource;
+import org.hl7.fhir.instance.model.ResourceType;
 import org.openmrs.*;
 import org.openmrs.api.ConceptService;
+import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +18,7 @@ import java.util.Map;
 
 
 @Component
-public class FHIRDiagnosisConditionsMapper {
+public class FHIRDiagnosisConditionsMapper implements FHIRResource {
 
     private final Map<Condition.ConditionStatus, String> diaConditionStatus = new HashMap<Condition.ConditionStatus, String>();
     @Autowired
@@ -31,46 +34,99 @@ public class FHIRDiagnosisConditionsMapper {
         diaConditionStatus.put(Condition.ConditionStatus.confirmed, "Confirmed");
     }
 
+    @Override
+    public boolean handles(Resource resource) {
+       if (resource instanceof Condition) {
+           final List<Coding> resourceCoding = ((Condition) resource).getCategory().getCoding();
+           if (resourceCoding == null || resourceCoding.isEmpty()) {
+               return false;
+           }
+           return resourceCoding.get(0).getCodeSimple().equalsIgnoreCase(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS);
+       }
+        return false;
+    }
+
+    @Override
+    public void map(Resource resource, Patient emrPatient, Encounter newEmrEncounter) {
+        Condition condition = (Condition) resource;
+
+        Obs visitDiagnosisObs = new Obs();
+
+        Concept diagnosisOrder = conceptService.getConceptByName("Diagnosis order");
+        Concept diagnosisCertainty = conceptService.getConceptByName("Diagnosis Certainty");
+        Concept codedDiagnosis = conceptService.getConceptByName("Coded Diagnosis");
+        Concept visitDiagnosis = conceptService.getConceptByName("Visit Diagnoses");
+
+        Concept bahmniInitialDiagnosis = conceptService.getConceptByName("Bahmni Initial Diagnosis");
+        Concept bahmniDiagnosisStatus = conceptService.getConceptByName("Bahmni Diagnosis Status");
+        Concept bahmniDiagnosisRevised = conceptService.getConceptByName("Bahmni Diagnosis Revised");
+
+        Concept diagnosisConceptAnswer = identifyDiagnosisConcept(condition);
+        Concept diagnosisSeverityAnswer = identifyDiagnosisSeverity(condition, diagnosisOrder);
+        Concept diagnosisCertaintyAnswer = identifyDiagnosisCertainty(condition, diagnosisCertainty);
+
+        visitDiagnosisObs.setConcept(visitDiagnosis);
+        visitDiagnosisObs.setPerson(emrPatient);
+
+        Obs orderObs = addToObsGroup(emrPatient, visitDiagnosisObs, diagnosisOrder);
+        orderObs.setValueCoded(diagnosisSeverityAnswer);
+
+        Obs certaintyObs = addToObsGroup(emrPatient, visitDiagnosisObs, diagnosisCertainty);
+        certaintyObs.setValueCoded(diagnosisCertaintyAnswer);
+
+        Obs codedObs = addToObsGroup(emrPatient, visitDiagnosisObs, codedDiagnosis);
+        codedObs.setValueCoded(diagnosisConceptAnswer);
+
+        Obs bahmniInitDiagObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniInitialDiagnosis);
+        bahmniInitDiagObs.setValueText(visitDiagnosisObs.getUuid());
+
+        Obs bahmniDiagStatusObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniDiagnosisStatus);
+        bahmniDiagStatusObs.setValueBoolean(false);
+
+        Obs bahmniDiagRevisedObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniDiagnosisRevised);
+        bahmniDiagRevisedObs.setValueBoolean(false);
+
+        newEmrEncounter.addObs(visitDiagnosisObs);
+    }
+
     public void map(Patient emrPatient, Encounter newEmrEncounter, Condition condition) {
+        Obs visitDiagnosisObs = new Obs();
 
+        Concept diagnosisOrder = conceptService.getConceptByName("Diagnosis order");
+        Concept diagnosisCertainty = conceptService.getConceptByName("Diagnosis Certainty");
+        Concept codedDiagnosis = conceptService.getConceptByName("Coded Diagnosis");
+        Concept visitDiagnosis = conceptService.getConceptByName("Visit Diagnoses");
 
-            Obs visitDiagnosisObs = new Obs();
+        Concept bahmniInitialDiagnosis = conceptService.getConceptByName("Bahmni Initial Diagnosis");
+        Concept bahmniDiagnosisStatus = conceptService.getConceptByName("Bahmni Diagnosis Status");
+        Concept bahmniDiagnosisRevised = conceptService.getConceptByName("Bahmni Diagnosis Revised");
 
-            Concept diagnosisOrder = conceptService.getConceptByName("Diagnosis order");
-            Concept diagnosisCertainty = conceptService.getConceptByName("Diagnosis Certainty");
-            Concept codedDiagnosis = conceptService.getConceptByName("Coded Diagnosis");
-            Concept visitDiagnosis = conceptService.getConceptByName("Visit Diagnoses");
+        Concept diagnosisConceptAnswer = identifyDiagnosisConcept(condition);
+        Concept diagnosisSeverityAnswer = identifyDiagnosisSeverity(condition, diagnosisOrder);
+        Concept diagnosisCertaintyAnswer = identifyDiagnosisCertainty(condition, diagnosisCertainty);
 
-            Concept bahmniInitialDiagnosis = conceptService.getConceptByName("Bahmni Initial Diagnosis");
-            Concept bahmniDiagnosisStatus = conceptService.getConceptByName("Bahmni Diagnosis Status");
-            Concept bahmniDiagnosisRevised = conceptService.getConceptByName("Bahmni Diagnosis Revised");
+        visitDiagnosisObs.setConcept(visitDiagnosis);
+        visitDiagnosisObs.setPerson(emrPatient);
 
-            Concept diagnosisConceptAnswer = identifyDiagnosisConcept(condition);
-            Concept diagnosisSeverityAnswer = identifyDiagnosisSeverity(condition, diagnosisOrder);
-            Concept diagnosisCertaintyAnswer = identifyDiagnosisCertainty(condition, diagnosisCertainty);
+        Obs orderObs = addToObsGroup(emrPatient, visitDiagnosisObs, diagnosisOrder);
+        orderObs.setValueCoded(diagnosisSeverityAnswer);
 
-            visitDiagnosisObs.setConcept(visitDiagnosis);
-            visitDiagnosisObs.setPerson(emrPatient);
+        Obs certaintyObs = addToObsGroup(emrPatient, visitDiagnosisObs, diagnosisCertainty);
+        certaintyObs.setValueCoded(diagnosisCertaintyAnswer);
 
-            Obs orderObs = addToObsGroup(emrPatient, visitDiagnosisObs, diagnosisOrder);
-            orderObs.setValueCoded(diagnosisSeverityAnswer);
+        Obs codedObs = addToObsGroup(emrPatient, visitDiagnosisObs, codedDiagnosis);
+        codedObs.setValueCoded(diagnosisConceptAnswer);
 
-            Obs certaintyObs = addToObsGroup(emrPatient, visitDiagnosisObs, diagnosisCertainty);
-            certaintyObs.setValueCoded(diagnosisCertaintyAnswer);
+        Obs bahmniInitDiagObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniInitialDiagnosis);
+        bahmniInitDiagObs.setValueText(visitDiagnosisObs.getUuid());
 
-            Obs codedObs = addToObsGroup(emrPatient, visitDiagnosisObs, codedDiagnosis);
-            codedObs.setValueCoded(diagnosisConceptAnswer);
+        Obs bahmniDiagStatusObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniDiagnosisStatus);
+        bahmniDiagStatusObs.setValueBoolean(false);
 
-            Obs bahmniInitDiagObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniInitialDiagnosis);
-            bahmniInitDiagObs.setValueText(visitDiagnosisObs.getUuid());
+        Obs bahmniDiagRevisedObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniDiagnosisRevised);
+        bahmniDiagRevisedObs.setValueBoolean(false);
 
-            Obs bahmniDiagStatusObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniDiagnosisStatus);
-            bahmniDiagStatusObs.setValueBoolean(false);
-
-            Obs bahmniDiagRevisedObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniDiagnosisRevised);
-            bahmniDiagRevisedObs.setValueBoolean(false);
-
-            newEmrEncounter.addObs(visitDiagnosisObs);
+        newEmrEncounter.addObs(visitDiagnosisObs);
     }
 
     private Obs addToObsGroup(Patient emrPatient, Obs visitDiagnosisObs, Concept obsConcept) {
