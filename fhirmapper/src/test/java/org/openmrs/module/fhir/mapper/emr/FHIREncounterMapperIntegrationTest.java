@@ -1,5 +1,8 @@
 package org.openmrs.module.fhir.mapper.emr;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.TestCase.assertNotNull;
 import org.hl7.fhir.instance.formats.JsonParser;
 import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.model.AtomFeed;
@@ -10,6 +13,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Obs;
+import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
@@ -54,11 +58,12 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
 
     @Before
     public void setUp() throws Exception {
-        executeDataSet("shrClientEncounterReverseSyncTestDS.xml");
+
     }
 
     @Test
     public void shouldMapFhirEncounter() throws Exception {
+        executeDataSet("shrClientEncounterReverseSyncTestDS.xml");
         final AtomFeed encounterBundle = loadSampleFHIREncounter().getFeed();
         Assert.assertEquals("dc1f5f99-fb2f-4ba8-bf24-14ccdee498f9", encounterBundle.getId());
 
@@ -86,7 +91,8 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
     }
 
     @Test
-    public void shouldMapFhirCondition() throws Exception {
+    public void shouldMapFhirConditions() throws Exception {
+        executeDataSet("shrClientEncounterReverseSyncTestDS.xml");
         final AtomFeed encounterBundle = loadSampleFHIREncounter().getFeed();
 
         List<Condition> conditions = FHIRFeedHelper.getConditions(encounterBundle);
@@ -99,7 +105,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         final org.openmrs.Encounter emrEncounter = fhirMapper.map(emrPatient, encounterBundle, encounter);
 
         final Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);
-        Assert.assertEquals(1, visitObs.size());
+        Assert.assertEquals(2, visitObs.size());
         Obs firstObs = visitObs.iterator().next();
         Assert.assertNotNull(firstObs.getGroupMembers());
         Assert.assertNotNull(firstObs.getPerson());

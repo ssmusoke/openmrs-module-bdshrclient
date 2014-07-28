@@ -8,6 +8,8 @@ import org.hl7.fhir.instance.model.ResourceType;
 import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
+import org.openmrs.module.fhir.mapper.MRSProperties;
+import org.openmrs.module.fhir.utils.OMRSHelpers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +20,7 @@ import java.util.Map;
 
 
 @Component
-public class FHIRDiagnosisConditionsMapper implements FHIRResource {
+public class FHIRDiagnosisConditionMapper implements FHIRResource {
 
     private final Map<Condition.ConditionStatus, String> diaConditionStatus = new HashMap<Condition.ConditionStatus, String>();
     @Autowired
@@ -26,12 +28,12 @@ public class FHIRDiagnosisConditionsMapper implements FHIRResource {
 
     private final Map<String,String> diaConditionSeverity = new HashMap<String, String>();
 
-    public FHIRDiagnosisConditionsMapper() {
-        diaConditionSeverity.put("Moderate", "Primary");
-        diaConditionSeverity.put("Severe", "Secondary");
+    public FHIRDiagnosisConditionMapper() {
+        diaConditionSeverity.put("Moderate", MRSProperties.MRS_DIAGNOSIS_SEVERITY_PRIMARY);
+        diaConditionSeverity.put("Severe", MRSProperties.MRS_DIAGNOSIS_SEVERITY_SECONDARY);
 
-        diaConditionStatus.put(Condition.ConditionStatus.provisional, "Presumed");
-        diaConditionStatus.put(Condition.ConditionStatus.confirmed, "Confirmed");
+        diaConditionStatus.put(Condition.ConditionStatus.provisional, MRSProperties.MRS_DIAGNOSIS_STATUS_PRESUMED);
+        diaConditionStatus.put(Condition.ConditionStatus.confirmed, MRSProperties.MRS_DIAGNOSIS_STATUS_CONFIRMED);
     }
 
     @Override
@@ -52,50 +54,10 @@ public class FHIRDiagnosisConditionsMapper implements FHIRResource {
 
         Obs visitDiagnosisObs = new Obs();
 
-        Concept diagnosisOrder = conceptService.getConceptByName("Diagnosis order");
-        Concept diagnosisCertainty = conceptService.getConceptByName("Diagnosis Certainty");
-        Concept codedDiagnosis = conceptService.getConceptByName("Coded Diagnosis");
-        Concept visitDiagnosis = conceptService.getConceptByName("Visit Diagnoses");
-
-        Concept bahmniInitialDiagnosis = conceptService.getConceptByName("Bahmni Initial Diagnosis");
-        Concept bahmniDiagnosisStatus = conceptService.getConceptByName("Bahmni Diagnosis Status");
-        Concept bahmniDiagnosisRevised = conceptService.getConceptByName("Bahmni Diagnosis Revised");
-
-        Concept diagnosisConceptAnswer = identifyDiagnosisConcept(condition);
-        Concept diagnosisSeverityAnswer = identifyDiagnosisSeverity(condition, diagnosisOrder);
-        Concept diagnosisCertaintyAnswer = identifyDiagnosisCertainty(condition, diagnosisCertainty);
-
-        visitDiagnosisObs.setConcept(visitDiagnosis);
-        visitDiagnosisObs.setPerson(emrPatient);
-
-        Obs orderObs = addToObsGroup(emrPatient, visitDiagnosisObs, diagnosisOrder);
-        orderObs.setValueCoded(diagnosisSeverityAnswer);
-
-        Obs certaintyObs = addToObsGroup(emrPatient, visitDiagnosisObs, diagnosisCertainty);
-        certaintyObs.setValueCoded(diagnosisCertaintyAnswer);
-
-        Obs codedObs = addToObsGroup(emrPatient, visitDiagnosisObs, codedDiagnosis);
-        codedObs.setValueCoded(diagnosisConceptAnswer);
-
-        Obs bahmniInitDiagObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniInitialDiagnosis);
-        bahmniInitDiagObs.setValueText(visitDiagnosisObs.getUuid());
-
-        Obs bahmniDiagStatusObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniDiagnosisStatus);
-        bahmniDiagStatusObs.setValueBoolean(false);
-
-        Obs bahmniDiagRevisedObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniDiagnosisRevised);
-        bahmniDiagRevisedObs.setValueBoolean(false);
-
-        newEmrEncounter.addObs(visitDiagnosisObs);
-    }
-
-    public void map(Patient emrPatient, Encounter newEmrEncounter, Condition condition) {
-        Obs visitDiagnosisObs = new Obs();
-
-        Concept diagnosisOrder = conceptService.getConceptByName("Diagnosis order");
-        Concept diagnosisCertainty = conceptService.getConceptByName("Diagnosis Certainty");
-        Concept codedDiagnosis = conceptService.getConceptByName("Coded Diagnosis");
-        Concept visitDiagnosis = conceptService.getConceptByName("Visit Diagnoses");
+        Concept diagnosisOrder = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_DIAGNOSIS_ORDER);
+        Concept diagnosisCertainty = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_DIAGNOSIS_CERTAINTY);
+        Concept codedDiagnosis = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CODED_DIAGNOSIS);
+        Concept visitDiagnosis = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_VISIT_DIAGNOSES);
 
         Concept bahmniInitialDiagnosis = conceptService.getConceptByName("Bahmni Initial Diagnosis");
         Concept bahmniDiagnosisStatus = conceptService.getConceptByName("Bahmni Diagnosis Status");
@@ -151,7 +113,7 @@ public class FHIRDiagnosisConditionsMapper implements FHIRResource {
         }
         if (certaintyAnswerConcept == null) {
             for (ConceptAnswer answer : answers) {
-                if (answer.getAnswerConcept().getName().getName().equals("Confirmed")) {
+                if (answer.getAnswerConcept().getName().getName().equals(MRSProperties.MRS_DIAGNOSIS_STATUS_CONFIRMED)) {
                     certaintyAnswerConcept = answer.getAnswerConcept();
                     break;
                 }
@@ -179,7 +141,7 @@ public class FHIRDiagnosisConditionsMapper implements FHIRResource {
 
                 if (severityAnswerConcept==null) {
                     for (ConceptAnswer answer : answers) {
-                        if (answer.getAnswerConcept().getName().getName().equals("Primary")) {
+                        if (answer.getAnswerConcept().getName().getName().equals(MRSProperties.MRS_DIAGNOSIS_SEVERITY_PRIMARY)) {
                             severityAnswerConcept = answer.getAnswerConcept();
                             break;
                         }
@@ -200,28 +162,7 @@ public class FHIRDiagnosisConditionsMapper implements FHIRResource {
             String diagnosisCode = coding.getCodeSimple();
             String systemSimple = coding.getSystemSimple();
             String diagnosisName = coding.getDisplaySimple();
-            if (systemSimple.startsWith("ICD10")) {
-                ConceptSource conceptSource = conceptService.getConceptSourceByName(systemSimple);
-                //ConceptReferenceTerm referenceTerm = conceptService.getConceptReferenceTermByCode(diagnosisCode, conceptSource);
-                List<Concept> conceptsByMapping = conceptService.getConceptsByMapping(diagnosisCode, conceptSource.getName());
-                if ( (conceptsByMapping != null) && !conceptsByMapping.isEmpty()) {
-                    Concept mappedConcept = null;
-                    for (Concept concept : conceptsByMapping) {
-                        if (concept.getName().getName().equalsIgnoreCase(diagnosisName)) {
-                            return concept;
-                        }
-                    }
-                    if (mappedConcept == null) {
-                        return conceptsByMapping.get(0);
-                    }
-                } else {
-                   return null;
-                }
-
-            } else {
-                return conceptService.getConceptByName(diagnosisName);
-            }
-
+            return OMRSHelpers.identifyConceptFromReferenceCodes(systemSimple, diagnosisCode, diagnosisName, conceptService);
         }
         return null;
     }

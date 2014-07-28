@@ -267,7 +267,4 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         PatientIdentifierType patientIdentifierByUuid = Context.getPatientService().getPatientIdentifierTypeByUuid(globalProperty);
         return patientIdentifierByUuid;
     }
-
-
-
 }

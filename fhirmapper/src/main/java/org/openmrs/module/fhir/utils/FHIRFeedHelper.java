@@ -8,6 +8,15 @@ import java.util.List;
 
 public class FHIRFeedHelper {
 
+    public static CodeableConcept getFHIRCodeableConcept(String code, String system, String display) {
+        CodeableConcept codeableConcept = new CodeableConcept();
+        Coding coding = codeableConcept.addCoding();
+        coding.setCodeSimple(code);
+        coding.setSystemSimple(system);
+        coding.setDisplaySimple(display);
+        return codeableConcept;
+    }
+
     public static Composition getComposition(AtomFeed bundle) {
         Resource resource = identifyResource(bundle.getEntryList(), ResourceType.Composition);
         return resource != null ? (Composition) resource : null;

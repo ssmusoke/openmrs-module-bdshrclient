@@ -19,11 +19,9 @@ public class DiagnosisMapper implements EmrResourceHandler {
     private final Map<String,Condition.ConditionStatus> diaConditionStatus = new HashMap<String, Condition.ConditionStatus>();
     private final Map<String,String> diaConditionSeverity = new HashMap<String, String>();
     private final FHIRProperties fhirProperties;
-    private final FHIRHelpers fhirHelpers;
 
     public DiagnosisMapper() {
         fhirProperties = new FHIRProperties();
-        fhirHelpers = new FHIRHelpers();
         diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_PRESUMED, Condition.ConditionStatus.provisional);
         diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_CONFIRMED, Condition.ConditionStatus.confirmed);
 
@@ -90,11 +88,6 @@ public class DiagnosisMapper implements EmrResourceHandler {
         return conceptName.equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_CODED_DIAGNOSIS);
     }
 
-    private boolean isDiagnosisObservation(Obs obs) {
-        return obs.getConcept().getName().getName().equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_VISIT_DIAGNOSES);
-    }
-
-
     private ResourceReference getParticipant(Encounter encounter) {
         List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
         if ((participants != null) && !participants.isEmpty()) {
@@ -116,7 +109,7 @@ public class DiagnosisMapper implements EmrResourceHandler {
     private CodeableConcept getDiagnosisCode(Concept obsConcept) {
         //TODO to change to reference term code
         ConceptCoding refCoding = getReferenceCode(obsConcept);
-        return fhirHelpers.getFHIRCodeableConcept(refCoding.getCode(), refCoding.getSource(), obsConcept.getName().getName());
+        return FHIRFeedHelper.getFHIRCodeableConcept(refCoding.getCode(), refCoding.getSource(), obsConcept.getName().getName());
     }
 
 
@@ -143,13 +136,11 @@ public class DiagnosisMapper implements EmrResourceHandler {
         if(severity == null) {
             severity = FHIRProperties.FHIR_SEVERITY_MODERATE;
         }
-        return fhirHelpers.getFHIRCodeableConcept(fhirProperties.getSeverityCode(severity), severity, FHIRProperties.FHIR_CONDITION_SEVERITY_URL);
+        return FHIRFeedHelper.getFHIRCodeableConcept(fhirProperties.getSeverityCode(severity), severity, FHIRProperties.FHIR_CONDITION_SEVERITY_URL);
     }
 
     private CodeableConcept getDiagnosisCategory() {
-        return fhirHelpers.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS,
+        return FHIRFeedHelper.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS,
                 FHIRProperties.FHIR_CONDITION_CATEGORY_URL, FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS);
     }
-
-
 }

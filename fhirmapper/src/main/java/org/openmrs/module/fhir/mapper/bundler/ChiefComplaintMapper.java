@@ -6,7 +6,6 @@ import org.hl7.fhir.instance.model.DateAndTime;
 import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Enumeration;
 import org.hl7.fhir.instance.model.Identifier;
-import org.hl7.fhir.instance.model.Resource;
 import org.hl7.fhir.instance.model.ResourceReference;
 import org.joda.time.DateTime;
 import org.openmrs.Concept;
@@ -15,24 +14,16 @@ import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.utils.ConceptCoding;
 import org.openmrs.module.fhir.utils.Constants;
-import org.openmrs.module.fhir.utils.FHIRHelpers;
+import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @Component
 public class ChiefComplaintMapper implements EmrResourceHandler{
-
-    private FHIRHelpers fhirHelpers;
-    public ChiefComplaintMapper() {
-        this.fhirHelpers = new FHIRHelpers();
-    }
-
 
     @Override
     public boolean handles(Obs observation) {
@@ -81,7 +72,7 @@ public class ChiefComplaintMapper implements EmrResourceHandler{
             }
             else if(memberConceptName.equalsIgnoreCase("Non-Coded Chief Complaint")) {
                 //TODO : Put right Values
-                final CodeableConcept nonCodedChiefComplaint = fhirHelpers.getFHIRCodeableConcept(member.getValueText(),
+                final CodeableConcept nonCodedChiefComplaint = FHIRFeedHelper.getFHIRCodeableConcept(member.getValueText(),
                         Constants.TERMINOLOGY_SERVER_CONCEPT_URL + member.getValueText(),
                         member.getValueText());
                 condition.setCode(nonCodedChiefComplaint);
@@ -105,7 +96,7 @@ public class ChiefComplaintMapper implements EmrResourceHandler{
     }
 
     private CodeableConcept getChiefComplaintSevirity() {
-        return fhirHelpers.getFHIRCodeableConcept(FHIRProperties.SNOMED_VALUE_MODERATE_SEVERTY,
+        return FHIRFeedHelper.getFHIRCodeableConcept(FHIRProperties.SNOMED_VALUE_MODERATE_SEVERTY,
                 FHIRProperties.FHIR_CONDITION_SEVERITY_URL, FHIRProperties.FHIR_SEVERITY_MODERATE);
     }
 
@@ -118,7 +109,7 @@ public class ChiefComplaintMapper implements EmrResourceHandler{
     }
 
     private CodeableConcept getChiefComplaintCategory() {
-        CodeableConcept conditionCategory = fhirHelpers.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT,
+        CodeableConcept conditionCategory = FHIRFeedHelper.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT,
                 FHIRProperties.FHIR_CONDITION_CATEGORY_URL, "Complaint");
         return conditionCategory;
     }
@@ -128,7 +119,7 @@ public class ChiefComplaintMapper implements EmrResourceHandler{
         //TODO to change to reference term code
         ConceptCoding refCoding = getReferenceCode(obsConcept);
         final String conceptName = obsConcept.getName().getName();
-        return fhirHelpers.getFHIRCodeableConcept(refCoding.getCode(), refCoding.getSource(), conceptName);
+        return FHIRFeedHelper.getFHIRCodeableConcept(refCoding.getCode(), refCoding.getSource(), conceptName);
     }
 
     private ConceptCoding getReferenceCode(Concept obsConcept) {

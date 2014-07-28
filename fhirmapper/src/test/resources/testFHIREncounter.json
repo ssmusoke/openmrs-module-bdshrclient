@@ -148,7 +148,7 @@
                 "code": {
                     "coding": [
                         {
-                            "system": "http://192.168.33.18:8080/openmrs/ws/rest/v1/concept/12f3c23e-1e94-48d9-b92b-4d7c86cef5cd",
+                            "system": "ICD10-BD",
                             "code": "M79.605",
                             "display": "Pain in left leg"
                         }
@@ -173,7 +173,7 @@
                         }
                     ]
                 },
-                "onsetDateTime": "2014-07-03T12:00:00+05:30"
+                "onsetDateTime": "2014-07-24T10:00:00+05:30"
             }
         }
     ]
