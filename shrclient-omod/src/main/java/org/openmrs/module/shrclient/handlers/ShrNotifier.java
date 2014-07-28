@@ -40,9 +40,16 @@ public class ShrNotifier {
 
 
     public void processEncounter() {
-        process(OPENMRS_ENCOUNTER_FEED_URI,
-                new ShrEncounterUploader(Context.getEncounterService(), Context.getUserService(), getShrWebClient(),
-                        getRegisteredComponent(CompositionBundleCreator.class)));
+        process(OPENMRS_ENCOUNTER_FEED_URI, encounterUploader());
+    }
+
+    public void retryEncounter(){
+        retry(OPENMRS_ENCOUNTER_FEED_URI, encounterUploader());
+    }
+
+    private ShrEncounterUploader encounterUploader() {
+        return new ShrEncounterUploader(Context.getEncounterService(), Context.getUserService(), getShrWebClient(),
+                getRegisteredComponent(CompositionBundleCreator.class));
     }
 
     private <T> T getRegisteredComponent(Class<T> clazz) {
@@ -53,16 +60,22 @@ public class ShrNotifier {
         return null;
     }
 
-    private void process(String feedURI, EventWorker eventWorker) {
+    private FeedClient feedClient(String uri, EventWorker worker) {
         OpenMRSFeedClientFactory factory = new OpenMRSFeedClientFactory();
         try {
-            FeedClient feedClient = factory.getFeedClient(new URI(feedURI), eventWorker);
-            feedClient.processEvents();
-
+            return factory.getFeedClient(new URI(uri), worker);
         } catch (URISyntaxException e) {
             log.error("Invalid URI. ", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private void retry(String feedURI, EventWorker eventWorker){
+        feedClient(feedURI, eventWorker).processFailedEvents();
+    }
+
+    private void process(String feedURI, EventWorker eventWorker) {
+        feedClient(feedURI, eventWorker).processEvents();
     }
 
     private RestClient getMciWebClient() {
