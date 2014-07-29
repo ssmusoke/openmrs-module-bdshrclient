@@ -67,6 +67,10 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
         Concept diagnosisSeverityAnswer = identifyDiagnosisSeverity(condition, diagnosisOrder);
         Concept diagnosisCertaintyAnswer = identifyDiagnosisCertainty(condition, diagnosisCertainty);
 
+        if (diagnosisConceptAnswer == null) {
+            return;
+        }
+
         visitDiagnosisObs.setConcept(visitDiagnosis);
         visitDiagnosisObs.setPerson(emrPatient);
 

@@ -96,7 +96,7 @@
                 "code": {
                     "coding": [
                         {
-                            "system": "http://192.168.33.18:8080/openmrs/ws/rest/v1/concept/96f64eb2-4d94-40ab-a386-a62ba03ff6b2",
+                            "system": "ICD10-BD",
                             "code": "A00.0",
                             "display": "Cholera Vibrio"
                         }

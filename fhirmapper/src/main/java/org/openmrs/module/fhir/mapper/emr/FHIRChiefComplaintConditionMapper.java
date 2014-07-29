@@ -52,6 +52,9 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResource{
         Obs chiefComplaintObs = new Obs();
         chiefComplaintObs.setConcept(chiefComplaintConcept);
         Concept conceptAnswer = identifyComplaintConcept(condition);
+        if(conceptAnswer == null) {
+            return;
+        }
         chiefComplaintObs.setValueCoded(conceptAnswer);
 
         Obs chiefComplaintDurationObs = new Obs();
