@@ -49,7 +49,7 @@ public class RestClient {
     public String post(String url, Object data) {
         try {
             String requestBody = mapper.writeValueAsString(data);
-            return webClient.post(url, requestBody);
+            return webClient.post(url, requestBody, "application/json");
         } catch (IOException e) {
             log.error("Error during http post. URL: " + url, e);
             throw new RuntimeException(e);

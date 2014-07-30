@@ -45,13 +45,13 @@ public class WebClient {
         }
     }
 
-    public String post(String path, String data) {
+    public String post(String path, String data, String contentType) {
         String url = getUrl(path);
         log.debug("HTTP post url: " + url);
         try {
             HttpPost request = new HttpPost(URI.create(url));
             StringEntity entity = new StringEntity(data);
-            entity.setContentType("application/json");
+            entity.setContentType(contentType);
             request.setEntity(entity);
             return getResponse(request);
         } catch (IOException e) {
