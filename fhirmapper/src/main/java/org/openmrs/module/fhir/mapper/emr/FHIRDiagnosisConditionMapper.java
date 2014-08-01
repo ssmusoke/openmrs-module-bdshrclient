@@ -166,7 +166,7 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
             String diagnosisCode = coding.getCodeSimple();
             String systemSimple = coding.getSystemSimple();
             String diagnosisName = coding.getDisplaySimple();
-            return OMRSHelpers.identifyConceptFromReferenceCodes(systemSimple, diagnosisCode, diagnosisName, conceptService);
+            return OMRSHelpers.identifyConceptFromReferenceCodes(diagnosisCode, systemSimple, diagnosisName, conceptService);
         }
         return null;
     }
