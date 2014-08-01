@@ -2,16 +2,16 @@ package org.openmrs.module.shrclient.handlers;
 
 
 import org.apache.log4j.Logger;
+import org.ict4h.atomfeed.client.service.EventWorker;
+import org.ict4h.atomfeed.client.service.FeedClient;
+import org.openmrs.api.context.Context;
+import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
 import org.openmrs.module.shrclient.OpenMRSFeedClientFactory;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;
 import org.openmrs.module.shrclient.util.FhirRestClient;
 import org.openmrs.module.shrclient.util.RestClient;
-import org.ict4h.atomfeed.client.service.EventWorker;
-import org.ict4h.atomfeed.client.service.FeedClient;
-import org.openmrs.api.context.Context;
-import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,7 +30,7 @@ public class ShrNotifier {
     private static final String OPENMRS_ENCOUNTER_FEED_URI = "openmrs://events/encounter/recent";
 
     public void processPatient() {
-         process(OPENMRS_PATIENT_FEED_URI, new ShrPatientCreator(
+        process(OPENMRS_PATIENT_FEED_URI, new ShrPatientCreator(
                 Context.getPatientService(),
                 Context.getUserService(),
                 Context.getPersonService(),
@@ -43,7 +43,7 @@ public class ShrNotifier {
         process(OPENMRS_ENCOUNTER_FEED_URI, encounterUploader());
     }
 
-    public void retryEncounter(){
+    public void retryEncounter() {
         retry(OPENMRS_ENCOUNTER_FEED_URI, encounterUploader());
     }
 
@@ -70,7 +70,7 @@ public class ShrNotifier {
         }
     }
 
-    private void retry(String feedURI, EventWorker eventWorker){
+    private void retry(String feedURI, EventWorker eventWorker) {
         feedClient(feedURI, eventWorker).processFailedEvents();
     }
 
@@ -97,8 +97,7 @@ public class ShrNotifier {
     Properties getProperties(String resource) {
         try {
             Properties properties = new Properties();
-            final File file = new File(System.getProperty("user.home") + File.separator + "shr" + File.separator
-                    + "config" + File.separator + resource);
+            final File file = new File(System.getProperty("user.home") + File.separator + ".OpenMRS" + File.separator + resource);
             final InputStream inputStream;
             if (file.exists()) {
                 inputStream = new FileInputStream(file);
