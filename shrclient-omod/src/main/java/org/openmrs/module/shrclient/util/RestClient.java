@@ -2,6 +2,7 @@ package org.openmrs.module.shrclient.util;
 
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -11,11 +12,13 @@ import java.io.IOException;
 public class RestClient {
 
     private static final Logger log = Logger.getLogger(RestClient.class);
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
     private final WebClient webClient;
 
     public RestClient(String user, String password, String host, String port) {
         webClient = new WebClient(user, password, host, port);
+        this.mapper = new ObjectMapper();
+        this.mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     public <T> T get(String url, Class<T> returnType) {
