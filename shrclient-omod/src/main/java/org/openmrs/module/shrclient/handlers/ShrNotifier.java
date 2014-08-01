@@ -8,6 +8,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
 import org.openmrs.module.shrclient.OpenMRSFeedClientFactory;
+import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;
 import org.openmrs.module.shrclient.util.FhirRestClient;
@@ -49,7 +50,7 @@ public class ShrNotifier {
 
     private ShrEncounterUploader encounterUploader() {
         return new ShrEncounterUploader(Context.getEncounterService(), Context.getUserService(), getShrWebClient(),
-                getRegisteredComponent(CompositionBundleCreator.class));
+                getRegisteredComponent(CompositionBundleCreator.class), getRegisteredComponent(IdMappingsRepository.class));
     }
 
     private <T> T getRegisteredComponent(Class<T> clazz) {

@@ -11,6 +11,9 @@ import org.openmrs.User;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.UserService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
+import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.FhirRestClient;
 
 import java.util.regex.Matcher;
@@ -21,17 +24,18 @@ public class ShrEncounterUploader implements EventWorker {
     private static final Logger log = Logger.getLogger(ShrEncounterUploader.class);
 
     private CompositionBundleCreator bundleCreator;
+    private IdMappingsRepository idMappingsRepository;
 
     private EncounterService encounterService;
     private FhirRestClient fhirRestClient;
     private UserService userService;
 
-
-    public ShrEncounterUploader(EncounterService encounterService, UserService userService, FhirRestClient fhirRestClient, CompositionBundleCreator bundleCreator) {
+    public ShrEncounterUploader(EncounterService encounterService, UserService userService, FhirRestClient fhirRestClient, CompositionBundleCreator bundleCreator, IdMappingsRepository idMappingsRepository) {
         this.encounterService = encounterService;
         this.fhirRestClient = fhirRestClient;
         this.userService = userService;
         this.bundleCreator = bundleCreator;
+        this.idMappingsRepository = idMappingsRepository;
     }
 
     @Override
@@ -57,9 +61,8 @@ public class ShrEncounterUploader implements EventWorker {
 
             log.debug("Uploading patient encounter to SHR : [ " + openMrsEncounter.getUuid() + "]");
             AtomFeed atomFeed = bundleCreator.compose(openMrsEncounter);
-//            fhirRestClient.post("/encounter", composition);
-            fhirRestClient.post(String.format("/patients/%s/encounters", healthId), atomFeed);
-
+            String shrEncounterUuid = fhirRestClient.post(String.format("/patients/%s/encounters", healthId), atomFeed);
+            idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), shrEncounterUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE));
         } catch (Exception e) {
             log.error("Error while processing patient sync event.", e);
             throw new RuntimeException(e);
@@ -72,7 +75,10 @@ public class ShrEncounterUploader implements EventWorker {
             changedByUser = openMrsEncounter.getCreator();
         }
         User shrClientSystemUser = userService.getUserByUsername(org.openmrs.module.fhir.utils.Constants.SHR_CLIENT_SYSTEM_NAME);
-        return !shrClientSystemUser.getId().equals(changedByUser.getId());
+        if (idMappingsRepository.findByInternalId(openMrsEncounter.getUuid()) == null) {
+            return !shrClientSystemUser.getId().equals(changedByUser.getId());
+        }
+        return false;
     }
 
     String getUuid(String content) {

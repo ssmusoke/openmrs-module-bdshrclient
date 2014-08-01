@@ -15,4 +15,6 @@ public class Constants {
 
     public static final String MCI_PATIENT_URL = "/api/v1/patients";
     public static final String TERMINOLOGY_SERVER_CONCEPT_URL = "http://192.168.33.18:8080/openmrs/ws/rest/v1/concept/";
+
+    public static final String ID_MAPPING_ENCOUNTER_TYPE = "Encounter";
 }
