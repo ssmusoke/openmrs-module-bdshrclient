@@ -65,7 +65,9 @@ public class ShrEncounterUploader implements EventWorker {
             String shrEncounterUuid = fhirRestClient.post(String.format("/patients/%s/encounters", healthId), atomFeed);
             ObjectMapper objectMapper = new ObjectMapper();
             String externalUuid = objectMapper.readValue(shrEncounterUuid, String.class);
-            idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), externalUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE));
+            //TODO : set the right url
+            String url = "";
+            idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), externalUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE, url));
         } catch (Exception e) {
             log.error("Error while processing patient sync event.", e);
             throw new RuntimeException(e);

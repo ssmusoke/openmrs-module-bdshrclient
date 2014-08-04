@@ -2,7 +2,6 @@ package org.openmrs.module.shrclient.service.impl;
 
 import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Encounter;
 import org.openmrs.EncounterRole;
 import org.openmrs.PatientIdentifier;
 import org.openmrs.PatientIdentifierType;
@@ -26,7 +25,6 @@ import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.utils.Constants;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
@@ -144,7 +142,9 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     private void addEncounterToIdMapping(org.openmrs.Encounter newEmrEncounter, String externalUuid) {
         String internalUuid = newEmrEncounter.getUuid();
-        idMappingsRepository.saveMapping(new IdMapping(internalUuid, externalUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE));
+        //TODO : put the right url
+        String url = "";
+        idMappingsRepository.saveMapping(new IdMapping(internalUuid, externalUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE, url));
     }
 
     private void setEncounterProviderAndCreator(org.openmrs.Encounter newEmrEncounter) {

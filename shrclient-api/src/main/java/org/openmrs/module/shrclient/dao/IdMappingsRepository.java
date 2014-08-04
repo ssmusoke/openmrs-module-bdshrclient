@@ -18,7 +18,7 @@ public class IdMappingsRepository {
 
     public void saveMapping(IdMapping idMapping) {
         if (!mappingExists(idMapping)) {
-            String query = "insert into shr_id_mapping (internal_id, external_id, type) values (?,?,?)";
+            String query = "insert into shr_id_mapping (internal_id, external_id, type, url) values (?,?,?,?)";
             Connection conn = null;
             PreparedStatement statement = null;
             try {
@@ -27,6 +27,7 @@ public class IdMappingsRepository {
                 statement.setString(1, idMapping.getInternalId());
                 statement.setString(2, idMapping.getExternalId());
                 statement.setString(3, idMapping.getType());
+                statement.setString(4, idMapping.getUrl());
                 statement.execute();
             } catch (Exception e) {
                 throw new RuntimeException("Error occurred while creating id mapping", e);
@@ -72,7 +73,7 @@ public class IdMappingsRepository {
     }
 
     public IdMapping findByExternalId(String uuid) {
-        String query = "select distinct map.internal_id, map.type from shr_id_mapping map where map.external_id=?";
+        String query = "select distinct map.internal_id, map.type, map.url from shr_id_mapping map where map.external_id=?";
         Connection conn = null;
         PreparedStatement statement = null;
         ResultSet resultSet = null;
@@ -84,7 +85,7 @@ public class IdMappingsRepository {
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 if (StringUtils.isNotBlank(resultSet.getString(1))) {
-                    result = new IdMapping(resultSet.getString(1), uuid, resultSet.getString(2));
+                    result = new IdMapping(resultSet.getString(1), uuid, resultSet.getString(2), resultSet.getString(3));
                     break;
                 }
             }
@@ -102,7 +103,7 @@ public class IdMappingsRepository {
     }
 
     public IdMapping findByInternalId(String uuid) {
-        String query = "select distinct map.external_id, map.type from shr_id_mapping map where map.internal_id=?";
+        String query = "select distinct map.external_id, map.type, map.url from shr_id_mapping map where map.internal_id=?";
         Connection conn = null;
         PreparedStatement statement = null;
         ResultSet resultSet = null;
@@ -114,7 +115,7 @@ public class IdMappingsRepository {
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 if (StringUtils.isNotBlank(resultSet.getString(1))) {
-                    result = new IdMapping(uuid, resultSet.getString(1), resultSet.getString(2));
+                    result = new IdMapping(uuid, resultSet.getString(1), resultSet.getString(2), resultSet.getString(3));
                     break;
                 }
             }

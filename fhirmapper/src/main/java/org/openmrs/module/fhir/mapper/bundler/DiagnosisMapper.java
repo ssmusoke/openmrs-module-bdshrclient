@@ -9,12 +9,18 @@ import org.hl7.fhir.instance.model.Enumeration;
 import org.openmrs.Concept;
 import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.Obs;
+import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.model.IdMapping;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
 @Component("fhirDiagnosisMapper")
 public class DiagnosisMapper implements EmrResourceHandler {
+
+    @Autowired
+    private IdMappingsRepository idMappingsRepository;
 
     private final Map<String,Condition.ConditionStatus> diaConditionStatus = new HashMap<String, Condition.ConditionStatus>();
     private final Map<String,String> diaConditionSeverity = new HashMap<String, String>();
@@ -109,6 +115,11 @@ public class DiagnosisMapper implements EmrResourceHandler {
     private CodeableConcept getDiagnosisCode(Concept obsConcept) {
         //TODO to change to reference term code
         ConceptCoding refCoding = getReferenceCode(obsConcept);
+        if(refCoding == null) {
+            CodeableConcept codeableConcept = new CodeableConcept();
+            Coding coding = codeableConcept.addCoding();
+            coding.setDisplaySimple(obsConcept.getName().getName());
+        }
         return FHIRFeedHelper.getFHIRCodeableConcept(refCoding.getCode(), refCoding.getSource(), obsConcept.getName().getName());
     }
 
@@ -123,11 +134,15 @@ public class DiagnosisMapper implements EmrResourceHandler {
             coding.setSource(conceptReferenceTerm.getConceptSource().getName());
             return coding;
         }
-        ConceptCoding defaultCoding = new ConceptCoding();
-        defaultCoding.setCode(obsConcept.getUuid());
+        ConceptCoding defaultCoding = null;
         //TODO: put in the right URL. To be mapped
         //TODO temporary. To read TR concept URL from mapping
-        defaultCoding.setSource(org.openmrs.module.fhir.utils.Constants.TERMINOLOGY_SERVER_CONCEPT_URL + obsConcept.getUuid());
+        IdMapping idMapping = idMappingsRepository.findByInternalId(obsConcept.getUuid());
+        if(idMapping != null) {
+            defaultCoding = new ConceptCoding();
+            defaultCoding.setCode(obsConcept.getUuid());
+            defaultCoding.setSource(org.openmrs.module.fhir.utils.Constants.TERMINOLOGY_SERVER_CONCEPT_URL + idMapping.getExternalId());
+        }
         return defaultCoding;
     }
 
