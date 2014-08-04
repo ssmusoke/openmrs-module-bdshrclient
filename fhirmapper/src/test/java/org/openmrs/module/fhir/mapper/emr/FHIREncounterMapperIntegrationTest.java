@@ -13,7 +13,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Obs;
-import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
@@ -81,7 +80,6 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
 
         Assert.assertNotNull(emrEncounter);
         Assert.assertEquals(emrPatient, emrEncounter.getPatient());
-        Assert.assertEquals("26504add-2d96-44d0-a2f6-d849dc090254", emrEncounter.getUuid());
         Assert.assertNotNull(emrEncounter.getEncounterDatetime());
         Assert.assertEquals(encounter.getType().get(0).getTextSimple(), emrEncounter.getEncounterType().getName());
         Assert.assertNotNull(emrEncounter.getEncounterProviders());
@@ -102,7 +100,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
 
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
 
-        final org.openmrs.Encounter emrEncounter = fhirMapper.map(emrPatient, encounterBundle, encounter);
+        final org.openmrs.Encounter emrEncounter = fhirMapper.map(emrPatient, encounterBundle);
 
         final Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);
         Assert.assertEquals(1, visitObs.size());

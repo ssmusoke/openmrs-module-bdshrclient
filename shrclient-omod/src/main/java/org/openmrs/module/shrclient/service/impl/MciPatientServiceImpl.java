@@ -30,8 +30,10 @@ import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
+import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.dao.PatientAttributeSearchHandler;
 import org.openmrs.module.shrclient.model.Address;
+import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.MciPatientService;
@@ -55,13 +57,16 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     private EncounterService encounterService;
 
     @Autowired
-    VisitService visitService;
+    private VisitService visitService;
 
     @Autowired
-    FHIRMapper fhirMapper;
+    private FHIRMapper fhirMapper;
 
     @Autowired
-    ProviderService providerService;
+    private ProviderService providerService;
+
+    @Autowired
+    private IdMappingsRepository idMappingsRepository;
 
     private static final Logger logger = Logger.getLogger(MciPatientServiceImpl.class);
 
@@ -102,7 +107,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         IdentifierSourceService identifierSourceService = Context.getService(IdentifierSourceService.class);
         List<IdentifierSource> allIdentifierSources = identifierSourceService.getAllIdentifierSources(false);
         for (IdentifierSource identifierSource : allIdentifierSources) {
-            if (((SequentialIdentifierGenerator)identifierSource).getPrefix().equals(Constants.IDENTIFIER_SOURCE_NAME)) {
+            if (((SequentialIdentifierGenerator) identifierSource).getPrefix().equals(Constants.IDENTIFIER_SOURCE_NAME)) {
                 String identifier = identifierSourceService.generateIdentifier(identifierSource, "MCI Patient");
                 PatientIdentifierType identifierType = getPatientIdentifierType();
                 return new PatientIdentifier(identifier, identifierType, null);
@@ -129,12 +134,20 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         AtomFeed feed = encounterBundle.getResourceOrFeed().getFeed();
         logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), fhirEncounterId));
 
-        Encounter encounter = FHIRFeedHelper.getEncounter(feed);
+        if (!shouldSyncEncounter(fhirEncounterId)) return;
+        org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, feed);
 
-        if (!shouldSyncEncounter(encounter)) return;
+        setEncounterProviderAndCreator(newEmrEncounter);
+        addEncounterToIdMapping(newEmrEncounter, fhirEncounterId);
+        visitService.saveVisit(newEmrEncounter.getVisit());
+    }
 
-        org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, feed, encounter);
+    private void addEncounterToIdMapping(org.openmrs.Encounter newEmrEncounter, String externalUuid) {
+        String internalUuid = newEmrEncounter.getUuid();
+        idMappingsRepository.saveMapping(new IdMapping(internalUuid, externalUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE));
+    }
 
+    private void setEncounterProviderAndCreator(org.openmrs.Encounter newEmrEncounter) {
         User systemUser = getShrClientSystemUser();
         setCreator(newEmrEncounter, systemUser);
         setCreator(newEmrEncounter.getVisit(), systemUser);
@@ -143,17 +156,10 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         if ((providersByPerson != null) & !providersByPerson.isEmpty()) {
             newEmrEncounter.addProvider(encounterService.getEncounterRoleByUuid(EncounterRole.UNKNOWN_ENCOUNTER_ROLE_UUID), providersByPerson.iterator().next());
         }
-        visitService.saveVisit(newEmrEncounter.getVisit());
-
     }
 
-    private boolean shouldSyncEncounter(Encounter encounter) {
-        String localEncounterId = encounter.getIdentifier().get(0).getValueSimple();
-        org.openmrs.Encounter localEncounter = encounterService.getEncounterByUuid(localEncounterId);
-        if (localEncounter != null) {
-            return false;
-        }
-        return true;
+    private boolean shouldSyncEncounter(String encounterId) {
+        return (idMappingsRepository.findByExternalId(encounterId) == null) ? true : false;
     }
 
 

@@ -63,7 +63,7 @@ public class ShrEncounterUploaderTest {
 
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME)).thenReturn(new User(2));
-        when(fhirRestClient.post(anyString(), eq(atomFeed))).thenReturn("shr-uuid");
+        when(fhirRestClient.post(anyString(), eq(atomFeed))).thenReturn("\"shr-uuid\"");
         when(compositionBundleCreator.compose(openMrsEncounter)).thenReturn(atomFeed);
         when(idMappingsRepository.findByExternalId(anyString())).thenReturn(null);
         shrEncounterUploader.process(event);

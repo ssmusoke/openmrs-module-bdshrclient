@@ -37,7 +37,6 @@ public class FHIREncounterMapper {
         final SimpleDateFormat ISODateFomat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
         Date encounterDate = ISODateFomat.parse(date);
         emrEncounter.setEncounterDatetime(encounterDate);
-        emrEncounter.setUuid(fhirEncounter.getIdentifier().get(0).getValueSimple());
 
         final String encounterTypeName = fhirEncounter.getType().get(0).getTextSimple();
         final EncounterType encounterType = encounterService.getEncounterType(encounterTypeName);

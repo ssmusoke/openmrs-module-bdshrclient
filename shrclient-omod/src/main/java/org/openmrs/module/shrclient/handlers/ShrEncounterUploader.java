@@ -1,5 +1,6 @@
 package org.openmrs.module.shrclient.handlers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.model.AtomFeed;
@@ -62,7 +63,9 @@ public class ShrEncounterUploader implements EventWorker {
             log.debug("Uploading patient encounter to SHR : [ " + openMrsEncounter.getUuid() + "]");
             AtomFeed atomFeed = bundleCreator.compose(openMrsEncounter);
             String shrEncounterUuid = fhirRestClient.post(String.format("/patients/%s/encounters", healthId), atomFeed);
-            idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), shrEncounterUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE));
+            ObjectMapper objectMapper = new ObjectMapper();
+            String externalUuid = objectMapper.readValue(shrEncounterUuid, String.class);
+            idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), externalUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE));
         } catch (Exception e) {
             log.error("Error while processing patient sync event.", e);
             throw new RuntimeException(e);
@@ -70,12 +73,12 @@ public class ShrEncounterUploader implements EventWorker {
     }
 
     private boolean shouldSyncEncounter(org.openmrs.Encounter openMrsEncounter) {
-        User changedByUser = openMrsEncounter.getChangedBy();
-        if (changedByUser == null) {
-            changedByUser = openMrsEncounter.getCreator();
-        }
-        User shrClientSystemUser = userService.getUserByUsername(org.openmrs.module.fhir.utils.Constants.SHR_CLIENT_SYSTEM_NAME);
         if (idMappingsRepository.findByInternalId(openMrsEncounter.getUuid()) == null) {
+            User changedByUser = openMrsEncounter.getChangedBy();
+            if (changedByUser == null) {
+                changedByUser = openMrsEncounter.getCreator();
+            }
+            User shrClientSystemUser = userService.getUserByUsername(org.openmrs.module.fhir.utils.Constants.SHR_CLIENT_SYSTEM_NAME);
             return !shrClientSystemUser.getId().equals(changedByUser.getId());
         }
         return false;
