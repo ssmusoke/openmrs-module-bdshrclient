@@ -44,7 +44,10 @@ public class DiagnosisMapper implements EmrResourceHandler {
     @Override
     public List<EmrResource> map(Obs obs, Encounter fhirEncounter) {
         List<EmrResource> diagnoses = new ArrayList<EmrResource>();
-        diagnoses.add(createFHIRCondition(fhirEncounter, obs));
+        final EmrResource fhirCondition = createFHIRCondition(fhirEncounter, obs);
+        if(fhirCondition != null) {
+            diagnoses.add(fhirCondition);
+        }
         return diagnoses;
     }
 
@@ -59,12 +62,17 @@ public class DiagnosisMapper implements EmrResourceHandler {
         for (Obs member : obsMembers) {
             Concept memberConcept = member.getConcept();
             if (isCodedDiagnosisObservation(memberConcept)) {
-                condition.setCode(getDiagnosisCode(member.getValueCoded()));
+                final CodeableConcept diagnosisCode = getDiagnosisCode(member.getValueCoded());
+                if(diagnosisCode == null) {
+                    return null;
+                }
+                condition.setCode(diagnosisCode);
             }
             else if (isDiagnosisCertaintyObservation(memberConcept)) {
                 condition.setStatus(getConditionStatus(member));
             }
             else if (isDiagnosisOrderObservation(memberConcept)) {
+                //TODO : remove sevirity
                 condition.setSeverity(getDiagnosisSeverity(member.getValueCoded()));
             }
         }
@@ -116,9 +124,7 @@ public class DiagnosisMapper implements EmrResourceHandler {
         //TODO to change to reference term code
         ConceptCoding refCoding = getReferenceCode(obsConcept);
         if(refCoding == null) {
-            CodeableConcept codeableConcept = new CodeableConcept();
-            Coding coding = codeableConcept.addCoding();
-            coding.setDisplaySimple(obsConcept.getName().getName());
+            return null;
         }
         return FHIRFeedHelper.getFHIRCodeableConcept(refCoding.getCode(), refCoding.getSource(), obsConcept.getName().getName());
     }
@@ -127,21 +133,22 @@ public class DiagnosisMapper implements EmrResourceHandler {
     private ConceptCoding getReferenceCode(Concept obsConcept) {
         Collection<org.openmrs.ConceptMap> conceptMappings = obsConcept.getConceptMappings();
         for (org.openmrs.ConceptMap mapping : conceptMappings) {
-            //TODO right now returning the first matching term
             ConceptReferenceTerm conceptReferenceTerm = mapping.getConceptReferenceTerm();
             ConceptCoding coding = new ConceptCoding();
             coding.setCode(conceptReferenceTerm.getCode());
-            coding.setSource(conceptReferenceTerm.getConceptSource().getName());
+            final IdMapping idMapping = idMappingsRepository.findByInternalId(conceptReferenceTerm.getUuid());
+            if(idMapping == null) {
+                continue;
+            }
+            coding.setSource(idMapping.getUrl());
             return coding;
         }
         ConceptCoding defaultCoding = null;
-        //TODO: put in the right URL. To be mapped
-        //TODO temporary. To read TR concept URL from mapping
         IdMapping idMapping = idMappingsRepository.findByInternalId(obsConcept.getUuid());
         if(idMapping != null) {
             defaultCoding = new ConceptCoding();
-            defaultCoding.setCode(obsConcept.getUuid());
-            defaultCoding.setSource(org.openmrs.module.fhir.utils.Constants.TERMINOLOGY_SERVER_CONCEPT_URL + idMapping.getExternalId());
+            defaultCoding.setCode(idMapping.getExternalId());
+            defaultCoding.setSource(idMapping.getUrl());
         }
         return defaultCoding;
     }
