@@ -25,7 +25,7 @@ public class CompositionBundleCreator {
     EncounterMapper encounterMapper;
 
     @Autowired
-    private List<EmrResourceHandler> resourceHandlers = new ArrayList<EmrResourceHandler>();
+    private List<EmrResourceHandler> resourceHandlers;
 
     public AtomFeed compose(org.openmrs.Encounter emrEncounter) {
         AtomFeed atomFeed = new AtomFeed();

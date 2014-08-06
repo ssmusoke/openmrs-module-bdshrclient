@@ -1,20 +1,32 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import org.openmrs.module.fhir.mapper.FHIRProperties;
-import org.openmrs.module.fhir.mapper.MRSProperties;
-import org.openmrs.module.fhir.utils.*;
-import org.hl7.fhir.instance.model.*;
+import org.apache.commons.collections.CollectionUtils;
+import org.hl7.fhir.instance.model.CodeableConcept;
+import org.hl7.fhir.instance.model.Condition;
 import org.hl7.fhir.instance.model.Date;
+import org.hl7.fhir.instance.model.DateAndTime;
+import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Enumeration;
+import org.hl7.fhir.instance.model.Identifier;
+import org.hl7.fhir.instance.model.ResourceReference;
 import org.openmrs.Concept;
 import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.Obs;
+import org.openmrs.module.fhir.mapper.FHIRProperties;
+import org.openmrs.module.fhir.mapper.MRSProperties;
+import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addFHIRCoding;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Component("fhirDiagnosisMapper")
 public class DiagnosisMapper implements EmrResourceHandler {
@@ -62,8 +74,8 @@ public class DiagnosisMapper implements EmrResourceHandler {
         for (Obs member : obsMembers) {
             Concept memberConcept = member.getConcept();
             if (isCodedDiagnosisObservation(memberConcept)) {
-                final CodeableConcept diagnosisCode = getDiagnosisCode(member.getValueCoded());
-                if(diagnosisCode == null) {
+                CodeableConcept diagnosisCode = addReferenceCodes(member.getValueCoded());
+                if(CollectionUtils.isEmpty(diagnosisCode.getCoding())) {
                     return null;
                 }
                 condition.setCode(diagnosisCode);
@@ -120,37 +132,22 @@ public class DiagnosisMapper implements EmrResourceHandler {
         }
     }
 
-    private CodeableConcept getDiagnosisCode(Concept obsConcept) {
-        //TODO to change to reference term code
-        ConceptCoding refCoding = getReferenceCode(obsConcept);
-        if(refCoding == null) {
-            return null;
-        }
-        return FHIRFeedHelper.getFHIRCodeableConcept(refCoding.getCode(), refCoding.getSource(), obsConcept.getName().getName());
-    }
-
-
-    private ConceptCoding getReferenceCode(Concept obsConcept) {
+    private CodeableConcept addReferenceCodes(Concept obsConcept) {
+        CodeableConcept codeableConcept = new CodeableConcept();
         Collection<org.openmrs.ConceptMap> conceptMappings = obsConcept.getConceptMappings();
         for (org.openmrs.ConceptMap mapping : conceptMappings) {
             ConceptReferenceTerm conceptReferenceTerm = mapping.getConceptReferenceTerm();
-            ConceptCoding coding = new ConceptCoding();
-            coding.setCode(conceptReferenceTerm.getCode());
             final IdMapping idMapping = idMappingsRepository.findByInternalId(conceptReferenceTerm.getUuid());
             if(idMapping == null) {
                 continue;
             }
-            coding.setSource(idMapping.getUrl());
-            return coding;
+            addFHIRCoding(codeableConcept, conceptReferenceTerm.getCode(), idMapping.getUri(), obsConcept.getName().getName());
         }
-        ConceptCoding defaultCoding = null;
         IdMapping idMapping = idMappingsRepository.findByInternalId(obsConcept.getUuid());
         if(idMapping != null) {
-            defaultCoding = new ConceptCoding();
-            defaultCoding.setCode(idMapping.getExternalId());
-            defaultCoding.setSource(idMapping.getUrl());
+            addFHIRCoding(codeableConcept, idMapping.getExternalId(), idMapping.getUri(), obsConcept.getName().getName());
         }
-        return defaultCoding;
+        return codeableConcept;
     }
 
     private CodeableConcept getDiagnosisSeverity(Concept valueCoded) {

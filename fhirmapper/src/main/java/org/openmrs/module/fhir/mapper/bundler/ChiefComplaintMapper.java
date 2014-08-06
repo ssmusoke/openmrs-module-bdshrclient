@@ -14,7 +14,6 @@ import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.utils.ConceptCoding;
-import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;

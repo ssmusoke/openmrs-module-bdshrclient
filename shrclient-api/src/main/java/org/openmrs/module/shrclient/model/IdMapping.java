@@ -11,17 +11,16 @@ public class IdMapping {
     private String internalId;
     private String externalId;
     private String type;
-    private String url;
+    private String uri;
 
-    public IdMapping(String internalId, String externalId, String type, String url) {
+    public IdMapping(String internalId, String externalId, String type, String uri) {
         Validate.notNull(internalId);
         Validate.notNull(externalId);
         Validate.notNull(type);
-        Validate.notNull(url);
         this.internalId = internalId;
         this.externalId = externalId;
         this.type = type;
-        this.url = url;
+        this.uri = uri;
     }
 
     public String getInternalId() {
@@ -56,11 +55,11 @@ public class IdMapping {
         this.type = type;
     }
 
-    public String getUrl() {
-        return url;
+    public String getUri() {
+        return uri;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setUri(String uri) {
+        this.uri = uri;
     }
 }

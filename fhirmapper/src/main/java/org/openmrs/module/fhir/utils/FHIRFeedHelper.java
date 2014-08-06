@@ -10,11 +10,15 @@ public class FHIRFeedHelper {
 
     public static CodeableConcept getFHIRCodeableConcept(String code, String system, String display) {
         CodeableConcept codeableConcept = new CodeableConcept();
+        addFHIRCoding(codeableConcept, code, system, display);
+        return codeableConcept;
+    }
+
+    public static void addFHIRCoding(CodeableConcept codeableConcept, String code, String system, String display) {
         Coding coding = codeableConcept.addCoding();
         coding.setCodeSimple(code);
         coding.setSystemSimple(system);
         coding.setDisplaySimple(display);
-        return codeableConcept;
     }
 
     public static Composition getComposition(AtomFeed bundle) {

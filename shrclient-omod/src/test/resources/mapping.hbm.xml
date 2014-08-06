@@ -14,7 +14,7 @@
         <property name="internalId" column="internal_id" type="java.lang.String" not-null="true" length="50"/>
         <property name="externalId" column="external_id" type="java.lang.String" not-null="true" length="50"/>
         <property name="type" column="type" type="java.lang.String" not-null="true" length="50"/>
-        <property name="url" column="url" type="java.lang.String" not-null="false" length="150" />
+        <property name="uri" column="uri" type="java.lang.String" not-null="false" length="150" />
     </class>
 
 </hibernate-mapping>
