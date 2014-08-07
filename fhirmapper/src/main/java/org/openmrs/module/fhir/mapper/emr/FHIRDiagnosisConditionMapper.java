@@ -4,12 +4,15 @@ import org.hl7.fhir.instance.model.CodeableConcept;
 import org.hl7.fhir.instance.model.Coding;
 import org.hl7.fhir.instance.model.Condition;
 import org.hl7.fhir.instance.model.Resource;
-import org.hl7.fhir.instance.model.ResourceType;
-import org.openmrs.*;
+import org.openmrs.Concept;
+import org.openmrs.ConceptAnswer;
+import org.openmrs.Encounter;
+import org.openmrs.Obs;
+import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
-import org.openmrs.module.fhir.utils.OMRSHelpers;
+import org.openmrs.module.fhir.utils.OMRSHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,8 +28,10 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
     private final Map<Condition.ConditionStatus, String> diaConditionStatus = new HashMap<Condition.ConditionStatus, String>();
     @Autowired
     private ConceptService conceptService;
+    @Autowired
+    private OMRSHelper omrsHelper;
 
-    private final Map<String,String> diaConditionSeverity = new HashMap<String, String>();
+    private final Map<String, String> diaConditionSeverity = new HashMap<String, String>();
 
     public FHIRDiagnosisConditionMapper() {
         diaConditionSeverity.put("Moderate", MRSProperties.MRS_DIAGNOSIS_SEVERITY_PRIMARY);
@@ -38,13 +43,13 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
 
     @Override
     public boolean handles(Resource resource) {
-       if (resource instanceof Condition) {
-           final List<Coding> resourceCoding = ((Condition) resource).getCategory().getCoding();
-           if (resourceCoding == null || resourceCoding.isEmpty()) {
-               return false;
-           }
-           return resourceCoding.get(0).getCodeSimple().equalsIgnoreCase(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS);
-       }
+        if (resource instanceof Condition) {
+            final List<Coding> resourceCoding = ((Condition) resource).getCategory().getCoding();
+            if (resourceCoding == null || resourceCoding.isEmpty()) {
+                return false;
+            }
+            return resourceCoding.get(0).getCodeSimple().equalsIgnoreCase(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS);
+        }
         return false;
     }
 
@@ -63,7 +68,7 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
         Concept bahmniDiagnosisStatus = conceptService.getConceptByName("Bahmni Diagnosis Status");
         Concept bahmniDiagnosisRevised = conceptService.getConceptByName("Bahmni Diagnosis Revised");
 
-        Concept diagnosisConceptAnswer = identifyDiagnosisConcept(condition);
+        Concept diagnosisConceptAnswer = omrsHelper.findConcept(condition.getCode().getCoding());
         Concept diagnosisSeverityAnswer = identifyDiagnosisSeverity(condition, diagnosisOrder);
         Concept diagnosisCertaintyAnswer = identifyDiagnosisCertainty(condition, diagnosisCertainty);
 
@@ -143,7 +148,7 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
                     }
                 }
 
-                if (severityAnswerConcept==null) {
+                if (severityAnswerConcept == null) {
                     for (ConceptAnswer answer : answers) {
                         if (answer.getAnswerConcept().getName().getName().equals(MRSProperties.MRS_DIAGNOSIS_SEVERITY_PRIMARY)) {
                             severityAnswerConcept = answer.getAnswerConcept();
@@ -153,20 +158,6 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
                 }
                 return severityAnswerConcept;
             }
-        }
-        return null;
-    }
-
-    private Concept identifyDiagnosisConcept(Condition condition) {
-        CodeableConcept codeableConcept = condition.getCode();
-        List<Coding> codeList = codeableConcept.getCoding();
-
-        if ((codeList != null) && !codeList.isEmpty()) {
-            Coding coding = codeList.get(0);
-            String diagnosisCode = coding.getCodeSimple();
-            String systemSimple = coding.getSystemSimple();
-            String diagnosisName = coding.getDisplaySimple();
-            return OMRSHelpers.identifyConceptFromReferenceCodes(diagnosisCode, systemSimple, diagnosisName, conceptService);
         }
         return null;
     }

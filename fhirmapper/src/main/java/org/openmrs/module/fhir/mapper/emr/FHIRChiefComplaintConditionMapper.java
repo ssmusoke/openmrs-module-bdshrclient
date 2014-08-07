@@ -1,6 +1,5 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.model.CodeableConcept;
 import org.hl7.fhir.instance.model.Coding;
 import org.hl7.fhir.instance.model.Condition;
 import org.hl7.fhir.instance.model.DateTime;
@@ -12,7 +11,7 @@ import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
-import org.openmrs.module.fhir.utils.OMRSHelpers;
+import org.openmrs.module.fhir.utils.OMRSHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,10 +21,13 @@ import java.util.Date;
 import java.util.List;
 
 @Component
-public class FHIRChiefComplaintConditionMapper implements FHIRResource{
+public class FHIRChiefComplaintConditionMapper implements FHIRResource {
 
     @Autowired
-    ConceptService conceptService;
+    private ConceptService conceptService;
+    @Autowired
+    private OMRSHelper omrsHelper;
+
     private static final int CONVERTION_PARAMETER_FOR_MINUTES = (60 * 1000);
 
     @Override
@@ -51,8 +53,8 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResource{
 
         Obs chiefComplaintObs = new Obs();
         chiefComplaintObs.setConcept(chiefComplaintConcept);
-        Concept conceptAnswer = identifyComplaintConcept(condition);
-        if(conceptAnswer == null) {
+        Concept conceptAnswer = omrsHelper.findConcept(condition.getCode().getCoding());
+        if (conceptAnswer == null) {
             return;
         }
         chiefComplaintObs.setValueCoded(conceptAnswer);
@@ -86,19 +88,5 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResource{
         }
         long differenceInMinutes = (dateAsserted.getTime() - onsetDate.getTime()) / CONVERTION_PARAMETER_FOR_MINUTES;
         return Double.valueOf(differenceInMinutes);
-    }
-
-    private Concept identifyComplaintConcept(Condition condition) {
-        CodeableConcept codeableConcept = condition.getCode();
-        List<Coding> codeList = codeableConcept.getCoding();
-
-        if ((codeList != null) && !codeList.isEmpty()) {
-            Coding coding = codeList.get(0);
-            String complaintCode = coding.getCodeSimple();
-            String systemSimple = coding.getSystemSimple();
-            String complaintName = coding.getDisplaySimple();
-            return OMRSHelpers.identifyConceptFromReferenceCodes(complaintCode, systemSimple, complaintName, conceptService);
-        }
-        return null;
     }
 }

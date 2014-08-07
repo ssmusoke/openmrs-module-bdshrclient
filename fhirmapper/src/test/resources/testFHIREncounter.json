@@ -96,7 +96,7 @@
                 "code": {
                     "coding": [
                         {
-                            "system": "ICD10-BD",
+                            "system": "www.bdshr-tr.com/concepts/101",
                             "code": "A00.0",
                             "display": "Cholera Vibrio"
                         }

@@ -94,7 +94,6 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         final AtomFeed encounterBundle = loadSampleFHIREncounter().getFeed();
 
         List<Condition> conditions = FHIRFeedHelper.getConditions(encounterBundle);
-        final Encounter encounter = FHIRFeedHelper.getEncounter(encounterBundle);
         Assert.assertEquals(2, conditions.size());
         Assert.assertEquals("HIDA764177", conditions.get(0).getSubject().getReferenceSimple());
 
