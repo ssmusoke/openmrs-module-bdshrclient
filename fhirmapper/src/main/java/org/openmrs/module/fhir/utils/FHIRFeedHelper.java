@@ -2,8 +2,13 @@ package org.openmrs.module.fhir.utils;
 
 
 import org.hl7.fhir.instance.model.*;
+import org.hl7.fhir.instance.model.Encounter;
+import org.openmrs.*;
+import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.model.IdMapping;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class FHIRFeedHelper {
@@ -19,6 +24,24 @@ public class FHIRFeedHelper {
         coding.setCodeSimple(code);
         coding.setSystemSimple(system);
         coding.setDisplaySimple(display);
+    }
+
+    public static CodeableConcept addReferenceCodes(Concept obsConcept, IdMappingsRepository idMappingsRepository) {
+        CodeableConcept codeableConcept = new CodeableConcept();
+        Collection<org.openmrs.ConceptMap> conceptMappings = obsConcept.getConceptMappings();
+        for (org.openmrs.ConceptMap mapping : conceptMappings) {
+            ConceptReferenceTerm conceptReferenceTerm = mapping.getConceptReferenceTerm();
+            final IdMapping idMapping = idMappingsRepository.findByInternalId(conceptReferenceTerm.getUuid());
+            if(idMapping == null) {
+                continue;
+            }
+            addFHIRCoding(codeableConcept, conceptReferenceTerm.getCode(), idMapping.getUri(), obsConcept.getName().getName());
+        }
+        IdMapping idMapping = idMappingsRepository.findByInternalId(obsConcept.getUuid());
+        if(idMapping != null) {
+            addFHIRCoding(codeableConcept, idMapping.getExternalId(), idMapping.getUri(), obsConcept.getName().getName());
+        }
+        return codeableConcept;
     }
 
     public static Composition getComposition(AtomFeed bundle) {

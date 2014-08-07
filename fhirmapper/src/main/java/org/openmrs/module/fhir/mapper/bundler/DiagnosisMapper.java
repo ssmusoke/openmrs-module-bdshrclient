@@ -74,7 +74,7 @@ public class DiagnosisMapper implements EmrResourceHandler {
         for (Obs member : obsMembers) {
             Concept memberConcept = member.getConcept();
             if (isCodedDiagnosisObservation(memberConcept)) {
-                CodeableConcept diagnosisCode = addReferenceCodes(member.getValueCoded());
+                CodeableConcept diagnosisCode = FHIRFeedHelper.addReferenceCodes(member.getValueCoded(), idMappingsRepository);
                 if(CollectionUtils.isEmpty(diagnosisCode.getCoding())) {
                     return null;
                 }
@@ -130,24 +130,6 @@ public class DiagnosisMapper implements EmrResourceHandler {
         } else {
             return new Enumeration<Condition.ConditionStatus>(Condition.ConditionStatus.confirmed);
         }
-    }
-
-    private CodeableConcept addReferenceCodes(Concept obsConcept) {
-        CodeableConcept codeableConcept = new CodeableConcept();
-        Collection<org.openmrs.ConceptMap> conceptMappings = obsConcept.getConceptMappings();
-        for (org.openmrs.ConceptMap mapping : conceptMappings) {
-            ConceptReferenceTerm conceptReferenceTerm = mapping.getConceptReferenceTerm();
-            final IdMapping idMapping = idMappingsRepository.findByInternalId(conceptReferenceTerm.getUuid());
-            if(idMapping == null) {
-                continue;
-            }
-            addFHIRCoding(codeableConcept, conceptReferenceTerm.getCode(), idMapping.getUri(), obsConcept.getName().getName());
-        }
-        IdMapping idMapping = idMappingsRepository.findByInternalId(obsConcept.getUuid());
-        if(idMapping != null) {
-            addFHIRCoding(codeableConcept, idMapping.getExternalId(), idMapping.getUri(), obsConcept.getName().getName());
-        }
-        return codeableConcept;
     }
 
     private CodeableConcept getDiagnosisSeverity(Concept valueCoded) {

@@ -104,7 +104,7 @@ public class IdMappingsRepository {
 
     public IdMapping findByInternalId(String uuid) {
         String query = "select distinct map.external_id, map.type, map.uri from shr_id_mapping map where map.internal_id=?";
-        Connection conn = null;
+        Connection conn;
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         IdMapping result = null;

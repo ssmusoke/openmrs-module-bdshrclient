@@ -1,5 +1,6 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.hl7.fhir.instance.model.CodeableConcept;
 import org.hl7.fhir.instance.model.Coding;
 import org.hl7.fhir.instance.model.Condition;
@@ -9,32 +10,28 @@ import org.hl7.fhir.instance.model.Enumeration;
 import org.hl7.fhir.instance.model.Identifier;
 import org.hl7.fhir.instance.model.ResourceReference;
 import org.joda.time.DateTime;
-import org.openmrs.Concept;
-import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
-import org.openmrs.module.fhir.utils.ConceptCoding;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 @Component
-public class ChiefComplaintMapper implements EmrResourceHandler{
+public class ChiefComplaintMapper implements EmrResourceHandler {
+
     @Autowired
     private IdMappingsRepository idMappingsRepository;
 
     @Override
     public boolean handles(Obs observation) {
-        if(observation.getConcept().getName().getName().equalsIgnoreCase("History and Examination")) {
+        if (observation.getConcept().getName().getName().equalsIgnoreCase("History and Examination")) {
             for (Obs member : observation.getGroupMembers()) {
-                if(member.getConcept().getName().getName().equalsIgnoreCase("Chief Complaint Data")) {
+                if (member.getConcept().getName().getName().equalsIgnoreCase("Chief Complaint Data")) {
                     return true;
                 }
             }
@@ -70,12 +67,15 @@ public class ChiefComplaintMapper implements EmrResourceHandler{
         for (Obs member : obsMembers) {
             final String memberConceptName = member.getConcept().getName().getName();
             if (memberConceptName.equalsIgnoreCase("Chief Complaint")) {
-                condition.setCode(getChiefComplaintCode(member.getValueCoded()));
-            }
-            else if (memberConceptName.equalsIgnoreCase("Chief Complaint Duration")) {
+                final CodeableConcept complaintCode = FHIRFeedHelper.addReferenceCodes(member.getValueCoded(), idMappingsRepository);
+                if (CollectionUtils.isEmpty(complaintCode.getCoding())) {
+                    Coding coding = complaintCode.addCoding();
+                    coding.setDisplaySimple(member.getValueCoded().getName().getName());
+                }
+                condition.setCode(complaintCode);
+            } else if (memberConceptName.equalsIgnoreCase("Chief Complaint Duration")) {
                 condition.setOnset(getOnsetDate(member));
-            }
-            else if(memberConceptName.equalsIgnoreCase("Non-Coded Chief Complaint")) {
+            } else if (memberConceptName.equalsIgnoreCase("Non-Coded Chief Complaint")) {
                 //TODO : Put right Values
                 CodeableConcept nonCodedChiefComplaint = new CodeableConcept();
                 Coding coding = nonCodedChiefComplaint.addCoding();
@@ -117,38 +117,5 @@ public class ChiefComplaintMapper implements EmrResourceHandler{
         CodeableConcept conditionCategory = FHIRFeedHelper.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT,
                 FHIRProperties.FHIR_CONDITION_CATEGORY_URL, "Complaint");
         return conditionCategory;
-    }
-
-
-    private CodeableConcept getChiefComplaintCode(Concept obsConcept) {
-        //TODO to change to reference term code
-        ConceptCoding refCoding = getReferenceCode(obsConcept);
-        if(refCoding == null) {
-            CodeableConcept codeableConcept = new CodeableConcept();
-            Coding coding = codeableConcept.addCoding();
-            coding.setDisplaySimple(obsConcept.getName().getName());
-        }
-        return FHIRFeedHelper.getFHIRCodeableConcept(refCoding.getCode(), refCoding.getSource(), obsConcept.getName().getName());
-    }
-
-    private ConceptCoding getReferenceCode(Concept obsConcept) {
-        Collection<org.openmrs.ConceptMap> conceptMappings = obsConcept.getConceptMappings();
-        for (org.openmrs.ConceptMap mapping : conceptMappings) {
-            //TODO right now returning the first mapping
-            ConceptReferenceTerm conceptReferenceTerm = mapping.getConceptReferenceTerm();
-            //TODO right now returning the first mapping
-            ConceptCoding coding = new ConceptCoding();
-            coding.setCode(conceptReferenceTerm.getCode());
-            coding.setSource(conceptReferenceTerm.getConceptSource().getName());
-            return coding;
-        }
-        ConceptCoding defaultCoding = null;
-        IdMapping idMapping = idMappingsRepository.findByInternalId(obsConcept.getUuid());
-        if(idMapping != null) {
-            defaultCoding = new ConceptCoding();
-            defaultCoding.setCode(obsConcept.getUuid());
-            defaultCoding.setSource(org.openmrs.module.fhir.utils.Constants.TERMINOLOGY_SERVER_CONCEPT_URL + idMapping.getExternalId());
-        }
-        return defaultCoding;
     }
 }
