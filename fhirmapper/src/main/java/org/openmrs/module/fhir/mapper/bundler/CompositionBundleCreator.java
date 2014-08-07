@@ -1,19 +1,10 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import org.apache.log4j.Logger;
-import org.hl7.fhir.instance.model.AtomEntry;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Composition;
-import org.hl7.fhir.instance.model.DateAndTime;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.Enumeration;
-import org.hl7.fhir.instance.model.Identifier;
-import org.hl7.fhir.instance.model.ResourceReference;
+import org.hl7.fhir.instance.model.*;
 import org.openmrs.Obs;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -21,8 +12,9 @@ import java.util.UUID;
 
 @Component
 public class CompositionBundleCreator {
+
     @Autowired
-    EncounterMapper encounterMapper;
+    private EncounterMapper encounterMapper;
 
     @Autowired
     private List<EmrResourceHandler> resourceHandlers;
@@ -37,7 +29,7 @@ public class CompositionBundleCreator {
         atomFeed.setId(UUID.randomUUID().toString());
         final EmrResource encounterResource = new EmrResource("Encounter", fhirEncounter.getIdentifier(), fhirEncounter);
         addResourceSectionToComposition(composition, encounterResource);
-        addAtomEntry(atomFeed, new EmrResource("Composition", Arrays.asList(composition.getIdentifier()) , composition));
+        addAtomEntry(atomFeed, new EmrResource("Composition", Arrays.asList(composition.getIdentifier()), composition));
         addAtomEntry(atomFeed, encounterResource);
 
         final Set<Obs> observations = emrEncounter.getObsAtTopLevel(false);

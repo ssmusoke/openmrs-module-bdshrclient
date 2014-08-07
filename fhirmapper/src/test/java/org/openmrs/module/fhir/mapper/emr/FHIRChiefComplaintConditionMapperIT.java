@@ -1,12 +1,9 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import static org.junit.Assert.assertEquals;
 import org.hl7.fhir.instance.formats.JsonParser;
 import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.Condition;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
@@ -22,6 +19,8 @@ import org.springframework.core.io.Resource;
 
 import java.util.List;
 import java.util.Set;
+
+import static org.junit.Assert.*;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSensitiveTest {
@@ -56,7 +55,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         emrEncounter.setPatient(emrPatient);
         for (Condition condition : conditions) {
             if (fhirChiefComplaintConditionMapper.handles(condition)) {
-                fhirChiefComplaintConditionMapper.map(condition, emrPatient, emrEncounter);
+                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter);
             }
         }
         final Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);

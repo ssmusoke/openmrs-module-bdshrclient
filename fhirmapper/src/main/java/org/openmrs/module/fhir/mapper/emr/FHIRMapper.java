@@ -2,13 +2,10 @@ package org.openmrs.module.fhir.mapper.emr;
 
 import org.hl7.fhir.instance.model.AtomEntry;
 import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Coding;
 import org.hl7.fhir.instance.model.Composition;
-import org.hl7.fhir.instance.model.Condition;
 import org.hl7.fhir.instance.model.Resource;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
-import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,8 +31,8 @@ public class FHIRMapper {
         for (AtomEntry<? extends Resource> atomEntry : feed.getEntryList()) {
             final Resource resource = atomEntry.getResource();
             for (FHIRResource fhirResource : fhirResources) {
-                if(fhirResource.handles(resource)) {
-                    fhirResource.map(resource, emrPatient, newEmrEncounter);
+                if (fhirResource.handles(resource)) {
+                    fhirResource.map(feed, resource, emrPatient, newEmrEncounter);
                 }
             }
         }

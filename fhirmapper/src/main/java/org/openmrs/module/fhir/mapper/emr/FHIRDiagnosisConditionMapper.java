@@ -1,13 +1,8 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.model.CodeableConcept;
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Condition;
-import org.hl7.fhir.instance.model.Resource;
-import org.openmrs.Concept;
-import org.openmrs.ConceptAnswer;
+import org.hl7.fhir.instance.model.*;
+import org.openmrs.*;
 import org.openmrs.Encounter;
-import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
@@ -54,7 +49,7 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
     }
 
     @Override
-    public void map(Resource resource, Patient emrPatient, Encounter newEmrEncounter) {
+    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter) {
         Condition condition = (Condition) resource;
 
         Obs visitDiagnosisObs = new Obs();
