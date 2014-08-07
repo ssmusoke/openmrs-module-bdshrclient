@@ -6,7 +6,6 @@ import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
-import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.Resources;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -19,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang.StringUtils.equalsIgnoreCase;
+
 
 @Component
 public class FHIRVitalsMapper implements FHIRResource {
@@ -32,7 +31,7 @@ public class FHIRVitalsMapper implements FHIRResource {
 
     @Override
     public boolean handles(Resource resource) {
-        return (resource instanceof Observation) && equalsIgnoreCase(((Observation) resource).getName().getTextSimple(), FHIRProperties.FHIR_CONDITION_VITAL);
+        return (resource instanceof Observation);
     }
 
     @Override
@@ -48,6 +47,7 @@ public class FHIRVitalsMapper implements FHIRResource {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
+        newEmrEncounter.addObs(result);
     }
 
     private List<Obs> mapRelatedObservations(AtomFeed feed, Observation vitals) throws ParseException {
