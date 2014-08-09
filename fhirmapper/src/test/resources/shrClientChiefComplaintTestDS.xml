@@ -68,8 +68,8 @@
     <concept_set concept_set_id="3" concept_id="408" concept_set="398" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
 
     <concept concept_id="301" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1" date_created="2004-08-12 00:00:00.0" version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="baef67ac-b24e-4b04-ac83-c3b994132b85"/>
-    <concept_name concept_id="301" concept_name_id="3011" name="Right arm pain" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="baef67ac-b24e-4b04-ac83-c3b994132b85"/>
-    <concept_reference_term concept_reference_term_id="1" concept_source_id="1" code="M79.601" creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_term>
+    <concept_name concept_id="301" concept_name_id="3011" name="BackPain418965" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="baef67ac-b24e-4b04-ac83-c3b994132b85"/>
+    <concept_reference_term concept_reference_term_id="1" concept_source_id="1" code="M54.418965" creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_term>
     <concept_reference_map concept_map_id="1" concept_id="301" concept_reference_term_id="1" concept_map_type_id="1" creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_map>
     <concept_answer concept_answer_id="301" concept_id="402" answer_concept="301" creator="1" date_created="2004-08-12 00:00:00.0" uuid="7a6c8a8a-aac9-4991-b1be-d2b0da8282dd"/>
 
@@ -82,4 +82,5 @@
     <obs obs_id="4" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eeea54cb-2a25-471a-9cd7-1434a5aa337a" creator="1" obs_group_id="2" value_numeric="120" concept_id="408" voided="0" />
 
+    <shr_id_mapping id="1" internal_id="baef67ac-b24e-4b04-ac83-c3b994132b85" external_id="5018b827-a67c-421f-a705-e5efe0e6a972" type="concept" uri="http://172.18.46.53:9080/openmrs/ws/rest/v1/tr/referenceterms/5018b827-a67c-421f-a705-e5efe0e6a972"></shr_id_mapping>
 </dataset>

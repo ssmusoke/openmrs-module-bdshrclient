@@ -16,6 +16,7 @@ public class MRSProperties {
     public static final String MRS_CONCEPT_NAME_HISTORY_AND_EXAMINATION = "History and Examination";
     public static final String MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA = "Chief Complaint Data";
     public static final String MRS_CONCEPT_NAME_CHIEF_COMPLAINT = "Chief Complaint";
+    public static final String MRS_CONCEPT_NAME_NON_CODED_CHIEF_COMPLAINT = "Non-Coded Chief Complaint";
     public static final String MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DURATION = "Chief Complaint Duration";
 
     public static final String MRS_CONCEPT_NAME_VITALS = "Vitals";

@@ -73,6 +73,9 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
                 final Concept valueCoded = groupMember.getValueCoded();
                 assertNotNull(valueCoded);
                 assertEquals(valueCoded, conceptService.getConceptByName("Pain in left leg"));
+            } else if (groupMember.getConcept().getName().getName().equalsIgnoreCase("Non-Coded Chief Complaint")) {
+                String valueText = groupMember.getValueText();
+                assertNotNull(valueText);
             } else if (groupMember.getConcept().getName().getName().equalsIgnoreCase("Chief Complaint Duration")) {
                 assertEquals(120, groupMember.getValueNumeric(), 0);
             }

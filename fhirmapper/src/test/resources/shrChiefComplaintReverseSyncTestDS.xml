@@ -64,9 +64,17 @@
     <concept_set concept_set_id="503" concept_id="503" concept_set="501" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
 
     <concept concept_id="504" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1" date_created="2004-08-12 00:00:00.0" version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="baef67ac-b24e-4b04-ac83-d3b994a3aba5"/>
-    <concept_name concept_id="504" concept_name_id="504" name="Pain in left leg" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="baef67ac-ba4e-4d04-ac83-caba9a1d2b85"/>
+    <concept_name concept_id="504" concept_name_id="504" name="BackPain418965" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="baef67ac-ba4e-4d04-ac83-caba9a1d2b85"/>
     <concept_answer concept_answer_id="504" concept_id="502" answer_concept="504" creator="1" date_created="2004-08-12 00:00:00.0" uuid="7a6a8a8h-aaca-4a91-babe-d2b0dadd82dd"/>
-    <concept_reference_term concept_reference_term_id="9" concept_source_id="1" code="M79.605" creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_term>
+    <concept_reference_term concept_reference_term_id="9" concept_source_id="1" code="M54.418965" creator="1" date_created="2004-08-12 00:00:00.0" uuid="baef67ac-b24e-4b04-ac83-c3b994132b85"></concept_reference_term>
     <concept_reference_map concept_map_id="9" concept_id="504" concept_reference_term_id="9" concept_map_type_id="1" creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_map>
+    <concept_reference_term concept_reference_term_id="10" concept_source_id="1" code="M54.418965" creator="1" date_created="2004-08-12 00:00:00.0" uuid="baef67ac-aaaa-4b04-ac83-c3b994132b85"></concept_reference_term>
+    <concept_reference_map concept_map_id="10" concept_id="504" concept_reference_term_id="10" concept_map_type_id="1" creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_map>
 
+    <concept concept_id="505" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1" date_created="2004-08-12 00:00:00.0" version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="74a4c3d3-qdd0-4l7d-8ed3-3a9aeab61f5b"/>
+    <concept_name concept_id="505" concept_name_id="505" name="Non-Coded Chief Complaint" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="04w4w3d3-a6d0-40dd-8ed3-3895edb61f5b"/>
+    <concept_set concept_set_id="505" concept_id="505" concept_set="501" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="2"></concept_set>
+
+    <shr_id_mapping id="1" internal_id="baef67ac-b24e-4b04-ac83-c3b994132b85" external_id="5018b827-a67c-421f-a705-e5efe0e6a972" type="concept_reference_term" uri="http://172.18.46.53:9080/openmrs/ws/rest/v1/tr/referenceterms/5018b827-a67c-421f-a705-e5efe0e6a972"></shr_id_mapping>
+    <shr_id_mapping id="1" internal_id="baef67ac-aaaa-4b04-ac83-c3b994132b85" external_id="5018b827-a67c-421f-a705-e5efe0e6a972" type="concept_reference_term" uri="http://172.18.46.53:9080/openmrs/ws/rest/v1/tr/referenceterms/5018b827-a67c-421f-a705-e5efe0e6a972"></shr_id_mapping>
 </dataset>

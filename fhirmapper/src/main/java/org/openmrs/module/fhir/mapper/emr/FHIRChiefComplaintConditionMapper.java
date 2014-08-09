@@ -1,11 +1,13 @@
 package org.openmrs.module.fhir.mapper.emr;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.hl7.fhir.instance.model.*;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.utils.OMRSHelper;
@@ -44,17 +46,27 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResource {
         Condition condition = (Condition) resource;
 
         Concept historyAndExaminationConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_HISTORY_AND_EXAMINATION);
-        final Concept chiefComplaintDataConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA);
-        final Concept chiefComplaintConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT);
-        final Concept chiefComplaintDurationConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DURATION);
+        Concept chiefComplaintDataConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA);
+        Concept chiefComplaintDurationConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DURATION);
 
         Obs chiefComplaintObs = new Obs();
-        chiefComplaintObs.setConcept(chiefComplaintConcept);
-        Concept conceptAnswer = omrsHelper.findConcept(condition.getCode().getCoding());
+        List<Coding> conditionCoding = condition.getCode().getCoding();
+        Concept conceptAnswer = omrsHelper.findConcept(conditionCoding);
         if (conceptAnswer == null) {
-            return;
+            if(CollectionUtils.isNotEmpty(conditionCoding)) {
+                String displayName = conditionCoding.get(0).getDisplaySimple();
+                Concept nonCodedChiefComplaintConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_NON_CODED_CHIEF_COMPLAINT);
+                chiefComplaintObs.setConcept(nonCodedChiefComplaintConcept);
+                chiefComplaintObs.setValueText(displayName);
+            }
+            else {
+                return;
+            }
+        } else {
+            Concept chiefComplaintConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT);
+            chiefComplaintObs.setConcept(chiefComplaintConcept);
+            chiefComplaintObs.setValueCoded(conceptAnswer);
         }
-        chiefComplaintObs.setValueCoded(conceptAnswer);
 
         Obs chiefComplaintDurationObs = new Obs();
         chiefComplaintDurationObs.setConcept(chiefComplaintDurationConcept);

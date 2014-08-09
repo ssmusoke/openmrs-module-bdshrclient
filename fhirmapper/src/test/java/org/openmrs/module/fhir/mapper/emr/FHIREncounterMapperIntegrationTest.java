@@ -102,7 +102,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         final org.openmrs.Encounter emrEncounter = fhirMapper.map(emrPatient, encounterBundle);
 
         final Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);
-        Assert.assertEquals(1, visitObs.size());
+        Assert.assertEquals(2, visitObs.size());
         Obs firstObs = visitObs.iterator().next();
         Assert.assertNotNull(firstObs.getGroupMembers());
         Assert.assertNotNull(firstObs.getPerson());
