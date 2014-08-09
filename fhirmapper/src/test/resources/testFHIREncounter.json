@@ -148,7 +148,7 @@
                 "code": {
                     "coding": [
                         {
-                            "system": "ICD10-BD",
+                            "system": "www.bdshr-tr.com/concepts/101",
                             "code": "M79.605",
                             "display": "Pain in left leg"
                         }

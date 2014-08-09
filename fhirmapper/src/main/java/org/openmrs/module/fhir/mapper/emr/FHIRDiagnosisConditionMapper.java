@@ -1,8 +1,13 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.model.*;
-import org.openmrs.*;
+import org.hl7.fhir.instance.model.AtomFeed;
+import org.hl7.fhir.instance.model.Coding;
+import org.hl7.fhir.instance.model.Condition;
+import org.hl7.fhir.instance.model.Resource;
+import org.openmrs.Concept;
+import org.openmrs.ConceptAnswer;
 import org.openmrs.Encounter;
+import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
@@ -26,12 +31,8 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
     @Autowired
     private OMRSHelper omrsHelper;
 
-    private final Map<String, String> diaConditionSeverity = new HashMap<String, String>();
 
     public FHIRDiagnosisConditionMapper() {
-        diaConditionSeverity.put("Moderate", MRSProperties.MRS_DIAGNOSIS_SEVERITY_PRIMARY);
-        diaConditionSeverity.put("Severe", MRSProperties.MRS_DIAGNOSIS_SEVERITY_SECONDARY);
-
         diaConditionStatus.put(Condition.ConditionStatus.provisional, MRSProperties.MRS_DIAGNOSIS_STATUS_PRESUMED);
         diaConditionStatus.put(Condition.ConditionStatus.confirmed, MRSProperties.MRS_DIAGNOSIS_STATUS_CONFIRMED);
     }
@@ -64,7 +65,7 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
         Concept bahmniDiagnosisRevised = conceptService.getConceptByName("Bahmni Diagnosis Revised");
 
         Concept diagnosisConceptAnswer = omrsHelper.findConcept(condition.getCode().getCoding());
-        Concept diagnosisSeverityAnswer = identifyDiagnosisSeverity(condition, diagnosisOrder);
+        Concept diagnosisSeverityAnswer = identifyDiagnosisSeverity(diagnosisOrder);
         Concept diagnosisCertaintyAnswer = identifyDiagnosisCertainty(condition, diagnosisCertainty);
 
         if (diagnosisConceptAnswer == null) {
@@ -127,33 +128,15 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
 
     }
 
-    private Concept identifyDiagnosisSeverity(Condition condition, Concept diagnosisOrder) {
-        CodeableConcept severity = condition.getSeverity();
-        if (severity != null) {
-            List<Coding> severityCodeList = severity.getCoding();
-            if ((severityCodeList != null) && !severityCodeList.isEmpty()) {
-                String severityText = severityCodeList.get(0).getDisplaySimple();
-                String severityAnswer = diaConditionSeverity.get(severityText);
-                Concept severityAnswerConcept = null;
-                Collection<ConceptAnswer> answers = diagnosisOrder.getAnswers();
-                for (ConceptAnswer answer : answers) {
-                    if (answer.getAnswerConcept().getName().getName().equals(severityAnswer)) {
-                        severityAnswerConcept = answer.getAnswerConcept();
-                        break;
-                    }
-                }
-
-                if (severityAnswerConcept == null) {
-                    for (ConceptAnswer answer : answers) {
-                        if (answer.getAnswerConcept().getName().getName().equals(MRSProperties.MRS_DIAGNOSIS_SEVERITY_PRIMARY)) {
-                            severityAnswerConcept = answer.getAnswerConcept();
-                            break;
-                        }
-                    }
-                }
-                return severityAnswerConcept;
+    private Concept identifyDiagnosisSeverity(Concept diagnosisOrder) {
+        Concept severityAnswerConcept = null;
+        Collection<ConceptAnswer> answers = diagnosisOrder.getAnswers();
+        for (ConceptAnswer answer : answers) {
+            if (answer.getAnswerConcept().getName().getName().equals(MRSProperties.MRS_DIAGNOSIS_SEVERITY_PRIMARY)) {
+                severityAnswerConcept = answer.getAnswerConcept();
+                break;
             }
         }
-        return null;
+        return severityAnswerConcept;
     }
 }

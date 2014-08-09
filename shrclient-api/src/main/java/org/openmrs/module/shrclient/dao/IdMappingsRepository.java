@@ -19,7 +19,7 @@ public class IdMappingsRepository {
     public void saveMapping(IdMapping idMapping) {
         if (!mappingExists(idMapping)) {
             String query = "insert into shr_id_mapping (internal_id, external_id, type, uri) values (?,?,?,?)";
-            Connection conn = null;
+            Connection conn;
             PreparedStatement statement = null;
             try {
                 conn = DatabaseUpdater.getConnection();
@@ -74,7 +74,7 @@ public class IdMappingsRepository {
 
     public IdMapping findByExternalId(String uuid) {
         String query = "select distinct map.internal_id, map.type, map.uri from shr_id_mapping map where map.external_id=?";
-        Connection conn = null;
+        Connection conn;
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         IdMapping result = null;

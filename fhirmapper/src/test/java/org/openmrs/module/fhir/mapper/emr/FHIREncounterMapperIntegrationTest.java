@@ -39,9 +39,6 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
     @Autowired
     private PatientService patientService;
 
-//    @Autowired
-//    MciPatientService mciPatientService;
-
     @Autowired
     EncounterService encounterService;
 

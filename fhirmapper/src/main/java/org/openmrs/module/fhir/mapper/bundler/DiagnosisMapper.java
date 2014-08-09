@@ -35,17 +35,12 @@ public class DiagnosisMapper implements EmrResourceHandler {
     private IdMappingsRepository idMappingsRepository;
 
     private final Map<String,Condition.ConditionStatus> diaConditionStatus = new HashMap<String, Condition.ConditionStatus>();
-    private final Map<String,String> diaConditionSeverity = new HashMap<String, String>();
     private final FHIRProperties fhirProperties;
 
     public DiagnosisMapper() {
         fhirProperties = new FHIRProperties();
         diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_PRESUMED, Condition.ConditionStatus.provisional);
         diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_CONFIRMED, Condition.ConditionStatus.confirmed);
-
-        diaConditionSeverity.put(MRSProperties.MRS_DIAGNOSIS_SEVERITY_PRIMARY, FHIRProperties.FHIR_SEVERITY_MODERATE);
-        diaConditionSeverity.put(MRSProperties.MRS_DIAGNOSIS_SEVERITY_SECONDARY, FHIRProperties.FHIR_SEVERITY_SEVERE);
-
     }
 
     @Override
@@ -83,10 +78,6 @@ public class DiagnosisMapper implements EmrResourceHandler {
             else if (isDiagnosisCertaintyObservation(memberConcept)) {
                 condition.setStatus(getConditionStatus(member));
             }
-            else if (isDiagnosisOrderObservation(memberConcept)) {
-                //TODO : remove sevirity
-                condition.setSeverity(getDiagnosisSeverity(member.getValueCoded()));
-            }
         }
 
         Date onsetDate = new Date();
@@ -97,11 +88,6 @@ public class DiagnosisMapper implements EmrResourceHandler {
         identifier.setValueSimple(obs.getUuid());
 
         return new EmrResource("Diagnosis", condition.getIdentifier(), condition);
-    }
-
-    private boolean isDiagnosisOrderObservation(Concept concept) {
-        String conceptName = concept.getName().getName();
-        return conceptName.equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_DIAGNOSIS_ORDER);
     }
 
     private boolean isDiagnosisCertaintyObservation(Concept concept) {
@@ -130,14 +116,6 @@ public class DiagnosisMapper implements EmrResourceHandler {
         } else {
             return new Enumeration<Condition.ConditionStatus>(Condition.ConditionStatus.confirmed);
         }
-    }
-
-    private CodeableConcept getDiagnosisSeverity(Concept valueCoded) {
-        String severity = diaConditionSeverity.get(valueCoded.getName().getName());
-        if(severity == null) {
-            severity = FHIRProperties.FHIR_SEVERITY_MODERATE;
-        }
-        return FHIRFeedHelper.getFHIRCodeableConcept(fhirProperties.getSeverityCode(severity), severity, FHIRProperties.FHIR_CONDITION_SEVERITY_URL);
     }
 
     private CodeableConcept getDiagnosisCategory() {
