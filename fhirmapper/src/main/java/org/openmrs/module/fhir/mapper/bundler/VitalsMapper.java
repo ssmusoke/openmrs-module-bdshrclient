@@ -3,7 +3,6 @@ package org.openmrs.module.fhir.mapper.bundler;
 import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Observation;
 import org.openmrs.Obs;
-import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -39,13 +38,13 @@ public class VitalsMapper implements EmrResourceHandler {
         if (null != obs) {
             List<Observation> observations = observationMapper.map(FHIREncounter, obs);
             for (Observation observation : observations) {
-                result.add(buildResource(observation));
+                result.add(buildResource(observation, obs));
             }
         }
         return result;
     }
 
-    private EmrResource buildResource(Observation observation) {
-        return new EmrResource(FHIRProperties.FHIR_CONDITION_VITAL, asList(observation.getIdentifier()), observation);
+    private EmrResource buildResource(Observation observation, Obs obs) {
+        return new EmrResource(obs.getConcept().getName().getName(), asList(observation.getIdentifier()), observation);
     }
 }

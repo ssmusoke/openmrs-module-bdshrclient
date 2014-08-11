@@ -38,16 +38,19 @@ public class FHIRVitalsMapper implements FHIRResource {
     public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter) {
         Observation vitals = (Observation) resource;
         Obs result = new Obs();
-
-        result = mapConcept(result);
+        boolean foundVitalsConcept = mapConcept(result);
         try {
             for (Obs obs : mapRelatedObservations(feed, vitals)) {
-                result.addGroupMember(obs);
+                if (foundVitalsConcept)
+                    result.addGroupMember(obs);
+                else
+                    newEmrEncounter.addObs(obs);
             }
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
-        newEmrEncounter.addObs(result);
+        if (foundVitalsConcept)
+            newEmrEncounter.addObs(result);
     }
 
     private List<Obs> mapRelatedObservations(AtomFeed feed, Observation vitals) throws ParseException {
@@ -63,8 +66,8 @@ public class FHIRVitalsMapper implements FHIRResource {
 
     private Obs mapRelatedObservation(AtomFeed feed, Observation relatedObs) throws ParseException {
         Obs result = new Obs();
-        mapValue(relatedObs, result);
         mapConcept(relatedObs, result);
+        mapValue(relatedObs, result);
         if (isNotEmpty(relatedObs.getRelated())) {
             mapRelatedObservations(feed, relatedObs);
         }
@@ -94,9 +97,12 @@ public class FHIRVitalsMapper implements FHIRResource {
         }
     }
 
-    private Obs mapConcept(Obs result) {
+    private boolean mapConcept(Obs result) {
         Concept vitalsConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_VITALS);
-        result.setConcept(vitalsConcept);
-        return result;
+        if (null != vitalsConcept) {
+            result.setConcept(vitalsConcept);
+            return true;
+        }
+        return false;
     }
 }

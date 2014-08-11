@@ -73,7 +73,8 @@ public class ObservationMapper {
         } else {
             CodeableConcept result = new CodeableConcept();
             Coding coding = result.addCoding();
-            coding.setSystemSimple("tr");
+            coding.setSystemSimple(mapping.getUri());
+            coding.setDisplaySimple(observation.getConcept().getName().getName());
             coding.setCodeSimple(mapping.getExternalId());
             return result;
         }
