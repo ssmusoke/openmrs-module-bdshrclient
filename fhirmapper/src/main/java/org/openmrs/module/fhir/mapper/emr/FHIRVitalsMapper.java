@@ -78,6 +78,10 @@ public class FHIRVitalsMapper implements FHIRResource {
                 result.setValueAsString(((String_) value).getValue());
             } else if (value instanceof Decimal) {
                 result.setValueNumeric(((Decimal) value).getValue().doubleValue());
+            } else if (value instanceof CodeableConcept) {
+                List<Coding> codings = ((CodeableConcept) value).getCoding();
+                /* TODO: The last element of codings is the concept. Make this more explicit*/
+                result.setValueCoded(conceptService.getConceptByName(codings.get(codings.size() - 1).getDisplaySimple()));
             }
         }
     }

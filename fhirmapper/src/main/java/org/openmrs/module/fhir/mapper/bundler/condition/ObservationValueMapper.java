@@ -35,9 +35,9 @@ public class ObservationValueMapper {
             @Override
             public Type readValue(Obs obs, IdMappingsRepository idMappingsRepository) {
                 if (null != obs.getValueText()) {
-                    String_ decimal = new String_();
-                    decimal.setValue(obs.getValueText());
-                    return decimal;
+                    String_ text = new String_();
+                    text.setValue(obs.getValueText());
+                    return text;
                 }
                 return null;
             }
@@ -53,6 +53,7 @@ public class ObservationValueMapper {
                         Coding coding = concept.addCoding();
                         coding.setDisplaySimple(valueCoded.getName().getName());
                     }
+                    return concept;
                 }
                 return null;
             }
