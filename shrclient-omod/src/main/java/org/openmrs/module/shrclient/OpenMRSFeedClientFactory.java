@@ -63,7 +63,7 @@ public class OpenMRSFeedClientFactory {
 
     private AtomFeedProperties getFeedProperties() {
         AtomFeedProperties props = new AtomFeedProperties();
-        props.setMaxFailedEvents(20);
+        props.setMaxFailedEvents(100);
         return props;
     }
 
