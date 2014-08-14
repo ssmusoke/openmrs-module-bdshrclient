@@ -2,10 +2,6 @@ package org.openmrs.module.shrclient.handlers;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.openmrs.module.shrclient.mapper.PatientMapper;
-import org.openmrs.module.fhir.utils.Constants;
-import org.openmrs.module.shrclient.model.Patient;
-import org.openmrs.module.shrclient.util.RestClient;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.PersonAttribute;
@@ -14,6 +10,10 @@ import org.openmrs.User;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.UserService;
+import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.shrclient.mapper.PatientMapper;
+import org.openmrs.module.shrclient.model.Patient;
+import org.openmrs.module.shrclient.util.RestClient;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

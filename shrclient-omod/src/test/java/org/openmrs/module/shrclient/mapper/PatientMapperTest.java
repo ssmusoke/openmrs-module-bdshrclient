@@ -55,8 +55,9 @@ public class PatientMapperTest {
         final String district = "some-district";
         final String upazillaId = "102030";
         final String upazilla = "some-upazilla";
-        final String unionId = "10203040";
-        final String union = "some-union";
+        final String cityCorpId = "10203040";
+        final String wardId = "1020304050";
+        final String ward = "some-ward";
 
         Person person = new Person();
         PersonName personName = new PersonName(givenName, middleName, familyName);
@@ -69,7 +70,8 @@ public class PatientMapperTest {
         address.setStateProvince(division);
         address.setCountyDistrict(district);
         address.setAddress3(upazilla);
-        address.setCityVillage(union);
+        address.setAddress2(cityCorpId);
+        address.setCityVillage(ward);
         person.addAddress(address);
         org.openmrs.Patient openMrsPatient = new org.openmrs.Patient(person);
 
@@ -79,14 +81,14 @@ public class PatientMapperTest {
         List<AddressHierarchyEntry> divisionEntries = createAddressHierarchyEntries(divisionId);
         List<AddressHierarchyEntry> districtEntries = createAddressHierarchyEntries(districtId);
         List<AddressHierarchyEntry> upazillaEntries = createAddressHierarchyEntries(upazillaId);
-        List<AddressHierarchyEntry> unionEntries = createAddressHierarchyEntries(unionId);
+        List<AddressHierarchyEntry> wardEntries = createAddressHierarchyEntries(wardId);
 
 
         when(addressHierarchyService.getAddressHierarchyLevels()).thenReturn(levels);
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(0), division)).thenReturn(divisionEntries);
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(1), district)).thenReturn(districtEntries);
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(2), upazilla)).thenReturn(upazillaEntries);
-        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), union)).thenReturn(unionEntries);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), ward)).thenReturn(wardEntries);
 
         Patient patient = patientMapper.map(openMrsPatient);
 
@@ -104,10 +106,11 @@ public class PatientMapperTest {
 
         Address a = new Address();
         a.setAddressLine(addressLine);
-        a.setDivisionId(divisionId);
-        a.setDistrictId(districtId);
-        a.setUpazillaId(upazillaId);
-        a.setUnionId(unionId);
+        a.setDivisionId("10");
+        a.setDistrictId("20");
+        a.setUpazillaId("30");
+        a.setCityCorporationId("40");
+        a.setWardId("50");
         p.setAddress(a);
 
         assertEquals(p, patient);
