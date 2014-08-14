@@ -10,7 +10,13 @@ import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
-import org.openmrs.module.fhir.mapper.MRSProperties;
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_BORN_ON;
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_FAMILY_HISTORY;
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_ONSET_AGE;
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_PERSON;
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION;
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS;
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_NOTES;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +40,7 @@ public class FHIRFamilyHistoryMapper implements FHIRResource {
     public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter) {
         FamilyHistory familyHistory = (FamilyHistory) resource;
         Obs familyHistoryObs = new Obs();
-        familyHistoryObs.setConcept(conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_FAMILY_HISTORY));
+        familyHistoryObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_FAMILY_HISTORY));
         mapRelationships(familyHistoryObs, familyHistory.getRelation());
         newEmrEncounter.addObs(familyHistoryObs);
     }
@@ -42,7 +48,7 @@ public class FHIRFamilyHistoryMapper implements FHIRResource {
     private void mapRelationships(Obs familyHistoryObs, List<FamilyHistory.FamilyHistoryRelationComponent> relations) {
         for (FamilyHistory.FamilyHistoryRelationComponent relation : relations) {
             Obs personObs = new Obs();
-            personObs.setConcept(conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_PERSON));
+            personObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_PERSON));
             mapRelation(personObs, relation);
             familyHistoryObs.addGroupMember(personObs);
         }
@@ -58,7 +64,7 @@ public class FHIRFamilyHistoryMapper implements FHIRResource {
 
     private Obs mapRelationCondition(FamilyHistory.FamilyHistoryRelationConditionComponent component) {
         Obs result = new Obs();
-        result.setConcept(conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION));
+        result.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION));
         mapOnsetDate(result, (Age) component.getOnset());
         mapNotes(result, component);
         mapCondition(component, result);
@@ -68,14 +74,14 @@ public class FHIRFamilyHistoryMapper implements FHIRResource {
     private void mapCondition(FamilyHistory.FamilyHistoryRelationConditionComponent component, Obs result) {
         Obs value = new Obs();
         Concept answerConcept = conceptService.getConceptByUuid(idMappingsRepository.findByExternalId(component.getType().getCoding().get(0).getCodeSimple()).getInternalId());
-        value.setConcept(conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS));
+        value.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS));
         value.setValueCoded(answerConcept);
         result.addGroupMember(value);
     }
 
     private void mapNotes(Obs result, FamilyHistory.FamilyHistoryRelationConditionComponent component) {
         Obs notes = new Obs();
-        Concept onsetDateConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_NOTES);
+        Concept onsetDateConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_RELATIONSHIP_NOTES);
         notes.setConcept(onsetDateConcept);
         notes.setValueText(component.getNoteSimple());
         result.addGroupMember(notes);
@@ -83,7 +89,7 @@ public class FHIRFamilyHistoryMapper implements FHIRResource {
 
     private void mapOnsetDate(Obs result, Age onset) {
         Obs ageValue = new Obs();
-        Concept onsetDateConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_ONSET_AGE);
+        Concept onsetDateConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_ONSET_AGE);
         ageValue.setConcept(onsetDateConcept);
         ageValue.setValueNumeric(onset.getValue().getValue().doubleValue());
         result.addGroupMember(ageValue);
@@ -101,7 +107,7 @@ public class FHIRFamilyHistoryMapper implements FHIRResource {
 
     private Obs setBornOnObs(FamilyHistory.FamilyHistoryRelationComponent relation) {
         Obs bornOnObs = new Obs();
-        Concept bornOnConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_BORN_ON);
+        Concept bornOnConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_BORN_ON);
         bornOnObs.setValueDate(((org.hl7.fhir.instance.model.Date) relation.getBorn()).getValue().toCalendar().getTime());
         bornOnObs.setConcept(bornOnConcept);
         return bornOnObs;

@@ -11,6 +11,8 @@ import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.FamilyHistory;
 import org.openmrs.Concept;
 import org.openmrs.Obs;
+import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_UNIT_FOR_YEARS;
+import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_URL;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_BORN_ON;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_FAMILY_HISTORY;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_ONSET_AGE;
@@ -77,6 +79,8 @@ public class FamilyHistoryMapper implements EmrResourceHandler {
                 Decimal decimal = new Decimal();
                 decimal.setValue(new BigDecimal(member.getValueNumeric()));
                 age.setValue(decimal);
+                age.setUnitsSimple(UCUM_UNIT_FOR_YEARS);
+                age.setSystemSimple(UCUM_URL);
                 conditionComponent.setOnset(age);
             } else if (MRS_CONCEPT_NAME_RELATIONSHIP_NOTES.equalsIgnoreCase(member.getConcept().getName().getName())) {
                 conditionComponent.setNoteSimple(member.getValueText());
