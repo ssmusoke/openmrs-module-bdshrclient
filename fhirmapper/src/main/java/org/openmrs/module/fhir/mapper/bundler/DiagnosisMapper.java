@@ -87,6 +87,9 @@ public class DiagnosisMapper implements EmrResourceHandler {
         Identifier identifier = condition.addIdentifier();
         identifier.setValueSimple(obs.getUuid());
 
+        if (CollectionUtils.isEmpty(condition.getCode().getCoding())) {
+            return null;
+        }
         return new EmrResource("Diagnosis", condition.getIdentifier(), condition);
     }
 
