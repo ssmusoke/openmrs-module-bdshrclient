@@ -1,16 +1,18 @@
 package org.openmrs.module.shrclient.mapper;
 
-import org.openmrs.module.shrclient.model.Address;
-import org.openmrs.module.shrclient.model.Patient;
-import org.openmrs.module.shrclient.service.BbsCodeService;
-import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.PersonAddress;
 import org.openmrs.PersonAttribute;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
+import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.shrclient.model.Address;
+import org.openmrs.module.shrclient.model.Patient;
+import org.openmrs.module.shrclient.service.BbsCodeService;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
+
+import static org.apache.commons.lang3.StringUtils.substring;
 
 public class PatientMapper {
 
@@ -75,14 +77,19 @@ public class PatientMapper {
         String division = openMrsPersonAddress.getStateProvince();
         String district = openMrsPersonAddress.getCountyDistrict();
         String upazilla = openMrsPersonAddress.getAddress3();
-        String union = openMrsPersonAddress.getCityVillage();
+        String cityCorporationId = openMrsPersonAddress.getAddress2();
+        String ward = openMrsPersonAddress.getCityVillage();
 
         List<AddressHierarchyLevel> levels = addressHierarchyService.getAddressHierarchyLevels();
         String divisionId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(0), division).get(0).getUserGeneratedId();
         String districtId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(1), district).get(0).getUserGeneratedId();
         String upazillaId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(2), upazilla).get(0).getUserGeneratedId();
-        String unionId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), union).get(0).getUserGeneratedId();
+        String wardId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), ward).get(0).getUserGeneratedId();
 
-        return new Address(addressLine, divisionId, districtId, upazillaId, unionId);
+        return new Address(addressLine, getId(divisionId), getId(districtId), getId(upazillaId), getId(cityCorporationId), getId(wardId));
+    }
+
+    private String getId(String s) {
+        return substring(s, s.length() - 2);
     }
 }

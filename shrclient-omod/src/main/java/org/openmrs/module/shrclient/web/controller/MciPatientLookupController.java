@@ -94,7 +94,7 @@ public class MciPatientLookupController {
         addressModel.put("division", getAddressEntryText(address.getDivisionId()));
         addressModel.put("district", getAddressEntryText(address.getDistrictId()));
         addressModel.put("upazilla", getAddressEntryText(address.getUpazillaId()));
-        addressModel.put("union", getAddressEntryText(address.getUnionId()));
+        addressModel.put("union", getAddressEntryText(address.getWardId()));
 
         patientModel.put("address", addressModel);
         return patientModel;

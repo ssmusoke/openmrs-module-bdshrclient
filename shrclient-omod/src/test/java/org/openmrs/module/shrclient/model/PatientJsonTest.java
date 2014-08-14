@@ -20,7 +20,8 @@ public class PatientJsonTest {
         address.setDivisionId("10");
         address.setDistrictId("1020");
         address.setUpazillaId("102030");
-        address.setUnionId("10203040");
+        address.setCityCorporationId("10203040");
+        address.setWardId("1020304050");
         patient.setAddress(address);
     }
 
@@ -29,7 +30,7 @@ public class PatientJsonTest {
         patient.setMiddleName("");
         String expected = "{\"first_name\":\"Scott\",\"last_name\":\"Tiger\",\"date_of_birth\":null,\"gender\":\"1\"" +
                 ",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"1020\"" +
-                ",\"upazilla_id\":\"102030\",\"union_id\":\"10203040\"}}";
+                ",\"upazilla_id\":\"102030\",\"city_corporation\":\"10203040\",\"ward\":\"1020304050\"}}";
         String actual = new ObjectMapper().writeValueAsString(patient);
         assertEquals(expected, actual);
     }
@@ -40,7 +41,7 @@ public class PatientJsonTest {
         patient.setMiddleName(null);
         String expected = "{\"nid\":\"nid-100\",\"first_name\":\"Scott\",\"last_name\":\"Tiger\",\"date_of_birth\":null," +
                 "\"gender\":\"1\",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"1020\"," +
-                "\"upazilla_id\":\"102030\",\"union_id\":\"10203040\"}}";
+                "\"upazilla_id\":\"102030\",\"city_corporation\":\"10203040\",\"ward\":\"1020304050\"}}";
         String actual = new ObjectMapper().writeValueAsString(patient);
         assertEquals(expected, actual);
     }

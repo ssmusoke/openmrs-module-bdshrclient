@@ -241,7 +241,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         if (upazilla != null) {
             emrPatientAddress.setAddress3(upazilla.getName());
         }
-        AddressHierarchyEntry union = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.getUnionId());
+        AddressHierarchyEntry union = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.getWardId());
         if (union != null) {
             emrPatientAddress.setCityVillage(union.getName());
         }

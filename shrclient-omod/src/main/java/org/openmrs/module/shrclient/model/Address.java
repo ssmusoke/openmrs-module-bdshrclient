@@ -16,18 +16,22 @@ public class Address {
     @JsonProperty("upazilla_id")
     private String upazillaId;
 
-    @JsonProperty("union_id")
-    private String unionId;
+    @JsonProperty("city_corporation")
+    private String cityCorporationId;
+
+    @JsonProperty("ward")
+    private String wardId;
 
     public Address() {
     }
 
-    public Address(String addressLine, String divisionId, String districtId, String upazillaId, String unionId) {
+    public Address(String addressLine, String divisionId, String districtId, String upazillaId, String cityCorporationId, String wardId) {
         this.addressLine = addressLine;
         this.divisionId = divisionId;
         this.districtId = districtId;
         this.upazillaId = upazillaId;
-        this.unionId = unionId;
+        this.cityCorporationId = cityCorporationId;
+        this.wardId = wardId;
     }
 
     @Override
@@ -38,10 +42,12 @@ public class Address {
         Address address = (Address) o;
 
         if (addressLine != null ? !addressLine.equals(address.addressLine) : address.addressLine != null) return false;
-        if (districtId != null ? !districtId.equals(address.districtId) : address.districtId != null) return false;
         if (divisionId != null ? !divisionId.equals(address.divisionId) : address.divisionId != null) return false;
-        if (unionId != null ? !unionId.equals(address.unionId) : address.unionId != null) return false;
+        if (districtId != null ? !districtId.equals(address.districtId) : address.districtId != null) return false;
         if (upazillaId != null ? !upazillaId.equals(address.upazillaId) : address.upazillaId != null) return false;
+        if (cityCorporationId != null ? !cityCorporationId.equals(address.cityCorporationId) : address.cityCorporationId != null)
+            return false;
+        if (wardId != null ? !wardId.equals(address.wardId) : address.wardId != null) return false;
 
         return true;
     }
@@ -52,7 +58,8 @@ public class Address {
         result = 31 * result + (divisionId != null ? divisionId.hashCode() : 0);
         result = 31 * result + (districtId != null ? districtId.hashCode() : 0);
         result = 31 * result + (upazillaId != null ? upazillaId.hashCode() : 0);
-        result = 31 * result + (unionId != null ? unionId.hashCode() : 0);
+        result = 31 * result + (cityCorporationId != null ? cityCorporationId.hashCode() : 0);
+        result = 31 * result + (wardId != null ? wardId.hashCode() : 0);
         return result;
     }
 
@@ -63,7 +70,8 @@ public class Address {
         sb.append(", divisionId='").append(divisionId).append('\'');
         sb.append(", districtId='").append(districtId).append('\'');
         sb.append(", upazillaId='").append(upazillaId).append('\'');
-        sb.append(", unionId='").append(unionId).append('\'');
+        sb.append(", cityCorporationId='").append(cityCorporationId).append('\'');
+        sb.append(", wardId='").append(wardId).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -100,11 +108,19 @@ public class Address {
         this.upazillaId = upazillaId;
     }
 
-    public String getUnionId() {
-        return unionId;
+    public String getCityCorporationId() {
+        return cityCorporationId;
     }
 
-    public void setUnionId(String unionId) {
-        this.unionId = unionId;
+    public void setCityCorporationId(String cityCorporationId) {
+        this.cityCorporationId = cityCorporationId;
+    }
+
+    public String getWardId() {
+        return wardId;
+    }
+
+    public void setWardId(String wardId) {
+        this.wardId = wardId;
     }
 }
