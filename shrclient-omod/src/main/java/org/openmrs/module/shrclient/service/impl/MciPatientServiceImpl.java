@@ -61,6 +61,12 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     private FHIRMapper fhirMapper;
 
     @Autowired
+    PatientService patientService;
+
+    @Autowired
+    PersonService personService;
+
+    @Autowired
     private ProviderService providerService;
 
     @Autowired
@@ -70,9 +76,6 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     @Override
     public org.openmrs.Patient createOrUpdatePatient(Patient mciPatient) {
-        PatientService patientService = Context.getPatientService();
-        PersonService personService = Context.getPersonService();
-
         Integer emrPatientId = new PatientAttributeSearchHandler(Constants.HEALTH_ID_ATTRIBUTE).getUniquePatientIdFor(mciPatient.getHealthId());
         org.openmrs.Patient emrPatient = emrPatientId != null ? patientService.getPatient(emrPatientId) : new org.openmrs.Patient();
 
@@ -233,15 +236,19 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         if (division != null) {
             emrPatientAddress.setStateProvince(division.getName());
         }
-        AddressHierarchyEntry district = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.getDistrictId());
+        AddressHierarchyEntry district = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.createUserGeneratedDistrictId());
         if (district != null) {
             emrPatientAddress.setCountyDistrict(district.getName());
         }
-        AddressHierarchyEntry upazilla = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.getUpazillaId());
+        AddressHierarchyEntry upazilla = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.createUserGeneratedUpazillaId());
         if (upazilla != null) {
             emrPatientAddress.setAddress3(upazilla.getName());
         }
-        AddressHierarchyEntry union = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.getWardId());
+        AddressHierarchyEntry cityCorporation = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.createUserGeneratedCityCorporationId());
+        if (cityCorporation != null) {
+            emrPatientAddress.setAddress3(cityCorporation.getName());
+        }
+        AddressHierarchyEntry union = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.createUserGeneratedWardId());
         if (union != null) {
             emrPatientAddress.setCityVillage(union.getName());
         }

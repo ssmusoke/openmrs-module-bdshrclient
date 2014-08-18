@@ -123,4 +123,20 @@ public class Address {
     public void setWardId(String wardId) {
         this.wardId = wardId;
     }
+
+    public String createUserGeneratedDistrictId() {
+        return divisionId + districtId;
+    }
+
+    public String createUserGeneratedUpazillaId() {
+        return divisionId + districtId + upazillaId;
+    }
+
+    public String createUserGeneratedCityCorporationId() {
+        return divisionId + districtId + upazillaId + cityCorporationId;
+    }
+
+    public String createUserGeneratedWardId() {
+        return divisionId + districtId + upazillaId + cityCorporationId + wardId;
+    }
 }
