@@ -56,6 +56,7 @@ public class PatientMapperTest {
         final String upazillaId = "102030";
         final String upazilla = "some-upazilla";
         final String cityCorpId = "10203040";
+        final String cityCorp = "some-cityCorp";
         final String wardId = "1020304050";
         final String ward = "some-ward";
 
@@ -70,7 +71,7 @@ public class PatientMapperTest {
         address.setStateProvince(division);
         address.setCountyDistrict(district);
         address.setAddress3(upazilla);
-        address.setAddress2(cityCorpId);
+        address.setAddress2(cityCorp);
         address.setCityVillage(ward);
         person.addAddress(address);
         org.openmrs.Patient openMrsPatient = new org.openmrs.Patient(person);
@@ -81,14 +82,16 @@ public class PatientMapperTest {
         List<AddressHierarchyEntry> divisionEntries = createAddressHierarchyEntries(divisionId);
         List<AddressHierarchyEntry> districtEntries = createAddressHierarchyEntries(districtId);
         List<AddressHierarchyEntry> upazillaEntries = createAddressHierarchyEntries(upazillaId);
+        List<AddressHierarchyEntry> cityCorpEntries = createAddressHierarchyEntries(cityCorpId);
         List<AddressHierarchyEntry> wardEntries = createAddressHierarchyEntries(wardId);
 
 
-        when(addressHierarchyService.getAddressHierarchyLevels()).thenReturn(levels);
+        when(addressHierarchyService.getOrderedAddressHierarchyLevels()).thenReturn(levels);
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(0), division)).thenReturn(divisionEntries);
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(1), district)).thenReturn(districtEntries);
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(2), upazilla)).thenReturn(upazillaEntries);
-        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), ward)).thenReturn(wardEntries);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), cityCorp)).thenReturn(cityCorpEntries);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(4), ward)).thenReturn(wardEntries);
 
         Patient patient = patientMapper.map(openMrsPatient);
 
@@ -149,7 +152,9 @@ public class PatientMapperTest {
         level3.setId(300);
         AddressHierarchyLevel level4 = new AddressHierarchyLevel();
         level4.setId(400);
-        return Arrays.asList(level1, level2, level3, level4);
+        AddressHierarchyLevel level5 = new AddressHierarchyLevel();
+        level5.setId(500);
+        return Arrays.asList(level1, level2, level3, level4, level5);
     }
 
     private List<AddressHierarchyEntry> createAddressHierarchyEntries(String id) {

@@ -77,14 +77,15 @@ public class PatientMapper {
         String division = openMrsPersonAddress.getStateProvince();
         String district = openMrsPersonAddress.getCountyDistrict();
         String upazilla = openMrsPersonAddress.getAddress3();
-        String cityCorporationId = openMrsPersonAddress.getAddress2();
+        String cityCorporation = openMrsPersonAddress.getAddress2();
         String ward = openMrsPersonAddress.getCityVillage();
 
-        List<AddressHierarchyLevel> levels = addressHierarchyService.getAddressHierarchyLevels();
+        List<AddressHierarchyLevel> levels = addressHierarchyService.getOrderedAddressHierarchyLevels();
         String divisionId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(0), division).get(0).getUserGeneratedId();
         String districtId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(1), district).get(0).getUserGeneratedId();
         String upazillaId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(2), upazilla).get(0).getUserGeneratedId();
-        String wardId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), ward).get(0).getUserGeneratedId();
+        String cityCorporationId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), cityCorporation).get(0).getUserGeneratedId();
+        String wardId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(4), ward).get(0).getUserGeneratedId();
 
         return new Address(addressLine, getId(divisionId), getId(districtId), getId(upazillaId), getId(cityCorporationId), getId(wardId));
     }
