@@ -11,17 +11,11 @@ import org.openmrs.module.shrclient.OpenMRSFeedClientFactory;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;
-import org.openmrs.module.shrclient.util.FhirRestClient;
-import org.openmrs.module.shrclient.util.RestClient;
+import org.openmrs.module.shrclient.util.PropertiesReader;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Properties;
 
 public class ShrNotifier {
 
@@ -36,7 +30,7 @@ public class ShrNotifier {
                 Context.getUserService(),
                 Context.getPersonService(),
                 new PatientMapper(Context.getService(AddressHierarchyService.class), new BbsCodeServiceImpl()),
-                getMciWebClient()));
+                getPropertiesReader().getMciWebClient()));
     }
 
 
@@ -49,7 +43,7 @@ public class ShrNotifier {
     }
 
     private ShrEncounterUploader encounterUploader() {
-        return new ShrEncounterUploader(Context.getEncounterService(), Context.getUserService(), getShrWebClient(),
+        return new ShrEncounterUploader(Context.getEncounterService(), Context.getUserService(), getPropertiesReader().getShrWebClient(),
                 getRegisteredComponent(CompositionBundleCreator.class), getRegisteredComponent(IdMappingsRepository.class));
     }
 
@@ -79,37 +73,7 @@ public class ShrNotifier {
         feedClient(feedURI, eventWorker).processEvents();
     }
 
-    private RestClient getMciWebClient() {
-        Properties properties = getProperties("mci.properties");
-        return new RestClient(properties.getProperty("mci.user"),
-                properties.getProperty("mci.password"),
-                properties.getProperty("mci.host"),
-                properties.getProperty("mci.port"));
-    }
-
-    private FhirRestClient getShrWebClient() {
-        Properties properties = getProperties("shr.properties");
-        return new FhirRestClient(properties.getProperty("shr.user"),
-                properties.getProperty("shr.password"),
-                properties.getProperty("shr.host"),
-                properties.getProperty("shr.port"));
-    }
-
-    Properties getProperties(String resource) {
-        try {
-            Properties properties = new Properties();
-            final File file = new File(System.getProperty("user.home") + File.separator + ".OpenMRS" + File.separator + resource);
-            final InputStream inputStream;
-            if (file.exists()) {
-                inputStream = new FileInputStream(file);
-            } else {
-                inputStream = getClass().getClassLoader().getResourceAsStream(resource);
-            }
-            properties.load(inputStream);
-            return properties;
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    private PropertiesReader getPropertiesReader() {
+        return getRegisteredComponent(PropertiesReader.class);
     }
 }

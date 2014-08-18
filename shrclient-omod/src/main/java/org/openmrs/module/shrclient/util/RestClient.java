@@ -35,20 +35,6 @@ public class RestClient {
         }
     }
 
-    public <T> T get(String url, TypeReference valueTypeRef) {
-        try {
-            String response = webClient.get(url);
-            if (StringUtils.isNotBlank(response)) {
-                return mapper.readValue(response, valueTypeRef);
-            } else {
-                return null;
-            }
-        } catch (IOException e) {
-            log.error("Error Mapping response to : " + url, e);
-            throw new RuntimeException(e);
-        }
-    }
-
     public String post(String url, Object data) {
         try {
             String requestBody = mapper.writeValueAsString(data);

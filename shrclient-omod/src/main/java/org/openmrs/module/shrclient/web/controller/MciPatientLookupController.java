@@ -8,6 +8,7 @@ import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.openmrs.api.context.Context;
@@ -33,8 +34,8 @@ public class MciPatientLookupController {
     private MciPatientService mciPatientService;
     @Autowired
     private BbsCodeService bbsCodeService;
-    @Resource(name = "mciProperties")
-    private Properties mciProperties;
+    @Autowired
+    private PropertiesReader propertiesReader;
     @Resource(name = "shrProperties")
     private Properties shrProperties;
 
@@ -74,7 +75,8 @@ public class MciPatientLookupController {
 
     private void createOrUpdateEncounters(String healthId, org.openmrs.Patient emrPatient) {
         final String url = String.format("/patients/%s/encounters", healthId);
-        List<EncounterBundle> bundles = getShrRestClient().get(url, new TypeReference<List<EncounterBundle>>(){});
+        List<EncounterBundle> bundles = propertiesReader.getShrWebClient().get(url, new TypeReference<List<EncounterBundle>>() {
+        });
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles);
     }
 
@@ -114,17 +116,7 @@ public class MciPatientLookupController {
     }
 
     private RestClient getMciRestClient() {
-        return new RestClient(mciProperties.getProperty("mci.user"),
-                mciProperties.getProperty("mci.password"),
-                mciProperties.getProperty("mci.host"),
-                mciProperties.getProperty("mci.port"));
-    }
-
-    private RestClient getShrRestClient() {
-        return new RestClient(shrProperties.getProperty("shr.user"),
-                shrProperties.getProperty("shr.password"),
-                shrProperties.getProperty("shr.host"),
-                shrProperties.getProperty("shr.port"));
+        return propertiesReader.getMciWebClient();
     }
 
     private String getAddressEntryText(String code) {
