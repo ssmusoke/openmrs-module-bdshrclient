@@ -84,10 +84,21 @@ public class FHIRFamilyHistoryMapper implements FHIRResource {
 
     private void mapCondition(FamilyHistory.FamilyHistoryRelationConditionComponent component, Obs result) {
         Obs value = new Obs();
-        Concept answerConcept = conceptService.getConceptByUuid(idMappingsRepository.findByExternalId(component.getType().getCoding().get(0).getCodeSimple()).getInternalId());
+        Concept answerConcept = getAnswer(component);
         value.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS));
         value.setValueCoded(answerConcept);
         result.addGroupMember(value);
+    }
+
+    private Concept getAnswer(FamilyHistory.FamilyHistoryRelationConditionComponent component) {
+        List<Coding> coding = component.getType().getCoding();
+        for (Coding code : coding) {
+            IdMapping mapping = idMappingsRepository.findByExternalId(code.getCodeSimple());
+            if (null != mapping) {
+                conceptService.getConceptByUuid(mapping.getInternalId());
+            }
+        }
+        return null;
     }
 
     private void mapNotes(Obs result, FamilyHistory.FamilyHistoryRelationConditionComponent component) {
@@ -110,8 +121,9 @@ public class FHIRFamilyHistoryMapper implements FHIRResource {
     private Obs mapRelationship(String code) {
         if (StringUtils.isNotBlank(code)) {
             Obs result = new Obs();
+            result.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_RELATIONSHIP));
             IdMapping mapping = idMappingsRepository.findByExternalId(code);
-            result.setConcept(conceptService.getConceptByUuid(mapping.getInternalId()));
+            result.setValueCoded(conceptService.getConceptByUuid(mapping.getInternalId()));
             return result;
         } else {
             return null;
