@@ -1,6 +1,5 @@
 package org.openmrs.module.fhir.utils;
 
-import static java.util.Locale.ENGLISH;
 import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.Coding;
 import org.openmrs.Concept;
@@ -8,8 +7,6 @@ import org.openmrs.ConceptMap;
 import org.openmrs.ConceptName;
 import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.api.ConceptService;
-import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_CONCEPT_TYPE;
-import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_REFERENCE_TERM_TYPE;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +15,10 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.Locale.ENGLISH;
+import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_CONCEPT_TYPE;
+import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_REFERENCE_TERM_TYPE;
 
 @Component
 public class OMRSHelper {
@@ -64,6 +65,8 @@ public class OMRSHelper {
                 }
             }
         }
+
+        // TODO: This mapping is incomplete
         final String conceptName = referenceTermMapping.get(refTerm);
         Concept concept = new Concept();
         concept.addName(new ConceptName(conceptName, ENGLISH));
