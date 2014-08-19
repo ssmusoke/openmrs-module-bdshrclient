@@ -246,7 +246,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         }
         AddressHierarchyEntry cityCorporation = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.createUserGeneratedCityCorporationId());
         if (cityCorporation != null) {
-            emrPatientAddress.setAddress3(cityCorporation.getName());
+            emrPatientAddress.setAddress2(cityCorporation.getName());
         }
         AddressHierarchyEntry union = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.createUserGeneratedWardId());
         if (union != null) {
