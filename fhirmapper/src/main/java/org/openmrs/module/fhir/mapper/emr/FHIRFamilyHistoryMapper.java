@@ -95,7 +95,7 @@ public class FHIRFamilyHistoryMapper implements FHIRResource {
         for (Coding code : coding) {
             IdMapping mapping = idMappingsRepository.findByExternalId(code.getCodeSimple());
             if (null != mapping) {
-                conceptService.getConceptByUuid(mapping.getInternalId());
+                return conceptService.getConceptByUuid(mapping.getInternalId());
             }
         }
         return null;
