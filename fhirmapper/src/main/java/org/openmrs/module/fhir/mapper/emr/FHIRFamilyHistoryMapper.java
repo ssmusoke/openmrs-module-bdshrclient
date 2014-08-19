@@ -1,28 +1,20 @@
 package org.openmrs.module.fhir.mapper.emr;
 
 import org.apache.commons.lang.StringUtils;
-import org.hl7.fhir.instance.model.Age;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.FamilyHistory;
-import org.hl7.fhir.instance.model.Resource;
+import org.hl7.fhir.instance.model.*;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_BORN_ON;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_FAMILY_HISTORY;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_ONSET_AGE;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_PERSON;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_NOTES;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+
+import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
 @Component
 public class FHIRFamilyHistoryMapper implements FHIRResource {
@@ -56,10 +48,29 @@ public class FHIRFamilyHistoryMapper implements FHIRResource {
 
     private void mapRelation(Obs personObs, FamilyHistory.FamilyHistoryRelationComponent relation) {
         personObs.addGroupMember(setBornOnObs(relation));
-        personObs.addGroupMember(mapRelationship(relation.getRelationship().getCoding().get(0).getCodeSimple()));
+        mapRelationship(personObs, relation);
         for (FamilyHistory.FamilyHistoryRelationConditionComponent component : relation.getCondition()) {
             personObs.addGroupMember(mapRelationCondition(component));
         }
+    }
+
+    private void mapRelationship(Obs personObs, FamilyHistory.FamilyHistoryRelationComponent relation) {
+        Obs relationship = mapRelationship(getCodeSimple(relation));
+        if (null != relationship) {
+            personObs.addGroupMember(relationship);
+        }
+    }
+
+    private String getCodeSimple(FamilyHistory.FamilyHistoryRelationComponent relation) {
+        CodeableConcept relationship = relation.getRelationship();
+        if (null == relationship) {
+            return null;
+        }
+        List<Coding> coding = relationship.getCoding();
+        if (null == coding) {
+            return null;
+        }
+        return coding.get(0).getCodeSimple();
     }
 
     private Obs mapRelationCondition(FamilyHistory.FamilyHistoryRelationConditionComponent component) {
@@ -97,12 +108,14 @@ public class FHIRFamilyHistoryMapper implements FHIRResource {
 
 
     private Obs mapRelationship(String code) {
-        Obs result = new Obs();
         if (StringUtils.isNotBlank(code)) {
+            Obs result = new Obs();
             IdMapping mapping = idMappingsRepository.findByExternalId(code);
             result.setConcept(conceptService.getConceptByUuid(mapping.getInternalId()));
+            return result;
+        } else {
+            return null;
         }
-        return result;
     }
 
     private Obs setBornOnObs(FamilyHistory.FamilyHistoryRelationComponent relation) {
