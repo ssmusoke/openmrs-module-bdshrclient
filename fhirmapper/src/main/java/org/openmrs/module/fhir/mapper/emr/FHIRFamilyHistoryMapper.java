@@ -2,6 +2,7 @@ package org.openmrs.module.fhir.mapper.emr;
 
 import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.*;
+import org.hl7.fhir.instance.model.Date;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
@@ -12,7 +13,9 @@ import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
@@ -132,8 +135,16 @@ public class FHIRFamilyHistoryMapper implements FHIRResource {
 
     private Obs setBornOnObs(FamilyHistory.FamilyHistoryRelationComponent relation) {
         Obs bornOnObs = new Obs();
+        java.util.Date observationValue = null;
         Concept bornOnConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_BORN_ON);
-        bornOnObs.setValueDate(((org.hl7.fhir.instance.model.Date) relation.getBorn()).getValue().toCalendar().getTime());
+        String date = ((Date) relation.getBorn()).getValue().toString();
+        final SimpleDateFormat ISODateFomat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+        try {
+            observationValue = ISODateFomat.parse(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        bornOnObs.setValueDate(observationValue);
         bornOnObs.setConcept(bornOnConcept);
         return bornOnObs;
     }
