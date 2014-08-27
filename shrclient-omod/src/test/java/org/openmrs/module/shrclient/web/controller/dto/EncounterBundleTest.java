@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.model.AtomFeed;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -19,6 +20,7 @@ import static org.junit.Assert.assertNotNull;
 public class EncounterBundleTest {
 
     @Test
+    @Ignore
     public void shouldDeSerializeEncounterBundle() throws IOException {
         final URL resource = URLClassLoader.getSystemResource("encounters.json");
         final String json = FileUtils.readFileToString(new File(resource.getPath()));
