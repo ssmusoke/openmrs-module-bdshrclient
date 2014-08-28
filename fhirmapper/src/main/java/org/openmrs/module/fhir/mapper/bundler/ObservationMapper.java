@@ -8,6 +8,7 @@ import org.hl7.fhir.instance.model.Observation;
 import org.hl7.fhir.instance.model.Type;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
+import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.RelatedObservation;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -18,7 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.openmrs.module.fhir.mapper.model.ObservationType.FAMILY_HISTORY;
+import static org.openmrs.module.fhir.mapper.model.ObservationType.HISTORY_AND_EXAMINATION;
+import static org.openmrs.module.fhir.mapper.model.ObservationType.VISIT_DIAGNOSES;
 
 @Component("FHIRObservationMapper")
 public class ObservationMapper implements EmrResourceHandler {
@@ -34,8 +37,9 @@ public class ObservationMapper implements EmrResourceHandler {
 
     @Override
     public boolean handles(Obs observation) {
-        String uuid = observation.getConcept().getUuid();
-        return idMappingsRepository.findByInternalId(uuid) != null;
+        CompoundObservation obs = new CompoundObservation(observation);
+        return !(obs.isOfType(HISTORY_AND_EXAMINATION) || obs.isOfType(VISIT_DIAGNOSES) || obs.isOfType(FAMILY_HISTORY));
+
     }
 
     @Override
@@ -54,20 +58,39 @@ public class ObservationMapper implements EmrResourceHandler {
         return new EmrResource(obs.getConcept().getName().getName(), asList(observation.getIdentifier()), observation);
     }
 
+//    public List<Observation> mapToFhirObservation(Obs observation, Encounter fhirEncounter) {
+//        List<Observation> result = new ArrayList<Observation>();
+//        Observation entry = createObservation(observation, fhirEncounter);
+//        if (isNotEmpty(observation.getGroupMembers())) {
+//            for (Obs part : observation.getGroupMembers()) {
+//                String uuid = part.getConcept().getUuid();
+//                if (idMappingsRepository.findByInternalId(uuid) != null) {
+//                    entry = mapRelatedObservation(fhirEncounter, part).mergeWith(entry);
+//                    result.addAll(mapToFhirObservation(part, fhirEncounter));
+//                }
+//            }
+//        }
+//        result.add(entry);
+//        return result;
+//    }
+
     public List<Observation> mapToFhirObservation(Obs observation, Encounter fhirEncounter) {
         List<Observation> result = new ArrayList<Observation>();
         Observation entry = createObservation(observation, fhirEncounter);
-        if (isNotEmpty(observation.getGroupMembers())) {
-            for (Obs part : observation.getGroupMembers()) {
-                String uuid = part.getConcept().getUuid();
-                if (idMappingsRepository.findByInternalId(uuid) != null) {
-                    entry = mapRelatedObservation(fhirEncounter, part).mergeWith(entry);
-                    result.addAll(mapToFhirObservation(part, fhirEncounter));
-                }
-            }
+        for (Obs member : observation.getGroupMembers()) {
+            mapGroupMember(member, fhirEncounter, entry, result);
         }
         result.add(entry);
         return result;
+    }
+
+    private void mapGroupMember(Obs obs, Encounter fhirEncounter, Observation parentObservation, List<Observation> result) {
+        Observation observation = createObservation(obs, fhirEncounter);
+        parentObservation = mapRelatedObservation(observation).mergeWith(parentObservation);
+        for (Obs member : obs.getGroupMembers()) {
+            mapGroupMember(member, fhirEncounter, observation, result);
+        }
+        result.add(observation);
     }
 
     private Observation createObservation(Obs observation, Encounter fhirEncounter) {
@@ -101,7 +124,10 @@ public class ObservationMapper implements EmrResourceHandler {
         }
         IdMapping mapping = idMappingsRepository.findByInternalId(observation.getConcept().getUuid());
         if (null == mapping) {
-            return null;
+            CodeableConcept result = new CodeableConcept();
+            Coding coding = result.addCoding();
+            coding.setDisplaySimple(observation.getConcept().getName().getName());
+            return result;
         } else {
             CodeableConcept result = new CodeableConcept();
             Coding coding = result.addCoding();
@@ -112,7 +138,7 @@ public class ObservationMapper implements EmrResourceHandler {
         }
     }
 
-    private RelatedObservation mapRelatedObservation(Encounter encounter, Obs observation) {
-        return new RelatedObservation(createObservation(observation, encounter));
+    private RelatedObservation mapRelatedObservation(Observation observation) {
+        return new RelatedObservation(observation);
     }
 }

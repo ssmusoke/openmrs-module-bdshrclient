@@ -1,6 +1,13 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.model.*;
+import org.hl7.fhir.instance.model.AtomFeed;
+import org.hl7.fhir.instance.model.CodeableConcept;
+import org.hl7.fhir.instance.model.Coding;
+import org.hl7.fhir.instance.model.Decimal;
+import org.hl7.fhir.instance.model.Observation;
+import org.hl7.fhir.instance.model.Resource;
+import org.hl7.fhir.instance.model.String_;
+import org.hl7.fhir.instance.model.Type;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
@@ -18,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
-
 
 @Component
 public class FHIRVitalsMapper implements FHIRResource {
