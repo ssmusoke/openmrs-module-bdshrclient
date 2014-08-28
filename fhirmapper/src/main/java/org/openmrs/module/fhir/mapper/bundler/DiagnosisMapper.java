@@ -10,23 +10,22 @@ import org.hl7.fhir.instance.model.Enumeration;
 import org.hl7.fhir.instance.model.Identifier;
 import org.hl7.fhir.instance.model.ResourceReference;
 import org.openmrs.Concept;
-import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
+import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addFHIRCoding;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.openmrs.module.fhir.mapper.model.ObservationType.VISIT_DIAGNOSES;
 
 @Component("fhirDiagnosisMapper")
 public class DiagnosisMapper implements EmrResourceHandler {
@@ -34,7 +33,7 @@ public class DiagnosisMapper implements EmrResourceHandler {
     @Autowired
     private IdMappingsRepository idMappingsRepository;
 
-    private final Map<String,Condition.ConditionStatus> diaConditionStatus = new HashMap<String, Condition.ConditionStatus>();
+    private final Map<String, Condition.ConditionStatus> diaConditionStatus = new HashMap<String, Condition.ConditionStatus>();
     private final FHIRProperties fhirProperties;
 
     public DiagnosisMapper() {
@@ -45,14 +44,15 @@ public class DiagnosisMapper implements EmrResourceHandler {
 
     @Override
     public boolean handles(Obs observation) {
-        return observation.getConcept().getName().getName().equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_VISIT_DIAGNOSES);
+        CompoundObservation obs = new CompoundObservation(observation);
+        return obs.isOfType(VISIT_DIAGNOSES);
     }
 
     @Override
     public List<EmrResource> map(Obs obs, Encounter fhirEncounter) {
         List<EmrResource> diagnoses = new ArrayList<EmrResource>();
         final EmrResource fhirCondition = createFHIRCondition(fhirEncounter, obs);
-        if(fhirCondition != null) {
+        if (fhirCondition != null) {
             diagnoses.add(fhirCondition);
         }
         return diagnoses;
@@ -70,12 +70,11 @@ public class DiagnosisMapper implements EmrResourceHandler {
             Concept memberConcept = member.getConcept();
             if (isCodedDiagnosisObservation(memberConcept)) {
                 CodeableConcept diagnosisCode = FHIRFeedHelper.addReferenceCodes(member.getValueCoded(), idMappingsRepository);
-                if(CollectionUtils.isEmpty(diagnosisCode.getCoding())) {
+                if (CollectionUtils.isEmpty(diagnosisCode.getCoding())) {
                     return null;
                 }
                 condition.setCode(diagnosisCode);
-            }
-            else if (isDiagnosisCertaintyObservation(memberConcept)) {
+            } else if (isDiagnosisCertaintyObservation(memberConcept)) {
                 condition.setStatus(getConditionStatus(member));
             }
         }

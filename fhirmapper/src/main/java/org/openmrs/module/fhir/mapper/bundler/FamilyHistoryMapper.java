@@ -11,17 +11,9 @@ import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.FamilyHistory;
 import org.openmrs.Concept;
 import org.openmrs.Obs;
-import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_UNIT_FOR_YEARS;
-import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_URL;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_BORN_ON;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_FAMILY_HISTORY;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_ONSET_AGE;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_NOTES;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addReferenceCodes;
+import org.openmrs.module.fhir.mapper.model.CompoundObservation;
+import org.openmrs.module.fhir.mapper.model.ObservationType;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,6 +21,16 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_UNIT_FOR_YEARS;
+import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_URL;
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_BORN_ON;
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_ONSET_AGE;
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP;
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION;
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS;
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_NOTES;
+import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addReferenceCodes;
 
 @Component
 public class FamilyHistoryMapper implements EmrResourceHandler {
@@ -41,7 +43,8 @@ public class FamilyHistoryMapper implements EmrResourceHandler {
 
     @Override
     public boolean handles(Obs observation) {
-        return MRS_CONCEPT_NAME_FAMILY_HISTORY.equals(observation.getConcept().getName().getName());
+        CompoundObservation obs = new CompoundObservation(observation);
+        return obs.isOfType(ObservationType.FAMILY_HISTORY);
     }
 
     @Override
