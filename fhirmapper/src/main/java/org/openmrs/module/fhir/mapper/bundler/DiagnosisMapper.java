@@ -112,6 +112,6 @@ public class DiagnosisMapper implements EmrResourceHandler {
 
     private CodeableConcept getDiagnosisCategory() {
         return FHIRFeedHelper.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS,
-                FHIRProperties.FHIR_CONDITION_CATEGORY_URL, FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS);
+                FHIRProperties.FHIR_CONDITION_CATEGORY_URL, FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS_DISPLAY);
     }
 }

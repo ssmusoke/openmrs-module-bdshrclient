@@ -110,7 +110,7 @@ public class ChiefComplaintMapper implements EmrResourceHandler {
 
     private CodeableConcept getChiefComplaintCategory() {
         CodeableConcept conditionCategory = FHIRFeedHelper.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT,
-                FHIRProperties.FHIR_CONDITION_CATEGORY_URL, FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT);
+                FHIRProperties.FHIR_CONDITION_CATEGORY_URL, FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT_DISPLAY);
         return conditionCategory;
     }
 }
