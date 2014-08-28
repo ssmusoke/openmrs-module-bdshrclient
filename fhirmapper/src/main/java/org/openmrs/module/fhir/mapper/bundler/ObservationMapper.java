@@ -1,7 +1,13 @@
-package org.openmrs.module.fhir.mapper.bundler.condition;
+package org.openmrs.module.fhir.mapper.bundler;
 
-import org.hl7.fhir.instance.model.*;
+import org.hl7.fhir.instance.model.CodeableConcept;
+import org.hl7.fhir.instance.model.Coding;
+import org.hl7.fhir.instance.model.Encounter;
+import org.hl7.fhir.instance.model.Identifier;
+import org.hl7.fhir.instance.model.Observation;
+import org.hl7.fhir.instance.model.Type;
 import org.openmrs.Obs;
+import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.RelatedObservation;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -11,10 +17,11 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 @Component("FHIRObservationMapper")
-public class ObservationMapper {
+public class ObservationMapper implements EmrResourceHandler {
 
     private ObservationValueMapper observationValueMapper;
     private IdMappingsRepository idMappingsRepository;
@@ -25,22 +32,47 @@ public class ObservationMapper {
         this.idMappingsRepository = idMappingsRepository;
     }
 
-    public List<Observation> map(Encounter encounter, Obs observation) {
+    @Override
+    public boolean handles(Obs observation) {
+        String uuid = observation.getConcept().getUuid();
+        return idMappingsRepository.findByInternalId(uuid) != null;
+    }
+
+    @Override
+    public List<EmrResource> map(Obs obs, Encounter fhirEncounter) {
+        List<EmrResource> result = new ArrayList<EmrResource>();
+        if (null != obs) {
+            List<Observation> observations = mapToFhirObservation(obs, fhirEncounter);
+            for (Observation observation : observations) {
+                result.add(buildResource(observation, obs));
+            }
+        }
+        return result;
+    }
+
+    private EmrResource buildResource(Observation observation, Obs obs) {
+        return new EmrResource(obs.getConcept().getName().getName(), asList(observation.getIdentifier()), observation);
+    }
+
+    public List<Observation> mapToFhirObservation(Obs observation, Encounter fhirEncounter) {
         List<Observation> result = new ArrayList<Observation>();
-        Observation entry = observation(encounter, observation);
+        Observation entry = createObservation(observation, fhirEncounter);
         if (isNotEmpty(observation.getGroupMembers())) {
             for (Obs part : observation.getGroupMembers()) {
-                entry = mapRelatedObservation(encounter, part).mergeWith(entry);
-                result.addAll(map(encounter, part));
+                String uuid = part.getConcept().getUuid();
+                if (idMappingsRepository.findByInternalId(uuid) != null) {
+                    entry = mapRelatedObservation(fhirEncounter, part).mergeWith(entry);
+                    result.addAll(mapToFhirObservation(part, fhirEncounter));
+                }
             }
         }
         result.add(entry);
         return result;
     }
 
-    private Observation observation(Encounter encounter, Obs observation) {
+    private Observation createObservation(Obs observation, Encounter fhirEncounter) {
         Observation entry = new Observation();
-        entry.setSubject(encounter.getSubject());
+        entry.setSubject(fhirEncounter.getSubject());
         mapName(observation, entry);
         entry.setStatusSimple(Observation.ObservationStatus.final_);
         entry.setReliabilitySimple(Observation.ObservationReliability.ok);
@@ -81,6 +113,6 @@ public class ObservationMapper {
     }
 
     private RelatedObservation mapRelatedObservation(Encounter encounter, Obs observation) {
-        return new RelatedObservation(observation(encounter, observation));
+        return new RelatedObservation(createObservation(observation, encounter));
     }
 }

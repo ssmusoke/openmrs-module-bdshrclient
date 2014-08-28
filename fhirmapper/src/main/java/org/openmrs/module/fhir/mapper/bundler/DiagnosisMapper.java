@@ -1,19 +1,31 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.*;
+import org.hl7.fhir.instance.model.CodeableConcept;
+import org.hl7.fhir.instance.model.Condition;
 import org.hl7.fhir.instance.model.Date;
+import org.hl7.fhir.instance.model.DateAndTime;
+import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Enumeration;
+import org.hl7.fhir.instance.model.Identifier;
+import org.hl7.fhir.instance.model.ResourceReference;
 import org.openmrs.Concept;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
+import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.openmrs.module.fhir.mapper.model.ObservationType.VISIT_DIAGNOSES;
 
 @Component("fhirDiagnosisMapper")
 public class DiagnosisMapper implements EmrResourceHandler {
@@ -32,12 +44,14 @@ public class DiagnosisMapper implements EmrResourceHandler {
 
     @Override
     public boolean handles(Obs observation) {
-        return observation.getConcept().getName().getName().equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_VISIT_DIAGNOSES);
+        CompoundObservation obs = new CompoundObservation(observation);
+        return obs.isOfType(VISIT_DIAGNOSES);
     }
 
     @Override
     public List<EmrResource> map(Obs obs, Encounter fhirEncounter) {
         List<EmrResource> diagnoses = new ArrayList<EmrResource>();
+
         EmrResource fhirCondition = createFHIRCondition(fhirEncounter, obs);
         if (fhirCondition != null) {
             diagnoses.add(fhirCondition);

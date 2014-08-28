@@ -13,6 +13,8 @@ import org.joda.time.DateTime;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
+import org.openmrs.module.fhir.mapper.model.CompoundObservation;
+import org.openmrs.module.fhir.mapper.model.ObservationType;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static org.openmrs.module.fhir.mapper.model.ObservationType.CHIEF_COMPLAINT_DATA;
+import static org.openmrs.module.fhir.mapper.model.ObservationType.HISTORY_AND_EXAMINATION;
+
 @Component
 public class ChiefComplaintMapper implements EmrResourceHandler {
 
@@ -30,11 +35,10 @@ public class ChiefComplaintMapper implements EmrResourceHandler {
 
     @Override
     public boolean handles(Obs observation) {
-        if (observation.getConcept().getName().getName().equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_HISTORY_AND_EXAMINATION)) {
-            for (Obs member : observation.getGroupMembers()) {
-                if (member.getConcept().getName().getName().equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA)) {
-                    return true;
-                }
+        CompoundObservation obs = new CompoundObservation(observation);
+        if (obs.isOfType(HISTORY_AND_EXAMINATION)) {
+            if (obs.findMember(CHIEF_COMPLAINT_DATA) != null) {
+                return true;
             }
         }
         return false;

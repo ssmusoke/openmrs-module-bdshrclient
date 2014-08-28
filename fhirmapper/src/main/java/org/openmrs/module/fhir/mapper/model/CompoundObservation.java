@@ -18,13 +18,12 @@ public class CompoundObservation {
     }
 
     public Obs findMember(ObservationType type) {
-        Obs result = null;
         for (Obs member : observation.getGroupMembers()) {
             if (member.getConcept().getName().getName().equalsIgnoreCase(type.getDisplayName())) {
-                result = member;
+                return member;
             }
         }
-        return result;
+        return null;
     }
 
     public List<Obs> findMembers(ObservationType type) {
