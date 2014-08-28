@@ -1,14 +1,15 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import org.hl7.fhir.instance.model.*;
+import org.hl7.fhir.instance.model.Enumeration;
 import org.openmrs.Obs;
+import org.openmrs.module.fhir.mapper.FHIRProperties;
+import org.openmrs.module.fhir.mapper.model.FHIRIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.Date;
 
 @Component
 public class CompositionBundleCreator {
@@ -26,7 +27,7 @@ public class CompositionBundleCreator {
 
         atomFeed.setTitle("Encounter");
         atomFeed.setUpdated(composition.getDateSimple());
-        atomFeed.setId(UUID.randomUUID().toString());
+        atomFeed.setId(new FHIRIdentifier(UUID.randomUUID().toString()).getExternalForm());
         final EmrResource encounterResource = new EmrResource("Encounter", fhirEncounter.getIdentifier(), fhirEncounter);
         addResourceSectionToComposition(composition, encounterResource);
         addAtomEntry(atomFeed, new EmrResource("Composition", Arrays.asList(composition.getIdentifier()), composition));
@@ -38,7 +39,6 @@ public class CompositionBundleCreator {
                 if (handler.handles(obs)) {
                     addResourcesToBundle(fhirEncounter, obs, handler, composition, atomFeed);
                 }
-
             }
         }
 
@@ -63,7 +63,9 @@ public class CompositionBundleCreator {
 
     private void addAtomEntry(AtomFeed atomFeed, EmrResource resource) {
         AtomEntry resourceEntry = new AtomEntry();
-        resourceEntry.setId(resource.getIdentifier().getValueSimple());
+        resourceEntry.setId(new FHIRIdentifier(resource.getIdentifier().getValueSimple()).getExternalForm());
+        resourceEntry.setAuthorName(FHIRProperties.FHIR_AUTHOR);
+        resourceEntry.setUpdated(new DateAndTime(new Date()));
         resourceEntry.setTitle(resource.getResourceName());
         resourceEntry.setResource(resource.getResource());
         atomFeed.addEntry(resourceEntry);

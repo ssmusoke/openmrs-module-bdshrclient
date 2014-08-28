@@ -7,7 +7,6 @@ public class FHIRProperties {
 
     public static final String FHIR_CONDITION_CODE_DIAGNOSIS = "Diagnosis";
     public static final String FHIR_CONDITION_CODE_CHIEF_COMPLAINT = "Complaint";
-    public static final String FHIR_CONDITION_VITAL = "Vital";
 
     public static final String FHIR_CONDITION_CATEGORY_URL = "http://hl7.org/fhir/vs/condition-category";
     public static final String UCUM_URL = "http://unitsofmeasure.org";
@@ -18,6 +17,8 @@ public class FHIRProperties {
     public static final String FHIR_SEVERITY_SEVERE = "Severe";
 
     public static final String UCUM_UNIT_FOR_YEARS = "a";
+
+    public static final String FHIR_AUTHOR = "bahmni";
 
     private Map<String, String> severityCodes = new HashMap<String, String>();
 

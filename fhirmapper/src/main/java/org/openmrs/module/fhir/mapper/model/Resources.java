@@ -16,7 +16,7 @@ public class Resources {
 
     public Resource find(ResourceReference reference) {
         for (AtomEntry<? extends Resource> atomEntry : feed.getEntryList()) {
-            if (StringUtils.equals(atomEntry.getId(), reference.getReferenceSimple())) {
+            if (StringUtils.equals(new FHIRIdentifier(atomEntry.getId()).getInternalForm(), reference.getReferenceSimple())) {
                 return atomEntry.getResource();
             }
         }

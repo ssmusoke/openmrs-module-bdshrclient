@@ -67,9 +67,9 @@ public class EncounterMapper {
     }
 
     private void setParticipant(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {
-        Encounter.EncounterParticipantComponent encounterParticipantComponent = encounter.addParticipant();
         final Set<EncounterProvider> encounterProviders = openMrsEncounter.getEncounterProviders();
         if (!encounterProviders.isEmpty()) {
+            Encounter.EncounterParticipantComponent encounterParticipantComponent = encounter.addParticipant();
             EncounterProvider encounterProvider = encounterProviders.iterator().next();
             encounterParticipantComponent.setIndividual(new ResourceReference().setReferenceSimple(encounterProvider.getProvider().getUuid()));
         }
