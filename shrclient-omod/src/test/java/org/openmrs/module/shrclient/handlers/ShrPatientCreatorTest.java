@@ -46,26 +46,6 @@ public class ShrPatientCreatorTest {
     }
 
     @Test
-    public void shouldProcessPatientSyncEvent() {
-        final String uuid = "123abc456";
-        Event event = new Event("id100", "/openmrs/ws/rest/v1/patient/" + uuid + "?v=full");
-
-//        final org.openmrs.Patient openMrsPatient = new org.openmrs.Patient();
-//        final org.bahmni.module.shrclient.model.Patient patient = new org.bahmni.module.shrclient.model.Patient();
-//        when(patientService.getPatientByUuid(uuid)).thenReturn(openMrsPatient);
-//        when(patientMapper.map(openMrsPatient)).thenReturn(patient);
-//        when(userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME)).thenReturn(new User());
-//        shrPatientCreator.process(event);
-//
-//        verify(patientService).getPatientByUuid(uuid);
-//        verify(patientMapper).map(openMrsPatient);
-//        verify(restClient).post(anyString(), eq(patient));
-
-        shrPatientCreator.process(event);
-        verify(patientService).getPatientByUuid(anyString());
-    }
-
-    @Test
     public void shouldNotSyncPatientWhenUsersAreSame() {
         final org.openmrs.Patient openMrsPatient = new org.openmrs.Patient();
         User shrUser = new User();
