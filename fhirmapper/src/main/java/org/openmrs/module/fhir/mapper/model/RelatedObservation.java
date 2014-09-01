@@ -18,4 +18,8 @@ public class RelatedObservation implements PartOf<Observation> {
         related.setTypeSimple(Observation.ObservationRelationshiptypes.hascomponent);
         return observation;
     }
+
+    public Observation getRelatedObservation() {
+        return relatedObservation;
+    }
 }
