@@ -1,5 +1,6 @@
 package org.openmrs.module.shrclient.handlers;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -14,6 +15,7 @@ import org.openmrs.api.UserService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.model.EncounterResponse;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.FhirRestClient;
 
@@ -64,10 +66,11 @@ public class ShrEncounterUploader implements EventWorker {
             AtomFeed atomFeed = bundleCreator.compose(openMrsEncounter);
             String shrEncounterUuid = fhirRestClient.post(String.format("/patients/%s/encounters", healthId), atomFeed);
             ObjectMapper objectMapper = new ObjectMapper();
-            String externalUuid = objectMapper.readValue(shrEncounterUuid, String.class);
+            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            EncounterResponse encounterResponse = objectMapper.readValue(shrEncounterUuid, EncounterResponse.class);
             //TODO : set the right url
             String url = "";
-            idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), externalUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE, url));
+            idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), encounterResponse.getEncounterId(), Constants.ID_MAPPING_ENCOUNTER_TYPE, url));
         } catch (Exception e) {
             log.error("Error while processing patient sync event.", e);
             throw new RuntimeException(e);

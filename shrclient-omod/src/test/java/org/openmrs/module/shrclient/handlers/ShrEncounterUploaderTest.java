@@ -2,16 +2,10 @@ package org.openmrs.module.shrclient.handlers;
 
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.ict4h.atomfeed.client.domain.Event;
-import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import org.mockito.Mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
 import org.openmrs.PersonAttributeType;
@@ -27,6 +21,13 @@ import org.openmrs.module.shrclient.util.FhirRestClient;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 public class ShrEncounterUploaderTest {
 
@@ -63,7 +64,7 @@ public class ShrEncounterUploaderTest {
 
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME)).thenReturn(new User(2));
-        when(fhirRestClient.post(anyString(), eq(atomFeed))).thenReturn("\"shr-uuid\"");
+        when(fhirRestClient.post(anyString(), eq(atomFeed))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
         when(compositionBundleCreator.compose(openMrsEncounter)).thenReturn(atomFeed);
         when(idMappingsRepository.findByExternalId(anyString())).thenReturn(null);
         shrEncounterUploader.process(event);
