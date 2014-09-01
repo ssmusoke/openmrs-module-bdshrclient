@@ -1,27 +1,13 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.Age;
-import org.hl7.fhir.instance.model.CodeableConcept;
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Date;
-import org.hl7.fhir.instance.model.DateAndTime;
-import org.hl7.fhir.instance.model.Decimal;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.FamilyHistory;
+import org.hl7.fhir.instance.model.*;
 import org.openmrs.Concept;
+import org.openmrs.ConceptName;
 import org.openmrs.Obs;
-import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_UNIT_FOR_YEARS;
-import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_URL;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_BORN_ON;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_FAMILY_HISTORY;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_ONSET_AGE;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_NOTES;
+import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addReferenceCodes;
+import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,6 +15,11 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_UNIT_FOR_YEARS;
+import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_URL;
+import static org.openmrs.module.fhir.mapper.MRSProperties.*;
+import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addReferenceCodes;
 
 @Component
 public class FamilyHistoryMapper implements EmrResourceHandler {
@@ -100,10 +91,10 @@ public class FamilyHistoryMapper implements EmrResourceHandler {
     }
 
     private void mapRelationship(FamilyHistory.FamilyHistoryRelationComponent relationComponent, Obs relationship) {
-        final CodeableConcept codeableConcept = readValue(relationship);
-        if (null != codeableConcept) {
-            relationComponent.setRelationship(codeableConcept);
-        }
+        CodeableConcept codeableConcept = new CodeableConcept();
+        String name = relationship.getValueCoded().getName().getName();
+        FHIRFeedHelper.addFHIRCoding(codeableConcept, name, FHIRProperties.FHIR_SYSTEM_RELATIONSHIP_ROLE, new ArrayList<ConceptName>(relationship.getValueCoded().getShortNames()).get(0).getName());
+        relationComponent.setRelationship(codeableConcept);
     }
 
     private CodeableConcept readValue(Obs obs) {

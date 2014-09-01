@@ -2,7 +2,6 @@ package org.openmrs.module.fhir.mapper.emr;
 
 import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.*;
-import org.hl7.fhir.instance.model.Date;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.List;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
@@ -125,8 +124,7 @@ public class FHIRFamilyHistoryMapper implements FHIRResource {
         if (StringUtils.isNotBlank(code)) {
             Obs result = new Obs();
             result.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_RELATIONSHIP));
-            IdMapping mapping = idMappingsRepository.findByExternalId(code);
-            result.setValueCoded(conceptService.getConceptByUuid(mapping.getInternalId()));
+            result.setValueCoded(conceptService.getConceptByName(code));
             return result;
         } else {
             return null;
