@@ -7,7 +7,6 @@ import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
-import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.utils.OMRSHelper;
@@ -17,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 @Component
@@ -30,7 +30,7 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResource {
     private static final int CONVERTION_PARAMETER_FOR_MINUTES = (60 * 1000);
 
     @Override
-    public boolean handles(Resource resource) {
+    public boolean canHandle(Resource resource) {
         if (resource instanceof Condition) {
             final List<Coding> resourceCoding = ((Condition) resource).getCategory().getCoding();
             if (resourceCoding == null || resourceCoding.isEmpty()) {
@@ -42,9 +42,11 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResource {
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter) {
+    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, HashMap<String, String> processedList) {
         Condition condition = (Condition) resource;
 
+        if (isAlreadyProcessed(condition, processedList))
+            return;
         Concept historyAndExaminationConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_HISTORY_AND_EXAMINATION);
         Concept chiefComplaintDataConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA);
         Concept chiefComplaintDurationConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DURATION);
@@ -78,10 +80,17 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResource {
         chiefComplaintDataObs.addGroupMember(chiefComplaintObs);
         chiefComplaintDataObs.addGroupMember(chiefComplaintDurationObs);
 
+        //TODO : don't create history and examination obs if it already exists in encounter
         Obs historyExaminationObs = new Obs();
         historyExaminationObs.setConcept(historyAndExaminationConcept);
         historyExaminationObs.addGroupMember(chiefComplaintDataObs);
         newEmrEncounter.addObs(historyExaminationObs);
+
+        processedList.put(condition.getIdentifier().get(0).getValueSimple(), chiefComplaintDataObs.getUuid());
+    }
+
+    private boolean isAlreadyProcessed(Condition condition, HashMap<String, String> processedList) {
+        return processedList.containsKey(condition.getIdentifier().get(0).getValueSimple());
     }
 
     private Double getComplaintDuration(Condition condition) {

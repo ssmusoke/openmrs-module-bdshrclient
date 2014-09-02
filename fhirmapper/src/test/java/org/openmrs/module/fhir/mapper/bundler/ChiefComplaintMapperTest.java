@@ -2,18 +2,13 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 import org.hl7.fhir.instance.model.*;
 import org.junit.Assert;
-import static org.junit.Assert.*;
 import org.junit.Test;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
-import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Map;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class ChiefComplaintMapperTest extends BaseModuleWebContextSensitiveTest {

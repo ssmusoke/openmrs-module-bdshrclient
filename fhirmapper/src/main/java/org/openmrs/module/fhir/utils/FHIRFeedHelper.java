@@ -1,9 +1,11 @@
 package org.openmrs.module.fhir.utils;
 
 
+import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.*;
 import org.hl7.fhir.instance.model.Encounter;
 import org.openmrs.*;
+import org.openmrs.module.fhir.mapper.model.FHIRIdentifier;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 
@@ -73,5 +75,14 @@ public class FHIRFeedHelper {
             }
         }
         return conditions;
+    }
+
+    public static Resource findResourceByReference(AtomFeed bundle, ResourceReference reference) {
+        for (AtomEntry<? extends Resource> atomEntry : bundle.getEntryList()) {
+            if (StringUtils.equals(new FHIRIdentifier(atomEntry.getId()).getInternalForm(), reference.getReferenceSimple())) {
+                return atomEntry.getResource();
+            }
+        }
+        return null;
     }
 }

@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -54,8 +55,8 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         Encounter emrEncounter = new Encounter();
         emrEncounter.setPatient(emrPatient);
         for (Condition condition : conditions) {
-            if (fhirChiefComplaintConditionMapper.handles(condition)) {
-                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter);
+            if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
+                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter, new HashMap<String, String>());
             }
         }
         final Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);

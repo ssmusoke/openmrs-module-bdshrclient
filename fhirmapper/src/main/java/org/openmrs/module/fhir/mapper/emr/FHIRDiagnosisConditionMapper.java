@@ -38,7 +38,7 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
     }
 
     @Override
-    public boolean handles(Resource resource) {
+    public boolean canHandle(Resource resource) {
         if (resource instanceof Condition) {
             final List<Coding> resourceCoding = ((Condition) resource).getCategory().getCoding();
             if (resourceCoding == null || resourceCoding.isEmpty()) {
@@ -50,9 +50,11 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter) {
+    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, HashMap<String, String> processedList) {
         Condition condition = (Condition) resource;
 
+        if (isAlreadyProcessed(condition, processedList))
+            return;
         Obs visitDiagnosisObs = new Obs();
 
         Concept diagnosisOrder = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_DIAGNOSIS_ORDER);
@@ -94,6 +96,13 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
         bahmniDiagRevisedObs.setValueBoolean(false);
 
         newEmrEncounter.addObs(visitDiagnosisObs);
+
+        processedList.put(condition.getIdentifier().get(0).getValueSimple(), visitDiagnosisObs.getUuid());
+    }
+
+
+    private boolean isAlreadyProcessed(Condition condition, HashMap<String, String> processedList) {
+        return processedList.containsKey(condition.getIdentifier().get(0).getValueSimple());
     }
 
     private Obs addToObsGroup(Patient emrPatient, Obs visitDiagnosisObs, Concept obsConcept) {

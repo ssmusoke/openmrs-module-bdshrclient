@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @Component
@@ -21,7 +22,13 @@ public class FHIRMapper {
     FHIREncounterMapper fhirEncounterMapper;
 
     @Autowired
-    private List<FHIRResource> fhirResources = new ArrayList<FHIRResource>();
+    private List<FHIRResource> fhirResources;
+
+    private HashMap<String, String> processedList;
+
+    public FHIRMapper() {
+        processedList = new HashMap<String, String>();
+    }
 
     public Encounter map(Patient emrPatient, AtomFeed feed) throws ParseException {
         Composition composition = FHIRFeedHelper.getComposition(feed);
@@ -31,8 +38,8 @@ public class FHIRMapper {
         for (AtomEntry<? extends Resource> atomEntry : feed.getEntryList()) {
             final Resource resource = atomEntry.getResource();
             for (FHIRResource fhirResource : fhirResources) {
-                if (fhirResource.handles(resource)) {
-                    fhirResource.map(feed, resource, emrPatient, newEmrEncounter);
+                if (fhirResource.canHandle(resource)) {
+                    fhirResource.map(feed, resource, emrPatient, newEmrEncounter, processedList);
                 }
             }
         }
