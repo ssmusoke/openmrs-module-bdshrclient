@@ -73,7 +73,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         Assert.assertEquals("26504add-2d96-44d0-a2f6-d849dc090254", encounter.getIndication().getReferenceSimple());
 
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
-        org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map(encounter, composition.getDateSimple().toString(), emrPatient);
+        org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map(encounter, composition.getDateSimple().toString(), emrPatient, encounterBundle);
 
         Assert.assertNotNull(emrEncounter);
         Assert.assertEquals(emrPatient, emrEncounter.getPatient());

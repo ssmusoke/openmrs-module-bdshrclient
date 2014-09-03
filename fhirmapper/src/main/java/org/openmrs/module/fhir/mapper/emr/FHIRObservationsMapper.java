@@ -69,9 +69,9 @@ public class FHIRObservationsMapper implements FHIRResource {
     }
 
     private Obs mapObs(AtomFeed feed, HashMap<String, String> processedList, Observation observation, Encounter emrEncounter) {
-        Obs result = new Obs();
         Concept concept = mapConcept(observation);
         if (concept == null) return null;
+        Obs result = new Obs();
         result.setConcept(concept);
         try {
             mapValue(observation, result);

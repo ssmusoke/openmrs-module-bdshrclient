@@ -21,26 +21,10 @@ public class FHIRMapper {
     @Autowired
     FHIREncounterMapper fhirEncounterMapper;
 
-    @Autowired
-    private List<FHIRResource> fhirResources;
-
-    private HashMap<String, String> processedList;
-
     public Encounter map(Patient emrPatient, AtomFeed feed) throws ParseException {
-        processedList = new HashMap<String, String>();
-
         Composition composition = FHIRFeedHelper.getComposition(feed);
         final org.hl7.fhir.instance.model.Encounter encounter = FHIRFeedHelper.getEncounter(feed);
-        org.openmrs.Encounter newEmrEncounter = fhirEncounterMapper.map(encounter, composition.getDateSimple().toString(), emrPatient);
-
-        for (AtomEntry<? extends Resource> atomEntry : feed.getEntryList()) {
-            final Resource resource = atomEntry.getResource();
-            for (FHIRResource fhirResource : fhirResources) {
-                if (fhirResource.canHandle(resource)) {
-                    fhirResource.map(feed, resource, emrPatient, newEmrEncounter, processedList);
-                }
-            }
-        }
+        org.openmrs.Encounter newEmrEncounter = fhirEncounterMapper.map(encounter, composition.getDateSimple().toString(), emrPatient, feed);
         return newEmrEncounter;
     }
 }
