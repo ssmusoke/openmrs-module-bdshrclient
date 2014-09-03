@@ -84,7 +84,7 @@ public class FHIRObservationsMapper implements FHIRResource {
     }
 
     private Obs findObsInEncounter(Encounter emrEncounter, String uuid) {
-        for (Obs obs : emrEncounter.getObs()) {
+        for (Obs obs : emrEncounter.getAllObs()) {
             if (uuid.equals(obs.getUuid())) {
                 return obs;
             }
@@ -122,8 +122,10 @@ public class FHIRObservationsMapper implements FHIRResource {
             String externalId = observationName.getCodeSimple();
             if (externalId != null) {
                 IdMapping mapping = idMappingsRepository.findByExternalId(externalId);
-                Concept concept = conceptService.getConceptByUuid(mapping.getInternalId());
-                if (concept != null) return concept;
+                if (mapping != null){
+                    Concept concept = conceptService.getConceptByUuid(mapping.getInternalId());
+                    if (concept != null) return concept;
+                }
             }
             return conceptService.getConceptByName(observationName.getDisplaySimple());
         }
