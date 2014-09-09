@@ -24,7 +24,7 @@ import static org.openmrs.module.fhir.mapper.model.ObservationType.HISTORY_AND_E
 import static org.openmrs.module.fhir.mapper.model.ObservationType.VISIT_DIAGNOSES;
 
 @Component("FHIRObservationMapper")
-public class ObservationMapper implements EmrResourceHandler {
+public class ObservationMapper implements EmrObsResourceHandler {
 
     private ObservationValueMapper observationValueMapper;
     private IdMappingsRepository idMappingsRepository;
@@ -57,22 +57,6 @@ public class ObservationMapper implements EmrResourceHandler {
     private EmrResource buildResource(Observation observation, Obs obs) {
         return new EmrResource(obs.getConcept().getName().getName(), asList(observation.getIdentifier()), observation);
     }
-
-//    public List<Observation> mapToFhirObservation(Obs observation, Encounter fhirEncounter) {
-//        List<Observation> result = new ArrayList<Observation>();
-//        Observation entry = createObservation(observation, fhirEncounter);
-//        if (isNotEmpty(observation.getGroupMembers())) {
-//            for (Obs part : observation.getGroupMembers()) {
-//                String uuid = part.getConcept().getUuid();
-//                if (idMappingsRepository.findByInternalId(uuid) != null) {
-//                    entry = mapRelatedObservation(fhirEncounter, part).mergeWith(entry);
-//                    result.addAll(mapToFhirObservation(part, fhirEncounter));
-//                }
-//            }
-//        }
-//        result.add(entry);
-//        return result;
-//    }
 
     public List<Observation> mapToFhirObservation(Obs observation, Encounter fhirEncounter) {
         List<Observation> result = new ArrayList<Observation>();
