@@ -1,5 +1,6 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.CodeableConcept;
 import org.hl7.fhir.instance.model.Coding;
@@ -13,13 +14,18 @@ import org.hl7.fhir.instance.model.ResourceType;
 import org.openmrs.Order;
 import org.openmrs.TestOrder;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
-@Component
+@Component("fhirTestOrderMapper")
 public class TestOrderMapper implements EmrOrderResourceHandler {
+
+    @Autowired
+    private IdMappingsRepository idMappingsRepository;
 
     @Override
     public boolean handles(Order order) {
@@ -36,16 +42,41 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
             diagnosticOrder = createDiagnosticOrder(order, fhirEncounter);
         }
         addItemsToDiagnosticOrder(order, diagnosticOrder);
+        if(CollectionUtils.isEmpty(diagnosticOrder.getItem())) {
+            return null;
+        }
         return new EmrResource("Diagnostic Order", diagnosticOrder.getIdentifier(), diagnosticOrder);
     }
 
     private void addItemsToDiagnosticOrder(Order order, DiagnosticOrder diagnosticOrder) {
         DiagnosticOrder.DiagnosticOrderItemComponent orderItem = diagnosticOrder.addItem();
-        findOrder();
+        findOrderName(order);
+        CodeableConcept orderCode = findOrderName(order);
+        if (orderCode == null) return;
+        orderItem.setCode(orderCode);
+        orderItem.setStatusSimple(DiagnosticOrder.DiagnosticOrderStatus.requested);
+        ResourceReference specimen = orderItem.addSpecimen();
+
     }
 
-    private void findOrder() {
-
+    private CodeableConcept findOrderName(Order order) {
+        if (null == order.getConcept()) {
+            return null;
+        }
+        IdMapping mapping = idMappingsRepository.findByInternalId(order.getConcept().getUuid());
+        if (null == mapping) {
+            CodeableConcept result = new CodeableConcept();
+            Coding coding = result.addCoding();
+            coding.setDisplaySimple(order.getConcept().getName().getName());
+            return result;
+        } else {
+            CodeableConcept result = new CodeableConcept();
+            Coding coding = result.addCoding();
+            coding.setSystemSimple(mapping.getUri());
+            coding.setDisplaySimple(order.getConcept().getName().getName());
+            coding.setCodeSimple(mapping.getExternalId());
+            return result;
+        }
     }
 
     private DiagnosticOrder createDiagnosticOrder(Order order, Encounter fhirEncounter) {
@@ -58,7 +89,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         Identifier identifier = diagnosticOrder.addIdentifier();
         identifier.setValueSimple(UUID.randomUUID().toString());
         diagnosticOrder.setEncounter(fhirEncounter.getIndication());
-        diagnosticOrder.setStatus(new Enumeration<DiagnosticOrder.DiagnosticOrderStatus>(DiagnosticOrder.DiagnosticOrderStatus.requested));
+        diagnosticOrder.setStatusSimple(DiagnosticOrder.DiagnosticOrderStatus.requested);
         return diagnosticOrder;
     }
 

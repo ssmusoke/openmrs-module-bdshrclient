@@ -1,5 +1,6 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.hl7.fhir.instance.model.AtomEntry;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.Composition;
@@ -54,7 +55,9 @@ public class CompositionBundleCreator {
             for (EmrObsResourceHandler handler : obsResourceHandlers) {
                 if (handler.handles(obs)) {
                     List<EmrResource> mappedResources = handler.map(obs, fhirEncounter);
-                    addResourcesToBundle(mappedResources, composition, atomFeed);
+                    if (CollectionUtils.isNotEmpty(mappedResources)) {
+                        addResourcesToBundle(mappedResources, composition, atomFeed);
+                    }
                 }
             }
         }
@@ -64,7 +67,9 @@ public class CompositionBundleCreator {
             for (EmrOrderResourceHandler handler : orderResourceHandlers) {
                 if (handler.handles(order)) {
                     EmrResource mappedResource = handler.map(order, fhirEncounter, atomFeed);
-                    addResourcesToBundle(asList(mappedResource), composition, atomFeed);
+                    if(mappedResource != null) {
+                        addResourcesToBundle(asList(mappedResource), composition, atomFeed);
+                    }
                 }
             }
         }

@@ -1,5 +1,6 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import static junit.framework.Assert.assertEquals;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.junit.Test;
 import org.openmrs.api.context.Context;
@@ -18,10 +19,15 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
 
     @Test
     public void shouldWireAllResourceHandlers() throws Exception {
-        final Field field = bundleCreator.getClass().getDeclaredField("resourceHandlers");
-        field.setAccessible(true);
-        Object instances = field.get(bundleCreator);
+        Field obsField = bundleCreator.getClass().getDeclaredField("obsResourceHandlers");
+        obsField.setAccessible(true);
+        Object obsInstances = obsField.get(bundleCreator);
+        assertNotNull(obsInstances);
 
+        Field orderField = bundleCreator.getClass().getDeclaredField("orderResourceHandlers");
+        orderField.setAccessible(true);
+        Object orderInstances = orderField.get(bundleCreator);
+        assertNotNull(orderInstances);
     }
 
     @Test
