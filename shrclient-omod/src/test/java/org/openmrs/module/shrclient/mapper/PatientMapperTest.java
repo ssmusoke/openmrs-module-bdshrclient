@@ -101,7 +101,7 @@ public class PatientMapperTest {
         p.setGivenName(givenName);
         p.setMiddleName(middleName);
         p.setSurName(familyName);
-        p.setGender(bbsCodeService.getGenderCode(gender));
+        p.setGender(gender);
         p.setDateOfBirth(new SimpleDateFormat(Constants.ISO_DATE_FORMAT).format(dateOfBirth));
         p.setOccupation(bbsCodeService.getOccupationCode(occupation));
         p.setEducationLevel(bbsCodeService.getEducationCode(educationLevel));

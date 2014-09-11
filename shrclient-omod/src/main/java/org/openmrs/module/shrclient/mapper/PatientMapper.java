@@ -40,7 +40,7 @@ public class PatientMapper {
         patient.setGivenName(openMrsPatient.getGivenName());
         patient.setMiddleName(openMrsPatient.getMiddleName());
         patient.setSurName(openMrsPatient.getFamilyName());
-        patient.setGender(bbsCodeService.getGenderCode(openMrsPatient.getGender()));
+        patient.setGender(openMrsPatient.getGender());
         patient.setDateOfBirth(new SimpleDateFormat(Constants.ISO_DATE_FORMAT).format(openMrsPatient.getBirthdate()));
 
         PersonAttribute occupation = getAttribute(openMrsPatient, Constants.OCCUPATION_ATTRIBUTE);

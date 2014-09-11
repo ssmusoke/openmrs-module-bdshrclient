@@ -85,7 +85,7 @@ public class MciPatientLookupController {
         patientModel.put("firstName", mciPatient.getGivenName());
         patientModel.put("middleName", mciPatient.getMiddleName());
         patientModel.put("lastName", mciPatient.getSurName());
-        patientModel.put("gender", bbsCodeService.getGenderConcept(mciPatient.getGender()));
+        patientModel.put("gender", mciPatient.getGender());
         patientModel.put("nationalId", mciPatient.getNationalId());
         patientModel.put("healthId", mciPatient.getHealthId());
         patientModel.put("primaryContact", mciPatient.getPrimaryContact());
@@ -97,7 +97,7 @@ public class MciPatientLookupController {
         addressModel.put("district", getAddressEntryText(address.createUserGeneratedDistrictId()));
         addressModel.put("upazilla", getAddressEntryText(address.createUserGeneratedUpazillaId()));
         addressModel.put("cityCorporation", getAddressEntryText(address.createUserGeneratedCityCorporationId()));
-        addressModel.put("union", getAddressEntryText(address.createUserGeneratedWardId()));
+        addressModel.put("ward", getAddressEntryText(address.createUserGeneratedWardId()));
 
         patientModel.put("address", addressModel);
         return patientModel;
