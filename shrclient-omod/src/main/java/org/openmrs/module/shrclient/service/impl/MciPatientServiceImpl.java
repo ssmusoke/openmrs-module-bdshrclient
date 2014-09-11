@@ -215,9 +215,9 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
             emrPersonName.setPreferred(true);
             emrPatient.addName(emrPersonName);
         }
-        emrPersonName.setGivenName(mciPatient.getFirstName());
+        emrPersonName.setGivenName(mciPatient.getGivenName());
         emrPersonName.setMiddleName(mciPatient.getMiddleName());
-        emrPersonName.setFamilyName(mciPatient.getLastName());
+        emrPersonName.setFamilyName(mciPatient.getSurName());
     }
 
     private User getShrClientSystemUser() {

@@ -15,15 +15,15 @@ public class Patient {
     @JsonInclude(NON_EMPTY)
     private String healthId;
 
-    @JsonProperty("first_name")
-    private String firstName;
+    @JsonProperty("given_name")
+    private String givenName;
 
     @JsonProperty("middle_name")
     @JsonInclude(NON_EMPTY)
     private String middleName;
 
-    @JsonProperty("last_name")
-    private String lastName;
+    @JsonProperty("sur_name")
+    private String surName;
 
     @JsonProperty("date_of_birth")
     private String dateOfBirth;
@@ -57,10 +57,10 @@ public class Patient {
         if (dateOfBirth != null ? !dateOfBirth.equals(patient.dateOfBirth) : patient.dateOfBirth != null) return false;
         if (educationLevel != null ? !educationLevel.equals(patient.educationLevel) : patient.educationLevel != null)
             return false;
-        if (firstName != null ? !firstName.equals(patient.firstName) : patient.firstName != null) return false;
+        if (givenName != null ? !givenName.equals(patient.givenName) : patient.givenName != null) return false;
         if (gender != null ? !gender.equals(patient.gender) : patient.gender != null) return false;
         if (healthId != null ? !healthId.equals(patient.healthId) : patient.healthId != null) return false;
-        if (lastName != null ? !lastName.equals(patient.lastName) : patient.lastName != null) return false;
+        if (surName != null ? !surName.equals(patient.surName) : patient.surName != null) return false;
         if (middleName != null ? !middleName.equals(patient.middleName) : patient.middleName != null) return false;
         if (nationalId != null ? !nationalId.equals(patient.nationalId) : patient.nationalId != null) return false;
         if (occupation != null ? !occupation.equals(patient.occupation) : patient.occupation != null) return false;
@@ -74,9 +74,9 @@ public class Patient {
     public int hashCode() {
         int result = nationalId != null ? nationalId.hashCode() : 0;
         result = 31 * result + (healthId != null ? healthId.hashCode() : 0);
-        result = 31 * result + (firstName != null ? firstName.hashCode() : 0);
+        result = 31 * result + (givenName != null ? givenName.hashCode() : 0);
         result = 31 * result + (middleName != null ? middleName.hashCode() : 0);
-        result = 31 * result + (lastName != null ? lastName.hashCode() : 0);
+        result = 31 * result + (surName != null ? surName.hashCode() : 0);
         result = 31 * result + (dateOfBirth != null ? dateOfBirth.hashCode() : 0);
         result = 31 * result + (gender != null ? gender.hashCode() : 0);
         result = 31 * result + (occupation != null ? occupation.hashCode() : 0);
@@ -91,9 +91,9 @@ public class Patient {
         final StringBuilder sb = new StringBuilder("Patient{");
         sb.append("nationalId='").append(nationalId).append('\'');
         sb.append(", healthId='").append(healthId).append('\'');
-        sb.append(", firstName='").append(firstName).append('\'');
+        sb.append(", givenName='").append(givenName).append('\'');
         sb.append(", middleName='").append(middleName).append('\'');
-        sb.append(", lastName='").append(lastName).append('\'');
+        sb.append(", surName='").append(surName).append('\'');
         sb.append(", dateOfBirth='").append(dateOfBirth).append('\'');
         sb.append(", address=").append(address);
         sb.append(", gender='").append(gender).append('\'');
@@ -120,12 +120,12 @@ public class Patient {
         this.healthId = healthId;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getGivenName() {
+        return givenName;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setGivenName(String givenName) {
+        this.givenName = givenName;
     }
 
     public String getMiddleName() {
@@ -136,12 +136,12 @@ public class Patient {
         this.middleName = middleName;
     }
 
-    public String getLastName() {
-        return lastName;
+    public String getSurName() {
+        return surName;
     }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setSurName(String surName) {
+        this.surName = surName;
     }
 
     public String getDateOfBirth() {
