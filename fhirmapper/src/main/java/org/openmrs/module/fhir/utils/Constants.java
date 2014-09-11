@@ -17,7 +17,7 @@ public class Constants {
 
     public static final String EDUCATION_ATTRIBUTE = "education";
 
-    public static final String IDENTIFIER_SOURCE_NAME = "BAM";
+    public static final String IDENTIFIER_SOURCE_NAME = "BDH";
 
     public static final String EMR_PRIMARY_IDENTIFIER_TYPE = "emr.primaryIdentifierType";
 

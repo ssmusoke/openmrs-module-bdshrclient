@@ -37,10 +37,10 @@ public class PatientMapper {
             patient.setHealthId(healthId);
         }
 
-        patient.setFirstName(openMrsPatient.getGivenName());
+        patient.setGivenName(openMrsPatient.getGivenName());
         patient.setMiddleName(openMrsPatient.getMiddleName());
-        patient.setLastName(openMrsPatient.getFamilyName());
-        patient.setGender(bbsCodeService.getGenderCode(openMrsPatient.getGender()));
+        patient.setSurName(openMrsPatient.getFamilyName());
+        patient.setGender(openMrsPatient.getGender());
         patient.setDateOfBirth(new SimpleDateFormat(Constants.ISO_DATE_FORMAT).format(openMrsPatient.getBirthdate()));
 
         PersonAttribute occupation = getAttribute(openMrsPatient, Constants.OCCUPATION_ATTRIBUTE);

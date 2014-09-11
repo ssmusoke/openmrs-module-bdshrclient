@@ -13,8 +13,8 @@ public class PatientJsonTest {
     @Before
     public void setup() {
         patient = new Patient();
-        patient.setFirstName("Scott");
-        patient.setLastName("Tiger");
+        patient.setGivenName("Scott");
+        patient.setSurName("Tiger");
         patient.setGender("1");
         Address address = new Address();
         address.setDivisionId("10");
@@ -28,9 +28,9 @@ public class PatientJsonTest {
     @Test
     public void shouldExcludeEmptyNonMandatoryFields() throws Exception {
         patient.setMiddleName("");
-        String expected = "{\"first_name\":\"Scott\",\"last_name\":\"Tiger\",\"date_of_birth\":null,\"gender\":\"1\"" +
+        String expected = "{\"given_name\":\"Scott\",\"sur_name\":\"Tiger\",\"date_of_birth\":null,\"gender\":\"1\"" +
                 ",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"1020\"" +
-                ",\"upazilla_id\":\"102030\",\"city_corporation\":\"10203040\",\"ward\":\"1020304050\"}}";
+                ",\"upazilla_id\":\"102030\",\"city_corporation_id\":\"10203040\",\"ward_id\":\"1020304050\"}}";
         String actual = new ObjectMapper().writeValueAsString(patient);
         assertEquals(expected, actual);
     }
@@ -39,9 +39,9 @@ public class PatientJsonTest {
     public void shouldIncludeNonEmptyNonMandatoryFields() throws Exception {
         patient.setNationalId("nid-100");
         patient.setMiddleName(null);
-        String expected = "{\"nid\":\"nid-100\",\"first_name\":\"Scott\",\"last_name\":\"Tiger\",\"date_of_birth\":null," +
+        String expected = "{\"nid\":\"nid-100\",\"given_name\":\"Scott\",\"sur_name\":\"Tiger\",\"date_of_birth\":null," +
                 "\"gender\":\"1\",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"1020\"," +
-                "\"upazilla_id\":\"102030\",\"city_corporation\":\"10203040\",\"ward\":\"1020304050\"}}";
+                "\"upazilla_id\":\"102030\",\"city_corporation_id\":\"10203040\",\"ward_id\":\"1020304050\"}}";
         String actual = new ObjectMapper().writeValueAsString(patient);
         assertEquals(expected, actual);
     }

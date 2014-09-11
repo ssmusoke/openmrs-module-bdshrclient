@@ -98,10 +98,10 @@ public class PatientMapperTest {
         Patient p = new Patient();
         p.setNationalId(nationalId);
         p.setHealthId(healthId);
-        p.setFirstName(givenName);
+        p.setGivenName(givenName);
         p.setMiddleName(middleName);
-        p.setLastName(familyName);
-        p.setGender(bbsCodeService.getGenderCode(gender));
+        p.setSurName(familyName);
+        p.setGender(gender);
         p.setDateOfBirth(new SimpleDateFormat(Constants.ISO_DATE_FORMAT).format(dateOfBirth));
         p.setOccupation(bbsCodeService.getOccupationCode(occupation));
         p.setEducationLevel(bbsCodeService.getEducationCode(educationLevel));

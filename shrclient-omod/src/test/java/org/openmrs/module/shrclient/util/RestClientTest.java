@@ -26,7 +26,7 @@ public class RestClientTest {
         final String url = "/patient/100";
 
         final Patient patient = new Patient();
-        patient.setFirstName("John");
+        patient.setGivenName("John");
         final Address address = new Address();
         address.setDivisionId("div-100");
         patient.setAddress(address);
@@ -65,7 +65,7 @@ public class RestClientTest {
                         .withBody("hid-100")));
 
         final Patient patient = new Patient();
-        patient.setFirstName("John");
+        patient.setGivenName("John");
         final Address address = new Address();
         address.setDivisionId("div-100");
         patient.setAddress(address);

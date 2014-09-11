@@ -16,10 +16,10 @@ public class Address {
     @JsonProperty("upazilla_id")
     private String upazillaId;
 
-    @JsonProperty("city_corporation")
+    @JsonProperty("city_corporation_id")
     private String cityCorporationId;
 
-    @JsonProperty("ward")
+    @JsonProperty("ward_id")
     private String wardId;
 
     public Address() {
