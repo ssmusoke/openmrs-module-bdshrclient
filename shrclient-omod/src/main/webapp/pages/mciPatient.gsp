@@ -164,7 +164,7 @@
                        jq(".errorMessage").show();
                     }
                     else {
-                       window.location = "/registration/#/patient/" + responseData.uuid;
+                       window.location = "/bahmni/registration/#/patient/" + responseData.uuid;
                     }
                 }).fail(function(error) {
                    jq(".errorMessage").show();
