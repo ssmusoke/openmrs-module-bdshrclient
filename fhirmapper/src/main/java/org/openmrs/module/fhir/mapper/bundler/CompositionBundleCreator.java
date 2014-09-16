@@ -1,25 +1,15 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.AtomEntry;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Composition;
-import org.hl7.fhir.instance.model.DateAndTime;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.Enumeration;
-import org.hl7.fhir.instance.model.Identifier;
-import org.hl7.fhir.instance.model.ResourceReference;
+import org.hl7.fhir.instance.model.*;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.model.FHIRIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -66,9 +56,9 @@ public class CompositionBundleCreator {
         for (org.openmrs.Order order : orders) {
             for (EmrOrderResourceHandler handler : orderResourceHandlers) {
                 if (handler.handles(order)) {
-                    EmrResource mappedResource = handler.map(order, fhirEncounter, atomFeed);
-                    if(mappedResource != null) {
-                        addResourcesToBundle(asList(mappedResource), composition, atomFeed);
+                    List<EmrResource> mappedResources = handler.map(order, fhirEncounter, atomFeed);
+                    if (CollectionUtils.isNotEmpty(mappedResources)) {
+                        addResourcesToBundle(mappedResources, composition, atomFeed);
                     }
                 }
             }
@@ -94,7 +84,8 @@ public class CompositionBundleCreator {
 
     private void addAtomEntry(AtomFeed atomFeed, EmrResource resource) {
         AtomEntry resourceEntry = new AtomEntry();
-        resourceEntry.setId(new FHIRIdentifier(resource.getIdentifier().getValueSimple()).getExternalForm());
+        resourceEntry.setId(new FHIRIdentifier(resource.getIdentifier().getValueSimple()
+        ).getExternalForm());
         resourceEntry.setAuthorName(FHIRProperties.FHIR_AUTHOR);
         resourceEntry.setUpdated(new DateAndTime(new Date()));
         resourceEntry.setTitle(resource.getResourceName());

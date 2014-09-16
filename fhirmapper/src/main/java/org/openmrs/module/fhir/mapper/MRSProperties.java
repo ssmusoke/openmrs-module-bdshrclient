@@ -16,8 +16,6 @@ public class MRSProperties {
     public static final String MRS_CONCEPT_NAME_NON_CODED_CHIEF_COMPLAINT = "Non-Coded Chief Complaint";
     public static final String MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DURATION = "Chief Complaint Duration";
 
-    public static final String MRS_CONCEPT_NAME_VITALS = "Vitals";
-
     public static final String MRS_CONCEPT_NAME_FAMILY_HISTORY = "Family History";
     public static final String MRS_CONCEPT_NAME_PERSON = "Person";
     public static final String MRS_CONCEPT_NAME_RELATIONSHIP = "Relationship";
