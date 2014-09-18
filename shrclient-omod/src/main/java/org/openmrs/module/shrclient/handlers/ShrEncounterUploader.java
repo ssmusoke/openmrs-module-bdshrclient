@@ -102,4 +102,5 @@ public class ShrEncounterUploader implements EventWorker {
     @Override
     public void cleanUp(Event event) {
     }
+
 }

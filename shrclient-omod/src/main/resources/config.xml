@@ -30,15 +30,13 @@
     <!-- Module Activator -->
 	<activator>org.openmrs.module.shrclient.ShrClientActivator</activator>
 
-    <!--
     <advice>
-        <point>org.openmrs.module.shrclient.SomeService</point>
-        <class>org.openmrs.module.shrclient.advice.SomeAdvice</class>
+        <point>org.openmrs.api.EncounterService</point>
+        <class>org.openmrs.module.shrclient.advice.ShrEncounterAdvice</class>
     </advice>
--->
-	
+
 	<!-- Maps hibernate file's, if present -->
-	<!-- 
+	<!--
 	<mappingFiles>
         
 	</mappingFiles>
