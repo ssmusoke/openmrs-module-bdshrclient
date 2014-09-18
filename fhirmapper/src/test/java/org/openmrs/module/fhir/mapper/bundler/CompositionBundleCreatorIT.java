@@ -21,20 +21,8 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
 
     @Test
     public void shouldWireAllResourceHandlers() throws Exception {
-<<<<<<< HEAD
-        Field obsField = bundleCreator.getClass().getDeclaredField("obsResourceHandlers");
-        obsField.setAccessible(true);
-        Object obsInstances = obsField.get(bundleCreator);
-        assertNotNull(obsInstances);
-
-        Field orderField = bundleCreator.getClass().getDeclaredField("orderResourceHandlers");
-        orderField.setAccessible(true);
-        Object orderInstances = orderField.get(bundleCreator);
-        assertNotNull(orderInstances);
-=======
         ensureBundleCreatorHasResourceHandlers("obsResourceHandlers");
         ensureBundleCreatorHasResourceHandlers("orderResourceHandlers");
-
     }
 
     private void ensureBundleCreatorHasResourceHandlers(String handlerName) throws NoSuchFieldException, IllegalAccessException {
@@ -45,7 +33,6 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
         if (instances instanceof List) {
             assertTrue(((List) instances).size() > 0);
         }
->>>>>>> BDSHR-206 | adding interceptor to saveEncounter
     }
 
     @Test
