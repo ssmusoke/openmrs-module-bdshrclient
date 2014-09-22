@@ -41,12 +41,12 @@ public class BbsCodeServiceImplTest {
 
     @Test
     public void shouldGetEducationConceptNames() {
-        assertEquals("Uneducated", service.getEducationConcept("01"));
-        assertEquals("5th Pass and Below", service.getEducationConcept("02"));
-        assertEquals("6th to 9th", service.getEducationConcept("03"));
-        assertEquals("10th pass", service.getEducationConcept("04"));
-        assertEquals("12th pass", service.getEducationConcept("05"));
-        assertEquals("Graduate and Above", service.getEducationConcept("06"));
+        assertEquals("Uneducated", service.getEducationConceptName("01"));
+        assertEquals("5th Pass and Below", service.getEducationConceptName("02"));
+        assertEquals("6th to 9th", service.getEducationConceptName("03"));
+        assertEquals("10th pass", service.getEducationConceptName("04"));
+        assertEquals("12th pass", service.getEducationConceptName("05"));
+        assertEquals("Graduate and Above", service.getEducationConceptName("06"));
     }
 
     @Test
@@ -63,14 +63,14 @@ public class BbsCodeServiceImplTest {
 
     @Test
     public void shouldGetOccupationConceptNames() {
-        assertEquals("Unemployed", service.getOccupationConcept("01"));
-        assertEquals("Agriculture", service.getOccupationConcept("02"));
-        assertEquals("Student", service.getOccupationConcept("03"));
-        assertEquals("Government", service.getOccupationConcept("04"));
-        assertEquals("Business", service.getOccupationConcept("05"));
-        assertEquals("Housewife", service.getOccupationConcept("06"));
-        assertEquals("Labour", service.getOccupationConcept("07"));
-        assertEquals("Other", service.getOccupationConcept("08"));
+        assertEquals("Unemployed", service.getOccupationConceptName("01"));
+        assertEquals("Agriculture", service.getOccupationConceptName("02"));
+        assertEquals("Student", service.getOccupationConceptName("03"));
+        assertEquals("Government", service.getOccupationConceptName("04"));
+        assertEquals("Business", service.getOccupationConceptName("05"));
+        assertEquals("Housewife", service.getOccupationConceptName("06"));
+        assertEquals("Labour", service.getOccupationConceptName("07"));
+        assertEquals("Other", service.getOccupationConceptName("08"));
     }
 
 }

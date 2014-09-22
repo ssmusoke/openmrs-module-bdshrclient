@@ -8,9 +8,9 @@ public interface BbsCodeService {
 
     public String getEducationCode(String concept);
 
-    public String getEducationConcept(String code);
+    public String getEducationConceptName(String code);
 
     public String getOccupationCode(String concept);
 
-    public String getOccupationConcept(String code);
+    public String getOccupationConceptName(String code);
 }

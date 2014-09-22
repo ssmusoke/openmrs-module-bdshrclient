@@ -2,16 +2,7 @@ package org.openmrs.module.shrclient.service.impl;
 
 import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.model.AtomFeed;
-import org.openmrs.EncounterRole;
-import org.openmrs.PatientIdentifier;
-import org.openmrs.PatientIdentifierType;
-import org.openmrs.PersonAddress;
-import org.openmrs.PersonAttribute;
-import org.openmrs.PersonAttributeType;
-import org.openmrs.PersonName;
-import org.openmrs.Provider;
-import org.openmrs.User;
-import org.openmrs.Visit;
+import org.openmrs.*;
 import org.openmrs.api.AdministrationService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
@@ -87,8 +78,27 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         addPersonAttribute(personService, emrPatient, Constants.NATIONAL_ID_ATTRIBUTE, mciPatient.getNationalId());
         addPersonAttribute(personService, emrPatient, Constants.HEALTH_ID_ATTRIBUTE, mciPatient.getHealthId());
         addPersonAttribute(personService, emrPatient, Constants.PRIMARY_CONTACT_ATTRIBUTE, mciPatient.getPrimaryContact());
-        addPersonAttribute(personService, emrPatient, Constants.OCCUPATION_ATTRIBUTE, getConceptId(bbsCodeService.getOccupationConcept(mciPatient.getOccupation())));
-        addPersonAttribute(personService, emrPatient, Constants.EDUCATION_ATTRIBUTE, getConceptId(bbsCodeService.getEducationConcept(mciPatient.getEducationLevel())));
+
+        String occupationConceptName = bbsCodeService.getOccupationConceptName(mciPatient.getOccupation());
+        String occupationConceptId = getConceptId(occupationConceptName);
+        if (occupationConceptId != null) {
+            addPersonAttribute(personService, emrPatient, Constants.OCCUPATION_ATTRIBUTE, occupationConceptId);
+        } else {
+            logger.warn(String.format("Can't update occupation for patient. " +
+                    "Can't identify relevant concept for patient hid:%s, occupation:%s, code:%s",
+                    mciPatient.getHealthId(), occupationConceptName, mciPatient.getOccupation()));
+        }
+
+
+        String educationConceptName = bbsCodeService.getEducationConceptName(mciPatient.getEducationLevel());
+        String educationConceptId = getConceptId(educationConceptName);
+        if (educationConceptId != null) {
+            addPersonAttribute(personService, emrPatient, Constants.EDUCATION_ATTRIBUTE, educationConceptId);
+        } else {
+            logger.warn(String.format("Can't update education for patient. " +
+                            "Can't identify relevant concept for patient hid:%s, education:%s, code:%s",
+                    mciPatient.getHealthId(), educationConceptName, mciPatient.getEducationLevel()));
+        }
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Constants.ISO_DATE_FORMAT);
         try {
@@ -178,7 +188,8 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         if (conceptName == null) {
             return null;
         }
-        return String.valueOf(Context.getConceptService().getConceptByName(conceptName).getConceptId());
+        Concept concept = Context.getConceptService().getConceptByName(conceptName);
+        return concept != null ? String.valueOf(concept.getConceptId()) : null;
     }
 
     private void setCreator(org.openmrs.Patient emrPatient) {

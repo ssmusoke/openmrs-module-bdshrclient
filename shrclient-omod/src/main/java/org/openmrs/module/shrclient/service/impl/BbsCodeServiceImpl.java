@@ -23,7 +23,7 @@ public class BbsCodeServiceImpl implements BbsCodeService {
         return dao.getEducationCode(concept);
     }
 
-    public String getEducationConcept(String code) {
+    public String getEducationConceptName(String code) {
         return dao.getEducationConcept(code);
     }
 
@@ -31,7 +31,7 @@ public class BbsCodeServiceImpl implements BbsCodeService {
         return dao.getOccupationCode(concept);
     }
 
-    public String getOccupationConcept(String code) {
+    public String getOccupationConceptName(String code) {
         return dao.getOccupationConcept(code);
     }
 }
