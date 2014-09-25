@@ -13,6 +13,7 @@ import org.openmrs.module.atomfeed.transaction.support.AtomFeedSpringTransaction
 import org.springframework.aop.AfterReturningAdvice;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.List;
