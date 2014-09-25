@@ -28,7 +28,7 @@ import java.util.Set;
 import static org.openmrs.module.fhir.mapper.model.ObservationType.VISIT_DIAGNOSES;
 
 @Component("fhirDiagnosisMapper")
-public class DiagnosisMapper implements EmrResourceHandler {
+public class DiagnosisMapper implements EmrObsResourceHandler {
 
     @Autowired
     private IdMappingsRepository idMappingsRepository;

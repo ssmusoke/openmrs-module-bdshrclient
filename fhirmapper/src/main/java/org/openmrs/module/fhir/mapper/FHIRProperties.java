@@ -5,6 +5,8 @@ import java.util.Map;
 
 public class FHIRProperties {
 
+    public static final String LOINC_SOURCE_NAME = "LOINC";
+
     public static final String FHIR_CONDITION_CODE_DIAGNOSIS = "diagnosis";
     public static final String FHIR_CONDITION_CODE_DIAGNOSIS_DISPLAY = "Diagnosis";
 

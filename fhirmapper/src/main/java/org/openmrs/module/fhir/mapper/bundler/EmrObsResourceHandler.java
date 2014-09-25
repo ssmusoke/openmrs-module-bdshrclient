@@ -3,10 +3,11 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 import org.hl7.fhir.instance.model.Encounter;
 import org.openmrs.Obs;
+import org.openmrs.Order;
 
 import java.util.List;
 
-public interface EmrResourceHandler {
+public interface EmrObsResourceHandler {
     boolean handles(Obs observation);
     List<EmrResource> map(Obs obs, Encounter fhirEncounter);
 }

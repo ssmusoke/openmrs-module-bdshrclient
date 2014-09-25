@@ -4,11 +4,13 @@ package org.openmrs.module.fhir.utils;
 import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.*;
 import org.hl7.fhir.instance.model.Encounter;
+import org.hl7.fhir.instance.model.Resource;
 import org.openmrs.*;
 import org.openmrs.module.fhir.mapper.model.FHIRIdentifier;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 
+import javax.annotation.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -51,7 +53,7 @@ public class FHIRFeedHelper {
         return resource != null ? (Composition) resource : null;
     }
 
-    private static Resource identifyResource(List<AtomEntry<? extends Resource>> encounterBundleEntryList, ResourceType resourceType) {
+    public static Resource identifyResource(List<AtomEntry<? extends Resource>> encounterBundleEntryList, ResourceType resourceType) {
         for (AtomEntry<? extends org.hl7.fhir.instance.model.Resource> atomEntry : encounterBundleEntryList) {
             if (atomEntry.getResource().getResourceType().equals(resourceType)) {
                 return atomEntry.getResource();

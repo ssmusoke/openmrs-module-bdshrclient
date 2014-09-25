@@ -41,7 +41,9 @@ public class FhirRestClient {
             XmlComposer composer = new XmlComposer();
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             composer.compose(byteArrayOutputStream, bundle, true);
+            log.error(String.format("Posting data %s to url %s", bundle, url));
             log.info(String.format("Posting data %s to url %s", bundle, url));
+            log.debug(String.format("Posting data %s to url %s", bundle, url));
             return webClient.post(url, byteArrayOutputStream.toString(), "application/xml;charset=UTF-8");
         } catch (Exception e) {
             log.error("Error during http post. URL: " + url, e);

@@ -36,7 +36,7 @@ import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELA
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addReferenceCodes;
 
 @Component
-public class FamilyHistoryMapper implements EmrResourceHandler {
+public class FamilyHistoryMapper implements EmrObsResourceHandler {
 
     @Autowired
     IdMappingsRepository idMappingsRepository;

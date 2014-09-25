@@ -26,15 +26,15 @@ public class ShrPatientCreator implements EventWorker {
     private UserService userService;
     private PersonService personService;
     private PatientMapper patientMapper;
-    private RestClient restClient;
+    private RestClient mciRestClient;
 
     public ShrPatientCreator(PatientService patientService, UserService userService, PersonService personService,
-                             PatientMapper patientMapper, RestClient restClient) {
+                             PatientMapper patientMapper, RestClient mciRestClient) {
         this.patientService = patientService;
         this.userService = userService;
         this.personService = personService;
         this.patientMapper = patientMapper;
-        this.restClient = restClient;
+        this.mciRestClient = mciRestClient;
     }
 
     @Override
@@ -57,7 +57,7 @@ public class ShrPatientCreator implements EventWorker {
             Patient patient = patientMapper.map(openMrsPatient);
             log.debug("Patient: [ " + patient + "]");
 
-            String healthId = restClient.post(Constants.MCI_PATIENT_URL, patient);
+            String healthId = mciRestClient.post(Constants.MCI_PATIENT_URL, patient);
             updateOpenMrsPatientHealthId(openMrsPatient, healthId);
 
         } catch (Exception e) {

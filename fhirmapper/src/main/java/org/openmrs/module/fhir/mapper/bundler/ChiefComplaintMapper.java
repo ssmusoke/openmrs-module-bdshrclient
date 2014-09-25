@@ -27,7 +27,7 @@ import static org.openmrs.module.fhir.mapper.model.ObservationType.CHIEF_COMPLAI
 import static org.openmrs.module.fhir.mapper.model.ObservationType.HISTORY_AND_EXAMINATION;
 
 @Component
-public class ChiefComplaintMapper implements EmrResourceHandler {
+public class ChiefComplaintMapper implements EmrObsResourceHandler {
 
     @Autowired
     private IdMappingsRepository idMappingsRepository;
