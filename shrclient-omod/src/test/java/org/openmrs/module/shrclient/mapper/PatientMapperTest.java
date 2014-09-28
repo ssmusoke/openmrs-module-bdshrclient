@@ -99,7 +99,6 @@ public class PatientMapperTest {
         p.setNationalId(nationalId);
         p.setHealthId(healthId);
         p.setGivenName(givenName);
-        p.setMiddleName(middleName);
         p.setSurName(familyName);
         p.setGender(gender);
         p.setDateOfBirth(new SimpleDateFormat(Constants.ISO_DATE_FORMAT).format(dateOfBirth));

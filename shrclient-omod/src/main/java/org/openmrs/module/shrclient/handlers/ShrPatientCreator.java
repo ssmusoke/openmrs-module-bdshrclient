@@ -12,6 +12,7 @@ import org.openmrs.api.PersonService;
 import org.openmrs.api.UserService;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
+import org.openmrs.module.shrclient.mci.api.MciPatientUpdateResponse;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.util.RestClient;
 
@@ -21,6 +22,7 @@ import java.util.regex.Pattern;
 public class ShrPatientCreator implements EventWorker {
 
     private static final Logger log = Logger.getLogger(ShrPatientCreator.class);
+    public static final String OPENMRS_DAEMON_USER = "A4F30A1B-5EB9-11DF-A648-37A07F9C90FB";
 
     private PatientService patientService;
     private UserService userService;
@@ -57,8 +59,8 @@ public class ShrPatientCreator implements EventWorker {
             Patient patient = patientMapper.map(openMrsPatient);
             log.debug("Patient: [ " + patient + "]");
 
-            String healthId = mciRestClient.post(Constants.MCI_PATIENT_URL, patient);
-            updateOpenMrsPatientHealthId(openMrsPatient, healthId);
+            MciPatientUpdateResponse response = mciRestClient.post(Constants.MCI_PATIENT_URL, patient, MciPatientUpdateResponse.class);
+            updateOpenMrsPatientHealthId(openMrsPatient, response.getHealthId());
 
         } catch (Exception e) {
             log.error("Error while processing patient sync event.", e);
@@ -91,7 +93,7 @@ public class ShrPatientCreator implements EventWorker {
             healthIdAttribute.setValue(healthId);
         }
 
-        User shrClientSystemUser = userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME);
+        User shrClientSystemUser = getShrClientSystemUser();
         log.debug("SHR client system user: " + shrClientSystemUser);
         openMrsPatient.setChangedBy(shrClientSystemUser);
 
@@ -104,8 +106,14 @@ public class ShrPatientCreator implements EventWorker {
         if (changedByUser == null) {
             changedByUser = openMrsPatient.getCreator();
         }
-        User shrClientSystemUser = userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME);
+        User shrClientSystemUser = getShrClientSystemUser();
         return !shrClientSystemUser.getId().equals(changedByUser.getId());
+    }
+
+    private User getShrClientSystemUser() {
+        //OpenMRS Daemon user. UUID hardcoded in org.openmrs.api.Context.Daemon
+        return userService.getUserByUuid(OPENMRS_DAEMON_USER);
+        //return userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME);
     }
 
     String getPatientUuid(Event event) {

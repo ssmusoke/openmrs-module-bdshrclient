@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 import static org.junit.Assert.assertEquals;
 
 public class PatientJsonTest {
@@ -15,22 +17,21 @@ public class PatientJsonTest {
         patient = new Patient();
         patient.setGivenName("Scott");
         patient.setSurName("Tiger");
-        patient.setGender("1");
+        patient.setGender("M");
         Address address = new Address();
         address.setDivisionId("10");
-        address.setDistrictId("1020");
-        address.setUpazillaId("102030");
-        address.setCityCorporationId("10203040");
-        address.setWardId("1020304050");
+        address.setDistrictId("04");
+        address.setUpazillaId("09");
+        address.setCityCorporationId("20");
+        address.setWardId("01");
         patient.setAddress(address);
     }
 
     @Test
     public void shouldExcludeEmptyNonMandatoryFields() throws Exception {
-        patient.setMiddleName("");
-        String expected = "{\"given_name\":\"Scott\",\"sur_name\":\"Tiger\",\"date_of_birth\":null,\"gender\":\"1\"" +
-                ",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"1020\"" +
-                ",\"upazilla_id\":\"102030\",\"city_corporation_id\":\"10203040\",\"ward_id\":\"1020304050\"}}";
+        String expected = "{\"given_name\":\"Scott\",\"sur_name\":\"Tiger\",\"date_of_birth\":null,\"gender\":\"M\"" +
+                ",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"04\"" +
+                ",\"upazilla_id\":\"09\",\"city_corporation_id\":\"20\",\"ward_id\":\"01\"}}";
         String actual = new ObjectMapper().writeValueAsString(patient);
         assertEquals(expected, actual);
     }
@@ -38,12 +39,36 @@ public class PatientJsonTest {
     @Test
     public void shouldIncludeNonEmptyNonMandatoryFields() throws Exception {
         patient.setNationalId("nid-100");
-        patient.setMiddleName(null);
         String expected = "{\"nid\":\"nid-100\",\"given_name\":\"Scott\",\"sur_name\":\"Tiger\",\"date_of_birth\":null," +
-                "\"gender\":\"1\",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"1020\"," +
-                "\"upazilla_id\":\"102030\",\"city_corporation_id\":\"10203040\",\"ward_id\":\"1020304050\"}}";
+                "\"gender\":\"M\",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"04\"," +
+                "\"upazilla_id\":\"09\",\"city_corporation_id\":\"20\",\"ward_id\":\"01\"}}";
         String actual = new ObjectMapper().writeValueAsString(patient);
         assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldIncludeRelationsForPatient() throws Exception {
+        patient.setNationalId("nid-100");
+        patient.setRelations(getRelationsForPatient(patient));
+        String expected = "{\"nid\":\"nid-100\",\"given_name\":\"Scott\",\"sur_name\":\"Tiger\",\"date_of_birth\":null," +
+                "\"gender\":\"M\",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"04\"," +
+                "\"upazilla_id\":\"09\",\"city_corporation_id\":\"20\",\"ward_id\":\"01\"}," +
+                "\"relations\":[{"+"\"type\":\"mother\"," +
+                "\"given_name\":\"Mother of Scott\"," +
+                "\"sur_name\":\"Tiger\"}]}";
+        String actual = new ObjectMapper().writeValueAsString(patient);
+        System.out.println(actual);
+        assertEquals(expected, actual);
+    }
+
+    private Relation[] getRelationsForPatient(Patient patient) {
+        Relation aRel = new Relation();
+        aRel.setGivenName("Mother of " + patient.getGivenName());
+        aRel.setSurName(patient.getSurName());
+        aRel.setType("mother");
+        Relation[] relations = new Relation[1];
+        relations[0] = aRel;
+        return relations;
     }
 
 }

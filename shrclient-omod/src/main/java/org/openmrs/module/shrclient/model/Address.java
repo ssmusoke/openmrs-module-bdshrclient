@@ -1,7 +1,10 @@
 package org.openmrs.module.shrclient.model;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 public class Address {
     @JsonProperty("address_line")
@@ -22,16 +25,26 @@ public class Address {
     @JsonProperty("ward_id")
     private String wardId;
 
+    @JsonProperty("union_id")
+    @JsonInclude(NON_EMPTY)
+    private String unionId;
+
+    @JsonProperty("thana_id")
+    @JsonInclude(NON_EMPTY)
+    private String thanaId;
+
     public Address() {
     }
 
-    public Address(String addressLine, String divisionId, String districtId, String upazillaId, String cityCorporationId, String wardId) {
+    public Address(String addressLine, String divisionId, String districtId, String upazillaId, String cityCorporationId, String wardId, String unionId, String thanaId) {
         this.addressLine = addressLine;
         this.divisionId = divisionId;
         this.districtId = districtId;
         this.upazillaId = upazillaId;
         this.cityCorporationId = cityCorporationId;
         this.wardId = wardId;
+        this.unionId = unionId;
+        this.thanaId = thanaId;
     }
 
     @Override
@@ -48,6 +61,8 @@ public class Address {
         if (cityCorporationId != null ? !cityCorporationId.equals(address.cityCorporationId) : address.cityCorporationId != null)
             return false;
         if (wardId != null ? !wardId.equals(address.wardId) : address.wardId != null) return false;
+        if (unionId != null ? !unionId.equals(address.unionId) : address.unionId != null) return false;
+        if (thanaId != null ? !thanaId.equals(address.thanaId) : address.thanaId != null) return false;
 
         return true;
     }
@@ -60,6 +75,8 @@ public class Address {
         result = 31 * result + (upazillaId != null ? upazillaId.hashCode() : 0);
         result = 31 * result + (cityCorporationId != null ? cityCorporationId.hashCode() : 0);
         result = 31 * result + (wardId != null ? wardId.hashCode() : 0);
+        result = 31 * result + (unionId != null ? unionId.hashCode() : 0);
+        result = 31 * result + (thanaId != null ? thanaId.hashCode() : 0);
         return result;
     }
 
@@ -72,6 +89,8 @@ public class Address {
         sb.append(", upazillaId='").append(upazillaId).append('\'');
         sb.append(", cityCorporationId='").append(cityCorporationId).append('\'');
         sb.append(", wardId='").append(wardId).append('\'');
+        sb.append(", unionId='").append(unionId).append('\'');
+        sb.append(", thanaId='").append(thanaId).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -138,5 +157,31 @@ public class Address {
 
     public String createUserGeneratedWardId() {
         return divisionId + districtId + upazillaId + cityCorporationId + wardId;
+    }
+
+    public String getUnionId() {
+        return unionId;
+    }
+
+    public void setUnionId(String unionId) {
+        this.unionId = unionId;
+    }
+
+    public String getThanaId() {
+        return thanaId;
+    }
+
+    public void setThanaId(String thanaId) {
+        this.thanaId = thanaId;
+    }
+
+
+    public static String getAddressCodeForLevel(String code, int level) {
+        if (code.length() < (level * 2)) {
+            return ""; //fail instead?
+        }
+
+        int beginIndex = (level - 1) * 2;
+        return code.substring(beginIndex, beginIndex+ 2);
     }
 }

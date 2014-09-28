@@ -35,10 +35,14 @@ public class RestClient {
         }
     }
 
-    public String post(String url, Object data) {
+    public <T> T post(String url, Object data, Class<T> returnType) {
         try {
             String requestBody = mapper.writeValueAsString(data);
-            return webClient.post(url, requestBody, "application/json");
+            String response = webClient.post(url, requestBody, "application/json");
+            if (StringUtils.isNotBlank(requestBody)) {
+                return mapper.readValue(response, returnType);
+            }
+            return null;
         } catch (IOException e) {
             log.error("Error during http post. URL: " + url, e);
             throw new RuntimeException(e);

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 public class Patient {
 
@@ -17,10 +18,6 @@ public class Patient {
 
     @JsonProperty("given_name")
     private String givenName;
-
-    @JsonProperty("middle_name")
-    @JsonInclude(NON_EMPTY)
-    private String middleName;
 
     @JsonProperty("sur_name")
     private String surName;
@@ -39,12 +36,20 @@ public class Patient {
     @JsonInclude(NON_EMPTY)
     private String educationLevel;
 
-    @JsonProperty("fathers_first_name")
+    @JsonProperty("primary_contact")
     @JsonInclude(NON_EMPTY)
     private String primaryContact;
 
     @JsonProperty("present_address")
     private Address address;
+
+    @JsonProperty("bin_brn")
+    @JsonInclude(NON_EMPTY)
+    private String birthRegNumber;
+
+    @JsonProperty("relations")
+    @JsonInclude(NON_NULL)
+    private Relation[] relations;
 
     @Override
     public boolean equals(Object o) {
@@ -61,11 +66,11 @@ public class Patient {
         if (gender != null ? !gender.equals(patient.gender) : patient.gender != null) return false;
         if (healthId != null ? !healthId.equals(patient.healthId) : patient.healthId != null) return false;
         if (surName != null ? !surName.equals(patient.surName) : patient.surName != null) return false;
-        if (middleName != null ? !middleName.equals(patient.middleName) : patient.middleName != null) return false;
         if (nationalId != null ? !nationalId.equals(patient.nationalId) : patient.nationalId != null) return false;
         if (occupation != null ? !occupation.equals(patient.occupation) : patient.occupation != null) return false;
         if (primaryContact != null ? !primaryContact.equals(patient.primaryContact) : patient.primaryContact != null)
             return false;
+        if (birthRegNumber != null ? !birthRegNumber.equals(patient.birthRegNumber) : patient.birthRegNumber != null) return false;
 
         return true;
     }
@@ -75,7 +80,6 @@ public class Patient {
         int result = nationalId != null ? nationalId.hashCode() : 0;
         result = 31 * result + (healthId != null ? healthId.hashCode() : 0);
         result = 31 * result + (givenName != null ? givenName.hashCode() : 0);
-        result = 31 * result + (middleName != null ? middleName.hashCode() : 0);
         result = 31 * result + (surName != null ? surName.hashCode() : 0);
         result = 31 * result + (dateOfBirth != null ? dateOfBirth.hashCode() : 0);
         result = 31 * result + (gender != null ? gender.hashCode() : 0);
@@ -83,6 +87,7 @@ public class Patient {
         result = 31 * result + (educationLevel != null ? educationLevel.hashCode() : 0);
         result = 31 * result + (primaryContact != null ? primaryContact.hashCode() : 0);
         result = 31 * result + (address != null ? address.hashCode() : 0);
+        result = 31 * result + (birthRegNumber != null ? birthRegNumber.hashCode() : 0);
         return result;
     }
 
@@ -92,7 +97,6 @@ public class Patient {
         sb.append("nationalId='").append(nationalId).append('\'');
         sb.append(", healthId='").append(healthId).append('\'');
         sb.append(", givenName='").append(givenName).append('\'');
-        sb.append(", middleName='").append(middleName).append('\'');
         sb.append(", surName='").append(surName).append('\'');
         sb.append(", dateOfBirth='").append(dateOfBirth).append('\'');
         sb.append(", address=").append(address);
@@ -100,6 +104,7 @@ public class Patient {
         sb.append(", occupation='").append(occupation).append('\'');
         sb.append(", educationLevel='").append(educationLevel).append('\'');
         sb.append(", primaryContact='").append(primaryContact).append('\'');
+        sb.append(", birthRegNumber='").append(birthRegNumber).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -126,14 +131,6 @@ public class Patient {
 
     public void setGivenName(String givenName) {
         this.givenName = givenName;
-    }
-
-    public String getMiddleName() {
-        return middleName;
-    }
-
-    public void setMiddleName(String middleName) {
-        this.middleName = middleName;
     }
 
     public String getSurName() {
@@ -190,6 +187,22 @@ public class Patient {
 
     public void setPrimaryContact(String primaryContact) {
         this.primaryContact = primaryContact;
+    }
+
+    public String getBirthRegNumber() {
+        return birthRegNumber;
+    }
+
+    public void setBirthRegNumber(String birthRegNumber) {
+        this.birthRegNumber = birthRegNumber;
+    }
+
+    public Relation[] getRelations() {
+        return relations;
+    }
+
+    public void setRelations(Relation[] relations) {
+        this.relations = relations;
     }
 }
 

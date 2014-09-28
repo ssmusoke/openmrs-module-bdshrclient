@@ -83,7 +83,6 @@ public class MciPatientLookupController {
     private Map<String, Object> mapToPatientUIModel(Patient mciPatient) {
         Map<String, Object> patientModel = new HashMap<String, Object>();
         patientModel.put("firstName", mciPatient.getGivenName());
-        patientModel.put("middleName", mciPatient.getMiddleName());
         patientModel.put("lastName", mciPatient.getSurName());
         patientModel.put("gender", mciPatient.getGender());
         patientModel.put("nationalId", mciPatient.getNationalId());

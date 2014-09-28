@@ -1,5 +1,6 @@
 package org.openmrs.module.shrclient.mapper;
 
+import ca.uhn.hl7v2.model.v21.segment.ADD;
 import org.openmrs.PersonAddress;
 import org.openmrs.PersonAttribute;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
@@ -38,7 +39,6 @@ public class PatientMapper {
         }
 
         patient.setGivenName(openMrsPatient.getGivenName());
-        patient.setMiddleName(openMrsPatient.getMiddleName());
         patient.setSurName(openMrsPatient.getFamilyName());
         patient.setGender(openMrsPatient.getGender());
         patient.setDateOfBirth(new SimpleDateFormat(Constants.ISO_DATE_FORMAT).format(openMrsPatient.getBirthdate()));
@@ -87,10 +87,13 @@ public class PatientMapper {
         String cityCorporationId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), cityCorporation).get(0).getUserGeneratedId();
         String wardId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(4), ward).get(0).getUserGeneratedId();
 
-        return new Address(addressLine, getId(divisionId), getId(districtId), getId(upazillaId), getId(cityCorporationId), getId(wardId));
-    }
-
-    private String getId(String s) {
-        return substring(s, s.length() - 2);
+        Address presentAddress = new Address(addressLine,
+                Address.getAddressCodeForLevel(divisionId,1),
+                Address.getAddressCodeForLevel(districtId,2),
+                Address.getAddressCodeForLevel(upazillaId,3),
+                Address.getAddressCodeForLevel(cityCorporationId,4),
+                Address.getAddressCodeForLevel(wardId,5),
+                null, null);
+        return presentAddress;
     }
 }

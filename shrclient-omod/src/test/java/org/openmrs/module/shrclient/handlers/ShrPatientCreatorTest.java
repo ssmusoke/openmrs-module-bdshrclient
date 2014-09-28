@@ -51,7 +51,7 @@ public class ShrPatientCreatorTest {
         User shrUser = new User();
         shrUser.setId(2);
         openMrsPatient.setCreator(shrUser);
-        when(userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME)).thenReturn(shrUser);
+        when(userService.getUserByUuid(ShrPatientCreator.OPENMRS_DAEMON_USER)).thenReturn(shrUser);
 
         assertFalse(shrPatientCreator.shouldSyncPatient(openMrsPatient));
     }
@@ -64,7 +64,7 @@ public class ShrPatientCreatorTest {
         User shrUser = new User();
         shrUser.setId(2);
         openMrsPatient.setCreator(bahmniUser);
-        when(userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME)).thenReturn(shrUser);
+        when(userService.getUserByUuid(ShrPatientCreator.OPENMRS_DAEMON_USER)).thenReturn(shrUser);
 
         assertTrue(shrPatientCreator.shouldSyncPatient(openMrsPatient));
     }
