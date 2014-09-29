@@ -116,6 +116,7 @@
 
         <script id="mciPatientTmpl" type="x-tmpl-mustache">
             <ul class="mciPatientInfo">
+                {{#.}}
                 <li>
                     <div id="resultDetails" class="result-details">
                         <div><span class="patient-name">{{ firstName }} {{ middleName }} {{ lastName }} </span> <span class="gender">({{ gender }})</span></div>
@@ -125,6 +126,7 @@
 
                     <button data-hid="{{ healthId }}" class="download-btn btn">Download</button>
                 </li>
+                {{/.}}
             </ul>
         </script>
 
@@ -157,7 +159,7 @@
                 jq(".errorMessage").hide();
                 jq.ajax({
                    type: "GET",
-                   url: "/openmrs/ws/mci/download?hid=" + jq(".download-btn").attr("data-hid"),
+                   url: "/openmrs/ws/mci/download?hid=" + jq(e.target).attr("data-hid"),
                    dataType: "json"
                 }).done(function( responseData ) {
                     if (!responseData) {
@@ -171,15 +173,15 @@
                 });
             }
 
-            function renderMciPatient(patient) {
+            function renderMciPatient(patients) {
                 jq(".download-btn").unbind("click", downloadMciPatient);
-                if (!patient) {
+                if (!patients) {
                     jq("#searchResults").html("No patient was found in National Registry");
                     return;
                 }
                 var template = jq('#mciPatientTmpl').html();
                 Mustache.parse(template);
-                var rendered = Mustache.render(template, patient);
+                var rendered = Mustache.render(template, patients);
                 jq('#searchResults').html(rendered);
                 jq(".download-btn").bind("click", downloadMciPatient);
             }

@@ -13,7 +13,7 @@ import org.openmrs.api.UserService;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.mci.api.MciPatientUpdateResponse;
-import org.openmrs.module.shrclient.model.Patient;
+import org.openmrs.module.shrclient.mci.api.model.Patient;
 import org.openmrs.module.shrclient.util.RestClient;
 
 import java.util.regex.Matcher;

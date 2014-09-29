@@ -1,4 +1,4 @@
-package org.openmrs.module.shrclient.model;
+package org.openmrs.module.shrclient.mci.api.model;
 
 
 public class EncounterResponse {

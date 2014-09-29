@@ -15,7 +15,7 @@ import org.openmrs.api.UserService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.model.EncounterResponse;
+import org.openmrs.module.shrclient.mci.api.model.EncounterResponse;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.FhirRestClient;
 

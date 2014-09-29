@@ -1,13 +1,12 @@
 package org.openmrs.module.shrclient.mapper;
 
-import ca.uhn.hl7v2.model.v21.segment.ADD;
 import org.openmrs.PersonAddress;
 import org.openmrs.PersonAttribute;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.utils.Constants;
-import org.openmrs.module.shrclient.model.Address;
-import org.openmrs.module.shrclient.model.Patient;
+import org.openmrs.module.shrclient.mci.api.model.Address;
+import org.openmrs.module.shrclient.mci.api.model.Patient;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 
 import java.text.SimpleDateFormat;

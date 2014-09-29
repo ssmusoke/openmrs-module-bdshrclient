@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.openmrs.module.shrclient.mci.api.MciPatientUpdateResponse;
-import org.openmrs.module.shrclient.model.Address;
-import org.openmrs.module.shrclient.model.Patient;
+import org.openmrs.module.shrclient.mci.api.model.Address;
+import org.openmrs.module.shrclient.mci.api.model.Patient;
 import org.junit.Rule;
 import org.junit.Test;
 

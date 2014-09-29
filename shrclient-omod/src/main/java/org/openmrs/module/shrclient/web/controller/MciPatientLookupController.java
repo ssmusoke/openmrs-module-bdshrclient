@@ -3,8 +3,9 @@ package org.openmrs.module.shrclient.web.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.StringUtils;
-import org.openmrs.module.shrclient.model.Address;
-import org.openmrs.module.shrclient.model.Patient;
+import org.openmrs.module.shrclient.mci.api.MciPatientSearchResponse;
+import org.openmrs.module.shrclient.mci.api.model.Address;
+import org.openmrs.module.shrclient.mci.api.model.Patient;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.fhir.utils.Constants;
@@ -21,10 +22,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 @Controller
 @RequestMapping(value = "/mci")
@@ -43,17 +41,37 @@ public class MciPatientLookupController {
     @ResponseBody
     public Object search(MciPatientSearchRequest request) {
         Patient mciPatient = null;
+
+        List<Patient> patientList = new ArrayList<Patient>();
+
         if (StringUtils.isNotBlank(request.getNid())) {
-            mciPatient = searchPatientByNationalId(request.getNid());
+            Patient[] patients = searchPatientByNationalId(request.getNid());
+            if ((patients != null) && (patients.length > 0)) {
+                patientList.addAll(Arrays.asList(patients));
+            }
 
         } else if (StringUtils.isNotBlank(request.getHid())) {
             mciPatient = searchPatientByHealthId(request.getHid());
+            if (mciPatient != null) {
+                patientList.add(mciPatient);
+            }
+        }
+        
+        if (!patientList.isEmpty()) {
+            return mapSearchResults(patientList);
         }
 
-        if (mciPatient != null) {
-            return mapToPatientUIModel(mciPatient);
-        }
         return null;
+    }
+
+    private Object[] mapSearchResults(List<Patient> patientList) {
+        Object[] results = new Object[patientList.size()];
+        int idx = 0;
+        for (Patient patient : patientList) {
+            results[idx] = mapToPatientUIModel(patient);
+            idx++;
+        }
+        return results;
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/download")
@@ -102,9 +120,10 @@ public class MciPatientLookupController {
         return patientModel;
     }
 
-    private Patient searchPatientByNationalId(String nid) {
+    private Patient[] searchPatientByNationalId(String nid) {
         String url = String.format("%s?nid=%s", Constants.MCI_PATIENT_URL, nid);
-        return getMciRestClient().get(url, Patient.class);
+        MciPatientSearchResponse mciPatientSearchResponse = getMciRestClient().get(url, MciPatientSearchResponse.class);
+        return mciPatientSearchResponse.getResults();
     }
 
     private Patient searchPatientByHealthId(String hid) {

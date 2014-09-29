@@ -1,10 +1,11 @@
-package org.openmrs.module.shrclient.model;
+package org.openmrs.module.shrclient.mci.api.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.concurrent.locks.ReentrantLock;
+import org.openmrs.module.shrclient.mci.api.model.Address;
+import org.openmrs.module.shrclient.mci.api.model.Patient;
+import org.openmrs.module.shrclient.mci.api.model.Relation;
 
 import static org.junit.Assert.assertEquals;
 
