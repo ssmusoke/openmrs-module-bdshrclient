@@ -3,13 +3,7 @@ package org.openmrs.module.shrclient.service.impl;
 import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.openmrs.*;
-import org.openmrs.api.AdministrationService;
-import org.openmrs.api.EncounterService;
-import org.openmrs.api.PatientService;
-import org.openmrs.api.PersonService;
-import org.openmrs.api.ProviderService;
-import org.openmrs.api.UserService;
-import org.openmrs.api.VisitService;
+import org.openmrs.api.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
@@ -59,6 +53,9 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     @Autowired
     private ProviderService providerService;
+
+    @Autowired
+    private OrderService orderService;
 
     @Autowired
     private IdMappingsRepository idMappingsRepository;
@@ -151,6 +148,13 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         setEncounterProviderAndCreator(newEmrEncounter);
         addEncounterToIdMapping(newEmrEncounter, fhirEncounterId);
         visitService.saveVisit(newEmrEncounter.getVisit());
+        saveOrders(newEmrEncounter);
+    }
+
+    private void saveOrders(Encounter newEmrEncounter) {
+        for (Order order : newEmrEncounter.getOrders()) {
+            orderService.saveOrder(order, null);
+        }
     }
 
     private void addEncounterToIdMapping(org.openmrs.Encounter newEmrEncounter, String externalUuid) {

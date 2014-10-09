@@ -2,6 +2,9 @@ package org.openmrs.module.fhir.mapper;
 
 
 public class MRSProperties {
+    public static final String MRS_OUT_PATIENT_VISIT_TYPE = "OPD";
+    public static final String MRS_IN_PATIENT_VISIT_TYPE = "IPD";
+
     public static final String MRS_DIAGNOSIS_STATUS_PRESUMED = "Presumed";
     public static final String MRS_DIAGNOSIS_STATUS_CONFIRMED = "Confirmed";
     public static final String MRS_DIAGNOSIS_SEVERITY_PRIMARY = "Primary";
@@ -25,5 +28,6 @@ public class MRSProperties {
     public static final String MRS_CONCEPT_NAME_RELATIONSHIP_NOTES = "Relationship Notes";
     public static final String MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS = "Relationship Diagnosis";
 
-
+    public static final String MRS_CARE_SETTING_FOR_OUTPATIENT = "Outpatient";
+    public static final String MRS_CARE_SETTING_FOR_INPATIENT = "Inpatient";
 }

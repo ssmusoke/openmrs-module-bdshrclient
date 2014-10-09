@@ -2,7 +2,10 @@ package org.openmrs.module.fhir.mapper.emr;
 
 
 import org.apache.commons.lang.time.DateUtils;
-import org.hl7.fhir.instance.model.*;
+import org.hl7.fhir.instance.model.AtomEntry;
+import org.hl7.fhir.instance.model.AtomFeed;
+import org.hl7.fhir.instance.model.Encounter;
+import org.hl7.fhir.instance.model.Resource;
 import org.joda.time.DateTime;
 import org.openmrs.EncounterType;
 import org.openmrs.Patient;
@@ -17,7 +20,9 @@ import org.springframework.stereotype.Component;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.Date;
+
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_IN_PATIENT_VISIT_TYPE;
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_OUT_PATIENT_VISIT_TYPE;
 
 @Component
 public class FHIREncounterMapper {
@@ -46,12 +51,8 @@ public class FHIREncounterMapper {
         final String encounterTypeName = fhirEncounter.getType().get(0).getTextSimple();
         final EncounterType encounterType = encounterService.getEncounterType(encounterTypeName);
         emrEncounter.setEncounterType(encounterType);
-        org.hl7.fhir.instance.model.Enumeration<Encounter.EncounterClass> fhirEncounterClass = fhirEncounter.getClass_();
 
-        String visitType = "OPD";
-        if (fhirEncounterClass.getValue().equals(Encounter.EncounterClass.inpatient)) {
-           visitType = "IPD";
-        }
+        String visitType = getVisitType(fhirEncounter);
         emrEncounter.setPatient(emrPatient);
         for (AtomEntry<? extends Resource> atomEntry : feed.getEntryList()) {
             final Resource resource = atomEntry.getResource();
@@ -68,9 +69,14 @@ public class FHIREncounterMapper {
         return emrEncounter;
     }
 
+    private String getVisitType(Encounter fhirEncounter) {
+        org.hl7.fhir.instance.model.Enumeration<Encounter.EncounterClass> fhirEncounterClass = fhirEncounter.getClass_();
+        return fhirEncounterClass.getValue().equals(Encounter.EncounterClass.inpatient) ? MRS_IN_PATIENT_VISIT_TYPE : MRS_OUT_PATIENT_VISIT_TYPE;
+    }
+
     public Visit findOrInitializeVisit(Patient patient, Date visitDate, String visitType) {
         Visit applicableVisit = getVisitForPatientWithinDates(patient, visitDate);
-        if (applicableVisit != null){
+        if (applicableVisit != null) {
             return applicableVisit;
         }
         Visit visit = new Visit();
@@ -84,12 +90,12 @@ public class FHIREncounterMapper {
         DateTime startTime = new DateTime(visitDate);
         if (nextVisit == null) {
             if (!DateUtils.isSameDay(visitDate, new Date())) {
-                Date stopTime = startTime.withTime(23,59, 59, 000).toDate();
+                Date stopTime = startTime.withTime(23, 59, 59, 000).toDate();
                 visit.setStopDatetime(stopTime);
             }
         } else {
             DateTime nextVisitStartTime = new DateTime(nextVisit.getStartDatetime());
-            DateTime visitStopDate = startTime.withTime(23,59, 59, 000);
+            DateTime visitStopDate = startTime.withTime(23, 59, 59, 000);
             boolean isEndTimeBeforeNextVisitStart = visitStopDate.isBefore(nextVisitStartTime);
             if (!isEndTimeBeforeNextVisitStart) {
                 visitStopDate = nextVisitStartTime.minusSeconds(1);

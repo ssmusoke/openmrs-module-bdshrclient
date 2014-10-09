@@ -1,6 +1,5 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.formats.JsonParser;
 import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.Composition;
@@ -13,11 +12,11 @@ import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
+import org.openmrs.module.fhir.TestHelper;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.Resource;
 
 import java.util.List;
 import java.util.Set;
@@ -43,9 +42,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
     ConceptService conceptService;
 
     public ParserBase.ResourceOrFeed loadSampleFHIREncounter() throws Exception {
-        Resource resource = springContext.getResource("classpath:testFHIREncounter.json");
-        final ParserBase.ResourceOrFeed parsedResource =
-                new JsonParser().parseGeneral(resource.getInputStream());
+        ParserBase.ResourceOrFeed parsedResource = new TestHelper().loadSampleFHIREncounter("classpath:testFHIREncounter.xml", springContext);
         return parsedResource;
     }
 
