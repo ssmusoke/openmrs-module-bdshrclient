@@ -68,6 +68,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         assertEquals(providerService.getProvider(22), order.getOrderer());
         assertEquals(orderService.getOrderType(16), order.getOrderType());
         assertEquals(orderService.getCareSetting(1), order.getCareSetting());
+        assertEquals("2008-08-01 00:00:00.0", order.getDateActivated().toString());
     }
 
     private Encounter mapOrder() {

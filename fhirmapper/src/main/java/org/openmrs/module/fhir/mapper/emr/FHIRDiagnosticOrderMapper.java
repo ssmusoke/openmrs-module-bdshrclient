@@ -62,7 +62,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResource {
         testOrder.setPatient(patient);
         testOrder.setEncounter(encounter);
         testOrder.setOrderer(getShrClientSystemProvider(encounter));
-        testOrder.setDateCreated(new Date());
+        testOrder.setDateActivated(encounter.getEncounterDatetime());
         testOrder.setCareSetting(orderService.getCareSettingByName(getCareSetting(feed, diagnosticOrder)));
         encounter.addOrder(testOrder);
     }

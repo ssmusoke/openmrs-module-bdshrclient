@@ -53,7 +53,6 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
 
     private void addItemsToDiagnosticOrder(Order order, DiagnosticOrder diagnosticOrder, AtomFeed feed) {
         DiagnosticOrder.DiagnosticOrderItemComponent orderItem = diagnosticOrder.addItem();
-        findOrderName(order);
         CodeableConcept orderCode = findOrderName(order);
         if (orderCode == null) return;
         orderItem.setCode(orderCode);
@@ -138,7 +137,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
 
         Identifier identifier = specimen.addIdentifier();
         identifier.setValueSimple(UUID.randomUUID().toString());
-
+//        Sending order date activated as only ELIS - MRS sync is done. Needs to be changed when we order from MRS
         specimen.setReceivedTimeSimple(new DateAndTime(order.getDateActivated()));
         CodeableConcept codeableConcept = new CodeableConcept();
         Coding coding = codeableConcept.addCoding();
