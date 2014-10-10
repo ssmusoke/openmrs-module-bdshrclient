@@ -28,6 +28,10 @@ public class MRSProperties {
     public static final String MRS_CONCEPT_NAME_RELATIONSHIP_NOTES = "Relationship Notes";
     public static final String MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS = "Relationship Diagnosis";
 
+    public static final String MRS_CONCEPT_NAME_LAB_NOTES = "LAB_NOTES";
+
     public static final String MRS_CARE_SETTING_FOR_OUTPATIENT = "Outpatient";
     public static final String MRS_CARE_SETTING_FOR_INPATIENT = "Inpatient";
+
+    public static final String MRS_ENC_TYPE_LAB_RESULT = "LAB_RESULT";
 }

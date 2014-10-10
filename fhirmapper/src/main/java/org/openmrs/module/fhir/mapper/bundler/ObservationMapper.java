@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_ENC_TYPE_LAB_RESULT;
 import static org.openmrs.module.fhir.mapper.model.ObservationType.FAMILY_HISTORY;
 import static org.openmrs.module.fhir.mapper.model.ObservationType.HISTORY_AND_EXAMINATION;
 import static org.openmrs.module.fhir.mapper.model.ObservationType.VISIT_DIAGNOSES;
@@ -38,8 +39,11 @@ public class ObservationMapper implements EmrObsResourceHandler {
     @Override
     public boolean handles(Obs observation) {
         CompoundObservation obs = new CompoundObservation(observation);
-        return !(obs.isOfType(HISTORY_AND_EXAMINATION) || obs.isOfType(VISIT_DIAGNOSES) || obs.isOfType(FAMILY_HISTORY));
-
+        if (obs.isOfType(HISTORY_AND_EXAMINATION) || obs.isOfType(VISIT_DIAGNOSES) || obs.isOfType(FAMILY_HISTORY)) {
+            return false;
+        }
+        String encounterType = observation.getEncounter().getEncounterType().getName();
+        return !MRS_ENC_TYPE_LAB_RESULT.equals(encounterType);
     }
 
     @Override
