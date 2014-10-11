@@ -2,6 +2,7 @@ package org.openmrs.module.fhir.mapper.bundler.condition;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.hl7.fhir.instance.model.*;
+import org.hl7.fhir.instance.model.Boolean;
 import org.openmrs.Concept;
 import org.openmrs.Obs;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -22,7 +23,7 @@ public class ObservationValueMapper {
         Numeric {
             @Override
             public Type readValue(Obs obs, IdMappingsRepository idMappingsRepository) {
-                if (null != obs.getValueNumeric()) {
+                if (obs.getConcept().getDatatype().isNumeric()) {
                     Decimal decimal = new Decimal();
                     decimal.setValue(new BigDecimal(obs.getValueNumeric()));
                     return decimal;
@@ -34,7 +35,7 @@ public class ObservationValueMapper {
         Text {
             @Override
             public Type readValue(Obs obs, IdMappingsRepository idMappingsRepository) {
-                if (null != obs.getValueText()) {
+                if (obs.getConcept().getDatatype().isText()) {
                     String_ text = new String_();
                     text.setValue(obs.getValueText());
                     return text;
@@ -46,8 +47,8 @@ public class ObservationValueMapper {
         Coded {
             @Override
             public Type readValue(Obs obs, IdMappingsRepository idMappingsRepository) {
-                Concept valueCoded = obs.getValueCoded();
-                if (null != valueCoded) {
+                if (obs.getConcept().getDatatype().isCoded()) {
+                    Concept valueCoded = obs.getValueCoded();
                     CodeableConcept concept = addReferenceCodes(valueCoded, idMappingsRepository);
                     if (CollectionUtils.isEmpty(concept.getCoding())) {
                         Coding coding = concept.addCoding();
