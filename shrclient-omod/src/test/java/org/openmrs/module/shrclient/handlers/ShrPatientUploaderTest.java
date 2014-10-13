@@ -22,7 +22,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class ShrPatientCreatorTest {
+public class ShrPatientUploaderTest {
 
     @Mock
     private PatientService patientService;
@@ -35,14 +35,14 @@ public class ShrPatientCreatorTest {
     @Mock
     private RestClient restClient;
 
-    private ShrPatientCreator shrPatientCreator;
+    private ShrPatientUploader shrPatientUploader;
 
     private String healthId = "hid-200";
 
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        shrPatientCreator = new ShrPatientCreator(patientService, userService, personService, patientMapper, restClient);
+        shrPatientUploader = new ShrPatientUploader(patientService, userService, personService, patientMapper, restClient);
     }
 
     @Test
@@ -51,9 +51,9 @@ public class ShrPatientCreatorTest {
         User shrUser = new User();
         shrUser.setId(2);
         openMrsPatient.setCreator(shrUser);
-        when(userService.getUserByUuid(ShrPatientCreator.OPENMRS_DAEMON_USER)).thenReturn(shrUser);
+        when(userService.getUserByUuid(ShrPatientUploader.OPENMRS_DAEMON_USER)).thenReturn(shrUser);
 
-        assertFalse(shrPatientCreator.shouldSyncPatient(openMrsPatient));
+        assertFalse(shrPatientUploader.shouldSyncPatient(openMrsPatient));
     }
 
     @Test
@@ -64,23 +64,23 @@ public class ShrPatientCreatorTest {
         User shrUser = new User();
         shrUser.setId(2);
         openMrsPatient.setCreator(bahmniUser);
-        when(userService.getUserByUuid(ShrPatientCreator.OPENMRS_DAEMON_USER)).thenReturn(shrUser);
+        when(userService.getUserByUuid(ShrPatientUploader.OPENMRS_DAEMON_USER)).thenReturn(shrUser);
 
-        assertTrue(shrPatientCreator.shouldSyncPatient(openMrsPatient));
+        assertTrue(shrPatientUploader.shouldSyncPatient(openMrsPatient));
     }
 
     @Test
     public void shouldGetPatientUuidFromEvent() {
         final String uuid = "123abc456";
         Event event = new Event("id100", "/openmrs/ws/rest/v1/patient/" + uuid + "?v=full");
-        assertEquals(uuid, shrPatientCreator.getPatientUuid(event));
+        assertEquals(uuid, shrPatientUploader.getPatientUuid(event));
     }
 
     @Test
     public void shouldNotUpdateOpenMrsPatient_WhenHealthIdIsBlankOrNull() {
-        shrPatientCreator.updateOpenMrsPatientHealthId(new org.openmrs.Patient(), " ");
+        shrPatientUploader.updateOpenMrsPatientHealthId(new org.openmrs.Patient(), " ");
         verify(patientService, never()).savePatient(any(org.openmrs.Patient.class));
-        shrPatientCreator.updateOpenMrsPatientHealthId(new org.openmrs.Patient(), null);
+        shrPatientUploader.updateOpenMrsPatientHealthId(new org.openmrs.Patient(), null);
         verify(patientService, never()).savePatient(any(org.openmrs.Patient.class));
     }
 
@@ -99,7 +99,7 @@ public class ShrPatientCreatorTest {
         openMrsPatientAttributes.add(healthIdAttribute);
         openMrsPatient.setAttributes(openMrsPatientAttributes);
 
-        shrPatientCreator.updateOpenMrsPatientHealthId(openMrsPatient, healthId);
+        shrPatientUploader.updateOpenMrsPatientHealthId(openMrsPatient, healthId);
         verify(patientService, never()).savePatient(any(org.openmrs.Patient.class));
     }
 
@@ -112,7 +112,7 @@ public class ShrPatientCreatorTest {
         openMrsPatient.setAttributes(openMrsPatientAttributes);
 
         when(personService.getPersonAttributeTypeByName(Constants.HEALTH_ID_ATTRIBUTE)).thenReturn(healthIdAttributeType);
-        shrPatientCreator.updateOpenMrsPatientHealthId(openMrsPatient, healthId);
+        shrPatientUploader.updateOpenMrsPatientHealthId(openMrsPatient, healthId);
         verify(patientService).savePatient(any(org.openmrs.Patient.class));
     }
 }

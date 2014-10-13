@@ -19,9 +19,9 @@ import org.openmrs.module.shrclient.util.RestClient;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ShrPatientCreator implements EventWorker {
+public class ShrPatientUploader implements EventWorker {
 
-    private static final Logger log = Logger.getLogger(ShrPatientCreator.class);
+    private static final Logger log = Logger.getLogger(ShrPatientUploader.class);
     public static final String OPENMRS_DAEMON_USER = "A4F30A1B-5EB9-11DF-A648-37A07F9C90FB";
 
     private PatientService patientService;
@@ -30,8 +30,8 @@ public class ShrPatientCreator implements EventWorker {
     private PatientMapper patientMapper;
     private RestClient mciRestClient;
 
-    public ShrPatientCreator(PatientService patientService, UserService userService, PersonService personService,
-                             PatientMapper patientMapper, RestClient mciRestClient) {
+    public ShrPatientUploader(PatientService patientService, UserService userService, PersonService personService,
+                              PatientMapper patientMapper, RestClient mciRestClient) {
         this.patientService = patientService;
         this.userService = userService;
         this.personService = personService;

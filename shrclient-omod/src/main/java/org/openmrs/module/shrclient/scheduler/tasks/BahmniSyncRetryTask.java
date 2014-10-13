@@ -12,6 +12,7 @@ public class BahmniSyncRetryTask extends AbstractTask {
     @Override
     public void execute() {
         log.debug("SCHEDULED JOB:SHR Patient retry Sync Task");
+        new ShrNotifier().retryPatient();
         new ShrNotifier().retryEncounter();
     }
 }

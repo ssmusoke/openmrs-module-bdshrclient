@@ -109,7 +109,7 @@ public class MciPatientLookupController {
 
         Map<String, String> addressModel = new HashMap<String, String>();
         Address address = mciPatient.getAddress();
-        addressModel.put("address_line", address.getAddressLine());
+        addressModel.put("addressLine", address.getAddressLine());
         addressModel.put("division", getAddressEntryText(address.getDivisionId()));
         addressModel.put("district", getAddressEntryText(address.createUserGeneratedDistrictId()));
         addressModel.put("upazilla", getAddressEntryText(address.createUserGeneratedUpazillaId()));

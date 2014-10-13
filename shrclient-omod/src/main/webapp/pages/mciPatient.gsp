@@ -121,7 +121,7 @@
                     <div id="resultDetails" class="result-details">
                         <div><span class="patient-name">{{ firstName }} {{ middleName }} {{ lastName }} </span> <span class="gender">({{ gender }})</span></div>
                         <div class="father-info">Primary Contact: {{ primaryContact }} </div>
-                        <span class="address">Address: {{ address.union }}, {{ address.upazilla }}, {{ address.district }}, {{ address.division }}</span>
+                        <span class="address">Address: {{address.addressLine}}, {{ address.union }}, {{ address.upazilla }}, {{ address.district }}, {{ address.division }}</span>
                     </div>
 
                     <button data-hid="{{ healthId }}" class="download-btn btn">Download</button>
