@@ -5,16 +5,17 @@ import org.hl7.fhir.instance.model.*;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.lang.Boolean;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.hl7.fhir.instance.model.DiagnosticReport.DiagnosticReportStatus;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_LAB_NOTES;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_ENC_TYPE_LAB_RESULT;
+import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
 @Component("testResultMapper")
 public class TestResultMapper implements EmrObsResourceHandler {
@@ -34,13 +35,27 @@ public class TestResultMapper implements EmrObsResourceHandler {
     public List<EmrResource> map(Obs obs, Encounter fhirEncounter) {
         List<EmrResource> emrResourceList = new ArrayList<EmrResource>();
         if (obs != null) {
-            for (Obs observation : obs.getGroupMembers()) {
-                DiagnosticReport diagnosticReport = build(observation, fhirEncounter, emrResourceList);
-                EmrResource emrResource = new EmrResource("Diagnostic Report", Arrays.asList(diagnosticReport.getIdentifier()), diagnosticReport);
-                emrResourceList.add(emrResource);
+            if (!isPanel(obs)) {
+                buildTestResult(obs, fhirEncounter, emrResourceList);
+            } else {
+                for (Obs observation : obs.getGroupMembers()) {
+                    buildTestResult(observation, fhirEncounter, emrResourceList);
+                }
             }
         }
         return emrResourceList;
+    }
+
+    private Boolean isPanel(Obs obs) {
+        return obs.getConcept().getConceptClass().getName().equals(MRS_CONCEPT_CLASS_LAB_SET);
+    }
+
+    private void buildTestResult(Obs obs, Encounter fhirEncounter, List<EmrResource> emrResourceList) {
+        for (Obs observation : obs.getGroupMembers()) {
+            DiagnosticReport diagnosticReport = build(observation, fhirEncounter, emrResourceList);
+            EmrResource emrResource = new EmrResource("Diagnostic Report", Arrays.asList(diagnosticReport.getIdentifier()), diagnosticReport);
+            emrResourceList.add(emrResource);
+        }
     }
 
     private DiagnosticReport build(Obs obs, Encounter fhirEncounter, List<EmrResource> emrResourceList) {
@@ -56,21 +71,24 @@ public class TestResultMapper implements EmrObsResourceHandler {
         if (CollectionUtils.isNotEmpty(participants)) {
             report.setPerformer(participants.get(0).getIndividual());
         }
-
         DateTime diagnostic = new DateTime();
-        diagnostic.setValue(new DateAndTime(obs.getOrder().getDateActivated()));
+        org.openmrs.Order obsOrder = obs.getOrder();
+        diagnostic.setValue(new DateAndTime(obsOrder.getDateActivated()));
         report.setDiagnostic(diagnostic);
 
-        /*ResourceReference requestDetail = report.addRequestDetail();
-        requestDetail.setReferenceSimple()*/
+        IdMapping encounterIdMapping = idMappingsRepository.findByInternalId(obsOrder.getEncounter().getUuid());
+        if (encounterIdMapping != null) {
+            ResourceReference requestDetail = report.addRequestDetail();
+            requestDetail.setReferenceSimple("urn:encounter/" + encounterIdMapping.getExternalId() + "orders");
+        }
 
         for (Obs member : obs.getGroupMembers()) {
-            if(member.getConcept().equals(obs.getConcept())) {
+            if (member.getConcept().equals(obs.getConcept())) {
                 List<EmrResource> observationResources = observationMapper.map(member, fhirEncounter);
                 ResourceReference resourceReference = report.addResult();
                 resourceReference.setReferenceSimple(observationResources.get(0).getIdentifier().getValueSimple());
                 emrResourceList.addAll(observationResources);
-            }else if(MRS_CONCEPT_NAME_LAB_NOTES.equals(member.getConcept().getName().getName())) {
+            } else if (MRS_CONCEPT_NAME_LAB_NOTES.equals(member.getConcept().getName().getName())) {
                 report.setConclusionSimple(member.getValueText());
             }
         }

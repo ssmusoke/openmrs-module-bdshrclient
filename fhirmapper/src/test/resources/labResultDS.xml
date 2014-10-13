@@ -61,7 +61,7 @@
     <!--concept set for lab_result_concept_set-->
 
     <!--test Urea Nitorgen-->
-    <concept concept_id="107" retired="false" datatype_id="1" class_id="8" is_set="false" creator="1"
+    <concept concept_id="107" retired="false" datatype_id="1" class_id="1" is_set="false" creator="1"
              date_created="2005-01-01 00:00:00.0" uuid="7923d0e0-8734-11e3-baa7-0800200c9a66"/>
     <concept_name concept_name_id="9" concept_id="107" name="Urea Nitorgen" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" concept_name_type="FULLY_SPECIFIED"
@@ -70,7 +70,7 @@
     <!--test Urea Nitorgen-->
 
     <!--blood panel-->
-    <concept concept_id="302" retired="false" datatype_id="4" class_id="1" is_set="true" creator="1"
+    <concept concept_id="302" retired="false" datatype_id="4" class_id="8" is_set="true" creator="1"
              date_created="2005-01-01 00:00:00.0" uuid="cfc5056c-3f8e-11e3-968c-0800271c1b75"/>
     <concept_name concept_name_id="302" concept_id="302" name="Blood Panel" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="d81ce11c-3f8e-11e3-968c-0800271c1b75"
@@ -116,6 +116,7 @@
     <encounter encounter_id="16" encounter_type="2" patient_id="1" visit_id="2" location_id="2"
                encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
                voided="false" uuid="6d0af4567-707a-4629-9850-f15206e63ab0"/>
+    <shr_id_mapping id="10" internal_id="6d0af4567-707a-4629-9850-f15206e63ab0" external_id="shrEncounterId1" type="encounter"></shr_id_mapping>
 
     <orders order_id="17" order_type_id="16" encounter_id="16" urgency="ROUTINE" concept_id="107"
             instructions="Regular Urea Nitrogen test" date_activated="2008-08-08 00:00:00.0" order_number="12344" order_action="NEW"
@@ -145,21 +146,30 @@
 
     <!--encounter for test result  -->
 
+    <!--encounter for panel order-->
+    <encounter encounter_id="11" encounter_type="2" patient_id="1" visit_id="2" location_id="2"
+               encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
+               voided="false" uuid="6d0af4567-ahaa-4629-9850-f15206e63ab4"/>
+    <shr_id_mapping id="11" internal_id="6d0af4567-ahaa-4629-9850-f15206e63ab4" external_id="shrEncounterId2" type="encounter"></shr_id_mapping>
+
+    <orders order_id="16" order_type_id="16" encounter_id="11" urgency="ROUTINE" concept_id="302"
+            instructions="Blood panel" date_activated="2008-08-08 00:00:00.0" creator="1" order_number="12343" order_action="NEW"
+            care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="1"
+            uuid="6d0ae386-707a-f123-9850-f15206e63ab0"/>
+    <!--encounter for panel order-->
+
     <!--encounter for blood panel test-->
     <encounter encounter_id="18" encounter_type="2" patient_id="1" visit_id="2" location_id="2"
                encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
                voided="false" uuid="6d0af4567-hhha-4629-9850-f15206e63ab4"/>
 
-    <orders order_id="16" order_type_id="16" encounter_id="18" urgency="ROUTINE" concept_id="302"
-            instructions="Blood panel" date_activated="2008-08-08 00:00:00.0" creator="1" order_number="12343" order_action="NEW"
-            care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="1"
-            uuid="6d0ae386-707a-f123-9850-f15206e63ab0"/>
-
     <obs obs_id="11" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="ef4554cb-22gg-471a-lld7-1434552c337c1" creator="1" concept_id="302" voided="0" order_id="16"/>
 
+    <obs obs_id="12" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         uuid="eee554cb-2afa-471a-9cd7-1434552c337c2" creator="1" obs_group_id="11" concept_id="303" voided="0" order_id="16"/>
     <obs obs_id="21" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
-         uuid="eee554cb-22ff-471a-9cd7-1434552c337c2" creator="1" obs_group_id="11" concept_id="303" voided="0" order_id="16"/>
+         uuid="eee554cb-22ff-471a-9cd7-1434552c337c2" creator="1" obs_group_id="12" concept_id="303" voided="0" order_id="16"/>
     <obs obs_id="41" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eeea54cb-2aee-471a-9cd7-1434a5aa337a4" creator="1" obs_group_id="21" value_text="Lab Notes" concept_id="103" voided="0" order_id="16"/>
     <obs obs_id="51" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
@@ -171,8 +181,10 @@
     <obs obs_id="81" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eeea54cb-2aaa-471a-9cd7-1434a5aa337a8" creator="1" obs_group_id="21" value_numeric="120" concept_id="303" voided="0" order_id="16"/>
 
+    <obs obs_id="13" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         uuid="eee554cb-2afa-a7aa-9cd7-143455ac3a7c2" creator="1" obs_group_id="11" concept_id="303" voided="0" order_id="16"/>
     <obs obs_id="22" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
-         uuid="hhh554cb-22ff-471a-9cd7-1434552c337c2" creator="1" obs_group_id="11" concept_id="304" voided="0" order_id="16"/>
+         uuid="hhh554cb-22ff-471a-9cd7-1434552c337c2" creator="1" obs_group_id="13" concept_id="304" voided="0" order_id="16"/>
     <obs obs_id="42" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="aaaa54cb-2aee-471a-9cd7-1434a5aa337a4" creator="1" obs_group_id="22" value_text="Lab Notes" concept_id="103" voided="0" order_id="16"/>
     <obs obs_id="52" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
@@ -184,8 +196,10 @@
     <obs obs_id="82" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="kkka54cb-2aaa-471a-9cd7-1434a5aa337a8" creator="1" obs_group_id="22" value_numeric="120" concept_id="304" voided="0" order_id="16"/>
 
+    <obs obs_id="14" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         uuid="aeea54cb-2afa-a7aa-9cd7-143455ac3a7c2" creator="1" obs_group_id="11" concept_id="303" voided="0" order_id="16"/>
     <obs obs_id="23" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
-         uuid="hhh554cb-2llz-471a-9cd7-1434552c337c2" creator="1" obs_group_id="11" concept_id="305" voided="0" order_id="16"/>
+         uuid="hhh554cb-2llz-471a-9cd7-1434552c337c2" creator="1" obs_group_id="14" concept_id="305" voided="0" order_id="16"/>
     <obs obs_id="43" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="aaaa54cb-2ssz-471a-9cd7-1434a5aa337a4" creator="1" obs_group_id="23" value_text="Lab Notes" concept_id="103" voided="0" order_id="16"/>
     <obs obs_id="53" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"

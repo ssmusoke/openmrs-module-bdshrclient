@@ -68,7 +68,8 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
         assertNotNull(report.getIdentifier());
 
         assertEquals(final_, report.getStatus().getValue());
-        //assertEquals(report.getRequestDetail());
+        assertFalse(report.getRequestDetail().isEmpty());
+        assertTrue(report.getRequestDetail().get(0).getReferenceSimple().contains("shrEncounterId"));
         assertEquals(observationResource.getIdentifier().getValueSimple(), report.getResult().get(0).getReferenceSimple());
         Observation observation = (Observation) observationResource.getResource();
         assertNotNull(observation.getValue());

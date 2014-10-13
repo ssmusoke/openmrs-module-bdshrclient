@@ -23,7 +23,7 @@ public class ObservationValueMapper {
         Numeric {
             @Override
             public Type readValue(Obs obs, IdMappingsRepository idMappingsRepository) {
-                if (obs.getConcept().getDatatype().isNumeric()) {
+                if (obs.getConcept().getDatatype().isNumeric() && obs.getValueNumeric() != null) {
                     Decimal decimal = new Decimal();
                     decimal.setValue(new BigDecimal(obs.getValueNumeric()));
                     return decimal;
@@ -35,7 +35,7 @@ public class ObservationValueMapper {
         Text {
             @Override
             public Type readValue(Obs obs, IdMappingsRepository idMappingsRepository) {
-                if (obs.getConcept().getDatatype().isText()) {
+                if (obs.getConcept().getDatatype().isText() && obs.getValueText() != null) {
                     String_ text = new String_();
                     text.setValue(obs.getValueText());
                     return text;
@@ -47,7 +47,7 @@ public class ObservationValueMapper {
         Coded {
             @Override
             public Type readValue(Obs obs, IdMappingsRepository idMappingsRepository) {
-                if (obs.getConcept().getDatatype().isCoded()) {
+                if (obs.getConcept().getDatatype().isCoded() && obs.getValueCoded() != null) {
                     Concept valueCoded = obs.getValueCoded();
                     CodeableConcept concept = addReferenceCodes(valueCoded, idMappingsRepository);
                     if (CollectionUtils.isEmpty(concept.getCoding())) {
