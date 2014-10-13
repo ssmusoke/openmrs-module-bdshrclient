@@ -49,7 +49,9 @@ public class TestResultMapper implements EmrObsResourceHandler {
         report.setStatus(new Enumeration<DiagnosticReportStatus>(DiagnosticReportStatus.final_));
         report.setIssuedSimple(new DateAndTime(obs.getObsDatetime()));
         report.setSubject(fhirEncounter.getSubject());
-
+        Identifier identifier = new Identifier();
+        identifier.setValueSimple(obs.getUuid());
+        report.setIdentifier(identifier);
         List<Encounter.EncounterParticipantComponent> participants = fhirEncounter.getParticipant();
         if (CollectionUtils.isNotEmpty(participants)) {
             report.setPerformer(participants.get(0).getIndividual());
