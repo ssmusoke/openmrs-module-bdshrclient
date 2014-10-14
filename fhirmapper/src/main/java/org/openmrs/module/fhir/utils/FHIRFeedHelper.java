@@ -3,14 +3,12 @@ package org.openmrs.module.fhir.utils;
 
 import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.*;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.Resource;
-import org.openmrs.*;
+import org.openmrs.Concept;
+import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.module.fhir.mapper.model.FHIRIdentifier;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 
-import javax.annotation.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -61,7 +60,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResource {
         testOrder.setConcept(testOrderConcept);
         testOrder.setPatient(patient);
         testOrder.setEncounter(encounter);
-        testOrder.setOrderer(getShrClientSystemProvider(encounter));
+        testOrder.setOrderer(getShrClientSystemProvider());
         testOrder.setDateActivated(encounter.getEncounterDatetime());
         testOrder.setCareSetting(orderService.getCareSettingByName(getCareSetting(feed, diagnosticOrder)));
         encounter.addOrder(testOrder);
@@ -73,7 +72,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResource {
         return fhirEncounterClass.getValue().equals(org.hl7.fhir.instance.model.Encounter.EncounterClass.inpatient) ? MRS_CARE_SETTING_FOR_INPATIENT : MRS_CARE_SETTING_FOR_OUTPATIENT;
     }
 
-    private Provider getShrClientSystemProvider(org.openmrs.Encounter newEmrEncounter) {
+    private Provider getShrClientSystemProvider() {
         User systemUser = getShrClientSystemUser();
         Collection<Provider> providersByPerson = providerService.getProvidersByPerson(systemUser.getPerson());
         if ((providersByPerson != null) & !providersByPerson.isEmpty()) {

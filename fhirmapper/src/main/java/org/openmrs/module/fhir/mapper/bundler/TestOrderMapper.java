@@ -154,20 +154,12 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         if (null == order.getConcept()) {
             return null;
         }
-        IdMapping mapping = idMappingsRepository.findByInternalId(order.getConcept().getUuid());
-        if (null == mapping) {
-            CodeableConcept result = new CodeableConcept();
+        CodeableConcept result = FHIRFeedHelper.addReferenceCodes(order.getConcept(), idMappingsRepository);
+        if(result.getCoding().isEmpty()) {
             Coding coding = result.addCoding();
             coding.setDisplaySimple(order.getConcept().getName().getName());
-            return result;
-        } else {
-            CodeableConcept result = new CodeableConcept();
-            Coding coding = result.addCoding();
-            coding.setSystemSimple(mapping.getUri());
-            coding.setDisplaySimple(order.getConcept().getName().getName());
-            coding.setCodeSimple(mapping.getExternalId());
-            return result;
         }
+        return result;
     }
 
     private DiagnosticOrder createDiagnosticOrder(Order order, Encounter fhirEncounter) {
