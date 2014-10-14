@@ -76,11 +76,14 @@ public class TestResultMapper implements EmrObsResourceHandler {
         diagnostic.setValue(new DateAndTime(obsOrder.getDateActivated()));
         report.setDiagnostic(diagnostic);
 
-        IdMapping encounterIdMapping = idMappingsRepository.findByInternalId(obsOrder.getEncounter().getUuid());
-        if (encounterIdMapping != null) {
-            ResourceReference requestDetail = report.addRequestDetail();
-            requestDetail.setReferenceSimple("urn:encounter/" + encounterIdMapping.getExternalId() + "orders");
+        String uuid = obsOrder.getEncounter().getUuid();
+        IdMapping encounterIdMapping = idMappingsRepository.findByInternalId(uuid);
+        if (encounterIdMapping == null) {
+            throw new RuntimeException("Encounter id [" + uuid  + "] doesn't have id mapping.");
         }
+
+        ResourceReference requestDetail = report.addRequestDetail();
+        requestDetail.setReferenceSimple("urn:encounter/" + encounterIdMapping.getExternalId() + "/orders");
 
         for (Obs member : obs.getGroupMembers()) {
             if (member.getConcept().equals(obs.getConcept())) {
