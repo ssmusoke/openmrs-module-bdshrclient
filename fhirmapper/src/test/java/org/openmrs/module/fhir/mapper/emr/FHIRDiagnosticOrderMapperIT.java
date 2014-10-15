@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
@@ -74,7 +75,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
     private Encounter mapOrder() {
         Resource resource = FHIRFeedHelper.identifyResource(bundle.getEntryList(), ResourceType.DiagnosticOrder);
         Encounter encounter = encounterService.getEncounter(36);
-        diagnosticOrderMapper.map(bundle, resource, patientService.getPatient(1), encounter, new HashMap<String, String>());
+        diagnosticOrderMapper.map(bundle, resource, patientService.getPatient(1), encounter, new HashMap<String, List<String>>());
         return encounter;
     }
 }

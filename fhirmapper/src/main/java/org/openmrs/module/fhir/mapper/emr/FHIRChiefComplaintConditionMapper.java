@@ -15,9 +15,8 @@ import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 
 @Component
 public class FHIRChiefComplaintConditionMapper implements FHIRResource {
@@ -42,7 +41,7 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResource {
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, HashMap<String, String> processedList) {
+    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
         Condition condition = (Condition) resource;
 
         if (isAlreadyProcessed(condition, processedList))
@@ -86,10 +85,10 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResource {
         historyExaminationObs.addGroupMember(chiefComplaintDataObs);
         newEmrEncounter.addObs(historyExaminationObs);
 
-        processedList.put(condition.getIdentifier().get(0).getValueSimple(), chiefComplaintDataObs.getUuid());
+        processedList.put(condition.getIdentifier().get(0).getValueSimple(), Arrays.asList(chiefComplaintDataObs.getUuid()));
     }
 
-    private boolean isAlreadyProcessed(Condition condition, HashMap<String, String> processedList) {
+    private boolean isAlreadyProcessed(Condition condition, Map<String, List<String>> processedList) {
         return processedList.containsKey(condition.getIdentifier().get(0).getValueSimple());
     }
 

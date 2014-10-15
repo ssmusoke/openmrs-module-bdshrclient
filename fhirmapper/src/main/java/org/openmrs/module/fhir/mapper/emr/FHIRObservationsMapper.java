@@ -1,19 +1,11 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.CodeableConcept;
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Decimal;
-import org.hl7.fhir.instance.model.Observation;
-import org.hl7.fhir.instance.model.Resource;
-import org.hl7.fhir.instance.model.String_;
-import org.hl7.fhir.instance.model.Type;
+import org.hl7.fhir.instance.model.*;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
-import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.utils.OMRSHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -21,8 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
 
@@ -44,7 +37,7 @@ public class FHIRObservationsMapper implements FHIRResource {
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, HashMap<String, String> processedList) {
+    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
         Observation observation = (Observation) resource;
         if (isAlreadyProcessed(observation, processedList))
             return;
@@ -53,7 +46,7 @@ public class FHIRObservationsMapper implements FHIRResource {
         newEmrEncounter.addObs(result);
     }
 
-    private void mapRelatedObservations(AtomFeed feed, Observation observation, HashMap<String, String> processedList, Obs obs, Encounter emrEncounter) throws ParseException {
+    private void mapRelatedObservations(AtomFeed feed, Observation observation, Map<String, List<String>> processedList, Obs obs, Encounter emrEncounter) throws ParseException {
         for (Observation.ObservationRelatedComponent component : observation.getRelated()) {
             Obs member;
             Observation relatedObs = (Observation) findResourceByReference(feed, component.getTarget());
@@ -68,14 +61,14 @@ public class FHIRObservationsMapper implements FHIRResource {
         }
     }
 
-    private Obs mapObs(AtomFeed feed, HashMap<String, String> processedList, Observation observation, Encounter emrEncounter) {
+    private Obs mapObs(AtomFeed feed, Map<String, List<String>> processedList, Observation observation, Encounter emrEncounter) {
         Concept concept = mapConcept(observation);
         if (concept == null) return null;
         Obs result = new Obs();
         result.setConcept(concept);
         try {
             mapValue(observation, result);
-            processedList.put(observation.getIdentifier().getValueSimple(), result.getUuid());
+            processedList.put(observation.getIdentifier().getValueSimple(), Arrays.asList(result.getUuid()));
             mapRelatedObservations(feed, observation, processedList, result, emrEncounter);
         } catch (ParseException e) {
             e.printStackTrace();
@@ -83,16 +76,18 @@ public class FHIRObservationsMapper implements FHIRResource {
         return result;
     }
 
-    private Obs findObsInEncounter(Encounter emrEncounter, String uuid) {
+    private Obs findObsInEncounter(Encounter emrEncounter, List<String> processedItems) {
         for (Obs obs : emrEncounter.getAllObs()) {
-            if (uuid.equals(obs.getUuid())) {
-                return obs;
+            for (String processedItem : processedItems) {
+                if (processedItem.equals(obs.getUuid())) {
+                    return obs;
+                }
             }
         }
         return null;
     }
 
-    private boolean isAlreadyProcessed(Observation observation, HashMap<String, String> processedList) {
+    private boolean isAlreadyProcessed(Observation observation, Map<String, List<String>> processedList) {
         return processedList.containsKey(observation.getIdentifier().getValueSimple());
     }
 

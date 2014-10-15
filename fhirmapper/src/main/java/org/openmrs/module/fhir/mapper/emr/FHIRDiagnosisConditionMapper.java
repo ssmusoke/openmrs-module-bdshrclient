@@ -16,10 +16,7 @@ import org.openmrs.module.fhir.utils.OMRSHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @Component
@@ -50,7 +47,7 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, HashMap<String, String> processedList) {
+    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
         Condition condition = (Condition) resource;
 
         if (isAlreadyProcessed(condition, processedList))
@@ -97,11 +94,11 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
 
         newEmrEncounter.addObs(visitDiagnosisObs);
 
-        processedList.put(condition.getIdentifier().get(0).getValueSimple(), visitDiagnosisObs.getUuid());
+        processedList.put(condition.getIdentifier().get(0).getValueSimple(), Arrays.asList(visitDiagnosisObs.getUuid()));
     }
 
 
-    private boolean isAlreadyProcessed(Condition condition, HashMap<String, String> processedList) {
+    private boolean isAlreadyProcessed(Condition condition, Map<String, List<String>> processedList) {
         return processedList.containsKey(condition.getIdentifier().get(0).getValueSimple());
     }
 

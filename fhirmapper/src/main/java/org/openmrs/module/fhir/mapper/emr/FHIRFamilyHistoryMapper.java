@@ -14,8 +14,9 @@ import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
@@ -32,7 +33,7 @@ public class FHIRFamilyHistoryMapper implements FHIRResource {
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, HashMap<String, String> processedList) {
+    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
         FamilyHistory familyHistory = (FamilyHistory) resource;
         if (isAlreadyProcessed(familyHistory, processedList))
             return;
@@ -41,11 +42,11 @@ public class FHIRFamilyHistoryMapper implements FHIRResource {
         mapRelationships(familyHistoryObs, familyHistory.getRelation());
         newEmrEncounter.addObs(familyHistoryObs);
 
-        processedList.put(familyHistory.getIdentifier().get(0).getValueSimple(), familyHistoryObs.getUuid());
+        processedList.put(familyHistory.getIdentifier().get(0).getValueSimple(), Arrays.asList(familyHistoryObs.getUuid()));
     }
 
 
-    private boolean isAlreadyProcessed(FamilyHistory familyHistory, HashMap<String, String> processedList) {
+    private boolean isAlreadyProcessed(FamilyHistory familyHistory, Map<String, List<String>> processedList) {
         return processedList.containsKey(familyHistory.getIdentifier().get(0).getValueSimple());
     }
 

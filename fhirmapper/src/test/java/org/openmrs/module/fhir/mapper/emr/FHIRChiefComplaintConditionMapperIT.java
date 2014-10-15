@@ -52,7 +52,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         emrEncounter.setPatient(emrPatient);
         for (Condition condition : conditions) {
             if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
-                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter, new HashMap<String, String>());
+                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter, new HashMap<String, List<String>>());
             }
         }
         final Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);

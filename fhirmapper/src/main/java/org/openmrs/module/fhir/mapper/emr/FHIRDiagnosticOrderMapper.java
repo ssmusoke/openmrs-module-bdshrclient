@@ -14,9 +14,10 @@ import org.openmrs.module.fhir.utils.OMRSHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CARE_SETTING_FOR_INPATIENT;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CARE_SETTING_FOR_OUTPATIENT;
@@ -39,22 +40,26 @@ public class FHIRDiagnosticOrderMapper implements FHIRResource {
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter encounter, HashMap<String, String> processedList) {
+    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter encounter, Map<String, List<String>> processedList) {
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) resource;
-        createTestOrders(feed, diagnosticOrder, emrPatient, encounter);
+        createTestOrders(feed, diagnosticOrder, emrPatient, encounter, processedList);
     }
 
-    private void createTestOrders(AtomFeed feed, DiagnosticOrder diagnosticOrder, Patient patient, Encounter encounter) {
+    private void createTestOrders(AtomFeed feed, DiagnosticOrder diagnosticOrder, Patient patient, Encounter encounter, Map<String, List<String>> processedList) {
         List<DiagnosticOrder.DiagnosticOrderItemComponent> item = diagnosticOrder.getItem();
+        ArrayList<String> processedTestOrderUuid = new ArrayList<>();
         for (DiagnosticOrder.DiagnosticOrderItemComponent diagnosticOrderItemComponent : item) {
             Concept testOrderConcept = omrsHelper.findConcept(diagnosticOrderItemComponent.getCode().getCoding());
             if (testOrderConcept != null) {
-                createTestOrder(feed, diagnosticOrder, patient, encounter, testOrderConcept);
+                TestOrder testOrder = createTestOrder(feed, diagnosticOrder, patient, encounter, testOrderConcept);
+                encounter.addOrder(testOrder);
+                processedTestOrderUuid.add(testOrder.getUuid());
             }
         }
+        processedList.put(diagnosticOrder.getIdentifier().get(0).getValueSimple(), processedTestOrderUuid);
     }
 
-    private void createTestOrder(AtomFeed feed, DiagnosticOrder diagnosticOrder, Patient patient, Encounter encounter, Concept testOrderConcept) {
+    private TestOrder createTestOrder(AtomFeed feed, DiagnosticOrder diagnosticOrder, Patient patient, Encounter encounter, Concept testOrderConcept) {
         TestOrder testOrder = new TestOrder();
         testOrder.setOrderType(orderService.getOrderTypeByName("Lab Order"));
         testOrder.setConcept(testOrderConcept);
@@ -63,7 +68,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResource {
         testOrder.setOrderer(getShrClientSystemProvider());
         testOrder.setDateActivated(encounter.getEncounterDatetime());
         testOrder.setCareSetting(orderService.getCareSettingByName(getCareSetting(feed, diagnosticOrder)));
-        encounter.addOrder(testOrder);
+        return testOrder;
     }
 
     private String getCareSetting(AtomFeed feed, DiagnosticOrder diagnosticOrder) {
