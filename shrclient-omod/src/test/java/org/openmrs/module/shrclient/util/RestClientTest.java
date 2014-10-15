@@ -3,13 +3,26 @@ package org.openmrs.module.shrclient.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.junit.Rule;
+import org.junit.Test;
 import org.openmrs.module.shrclient.mci.api.MciPatientUpdateResponse;
 import org.openmrs.module.shrclient.mci.api.model.Address;
 import org.openmrs.module.shrclient.mci.api.model.Patient;
-import org.junit.Rule;
-import org.junit.Test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertEquals;
 
 public class RestClientTest {
@@ -76,7 +89,6 @@ public class RestClientTest {
                         .withBody(response)));
 
 
-
         final Patient patient = new Patient();
         patient.setGivenName("John");
         final Address address = new Address();
@@ -85,6 +97,7 @@ public class RestClientTest {
 
         MciPatientUpdateResponse result = restClient.post(url, patient, MciPatientUpdateResponse.class);
         assertEquals("nid", result.getErrors()[0].getField());
+        assertEquals(400, result.getHttpStatus());
 
         verify(1, postRequestedFor(urlMatching(url))
                 .withRequestBody(equalToJson(toJson(patient)))
@@ -112,7 +125,6 @@ public class RestClientTest {
                         .withBody(response)));
 
 
-
         final Patient patient = new Patient();
         patient.setGivenName("John");
         final Address address = new Address();
@@ -121,6 +133,7 @@ public class RestClientTest {
 
         MciPatientUpdateResponse result = restClient.post(url, patient, MciPatientUpdateResponse.class);
         assertEquals("5916473242339508225", result.getHealthId());
+        assertEquals(201, result.getHttpStatus());
 
         verify(1, postRequestedFor(urlMatching(url))
                 .withRequestBody(equalToJson(toJson(patient)))
@@ -157,7 +170,6 @@ public class RestClientTest {
                         .withBody(response)));
 
 
-
         final Patient patient = new Patient();
         patient.setGivenName("John");
         final Address address = new Address();
@@ -171,6 +183,7 @@ public class RestClientTest {
 
         MciPatientUpdateResponse putResult = restClient.put(url, patient, MciPatientUpdateResponse.class);
         assertEquals("5916473242339508225", putResult.getHealthId());
+        assertEquals(202, putResult.getHttpStatus());
 
         verify(1, putRequestedFor(urlMatching(url))
                 .withRequestBody(equalToJson(toJson(patient)))

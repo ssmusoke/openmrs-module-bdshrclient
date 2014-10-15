@@ -3,18 +3,18 @@ package org.openmrs.module.shrclient.web.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.StringUtils;
+import org.openmrs.api.context.Context;
+import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
+import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
+import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.mci.api.MciPatientSearchResponse;
 import org.openmrs.module.shrclient.mci.api.model.Address;
 import org.openmrs.module.shrclient.mci.api.model.Patient;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.MciPatientService;
-import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
-import org.openmrs.api.context.Context;
-import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
-import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +22,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 @Controller
 @RequestMapping(value = "/mci")
@@ -56,7 +61,7 @@ public class MciPatientLookupController {
                 patientList.add(mciPatient);
             }
         }
-        
+
         if (!patientList.isEmpty()) {
             return mapSearchResults(patientList);
         }

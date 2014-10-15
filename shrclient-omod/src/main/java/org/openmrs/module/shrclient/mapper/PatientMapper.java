@@ -12,8 +12,6 @@ import org.openmrs.module.shrclient.service.BbsCodeService;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
-import static org.apache.commons.lang3.StringUtils.substring;
-
 public class PatientMapper {
 
     private AddressHierarchyService addressHierarchyService;
@@ -87,11 +85,11 @@ public class PatientMapper {
         String wardId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(4), ward).get(0).getUserGeneratedId();
 
         Address presentAddress = new Address(addressLine,
-                Address.getAddressCodeForLevel(divisionId,1),
-                Address.getAddressCodeForLevel(districtId,2),
-                Address.getAddressCodeForLevel(upazillaId,3),
-                Address.getAddressCodeForLevel(cityCorporationId,4),
-                Address.getAddressCodeForLevel(wardId,5),
+                Address.getAddressCodeForLevel(divisionId, 1),
+                Address.getAddressCodeForLevel(districtId, 2),
+                Address.getAddressCodeForLevel(upazillaId, 3),
+                Address.getAddressCodeForLevel(cityCorporationId, 4),
+                Address.getAddressCodeForLevel(wardId, 5),
                 null, null);
         return presentAddress;
     }

@@ -62,7 +62,7 @@ public class ShrPatientUploader implements EventWorker {
             PersonAttribute healthIdAttribute = openMrsPatient.getAttribute(Constants.HEALTH_ID_ATTRIBUTE);
 
 
-            if (healthIdAttribute==null) {
+            if (healthIdAttribute == null) {
                 MciPatientUpdateResponse response = mciRestClient.post(Constants.MCI_PATIENT_URL, patient, MciPatientUpdateResponse.class);
                 updateOpenMrsPatientHealthId(openMrsPatient, response.getHealthId());
             } else {

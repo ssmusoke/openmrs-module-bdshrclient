@@ -86,7 +86,7 @@ public class WebClient {
                     if (status >= 200 && status < 300) {
                         HttpEntity entity = response.getEntity();
                         return entity != null ? EntityUtils.toString(entity) : null;
-                    } else if (status == 404 ) {
+                    } else if (status == 404) {
                         return null;
                     } else {
                         throw new ClientProtocolException("Unexpected response status: " + status);

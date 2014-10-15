@@ -1,13 +1,13 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 
-import org.openmrs.module.fhir.utils.Constants;
 import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Enumeration;
 import org.hl7.fhir.instance.model.ResourceReference;
 import org.openmrs.EncounterProvider;
 import org.openmrs.PersonAttribute;
 import org.openmrs.VisitType;
+import org.openmrs.module.fhir.utils.Constants;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
