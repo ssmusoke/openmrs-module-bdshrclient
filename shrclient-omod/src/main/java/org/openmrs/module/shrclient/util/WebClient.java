@@ -8,6 +8,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -50,6 +51,21 @@ public class WebClient {
         log.debug("HTTP post url: " + url);
         try {
             HttpPost request = new HttpPost(URI.create(url));
+            StringEntity entity = new StringEntity(data);
+            entity.setContentType(contentType);
+            request.setEntity(entity);
+            return getResponse(request);
+        } catch (IOException e) {
+            log.error("Error during http post. URL: " + url, e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String put(String path, String data, String contentType) {
+        String url = getUrl(path);
+        log.debug("HTTP post url: " + url);
+        try {
+            HttpPut request = new HttpPut(URI.create(url));
             StringEntity entity = new StringEntity(data);
             entity.setContentType(contentType);
             request.setEntity(entity);

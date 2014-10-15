@@ -51,9 +51,9 @@ public class ShrPatientUploaderTest {
         User shrUser = new User();
         shrUser.setId(2);
         openMrsPatient.setCreator(shrUser);
-        when(userService.getUserByUuid(ShrPatientUploader.OPENMRS_DAEMON_USER)).thenReturn(shrUser);
+        when(userService.getUserByUuid(Constants.OPENMRS_DAEMON_USER)).thenReturn(shrUser);
 
-        assertFalse(shrPatientUploader.shouldSyncPatient(openMrsPatient));
+        assertFalse(shrPatientUploader.isUpdatedByEmrUser(openMrsPatient));
     }
 
     @Test
@@ -64,9 +64,9 @@ public class ShrPatientUploaderTest {
         User shrUser = new User();
         shrUser.setId(2);
         openMrsPatient.setCreator(bahmniUser);
-        when(userService.getUserByUuid(ShrPatientUploader.OPENMRS_DAEMON_USER)).thenReturn(shrUser);
+        when(userService.getUserByUuid(Constants.OPENMRS_DAEMON_USER)).thenReturn(shrUser);
 
-        assertTrue(shrPatientUploader.shouldSyncPatient(openMrsPatient));
+        assertTrue(shrPatientUploader.isUpdatedByEmrUser(openMrsPatient));
     }
 
     @Test

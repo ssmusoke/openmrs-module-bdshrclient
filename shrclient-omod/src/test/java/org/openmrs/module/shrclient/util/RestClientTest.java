@@ -129,6 +129,57 @@ public class RestClientTest {
     }
 
 
+    @Test
+    public void shouldPutPatientAndIdentifyHealthId() throws Exception {
+        RestClient restClient = new RestClient("user", "password", "localhost", "8089");
+        final String contentTypeHeader = "Content-Type";
+        final String contentTypeJson = "application/json";
+        final String authHeader = "Authorization";
+        final String authHeaderValue = restClient.getAuthHeader();
+        String url = "/patient/5916473242339508225";
+
+        String response = "{\"http_status\": 202,\"id\":\"5916473242339508225\"}";
+
+        stubFor(post(urlEqualTo(url))
+                .withHeader(contentTypeHeader, equalTo(contentTypeJson))
+                .withHeader(authHeader, equalTo(authHeaderValue))
+                .willReturn(aResponse()
+                        .withStatus(201)
+                        .withHeader(contentTypeHeader, contentTypeJson)
+                        .withBody(response)));
+
+        stubFor(put(urlEqualTo(url))
+                .withHeader(contentTypeHeader, equalTo(contentTypeJson))
+                .withHeader(authHeader, equalTo(authHeaderValue))
+                .willReturn(aResponse()
+                        .withStatus(202)
+                        .withHeader(contentTypeHeader, contentTypeJson)
+                        .withBody(response)));
+
+
+
+        final Patient patient = new Patient();
+        patient.setGivenName("John");
+        final Address address = new Address();
+        address.setDivisionId("div-100");
+        patient.setAddress(address);
+
+        MciPatientUpdateResponse postResult = restClient.post(url, patient, MciPatientUpdateResponse.class);
+        assertEquals("5916473242339508225", postResult.getHealthId());
+
+        patient.setGivenName("Sumit");
+
+        MciPatientUpdateResponse putResult = restClient.put(url, patient, MciPatientUpdateResponse.class);
+        assertEquals("5916473242339508225", putResult.getHealthId());
+
+        verify(1, putRequestedFor(urlMatching(url))
+                .withRequestBody(equalToJson(toJson(patient)))
+                .withHeader(contentTypeHeader, matching(contentTypeJson))
+                .withHeader(authHeader, matching(authHeaderValue)));
+
+
+    }
+
 
     private String toJson(Patient patient) throws JsonProcessingException {
         return new ObjectMapper().writeValueAsString(patient);

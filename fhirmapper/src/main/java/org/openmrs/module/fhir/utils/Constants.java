@@ -26,4 +26,6 @@ public class Constants {
     public static final String ID_MAPPING_ENCOUNTER_TYPE = "encounter";
     public static final String ID_MAPPING_REFERENCE_TERM_TYPE = "concept_reference_term";
     public static final String ID_MAPPING_CONCEPT_TYPE = "concept";
+
+    public static final String OPENMRS_DAEMON_USER = "A4F30A1B-5EB9-11DF-A648-37A07F9C90FB";
 }

@@ -236,7 +236,8 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     private User getShrClientSystemUser() {
         UserService userService = Context.getUserService();
-        return userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME);
+        //return userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME);
+        return userService.getUserByUuid(Constants.OPENMRS_DAEMON_USER);
     }
 
     private void setPersonAddress(org.openmrs.Patient emrPatient, Address address) {

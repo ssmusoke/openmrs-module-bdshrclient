@@ -22,7 +22,6 @@ import java.util.regex.Pattern;
 public class ShrPatientUploader implements EventWorker {
 
     private static final Logger log = Logger.getLogger(ShrPatientUploader.class);
-    public static final String OPENMRS_DAEMON_USER = "A4F30A1B-5EB9-11DF-A648-37A07F9C90FB";
 
     private PatientService patientService;
     private UserService userService;
@@ -52,15 +51,26 @@ public class ShrPatientUploader implements EventWorker {
                 return;
             }
 
-            if (!shouldSyncPatient(openMrsPatient)) {
+            if (!isUpdatedByEmrUser(openMrsPatient)) {
                 log.debug(String.format("OpenMRS patient [%s] was created from SHR. Ignoring Patient Sync.", openMrsPatient));
                 return;
             }
+
             Patient patient = patientMapper.map(openMrsPatient);
             log.debug("Patient: [ " + patient + "]");
 
-            MciPatientUpdateResponse response = mciRestClient.post(Constants.MCI_PATIENT_URL, patient, MciPatientUpdateResponse.class);
-            updateOpenMrsPatientHealthId(openMrsPatient, response.getHealthId());
+            PersonAttribute healthIdAttribute = openMrsPatient.getAttribute(Constants.HEALTH_ID_ATTRIBUTE);
+
+
+            if (healthIdAttribute==null) {
+                MciPatientUpdateResponse response = mciRestClient.post(Constants.MCI_PATIENT_URL, patient, MciPatientUpdateResponse.class);
+                updateOpenMrsPatientHealthId(openMrsPatient, response.getHealthId());
+            } else {
+                String healthId = healthIdAttribute.getValue();
+                String url = Constants.MCI_PATIENT_URL + "/" + healthId;
+                MciPatientUpdateResponse response = mciRestClient.put(url, patient, MciPatientUpdateResponse.class);
+            }
+
 
         } catch (Exception e) {
             log.error("Error while processing patient sync event.", e);
@@ -101,7 +111,7 @@ public class ShrPatientUploader implements EventWorker {
         log.debug(String.format("OpenMRS patient updated."));
     }
 
-    boolean shouldSyncPatient(org.openmrs.Patient openMrsPatient) {
+    boolean isUpdatedByEmrUser(org.openmrs.Patient openMrsPatient) {
         User changedByUser = openMrsPatient.getChangedBy();
         if (changedByUser == null) {
             changedByUser = openMrsPatient.getCreator();
@@ -112,7 +122,7 @@ public class ShrPatientUploader implements EventWorker {
 
     private User getShrClientSystemUser() {
         //OpenMRS Daemon user. UUID hardcoded in org.openmrs.api.Context.Daemon
-        return userService.getUserByUuid(OPENMRS_DAEMON_USER);
+        return userService.getUserByUuid(Constants.OPENMRS_DAEMON_USER);
         //return userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME);
     }
 

@@ -49,6 +49,20 @@ public class RestClient {
         }
     }
 
+    public <T> T put(String url, Object data, Class<T> returnType) {
+        try {
+            String requestBody = mapper.writeValueAsString(data);
+            String response = webClient.put(url, requestBody, "application/json");
+            if (StringUtils.isNotBlank(requestBody)) {
+                return mapper.readValue(response, returnType);
+            }
+            return null;
+        } catch (IOException e) {
+            log.error("Error during http post. URL: " + url, e);
+            throw new RuntimeException(e);
+        }
+    }
+
     public String getAuthHeader() {
         return webClient.getAuthHeader();
     }
