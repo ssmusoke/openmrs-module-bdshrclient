@@ -41,7 +41,7 @@ public class FHIRObservationsMapper implements FHIRResource {
         Observation observation = (Observation) resource;
         if (isAlreadyProcessed(observation, processedList))
             return;
-        Obs result = mapObs(feed, processedList, observation, newEmrEncounter);
+        Obs result = mapObs(feed, newEmrEncounter, observation, processedList);
         if (result == null) return;
         newEmrEncounter.addObs(result);
     }
@@ -53,7 +53,7 @@ public class FHIRObservationsMapper implements FHIRResource {
             if (isAlreadyProcessed(relatedObs, processedList)) {
                 member = findObsInEncounter(emrEncounter, processedList.get(relatedObs.getIdentifier().getValueSimple()));
             } else {
-                member = mapObs(feed, processedList, relatedObs, emrEncounter);
+                member = mapObs(feed, emrEncounter, relatedObs, processedList);
             }
             if (member != null) {
                 obs.addGroupMember(member);
@@ -61,7 +61,7 @@ public class FHIRObservationsMapper implements FHIRResource {
         }
     }
 
-    private Obs mapObs(AtomFeed feed, Map<String, List<String>> processedList, Observation observation, Encounter emrEncounter) {
+    Obs mapObs(AtomFeed feed, Encounter emrEncounter, Observation observation, Map<String, List<String>> processedList) {
         Concept concept = mapConcept(observation);
         if (concept == null) return null;
         Obs result = new Obs();

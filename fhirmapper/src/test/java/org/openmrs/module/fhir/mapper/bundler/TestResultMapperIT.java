@@ -31,6 +31,9 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldMapLabTestResults() throws Exception {
         executeDataSet("labResultDS.xml");
         Encounter fhirEncounter = buildEncounter();
+        ResourceReference patientHid = new ResourceReference();
+        patientHid.setReferenceSimple("patientHid");
+        fhirEncounter.setSubject(patientHid);
         List<EmrResource> emrResources = testResultMapper.map(obsService.getObs(1), fhirEncounter);
         assertNotNull(emrResources);
         assertEquals(2, emrResources.size());
@@ -48,6 +51,9 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldMapLabPanelResults() throws Exception {
         executeDataSet("labResultDS.xml");
         Encounter fhirEncounter = buildEncounter();
+        ResourceReference patientHid = new ResourceReference();
+        patientHid.setReferenceSimple("patientHid");
+        fhirEncounter.setSubject(patientHid);
         List<EmrResource> emrResources = testResultMapper.map(obsService.getObs(11), fhirEncounter);
         assertNotNull(emrResources);
         assertEquals(6, emrResources.size());
@@ -69,7 +75,7 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
 
         assertEquals(final_, report.getStatus().getValue());
         assertFalse(report.getRequestDetail().isEmpty());
-        assertTrue(report.getRequestDetail().get(0).getReferenceSimple().contains("shrEncounterId"));
+        assertTrue(report.getRequestDetail().get(0).getReferenceSimple().startsWith("patients/patientHid/encounters/shrEncounterId"));
         assertEquals(observationResource.getIdentifier().getValueSimple(), report.getResult().get(0).getReferenceSimple());
         Observation observation = (Observation) observationResource.getResource();
         assertNotNull(observation.getValue());

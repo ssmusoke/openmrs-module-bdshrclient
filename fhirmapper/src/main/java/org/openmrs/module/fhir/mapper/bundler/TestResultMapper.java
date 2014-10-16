@@ -9,10 +9,15 @@ import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.Boolean;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 import static org.hl7.fhir.instance.model.DiagnosticReport.DiagnosticReportStatus;
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
@@ -83,7 +88,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
         }
 
         ResourceReference requestDetail = report.addRequestDetail();
-        requestDetail.setReferenceSimple("urn:encounter/" + encounterIdMapping.getExternalId() + "/orders");
+        requestDetail.setReferenceSimple(getShrEncounterUrl(fhirEncounter, encounterIdMapping));
 
         for (Obs member : obs.getGroupMembers()) {
             if (member.getConcept().equals(obs.getConcept())) {
@@ -96,5 +101,9 @@ public class TestResultMapper implements EmrObsResourceHandler {
             }
         }
         return report;
+    }
+
+    private String getShrEncounterUrl(Encounter fhirEncounter, IdMapping encounterIdMapping) {
+        return "patients/" + fhirEncounter.getSubject().getReferenceSimple() + "/encounters/" + encounterIdMapping.getExternalId();
     }
 }
