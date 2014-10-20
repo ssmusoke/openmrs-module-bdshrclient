@@ -55,10 +55,11 @@ public class MciPatientServiceImplTest extends BaseModuleWebContextSensitiveTest
         EncounterBundle bundle = new EncounterBundle();
         bundle.setEncounterId("shr-enc-id");
         bundle.setDate(new Date().toString());
-        bundle.setHealthId("HIDA764177");
+        String healthId = "HIDA764177";
+        bundle.setHealthId(healthId);
         bundle.addContent(loadSampleFHIREncounter("classpath:testFHIREncounter.xml"));
         bundles.add(bundle);
-        mciPatientService.createOrUpdateEncounters(emrPatient, bundles);
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         List<org.openmrs.Encounter> encountersByPatient = encounterService.getEncountersByPatient(emrPatient);
         assertEquals(1, encountersByPatient.size());
@@ -77,7 +78,7 @@ public class MciPatientServiceImplTest extends BaseModuleWebContextSensitiveTest
         bundle.setHealthId(healthId);
         bundle.addContent(loadSampleFHIREncounter("classpath:encounterWithDiagnosticOrder.xml"));
         bundles.add(bundle);
-        mciPatientService.createOrUpdateEncounters(emrPatient, bundles);
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         List<org.openmrs.Encounter> encountersByPatient = encounterService.getEncountersByPatient(emrPatient);
         assertEquals(1, encountersByPatient.size());

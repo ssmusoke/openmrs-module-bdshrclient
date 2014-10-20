@@ -17,8 +17,8 @@ public class FhirRestClient {
     private final WebClient webClient;
     private final ObjectMapper mapper;
 
-    public FhirRestClient(String user, String password, String host, String port) {
-        webClient = new WebClient(user, password, host, port);
+    public FhirRestClient(String baseUrl, String user, String password) {
+        webClient = new WebClient(baseUrl, user, password);
         mapper = new ObjectMapper();
     }
 

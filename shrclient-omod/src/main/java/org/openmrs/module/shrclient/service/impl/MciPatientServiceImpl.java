@@ -20,6 +20,7 @@ import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.mci.api.model.Patient;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.MciPatientService;
+import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,7 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 
 @Component
 public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPatientService {
@@ -59,6 +61,9 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     @Autowired
     private IdMappingsRepository idMappingsRepository;
+
+    @Autowired
+    private PropertiesReader propertiesReader;
 
     private static final Logger logger = Logger.getLogger(MciPatientServiceImpl.class);
 
@@ -125,10 +130,10 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     @Override
-    public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles) {
+    public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles, String healthId) {
         for (EncounterBundle bundle : bundles) {
             try {
-                updateEncounter(emrPatient, bundle);
+                updateEncounter(emrPatient, bundle, healthId);
             } catch (Exception e) {
                 //TODO do proper handling, write to log API?
                 System.out.println(e);
@@ -137,7 +142,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         }
     }
 
-    private void updateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle) throws Exception {
+    private void updateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId) throws Exception {
         String fhirEncounterId = encounterBundle.getEncounterId();
         AtomFeed feed = encounterBundle.getResourceOrFeed().getFeed();
         logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), fhirEncounterId));
@@ -146,7 +151,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, feed);
 
         setEncounterProviderAndCreator(newEmrEncounter);
-        addEncounterToIdMapping(newEmrEncounter, fhirEncounterId);
+        addEncounterToIdMapping(newEmrEncounter, fhirEncounterId, healthId);
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
     }
@@ -157,10 +162,12 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         }
     }
 
-    private void addEncounterToIdMapping(org.openmrs.Encounter newEmrEncounter, String externalUuid) {
+    private void addEncounterToIdMapping(Encounter newEmrEncounter, String externalUuid, String healthId) {
         String internalUuid = newEmrEncounter.getUuid();
         //TODO : put the right url
-        String url = "";
+        Properties shrProperties = propertiesReader.getShrProperties();
+        String url = propertiesReader.getShrBaseUrl(shrProperties) +
+                "/patients/" + healthId + "/encounters/" + externalUuid;
         idMappingsRepository.saveMapping(new IdMapping(internalUuid, externalUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE, url));
     }
 

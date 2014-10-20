@@ -100,7 +100,7 @@ public class MciPatientLookupController {
         final String url = String.format("/patients/%s/encounters", healthId);
         List<EncounterBundle> bundles = propertiesReader.getShrWebClient().get(url, new TypeReference<List<EncounterBundle>>() {
         });
-        mciPatientService.createOrUpdateEncounters(emrPatient, bundles);
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
     }
 
     private Map<String, Object> mapToPatientUIModel(Patient mciPatient) {

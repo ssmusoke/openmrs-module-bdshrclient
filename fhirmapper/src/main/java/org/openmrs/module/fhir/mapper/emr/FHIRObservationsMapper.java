@@ -112,18 +112,14 @@ public class FHIRObservationsMapper implements FHIRResource {
     }
 
     private Concept mapConcept(Observation observation) {
-        Coding observationName = observation.getName().getCoding().get(0);
-        if (null != observationName) {
-            String externalId = observationName.getCodeSimple();
-            if (externalId != null) {
-                IdMapping mapping = idMappingsRepository.findByExternalId(externalId);
-                if (mapping != null){
-                    Concept concept = conceptService.getConceptByUuid(mapping.getInternalId());
-                    if (concept != null) return concept;
-                }
-            }
-            return conceptService.getConceptByName(observationName.getDisplaySimple());
+        CodeableConcept observationName = observation.getName();
+        if (observationName.getCoding().isEmpty()) {
+            return null;
         }
-        return null;
+        Concept concept = omrsHelper.findConcept(observationName.getCoding());
+        if(concept == null) {
+            return conceptService.getConceptByName(observationName.getCoding().get(0).getDisplaySimple());
+        }
+        return concept;
     }
 }

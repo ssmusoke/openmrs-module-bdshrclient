@@ -54,6 +54,9 @@ public class FHIRDiagnosticReportMapper implements FHIRResource {
         if (processedList.containsKey(diagnosticReport.getIdentifier().getValueSimple()))
             return;
         Concept concept = omrsHelper.findConcept(diagnosticReport.getName().getCoding());
+        if (concept == null) {
+            return;
+        }
         Order order = getOrder(diagnosticReport, concept);
         if (order == null) {
             return;
@@ -86,10 +89,10 @@ public class FHIRDiagnosticReportMapper implements FHIRResource {
         List<ResourceReference> requestDetail = diagnosticReport.getRequestDetail();
         for (ResourceReference reference : requestDetail) {
             String encounterUrl = reference.getReferenceSimple();
-            Pattern p = Pattern.compile("patients\\/(.*)\\/encounters\\/(.*)");
+            Pattern p = Pattern.compile("http:\\/\\/(.*)\\/patients\\/(.*)\\/encounters\\/(.*)");
             Matcher matcher = p.matcher(encounterUrl);
             if (matcher.matches()) {
-                String shrEncounterId = matcher.group(2);
+                String shrEncounterId = matcher.group(3);
                 if (!shrEncounterId.isEmpty()) {
                     IdMapping orderEncounterIdMapping = idMappingsRepository.findByExternalId(shrEncounterId);
                     Encounter orderEncounter = encounterService.getEncounterByUuid(orderEncounterIdMapping.getInternalId());
@@ -158,7 +161,6 @@ public class FHIRDiagnosticReportMapper implements FHIRResource {
         return null;
     }
 
-    //TODO : Add order
     private Obs buildObs(Concept concept, Order order) {
         Obs obs = new Obs();
         obs.setConcept(concept);

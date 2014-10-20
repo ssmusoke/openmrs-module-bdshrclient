@@ -19,12 +19,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 @ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTest {
@@ -55,7 +56,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Before
     public void setUp() throws Exception {
-        executeDataSet("shrDiagnosticOrderSyncTestDS.xml");
+        executeDataSet("labOrder.xml");
         bundle = loadSampleFHIREncounter().getFeed();
     }
 
@@ -70,12 +71,14 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         assertEquals(providerService.getProvider(22), order.getOrderer());
         assertEquals(orderService.getOrderType(16), order.getOrderType());
         assertEquals(orderService.getCareSetting(1), order.getCareSetting());
-        assertEquals("2008-08-01 00:00:00.0", order.getDateActivated().toString());
+        assertNotNull(order.getDateActivated());
     }
 
     private Encounter mapOrder() {
         Resource resource = FHIRFeedHelper.identifyResource(bundle.getEntryList(), ResourceType.DiagnosticOrder);
-        Encounter encounter = encounterService.getEncounter(36);
+        Encounter encounter = new Encounter();
+        SimpleDateFormat dateFormat = new SimpleDateFormat();
+        encounter.setEncounterDatetime(new Date());
         diagnosticOrderMapper.map(bundle, resource, patientService.getPatient(1), encounter, new HashMap<String, List<String>>());
         return encounter;
     }

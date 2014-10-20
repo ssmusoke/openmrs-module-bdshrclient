@@ -3,7 +3,12 @@ package org.openmrs.module.fhir.mapper.emr;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.DiagnosticOrder;
 import org.hl7.fhir.instance.model.Resource;
-import org.openmrs.*;
+import org.openmrs.Concept;
+import org.openmrs.Encounter;
+import org.openmrs.Patient;
+import org.openmrs.Provider;
+import org.openmrs.TestOrder;
+import org.openmrs.User;
 import org.openmrs.api.OrderService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.api.UserService;
@@ -42,7 +47,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResource {
     @Override
     public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter encounter, Map<String, List<String>> processedList) {
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) resource;
-        if(processedList.containsKey(diagnosticOrder.getIdentifier().get(0).getValueSimple()))
+        if (processedList.containsKey(diagnosticOrder.getIdentifier().get(0).getValueSimple()))
             return;
         createTestOrders(feed, diagnosticOrder, emrPatient, encounter, processedList);
     }
@@ -58,7 +63,9 @@ public class FHIRDiagnosticOrderMapper implements FHIRResource {
                 processedTestOrderUuids.add(testOrder.getUuid());
             }
         }
-        processedList.put(diagnosticOrder.getIdentifier().get(0).getValueSimple(), processedTestOrderUuids);
+        if (!processedTestOrderUuids.isEmpty()) {
+            processedList.put(diagnosticOrder.getIdentifier().get(0).getValueSimple(), processedTestOrderUuids);
+        }
     }
 
     private TestOrder createTestOrder(AtomFeed feed, DiagnosticOrder diagnosticOrder, Patient patient, Encounter encounter, Concept testOrderConcept) {

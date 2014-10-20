@@ -52,7 +52,7 @@ public class ShrNotifier {
     }
 
     private ShrEncounterUploader encounterUploader() {
-        return new ShrEncounterUploader(Context.getEncounterService(), Context.getUserService(), getPropertiesReader().getShrWebClient(),
+        return new ShrEncounterUploader(Context.getEncounterService(), Context.getUserService(), getPropertiesReader(),
                 getRegisteredComponent(CompositionBundleCreator.class), getRegisteredComponent(IdMappingsRepository.class));
     }
 

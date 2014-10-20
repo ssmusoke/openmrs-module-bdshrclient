@@ -139,7 +139,7 @@
                     <value value="c790c0d3-8a0c-40df-8d90-8f6100648dac"/>
                 </identifier>
                 <requestDetail>
-                    <reference value="patients/patientHid/encounters/shrEncounterId3"/>
+                    <reference value="http://172.18.46.57:8081/patients/hid/encounters/shrEncounterId3"/>
                 </requestDetail>
                 <diagnosticDateTime value="2014-10-14T17:30:53+05:30"/>
                 <result>

@@ -11,5 +11,5 @@ import java.util.List;
 public interface MciPatientService extends OpenmrsService {
      org.openmrs.Patient createOrUpdatePatient(Patient mciPatient);
      org.openmrs.PatientIdentifier generateIdentifier();
-     void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles);
+     void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles, String healthId);
 }

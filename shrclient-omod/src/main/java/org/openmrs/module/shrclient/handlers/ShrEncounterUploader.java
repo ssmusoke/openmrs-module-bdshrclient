@@ -18,7 +18,9 @@ import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mci.api.model.EncounterResponse;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.FhirRestClient;
+import org.openmrs.module.shrclient.util.PropertiesReader;
 
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,12 +32,14 @@ public class ShrEncounterUploader implements EventWorker {
     private IdMappingsRepository idMappingsRepository;
 
     private EncounterService encounterService;
+    private PropertiesReader propertiesReader;
     private FhirRestClient fhirRestClient;
     private UserService userService;
 
-    public ShrEncounterUploader(EncounterService encounterService, UserService userService, FhirRestClient fhirRestClient, CompositionBundleCreator bundleCreator, IdMappingsRepository idMappingsRepository) {
+    public ShrEncounterUploader(EncounterService encounterService, UserService userService, PropertiesReader propertiesReader, CompositionBundleCreator bundleCreator, IdMappingsRepository idMappingsRepository) {
         this.encounterService = encounterService;
-        this.fhirRestClient = fhirRestClient;
+        this.propertiesReader = propertiesReader;
+        this.fhirRestClient = propertiesReader.getShrWebClient();
         this.userService = userService;
         this.bundleCreator = bundleCreator;
         this.idMappingsRepository = idMappingsRepository;
@@ -69,8 +73,11 @@ public class ShrEncounterUploader implements EventWorker {
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             EncounterResponse encounterResponse = objectMapper.readValue(shrEncounterUuid, EncounterResponse.class);
             //TODO : set the right url
-            String url = "";
-            idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), encounterResponse.getEncounterId(), Constants.ID_MAPPING_ENCOUNTER_TYPE, url));
+            String externalUuid = encounterResponse.getEncounterId();
+            Properties shrProperties = propertiesReader.getShrProperties();
+            String url = propertiesReader.getShrBaseUrl(shrProperties) +
+                    "/patients/" + healthId + "/encounters/" + externalUuid;
+            idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), externalUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE, url));
         } catch (Exception e) {
             log.error("Error while processing patient sync event.", e);
             throw new RuntimeException(e);

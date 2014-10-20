@@ -17,6 +17,7 @@ import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.FhirRestClient;
+import org.openmrs.module.shrclient.util.PropertiesReader;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -38,6 +39,9 @@ public class ShrEncounterUploaderTest {
     private FhirRestClient fhirRestClient;
 
     @Mock
+    private PropertiesReader propertiesReader;
+
+    @Mock
     private UserService userService;
 
     @Mock
@@ -51,7 +55,8 @@ public class ShrEncounterUploaderTest {
     @Before
     public void setup() {
         initMocks(this);
-        shrEncounterUploader = new ShrEncounterUploader(encounterService, userService, fhirRestClient, compositionBundleCreator, idMappingsRepository);
+        when(propertiesReader.getShrWebClient()).thenReturn(fhirRestClient);
+        shrEncounterUploader = new ShrEncounterUploader(encounterService, userService, propertiesReader, compositionBundleCreator, idMappingsRepository);
     }
 
     @Test

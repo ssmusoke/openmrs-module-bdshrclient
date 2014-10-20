@@ -27,10 +27,10 @@ public class WebClient {
     private String password;
     private String baseUrl;
 
-    public WebClient(String user, String password, String host, String port) {
+    public WebClient(String baseUrl, String user, String password) {
         this.user = user;
         this.password = password;
-        this.baseUrl = String.format("http://%s:%s", host, port);
+        this.baseUrl = baseUrl;
     }
 
     public String get(String path) {

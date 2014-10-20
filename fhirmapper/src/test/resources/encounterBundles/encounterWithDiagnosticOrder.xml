@@ -109,7 +109,7 @@
                         <coding>
                             <system value="http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0q6a972"/>
                             <code value="501qb827-a67c-4q1f-a705-e5efe0q6a972"/>
-                            <display value="Hemoglobin"/>
+                            <display value="Haemoglobin"/>
                         </coding>
                     </code>
                     <specimen>

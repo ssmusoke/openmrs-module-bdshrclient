@@ -32,7 +32,7 @@ public class RestClientTest {
 
     @Test
     public void shouldGetPatient() throws Exception {
-        RestClient restClient = new RestClient("user", "password", "localhost", "8089");
+        RestClient restClient = new RestClient("http://localhost:8089", "user", "password");
         final String acceptHeader = "accept";
         final String contentTypeJson = "application/json";
         final String authHeader = "Authorization";
@@ -63,7 +63,7 @@ public class RestClientTest {
 
     @Test
     public void shouldPostPatientAndProcessErrors() throws Exception {
-        RestClient restClient = new RestClient("user", "password", "localhost", "8089");
+        RestClient restClient = new RestClient("http://localhost:8089", "user", "password");
         final String contentTypeHeader = "Content-Type";
         final String contentTypeJson = "application/json";
         final String authHeader = "Authorization";
@@ -107,7 +107,7 @@ public class RestClientTest {
 
     @Test
     public void shouldPostPatientAndIdentifyHealthId() throws Exception {
-        RestClient restClient = new RestClient("user", "password", "localhost", "8089");
+        RestClient restClient = new RestClient("http://localhost:8089", "user", "password");
         final String contentTypeHeader = "Content-Type";
         final String contentTypeJson = "application/json";
         final String authHeader = "Authorization";
@@ -144,7 +144,7 @@ public class RestClientTest {
 
     @Test
     public void shouldPutPatientAndIdentifyHealthId() throws Exception {
-        RestClient restClient = new RestClient("user", "password", "localhost", "8089");
+        RestClient restClient = new RestClient("http://localhost:8089", "user", "password");
         final String contentTypeHeader = "Content-Type";
         final String contentTypeJson = "application/json";
         final String authHeader = "Authorization";

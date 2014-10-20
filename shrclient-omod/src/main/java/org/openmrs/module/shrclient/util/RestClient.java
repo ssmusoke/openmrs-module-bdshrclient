@@ -14,8 +14,8 @@ public class RestClient {
     private final ObjectMapper mapper;
     private final WebClient webClient;
 
-    public RestClient(String user, String password, String host, String port) {
-        webClient = new WebClient(user, password, host, port);
+    public RestClient(String baseUrl, String user, String password) {
+        webClient = new WebClient(baseUrl, user, password);
         this.mapper = new ObjectMapper();
         this.mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
