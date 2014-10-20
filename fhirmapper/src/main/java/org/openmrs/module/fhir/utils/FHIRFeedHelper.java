@@ -1,6 +1,5 @@
 package org.openmrs.module.fhir.utils;
 
-
 import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.*;
 import org.openmrs.Concept;
@@ -58,6 +57,16 @@ public class FHIRFeedHelper {
             }
         }
         return null;
+    }
+
+    public static List<Resource> identifyResources(List<AtomEntry<? extends Resource>> encounterBundleEntryList, ResourceType resourceType) {
+        List<Resource> resources = new ArrayList<>();
+        for (AtomEntry<? extends org.hl7.fhir.instance.model.Resource> atomEntry : encounterBundleEntryList) {
+            if (atomEntry.getResource().getResourceType().equals(resourceType)) {
+                resources.add(atomEntry.getResource());
+            }
+        }
+        return resources;
     }
 
     public static Encounter getEncounter(AtomFeed bundle) {

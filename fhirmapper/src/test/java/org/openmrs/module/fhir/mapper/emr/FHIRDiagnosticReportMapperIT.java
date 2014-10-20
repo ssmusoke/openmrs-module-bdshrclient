@@ -3,6 +3,7 @@ package org.openmrs.module.fhir.mapper.emr;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.DiagnosticReport;
 import org.hl7.fhir.instance.model.Observation;
+import org.hl7.fhir.instance.model.Resource;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
@@ -26,6 +27,7 @@ import java.util.Set;
 import static org.hl7.fhir.instance.model.ResourceType.DiagnosticReport;
 import static org.hl7.fhir.instance.model.ResourceType.Observation;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 @ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveTest {
@@ -43,18 +45,16 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
     @Autowired
     private OrderService orderService;
 
-    private AtomFeed bundle;
-
     @Before
     public void setUp() throws Exception {
         executeDataSet("labResultDS.xml");
-        bundle = new TestHelper()
-                .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticReport.xml", springContext)
-                .getFeed();
     }
 
     @Test
     public void shouldMapDiagnosticReportForTestResult() throws Exception {
+        AtomFeed bundle = new TestHelper()
+                .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticReport.xml", springContext)
+                .getFeed();
         DiagnosticReport report = (org.hl7.fhir.instance.model.DiagnosticReport) FHIRFeedHelper.identifyResource(bundle.getEntryList(), DiagnosticReport);
         Encounter encounter = new Encounter();
         encounter.setPatient(patientService.getPatient(1));
@@ -89,6 +89,9 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
 
     @Test
     public void shouldAddAlreadyProcessedObservationResultToTestResults() throws Exception {
+        AtomFeed bundle = new TestHelper()
+                .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticReport.xml", springContext)
+                .getFeed();
         DiagnosticReport report = (org.hl7.fhir.instance.model.DiagnosticReport) FHIRFeedHelper.identifyResource(bundle.getEntryList(), DiagnosticReport);
         org.hl7.fhir.instance.model.Observation observation = (Observation) FHIRFeedHelper.identifyResource(bundle.getEntryList(), Observation);
         Encounter encounter = new Encounter();
@@ -103,16 +106,53 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         assertTrue(processedList.containsKey(report.getIdentifier().getValueSimple()));
         Set<Obs> obsSet = encounter.getObsAtTopLevel(false);
         assertEquals(1, obsSet.size());
-        Obs topLevelObs = obsSet.iterator().next();
-        Concept hemoglobinConcept = conceptService.getConcept(303);
-        assertEquals(1, topLevelObs.getGroupMembers().size());
+        Concept concept = conceptService.getConcept(303);
+        assertTestObs(obsSet.iterator().next(), concept);
+    }
 
-        Obs secondLevelObs = topLevelObs.getGroupMembers().iterator().next();
+    @Test
+    public void shouldAddAlreadyProcessedObservationResultToPanelResults() throws Exception {
+        AtomFeed bundle = new TestHelper()
+                .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithPanelReport.xml", springContext)
+                .getFeed();
+        List<Resource> resources = FHIRFeedHelper.identifyResources(bundle.getEntryList(), DiagnosticReport);
+        Encounter encounter = new Encounter();
+        encounter.setPatient(patientService.getPatient(1));
+        HashMap<String, List<String>> processedList = new HashMap<>();
+        for (Resource resource : resources) {
+            org.hl7.fhir.instance.model.DiagnosticReport report = (org.hl7.fhir.instance.model.DiagnosticReport) resource;
+            diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter, processedList);
+            assertTrue(processedList.containsKey(report.getIdentifier().getValueSimple()));
+        }
+        assertEquals(4, processedList.size());
+        Set<Obs> obsSet = encounter.getObsAtTopLevel(false);
+        assertEquals(1, obsSet.size());
+        Obs panelObs = obsSet.iterator().next();
+        Concept panelConcept = conceptService.getConcept(302);
+        assertEquals(panelConcept, panelObs.getConcept());
+        Order testOrder = orderService.getOrder(51);
+        assertEquals(testOrder, panelObs.getOrder());
+        assertEquals(2, panelObs.getGroupMembers().size());
+
+        Concept hemoglobinConcept = conceptService.getConcept(303);
+        Obs hemoglobinObs = findObsByConcept(panelObs.getGroupMembers(), hemoglobinConcept);
+        assertNotNull(hemoglobinObs);
+        assertTestObs(hemoglobinObs, hemoglobinConcept);
+
+        Concept esrConcept = conceptService.getConcept(304);
+        Obs esrObs = findObsByConcept(panelObs.getGroupMembers(), esrConcept);
+        assertNotNull(esrObs);
+        assertTestObs(esrObs, esrConcept);
+    }
+
+    private void assertTestObs(Obs obs, Concept concept) {
+        assertEquals(1, obs.getGroupMembers().size());
+
+        Obs secondLevelObs = obs.getGroupMembers().iterator().next();
         assertEquals(2, secondLevelObs.getGroupMembers().size());
 
-        Obs resultObs = findObsByConcept(secondLevelObs.getGroupMembers(), hemoglobinConcept);
+        Obs resultObs = findObsByConcept(secondLevelObs.getGroupMembers(), concept);
         assertNotNull(resultObs);
-        assertEquals(processedList.get(observation.getIdentifier().getValueSimple()).get(0), resultObs.getUuid());
     }
 
     private Obs findObsByConcept(Set<Obs> obsSet, Concept concept) {

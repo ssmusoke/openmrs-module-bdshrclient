@@ -1,9 +1,14 @@
 package org.openmrs.module.fhir.mapper.emr;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hl7.fhir.instance.model.*;
-import org.openmrs.*;
+import org.hl7.fhir.instance.model.AtomFeed;
+import org.hl7.fhir.instance.model.DiagnosticReport;
+import org.hl7.fhir.instance.model.Observation;
+import org.hl7.fhir.instance.model.Resource;
+import org.hl7.fhir.instance.model.ResourceReference;
+import org.openmrs.Concept;
 import org.openmrs.Encounter;
+import org.openmrs.Obs;
 import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
@@ -22,6 +27,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_CLASS_LAB_SET;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_LAB_NOTES;
 
 @Component
@@ -49,7 +55,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResource {
             return;
         Concept concept = omrsHelper.findConcept(diagnosticReport.getName().getCoding());
         Order order = getOrder(diagnosticReport, concept);
-        if(order == null) {
+        if (order == null) {
             return;
         }
         Obs topLevelObs = buildObs(concept, order);
@@ -61,9 +67,17 @@ public class FHIRDiagnosticReportMapper implements FHIRResource {
         resultObs.setOrder(order);
         secondLevelObs.addGroupMember(resultObs);
 
-        Obs notesObs = addNotes(diagnosticReport,order);
+        Obs notesObs = addNotes(diagnosticReport, order);
         secondLevelObs.addGroupMember(notesObs);
 
+        if (order.getConcept().getConceptClass().getName().equals(MRS_CONCEPT_CLASS_LAB_SET)) {
+            Obs panelObs = findObsByOrder(newEmrEncounter, order);
+            if (panelObs == null) {
+                panelObs = buildObs(order.getConcept(), order);
+            }
+            panelObs.addGroupMember(topLevelObs);
+            newEmrEncounter.addObs(panelObs);
+        }
         newEmrEncounter.addObs(topLevelObs);
         processedList.put(diagnosticReport.getIdentifier().getValueSimple(), Arrays.asList(topLevelObs.getUuid()));
     }
@@ -74,9 +88,9 @@ public class FHIRDiagnosticReportMapper implements FHIRResource {
             String encounterUrl = reference.getReferenceSimple();
             Pattern p = Pattern.compile("patients\\/(.*)\\/encounters\\/(.*)");
             Matcher matcher = p.matcher(encounterUrl);
-            if(matcher.matches()){
+            if (matcher.matches()) {
                 String shrEncounterId = matcher.group(2);
-                if(!shrEncounterId.isEmpty()) {
+                if (!shrEncounterId.isEmpty()) {
                     IdMapping orderEncounterIdMapping = idMappingsRepository.findByExternalId(shrEncounterId);
                     Encounter orderEncounter = encounterService.getEncounterByUuid(orderEncounterIdMapping.getInternalId());
                     return findOrderFromEncounter(orderEncounter.getOrders(), concept);
@@ -89,8 +103,14 @@ public class FHIRDiagnosticReportMapper implements FHIRResource {
     private Order findOrderFromEncounter(Set<Order> orders, Concept concept) {
         for (Order order : orders) {
             Concept orderConcept = order.getConcept();
-            if(orderConcept.equals(concept)) {
+            if (orderConcept.equals(concept)) {
                 return order;
+            } else if (orderConcept.getConceptClass().getName().equals(MRS_CONCEPT_CLASS_LAB_SET)) {
+                for (Concept setMember : orderConcept.getSetMembers()) {
+                    if (setMember.equals(concept)) {
+                        return order;
+                    }
+                }
             }
         }
         return null;
@@ -125,6 +145,15 @@ public class FHIRDiagnosticReportMapper implements FHIRResource {
         for (Obs obs : newEmrEncounter.getAllObs()) {
             if (obs.getUuid().equals(obsUuid))
                 return obs;
+        }
+        return null;
+    }
+
+    private Obs findObsByOrder(Encounter encounter, Order order) {
+        for (Obs obs : encounter.getObsAtTopLevel(false)) {
+            if (obs.getOrder().equals(order) && obs.getConcept().equals(order.getConcept())) {
+                return obs;
+            }
         }
         return null;
     }
