@@ -13,7 +13,6 @@ import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.fhir.utils.OMRSHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -29,6 +28,7 @@ import java.util.regex.Pattern;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_CLASS_LAB_SET;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_LAB_NOTES;
+import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
 
 @Component
 public class FHIRDiagnosticReportMapper implements FHIRResource {
@@ -36,6 +36,8 @@ public class FHIRDiagnosticReportMapper implements FHIRResource {
     private OMRSHelper omrsHelper;
     @Autowired
     private FHIRObservationsMapper observationsMapper;
+    @Autowired
+    private FHIRDiagnosticOrderMapper diagnosticOrderMapper;
     @Autowired
     private ConceptService conceptService;
     @Autowired
@@ -57,7 +59,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResource {
         if (concept == null) {
             return;
         }
-        Order order = getOrder(diagnosticReport, concept);
+        Order order = getOrder(diagnosticReport, concept, feed, emrPatient, newEmrEncounter, processedList);
         if (order == null) {
             return;
         }
@@ -85,22 +87,48 @@ public class FHIRDiagnosticReportMapper implements FHIRResource {
         processedList.put(diagnosticReport.getIdentifier().getValueSimple(), Arrays.asList(topLevelObs.getUuid()));
     }
 
-    private Order getOrder(DiagnosticReport diagnosticReport, Concept concept) {
+    private Order getOrder(DiagnosticReport diagnosticReport, Concept concept, AtomFeed feed, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
+        Order order = null;
         List<ResourceReference> requestDetail = diagnosticReport.getRequestDetail();
         for (ResourceReference reference : requestDetail) {
-            String encounterUrl = reference.getReferenceSimple();
-            Pattern p = Pattern.compile("http:\\/\\/(.*)\\/patients\\/(.*)\\/encounters\\/(.*)");
-            Matcher matcher = p.matcher(encounterUrl);
-            if (matcher.matches()) {
-                String shrEncounterId = matcher.group(3);
-                if (!shrEncounterId.isEmpty()) {
-                    IdMapping orderEncounterIdMapping = idMappingsRepository.findByExternalId(shrEncounterId);
-                    Encounter orderEncounter = encounterService.getEncounterByUuid(orderEncounterIdMapping.getInternalId());
-                    return findOrderFromEncounter(orderEncounter.getOrders(), concept);
-                }
+            String referenceString = reference.getReferenceSimple();
+            if (isInternalReference(referenceString)) {
+                order = getOrderFromInternalReference(concept, feed, emrPatient, newEmrEncounter, processedList, reference);
+            } else {
+                order = getOrderFromExternalReference(concept, referenceString);
+            }
+            if (order != null) break;
+        }
+        return order;
+    }
+
+    private boolean isInternalReference(String referenceString) {
+        return !referenceString.startsWith("http://");
+    }
+
+    private Order getOrderFromExternalReference(Concept concept, String referenceString) {
+        Pattern externalReferencePattern = Pattern.compile("http:\\/\\/(.*)\\/patients\\/(.*)\\/encounters\\/(.*)");
+        Matcher matcher = externalReferencePattern.matcher(referenceString);
+        if (matcher.matches()) {
+            String shrEncounterId = matcher.group(3);
+            if (!shrEncounterId.isEmpty()) {
+                IdMapping orderEncounterIdMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+                Encounter orderEncounter = encounterService.getEncounterByUuid(orderEncounterIdMapping.getInternalId());
+                Order order = findOrderFromEncounter(orderEncounter.getOrders(), concept);
+                return order;
             }
         }
         return null;
+    }
+
+    private Order getOrderFromInternalReference(Concept concept, AtomFeed feed, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList, ResourceReference reference) {
+        Order order;
+        if (!processedList.containsKey(reference)) {
+            Resource diagnosticOrder = findResourceByReference(feed, reference);
+            diagnosticOrderMapper.map(feed, diagnosticOrder, emrPatient, newEmrEncounter, processedList);
+        }
+        order = findOrderFromEncounter(newEmrEncounter.getOrders(), concept);
+        return order;
     }
 
     private Order findOrderFromEncounter(Set<Order> orders, Concept concept) {
@@ -131,7 +159,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResource {
     }
 
     private Obs buildResultObs(AtomFeed feed, Encounter newEmrEncounter, Map<String, List<String>> processedList, DiagnosticReport diagnosticReport, Concept concept) {
-        Observation observationResource = (Observation) FHIRFeedHelper.findResourceByReference(feed, diagnosticReport.getResult().get(0));
+        Observation observationResource = (Observation) findResourceByReference(feed, diagnosticReport.getResult().get(0));
         if (processedList.containsKey(observationResource.getIdentifier().getValueSimple())) {
             List<String> uuids = processedList.get(observationResource.getIdentifier().getValueSimple());
             for (String uuid : uuids) {

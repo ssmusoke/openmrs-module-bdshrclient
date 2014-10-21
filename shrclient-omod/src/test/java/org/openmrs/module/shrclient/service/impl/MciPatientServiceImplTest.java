@@ -3,6 +3,7 @@ package org.openmrs.module.shrclient.service.impl;
 import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.formats.XmlParser;
 import org.hl7.fhir.instance.model.Date;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
@@ -22,6 +23,7 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class MciPatientServiceImplTest extends BaseModuleWebContextSensitiveTest {
@@ -82,6 +84,31 @@ public class MciPatientServiceImplTest extends BaseModuleWebContextSensitiveTest
 
         List<org.openmrs.Encounter> encountersByPatient = encounterService.getEncountersByPatient(emrPatient);
         assertEquals(1, encountersByPatient.size());
+        Encounter encounter = encountersByPatient.get(0);
+        Set<Order> orders = encounter.getOrders();
+        assertFalse(orders.isEmpty());
+        assertEquals(1, orders.size());
+    }
+
+    @Ignore
+    @Test
+    public void shouldMapDiagnosticOrderAndDiagnosticReport() throws Exception {
+        executeDataSet("shrDiagnosticOrderSyncTestDS.xml");
+        String shrEncounterId = "shr-enc-id";
+        String healthId = "5915668841731457025";
+        org.openmrs.Patient emrPatient = patientService.getPatient(1);
+        List<EncounterBundle> bundles = new ArrayList<EncounterBundle>();
+        EncounterBundle bundle = new EncounterBundle();
+        bundle.setEncounterId(shrEncounterId);
+        bundle.setDate(new Date().toString());
+        bundle.setHealthId(healthId);
+        bundle.addContent(loadSampleFHIREncounter("classpath:encounterWithDiagnosticOrder.xml"));
+        bundles.add(bundle);
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+
+        List<org.openmrs.Encounter> encountersByPatient = encounterService.getEncountersByPatient(emrPatient);
+        assertEquals(1, encountersByPatient.size());
+        assertNotNull(encountersByPatient.get(0).getVisit());
         Encounter encounter = encountersByPatient.get(0);
         Set<Order> orders = encounter.getOrders();
         assertFalse(orders.isEmpty());

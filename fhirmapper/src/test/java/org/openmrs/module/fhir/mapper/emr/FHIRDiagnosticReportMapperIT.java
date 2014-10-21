@@ -1,6 +1,7 @@
 package org.openmrs.module.fhir.mapper.emr;
 
 import org.hl7.fhir.instance.model.AtomFeed;
+import org.hl7.fhir.instance.model.DiagnosticOrder;
 import org.hl7.fhir.instance.model.DiagnosticReport;
 import org.hl7.fhir.instance.model.Observation;
 import org.hl7.fhir.instance.model.Resource;
@@ -24,10 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import static org.hl7.fhir.instance.model.ResourceType.DiagnosticReport;
-import static org.hl7.fhir.instance.model.ResourceType.Observation;
+import static org.hl7.fhir.instance.model.ResourceType.*;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 
 @ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveTest {
@@ -40,6 +39,8 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
     private PatientService patientService;
     @Autowired
     private FHIRDiagnosticReportMapper diagnosticReportMapper;
+    @Autowired
+    private FHIRDiagnosticOrderMapper diagnosticOrderMapper;
     @Autowired
     private FHIRObservationsMapper observationsMapper;
     @Autowired
@@ -143,6 +144,30 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         Obs esrObs = findObsByConcept(panelObs.getGroupMembers(), esrConcept);
         assertNotNull(esrObs);
         assertTestObs(esrObs, esrConcept);
+    }
+
+    @Test
+    public void shouldMapDiagnosticReportWithInternalReferenceToDiagnosticOrder() throws Exception {
+        AtomFeed bundle = new TestHelper()
+                .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticOrderAndDiagnosticReport.xml", springContext)
+                .getFeed();
+        DiagnosticOrder order = (DiagnosticOrder) FHIRFeedHelper.identifyResource(bundle.getEntryList(), DiagnosticOrder);
+        DiagnosticReport report = (org.hl7.fhir.instance.model.DiagnosticReport) FHIRFeedHelper.identifyResource(bundle.getEntryList(), DiagnosticReport);
+        Encounter encounter = new Encounter();
+        encounter.setPatient(patientService.getPatient(1));
+        HashMap<String, List<String>> processedList = new HashMap<>();
+
+        diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter, processedList);
+        assertEquals(3, processedList.size());
+
+        assertTrue(processedList.containsKey(order.getIdentifier().get(0).getValueSimple()));
+        assertEquals(1, encounter.getOrders().size());
+
+        assertTrue(processedList.containsKey(report.getIdentifier().getValueSimple()));
+        Set<Obs> obsSet = encounter.getObsAtTopLevel(false);
+        assertEquals(1, obsSet.size());
+        Concept concept = conceptService.getConcept(303);
+        assertTestObs(obsSet.iterator().next(), concept);
     }
 
     private void assertTestObs(Obs obs, Concept concept) {
