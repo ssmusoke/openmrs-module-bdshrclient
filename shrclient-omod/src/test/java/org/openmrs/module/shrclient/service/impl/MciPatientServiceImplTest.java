@@ -54,7 +54,7 @@ public class MciPatientServiceImplTest extends BaseModuleWebContextSensitiveTest
         List<EncounterBundle> bundles = new ArrayList<EncounterBundle>();
         EncounterBundle bundle = new EncounterBundle();
         bundle.setEncounterId("shr-enc-id");
-        bundle.setDate(new Date().toString());
+        bundle.setPublishedDate(new Date().toString());
         String healthId = "HIDA764177";
         bundle.setHealthId(healthId);
         bundle.addContent(loadSampleFHIREncounter("classpath:testFHIREncounter.xml"));
@@ -74,7 +74,7 @@ public class MciPatientServiceImplTest extends BaseModuleWebContextSensitiveTest
         List<EncounterBundle> bundles = new ArrayList<EncounterBundle>();
         EncounterBundle bundle = new EncounterBundle();
         bundle.setEncounterId(shrEncounterId);
-        bundle.setDate(new Date().toString());
+        bundle.setPublishedDate(new Date().toString());
         bundle.setHealthId(healthId);
         bundle.addContent(loadSampleFHIREncounter("classpath:encounterWithDiagnosticOrder.xml"));
         bundles.add(bundle);

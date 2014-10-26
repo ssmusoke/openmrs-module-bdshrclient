@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.model.AtomFeed;
+import org.hl7.fhir.instance.model.Composition;
+import org.hl7.fhir.instance.model.ResourceType;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -20,16 +22,15 @@ import static org.junit.Assert.assertNotNull;
 public class EncounterBundleTest {
 
     @Test
-    @Ignore
     public void shouldDeSerializeEncounterBundle() throws IOException {
-        final URL resource = URLClassLoader.getSystemResource("encounters.json");
+        final URL resource = URLClassLoader.getSystemResource("sample_encounter.json");
         final String json = FileUtils.readFileToString(new File(resource.getPath()));
         ObjectMapper mapper = new ObjectMapper();
         List<EncounterBundle> bundles = mapper.readValue(json, new TypeReference<List<EncounterBundle>>() {
         });
-        assertEquals(4, bundles.size());
+        assertEquals(1, bundles.size());
 
-        EncounterBundle bundle = bundles.get(2);
+        EncounterBundle bundle = bundles.get(0);
         assertNotNull(bundle.getEncounterId());
         assertNotNull(bundle.getHealthId());
 
@@ -37,8 +38,12 @@ public class EncounterBundleTest {
         assertNotNull(resourceOrFeed);
 
         final AtomFeed feed = resourceOrFeed.getFeed();
+        assertEquals("urn:38052a8c-c5ad-4821-9e38-b49432a2ccc4", feed.getId());
         assertNotNull(feed);
         assertNotNull(feed.getEntryList());
-        assertEquals(4, feed.getEntryList().size());
+        assertEquals(2, feed.getEntryList().size());
+        assertEquals(ResourceType.Composition, feed.getEntryList().get(0).getResource().getResourceType());
+        assertEquals(ResourceType.Encounter, feed.getEntryList().get(1).getResource().getResourceType());
+
     }
 }

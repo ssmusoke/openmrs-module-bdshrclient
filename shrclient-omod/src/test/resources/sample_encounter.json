@@ -1,0 +1,13 @@
+[
+    {
+        "healthId": "5925782371365289985",
+        "categories": [
+            "encounter"
+        ],
+        "id": "acdfd506-3d47-4ce3-bf28-9033d648e4d6",
+        "publishedDate": "2014-10-24T02:13:12.946-0700",
+        "title": "Encounter:acdfd506-3d47-4ce3-bf28-9033d648e4d6",
+        "link": "/patients/5925782371365289985/encounters/acdfd506-3d47-4ce3-bf28-9033d648e4d6",
+        "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n<feed xmlns=\"http://www.w3.org/2005/Atom\">\n  <title>Encounter</title>\n  <id>urn:38052a8c-c5ad-4821-9e38-b49432a2ccc4</id>\n  <updated>2014-10-24T15:00:18+05:30</updated>\n  <entry>\n    <title>Composition</title>\n    <id>urn:Encounter - caa067bc-9170-40d4-8295-ab196b4f3f34</id>\n    <updated>2014-10-24T15:01:14.866+05:30</updated>\n    <author>\n      <name>bahmni</name>\n    </author>\n    <content type=\"text/xml\">\n      <Composition xmlns=\"http://hl7.org/fhir\">\n        <identifier>\n          <value value=\"Encounter - caa067bc-9170-40d4-8295-ab196b4f3f34\"/>\n        </identifier>\n        <date value=\"2014-10-24T15:00:18+05:30\"/>\n        <status value=\"final\"/>\n        <encounter>\n          <reference value=\"caa067bc-9170-40d4-8295-ab196b4f3f34\"/>\n          <display value=\"encounter\"/>\n        </encounter>\n        <section>\n          <content>\n            <reference value=\"caa067bc-9170-40d4-8295-ab196b4f3f34\"/>\n            <display value=\"Encounter\"/>\n          </content>\n        </section>\n      </Composition>\n    </content>\n  </entry>\n  <entry>\n    <title>Encounter</title>\n    <id>urn:caa067bc-9170-40d4-8295-ab196b4f3f34</id>\n    <updated>2014-10-24T15:01:14.866+05:30</updated>\n    <author>\n      <name>bahmni</name>\n    </author>\n    <content type=\"text/xml\">\n      <Encounter xmlns=\"http://hl7.org/fhir\">\n        <identifier>\n          <value value=\"caa067bc-9170-40d4-8295-ab196b4f3f34\"/>\n        </identifier>\n        <status value=\"finished\"/>\n        <class value=\"outpatient\"/>\n        <type>\n          <text value=\"REG\"/>\n        </type>\n        <subject>\n          <reference value=\"5925782371365289985\"/>\n        </subject>\n        <participant>\n          <individual>\n            <reference value=\"ffc13c58-3864-468c-a067-b7f7a57d35f9\"/>\n          </individual>\n        </participant>\n        <indication>\n          <reference value=\"caa067bc-9170-40d4-8295-ab196b4f3f34\"/>\n          <display value=\"encounter\"/>\n        </indication>\n        <serviceProvider>\n          <reference value=\"Bahmni\"/>\n        </serviceProvider>\n      </Encounter>\n    </content>\n  </entry>\n</feed>"
+    }
+]
