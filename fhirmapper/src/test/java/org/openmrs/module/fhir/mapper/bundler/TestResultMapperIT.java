@@ -80,7 +80,7 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
         Observation observation = (Observation) observationResource.getResource();
         assertNotNull(observation.getValue());
         if(observation.getValue() instanceof Decimal) {
-            assertEquals("120", ((Decimal) observation.getValue()).getStringValue());
+            assertEquals("120.0", ((Decimal) observation.getValue()).getStringValue());
         }
         assertEquals(obsService.getObs(4).getValueText(), report.getConclusionSimple());
     }

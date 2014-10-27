@@ -25,7 +25,7 @@ public class ObservationValueMapper {
             public Type readValue(Obs obs, IdMappingsRepository idMappingsRepository) {
                 if (obs.getConcept().getDatatype().isNumeric() && obs.getValueNumeric() != null) {
                     Decimal decimal = new Decimal();
-                    decimal.setValue(new BigDecimal(obs.getValueNumeric()));
+                    decimal.setValue(BigDecimal.valueOf(obs.getValueNumeric()));
                     return decimal;
                 }
                 return null;
