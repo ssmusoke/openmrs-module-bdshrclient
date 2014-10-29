@@ -7,7 +7,7 @@ import org.ict4h.atomfeed.client.service.FeedClient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
-import org.openmrs.module.shrclient.OpenMRSFeedClientFactory;
+import org.openmrs.module.shrclient.feeds.openmrs.OpenMRSFeedClientFactory;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;

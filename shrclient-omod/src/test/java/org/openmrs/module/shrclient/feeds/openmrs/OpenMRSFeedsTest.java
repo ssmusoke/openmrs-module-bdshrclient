@@ -1,4 +1,4 @@
-package org.openmrs.module.shrclient.handlers;
+package org.openmrs.module.shrclient.feeds.openmrs;
 
 import com.sun.syndication.feed.atom.Feed;
 import com.sun.syndication.io.WireFeedInput;
@@ -34,7 +34,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class OpenMRSEventFeedTest {
+public class OpenMRSFeedsTest {
 
     @Mock
     FeedGenerator feedGenerator;

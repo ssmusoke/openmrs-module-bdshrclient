@@ -1,6 +1,6 @@
-package org.openmrs.module.shrclient;
+package org.openmrs.module.shrclient.feeds.openmrs;
 
-import org.openmrs.module.shrclient.handlers.OpenMRSFeeds;
+import org.openmrs.module.shrclient.feeds.openmrs.OpenMRSFeeds;
 import org.ict4h.atomfeed.client.AtomFeedProperties;
 import org.ict4h.atomfeed.client.repository.AllFailedEvents;
 import org.ict4h.atomfeed.client.repository.AllMarkers;
