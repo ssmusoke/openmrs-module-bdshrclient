@@ -25,12 +25,12 @@ public class ShrNotifier {
     private static final String OPENMRS_ENCOUNTER_FEED_URI = "openmrs://events/encounter/recent";
 
     public void processPatient() {
-        ShrPatientUploader shrPatientUploader = patientUploader();
-        process(OPENMRS_PATIENT_FEED_URI, shrPatientUploader);
+        PatientUploader patientUploader = patientUploader();
+        process(OPENMRS_PATIENT_FEED_URI, patientUploader);
     }
 
-    private ShrPatientUploader patientUploader() {
-        return new ShrPatientUploader(
+    private PatientUploader patientUploader() {
+        return new PatientUploader(
                     Context.getPatientService(),
                     Context.getUserService(),
                     Context.getPersonService(),
@@ -51,8 +51,8 @@ public class ShrNotifier {
         retry(OPENMRS_PATIENT_FEED_URI, patientUploader());
     }
 
-    private ShrEncounterUploader encounterUploader() {
-        return new ShrEncounterUploader(Context.getEncounterService(), Context.getUserService(), getPropertiesReader(),
+    private EncounterUploader encounterUploader() {
+        return new EncounterUploader(Context.getEncounterService(), Context.getUserService(), getPropertiesReader(),
                 getRegisteredComponent(CompositionBundleCreator.class), getRegisteredComponent(IdMappingsRepository.class));
     }
 

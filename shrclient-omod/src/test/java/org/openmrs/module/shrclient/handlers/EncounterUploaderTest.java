@@ -30,7 +30,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class ShrEncounterUploaderTest {
+public class EncounterUploaderTest {
 
     @Mock
     private EncounterService encounterService;
@@ -50,13 +50,13 @@ public class ShrEncounterUploaderTest {
     @Mock
     private IdMappingsRepository idMappingsRepository;
 
-    private ShrEncounterUploader shrEncounterUploader;
+    private EncounterUploader encounterUploader;
 
     @Before
     public void setup() {
         initMocks(this);
         when(propertiesReader.getShrWebClient()).thenReturn(fhirRestClient);
-        shrEncounterUploader = new ShrEncounterUploader(encounterService, userService, propertiesReader, compositionBundleCreator, idMappingsRepository);
+        encounterUploader = new EncounterUploader(encounterService, userService, propertiesReader, compositionBundleCreator, idMappingsRepository);
     }
 
     @Test
@@ -72,7 +72,7 @@ public class ShrEncounterUploaderTest {
         when(fhirRestClient.post(anyString(), eq(atomFeed))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
         when(compositionBundleCreator.compose(openMrsEncounter)).thenReturn(atomFeed);
         when(idMappingsRepository.findByExternalId(anyString())).thenReturn(null);
-        shrEncounterUploader.process(event);
+        encounterUploader.process(event);
 
         verify(encounterService).getEncounterByUuid(uuid);
         verify(fhirRestClient).post(anyString(), eq(atomFeed));
@@ -95,7 +95,7 @@ public class ShrEncounterUploaderTest {
         final String uuid = "123abc456";
         final String content = "/openmrs/ws/rest/v1/encounter/" + uuid +
                 "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))";
-        assertEquals(uuid, shrEncounterUploader.getUuid(content));
+        assertEquals(uuid, encounterUploader.getUuid(content));
     }
 
 }

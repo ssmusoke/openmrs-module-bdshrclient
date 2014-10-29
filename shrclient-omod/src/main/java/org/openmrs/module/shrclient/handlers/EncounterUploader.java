@@ -24,9 +24,9 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ShrEncounterUploader implements EventWorker {
+public class EncounterUploader implements EventWorker {
 
-    private static final Logger log = Logger.getLogger(ShrEncounterUploader.class);
+    private static final Logger log = Logger.getLogger(EncounterUploader.class);
 
     private CompositionBundleCreator bundleCreator;
     private IdMappingsRepository idMappingsRepository;
@@ -36,7 +36,7 @@ public class ShrEncounterUploader implements EventWorker {
     private FhirRestClient fhirRestClient;
     private UserService userService;
 
-    public ShrEncounterUploader(EncounterService encounterService, UserService userService, PropertiesReader propertiesReader, CompositionBundleCreator bundleCreator, IdMappingsRepository idMappingsRepository) {
+    public EncounterUploader(EncounterService encounterService, UserService userService, PropertiesReader propertiesReader, CompositionBundleCreator bundleCreator, IdMappingsRepository idMappingsRepository) {
         this.encounterService = encounterService;
         this.propertiesReader = propertiesReader;
         this.fhirRestClient = propertiesReader.getShrWebClient();
