@@ -12,4 +12,5 @@ public interface MciPatientService extends OpenmrsService {
      org.openmrs.Patient createOrUpdatePatient(Patient mciPatient);
      org.openmrs.PatientIdentifier generateIdentifier();
      void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles, String healthId);
+     void updateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId) throws Exception;
 }

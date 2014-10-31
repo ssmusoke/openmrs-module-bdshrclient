@@ -1,8 +1,8 @@
 package org.openmrs.module.shrclient.feeds.openmrs;
 
-import org.openmrs.module.shrclient.feeds.openmrs.OpenMRSFeeds;
 import org.ict4h.atomfeed.client.AtomFeedProperties;
 import org.ict4h.atomfeed.client.repository.AllFailedEvents;
+import org.ict4h.atomfeed.client.repository.AllFeeds;
 import org.ict4h.atomfeed.client.repository.AllMarkers;
 import org.ict4h.atomfeed.client.repository.jdbc.AllFailedEventsJdbcImpl;
 import org.ict4h.atomfeed.client.repository.jdbc.AllMarkersJdbcImpl;
@@ -32,7 +32,7 @@ public class OpenMRSFeedClientFactory {
         JdbcConnectionProvider connectionProvider = getConnectionProvider(txMgr);
 
         return new AtomFeedClient(
-                getOpenMRSFeeds(feedURI, connectionProvider),
+                getAllFeeds(feedURI, connectionProvider),
                 getAllMarkers(connectionProvider),
                 getAllFailedEvent(connectionProvider),
                 getFeedProperties(),
@@ -49,7 +49,7 @@ public class OpenMRSFeedClientFactory {
         return new AllMarkersJdbcImpl(connectionProvider);
     }
 
-    private OpenMRSFeeds getOpenMRSFeeds(URI feedURI, JdbcConnectionProvider connectionProvider) {
+    private AllFeeds getAllFeeds(URI feedURI, JdbcConnectionProvider connectionProvider) {
         return new OpenMRSFeeds(getEventFeedService(connectionProvider), feedURI);
     }
 

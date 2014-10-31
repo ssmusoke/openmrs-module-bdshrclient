@@ -20,21 +20,17 @@ import java.net.URI;
 import java.util.Map;
 
 public class ShrEncounterFeeds extends AllFeeds {
-    private Map<String, Object> feedProperties;
+    private Map<String, String> connProperties;
 
-    public ShrEncounterFeeds(Map<String, Object> feedProperties) {
-        this.feedProperties = feedProperties;
+    public ShrEncounterFeeds(Map<String, String> connProperties) {
+        this.connProperties = connProperties;
     }
 
     @Override
     public Feed getFor(URI uri) {
         HttpGet request = new HttpGet(uri);
-        Map<String, String> requestHeaders = getRequestHeaders();
-        if (requestHeaders != null) {
-            for (String header : requestHeaders.keySet()) {
-                request.addHeader(header, requestHeaders.get(header));
-            }
-        }
+        request.setHeader("Accept", getAcceptHeader());
+        request.setHeader("facilityId", getFacilityId());
         try {
             String response = getResponse(request);
             WireFeedInput input = new WireFeedInput();
@@ -70,11 +66,11 @@ public class ShrEncounterFeeds extends AllFeeds {
         }
     }
 
-    public Map<String, String> getRequestHeaders() {
-        Object headers = feedProperties.get("headers");
-        if (headers != null) {
-            return (Map<String, String>) headers;
-        }
-        return null;
+    public String getAcceptHeader() {
+        return connProperties.get("Accept");
+    }
+
+    private String getFacilityId() {
+        return connProperties.get("facilityId");
     }
 }

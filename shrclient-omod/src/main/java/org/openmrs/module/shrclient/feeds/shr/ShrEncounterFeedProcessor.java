@@ -6,62 +6,77 @@ import org.hl7.fhir.instance.formats.XmlParser;
 import org.ict4h.atomfeed.client.AtomFeedProperties;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.repository.AllFailedEvents;
+import org.ict4h.atomfeed.client.repository.AllFeeds;
 import org.ict4h.atomfeed.client.repository.AllMarkers;
+import org.ict4h.atomfeed.client.repository.jdbc.AllFailedEventsJdbcImpl;
+import org.ict4h.atomfeed.client.repository.jdbc.AllMarkersJdbcImpl;
 import org.ict4h.atomfeed.client.service.AtomFeedClient;
 import org.ict4h.atomfeed.client.service.EventWorker;
+import org.ict4h.atomfeed.jdbc.JdbcConnectionProvider;
+import org.ict4h.atomfeed.transaction.AFTransactionManager;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.atomfeed.transaction.support.AtomFeedSpringTransactionManager;
-import org.openmrs.module.shrclient.feeds.shr.EncounterEventWorker;
-import org.openmrs.module.shrclient.feeds.shr.ShrEncounterFeeds;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Map;
 
 public class ShrEncounterFeedProcessor {
 
-    private PlatformTransactionManager transactionManager;
     private EncounterEventWorker shrEventWorker;
     private String feedUrl;
-    private AllMarkers markers;
-    private AllFailedEvents failedEvents;
-    private Map<String, Object> feedProperties;
+    private Map<String, String> feedProperties;
 
-    public ShrEncounterFeedProcessor(DataSourceTransactionManager transactionManager,
-                                     EncounterEventWorker shrEventWorker,
-                                     String feedUrl,
-                                     AllMarkers markers,
-                                     AllFailedEvents failedEvents,
-                                     Map<String, Object> feedProperties) {
-        this.transactionManager = transactionManager;
+    public ShrEncounterFeedProcessor(String feedUrl,
+          Map<String, String> feedProperties, EncounterEventWorker shrEventWorker) {
         this.shrEventWorker = shrEventWorker;
         this.feedUrl = feedUrl;
-        this.markers = markers;
-        this.failedEvents = failedEvents;
         this.feedProperties = feedProperties;
     }
 
     public void process() throws URISyntaxException {
-        AtomFeedProperties atomProperties = new AtomFeedProperties();
-        atomProperties.setMaxFailedEvents(20);
-        atomFeedClient(new URI(this.feedUrl),
-                new FeedEventWorker(shrEventWorker),
-                atomProperties).processEvents();
+        atomFeedClient(new URI(this.feedUrl), new FeedEventWorker(shrEventWorker)).processEvents();
     }
 
-    private AtomFeedClient atomFeedClient(URI feedUri, EventWorker worker, AtomFeedProperties atomProperties)  {
-        AtomFeedSpringTransactionManager txManager = new AtomFeedSpringTransactionManager(transactionManager);
+    public void processFailedEvents() throws URISyntaxException {
+        atomFeedClient(new URI(this.feedUrl), new FeedEventWorker(shrEventWorker)).processFailedEvents();
+    }
+
+
+    private AtomFeedProperties getAtomFeedProperties() {
+        AtomFeedProperties atomProperties = new AtomFeedProperties();
+        atomProperties.setMaxFailedEvents(20);
+        return atomProperties;
+    }
+
+    private AtomFeedClient atomFeedClient(URI feedUri, EventWorker worker)  {
+        AFTransactionManager txManager = getAtomFeedTransactionManager();
+        JdbcConnectionProvider connectionProvider = getConnectionProvider(txManager);
+        AtomFeedProperties atomProperties = getAtomFeedProperties();
         return new AtomFeedClient(
-                new ShrEncounterFeeds(feedProperties),
-                markers,
-                failedEvents,
+                getAllFeeds(feedUri),
+                getAllMarkers(connectionProvider),
+                getAllFailedEvent(connectionProvider),
                 atomProperties,
                 txManager,
                 feedUri,
                 worker);
+    }
+
+    private AllFailedEvents getAllFailedEvent(JdbcConnectionProvider connectionProvider) {
+        return new AllFailedEventsJdbcImpl(connectionProvider);
+    }
+
+    private AllMarkers getAllMarkers(JdbcConnectionProvider connectionProvider) {
+        return new AllMarkersJdbcImpl(connectionProvider);
+    }
+
+    private AllFeeds getAllFeeds(URI feedUri) {
+        return new ShrEncounterFeeds(feedProperties);
     }
 
     private class FeedEventWorker implements EventWorker {
@@ -89,5 +104,21 @@ public class ShrEncounterFeedProcessor {
         @Override
         public void cleanUp(Event event) {
         }
+    }
+
+    private JdbcConnectionProvider getConnectionProvider(AFTransactionManager txMgr) {
+        if (txMgr instanceof AtomFeedSpringTransactionManager) {
+            return (AtomFeedSpringTransactionManager) txMgr;
+        }
+        throw new RuntimeException("Atom Feed TransactionManager should provide a connection provider.");
+    }
+
+    private AFTransactionManager getAtomFeedTransactionManager() {
+        return new AtomFeedSpringTransactionManager(getSpringPlatformTransactionManager());
+    }
+
+    private PlatformTransactionManager getSpringPlatformTransactionManager() {
+        List<PlatformTransactionManager> platformTransactionManagers = Context.getRegisteredComponents(PlatformTransactionManager.class);
+        return platformTransactionManagers.get(0);
     }
 }

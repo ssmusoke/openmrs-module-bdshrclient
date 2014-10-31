@@ -7,15 +7,14 @@ import org.ict4h.atomfeed.client.service.FeedClient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
-import org.openmrs.module.shrclient.feeds.openmrs.OpenMRSFeedClientFactory;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.feeds.openmrs.OpenMRSFeedClientFactory;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;
-import org.openmrs.module.shrclient.util.PropertiesReader;
+import org.openmrs.module.shrclient.util.PlatformUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 
 public class ShrNotifier {
 
@@ -35,7 +34,7 @@ public class ShrNotifier {
                     Context.getUserService(),
                     Context.getPersonService(),
                     new PatientMapper(Context.getService(AddressHierarchyService.class), new BbsCodeServiceImpl()),
-                    getPropertiesReader().getMciWebClient());
+                    PlatformUtil.getPropertiesReader().getMciWebClient());
     }
 
 
@@ -52,17 +51,13 @@ public class ShrNotifier {
     }
 
     private EncounterUploader encounterUploader() {
-        return new EncounterUploader(Context.getEncounterService(), Context.getUserService(), getPropertiesReader(),
-                getRegisteredComponent(CompositionBundleCreator.class), getRegisteredComponent(IdMappingsRepository.class));
+        return new EncounterUploader(Context.getEncounterService(), Context.getUserService(),
+                PlatformUtil.getPropertiesReader(),
+                PlatformUtil.getRegisteredComponent(CompositionBundleCreator.class),
+                PlatformUtil.getRegisteredComponent(IdMappingsRepository.class));
     }
 
-    private <T> T getRegisteredComponent(Class<T> clazz) {
-        List<T> registeredComponents = Context.getRegisteredComponents(clazz);
-        if (!registeredComponents.isEmpty()) {
-            return registeredComponents.get(0);
-        }
-        return null;
-    }
+
 
     private FeedClient feedClient(String uri, EventWorker worker) {
         OpenMRSFeedClientFactory factory = new OpenMRSFeedClientFactory();
@@ -82,8 +77,6 @@ public class ShrNotifier {
         feedClient(feedURI, eventWorker).processEvents();
     }
 
-    private PropertiesReader getPropertiesReader() {
-        return getRegisteredComponent(PropertiesReader.class);
-    }
+
 
 }

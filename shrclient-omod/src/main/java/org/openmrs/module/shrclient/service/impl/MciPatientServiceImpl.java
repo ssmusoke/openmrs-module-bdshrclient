@@ -111,7 +111,8 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         }
 
         setCreator(emrPatient);
-        patientService.savePatient(emrPatient);
+        org.openmrs.Patient patient = patientService.savePatient(emrPatient);
+        addPatientToIdMapping(patient, mciPatient.getHealthId());
         return emrPatient;
     }
 
@@ -142,7 +143,8 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         }
     }
 
-    private void updateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId) throws Exception {
+    @Override
+    public void updateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId) throws Exception {
         String fhirEncounterId = encounterBundle.getEncounterId();
         AtomFeed feed = encounterBundle.getResourceOrFeed().getFeed();
         logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), fhirEncounterId));
@@ -301,5 +303,14 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         String globalProperty = administrationService.getGlobalProperty(Constants.EMR_PRIMARY_IDENTIFIER_TYPE);
         PatientIdentifierType patientIdentifierByUuid = Context.getPatientService().getPatientIdentifierTypeByUuid(globalProperty);
         return patientIdentifierByUuid;
+    }
+
+    private void addPatientToIdMapping(org.openmrs.Patient emrPatient, String healthId) {
+        String patientUuid = emrPatient.getUuid();
+        //TODO : put the right url
+        Properties mciProperties = propertiesReader.getMciProperties();
+        String url = propertiesReader.getMciBaseUrl(mciProperties) + "/patients/" + healthId;
+        idMappingsRepository.saveMapping(new IdMapping(patientUuid, healthId, Constants.ID_MAPPING_PATIENT_TYPE, url));
+
     }
 }
