@@ -53,7 +53,7 @@ public class ShrDownloader {
 
     private String getFacilityId() {
         PropertiesReader propertiesReader = PlatformUtil.getRegisteredComponent(PropertiesReader.class);
-        Object facilityId = propertiesReader.getShrProperties().get("facilityId");
+        Object facilityId = propertiesReader.getShrProperties().get("shr.facilityId");
         logger.info("Identified Facility:" + facilityId);
         if (facilityId == null) {
             throw new RuntimeException("Facility Id not defined.");
