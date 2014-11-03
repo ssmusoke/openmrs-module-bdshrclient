@@ -52,7 +52,13 @@ public class ShrDownloader {
     }
 
     private String getFacilityId() {
-        return "10000069";
+        PropertiesReader propertiesReader = PlatformUtil.getRegisteredComponent(PropertiesReader.class);
+        Object facilityId = propertiesReader.getShrProperties().get("facilityId");
+        logger.info("Identified Facility:" + facilityId);
+        if (facilityId == null) {
+            throw new RuntimeException("Facility Id not defined.");
+        }
+        return (String) facilityId;
     }
 
     public ArrayList<String> getEncounterFeedUrls(PropertiesReader propertiesReader) {
