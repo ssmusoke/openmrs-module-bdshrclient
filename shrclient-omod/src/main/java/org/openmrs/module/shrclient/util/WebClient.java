@@ -16,13 +16,16 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.Charset;
 
 public class WebClient {
 
     private static final Logger log = Logger.getLogger(WebClient.class);
+    public static final String ZERO_WIDTH_NO_BREAK_SPACE = "\uFEFF";
     private String user;
     private String password;
     private String baseUrl;
@@ -33,12 +36,13 @@ public class WebClient {
         this.baseUrl = baseUrl;
     }
 
+
     public String get(String path) {
         String url = getUrl(path);
         log.debug("HTTP get url: " + url);
         try {
             HttpGet request = new HttpGet(URI.create(url));
-            request.addHeader("accept", "application/json");
+
             return getResponse(request);
         } catch (IOException e) {
             log.error("Error during http get. URL: " + url, e);
@@ -76,16 +80,17 @@ public class WebClient {
         }
     }
 
-    private String getResponse(HttpRequestBase request) throws IOException {
+    private String getResponse(final HttpRequestBase request) throws IOException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         try {
-            request.addHeader("Authorization", getAuthHeader());
+            addHeaders(request);
+
             ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
                 public String handleResponse(final HttpResponse response) throws IOException {
                     int status = response.getStatusLine().getStatusCode();
                     if (status >= 200 && status < 300) {
                         HttpEntity entity = response.getEntity();
-                        return entity != null ? EntityUtils.toString(entity) : null;
+                        return entity != null ? parseContentInputAsString(entity) : null;
                     } else if (status == 404) {
                         return null;
                     } else {
@@ -93,11 +98,38 @@ public class WebClient {
                     }
                 }
             };
+
             return httpClient.execute(request, responseHandler);
 
         } finally {
             httpClient.close();
         }
+    }
+
+    private String parseContentInputAsString(HttpEntity entity) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent()));
+        String inputLine;
+        StringBuffer responseString = new StringBuffer();
+        while ((inputLine = reader.readLine()) != null) {
+            responseString.append(inputLine);
+        }
+        reader.close();
+        return responseString.toString().replace(ZERO_WIDTH_NO_BREAK_SPACE, "");
+//        return EntityUtils.toString(entity);
+    }
+
+    private void addHeaders(HttpRequestBase request) {
+        request.addHeader("accept", "application/json");
+        addServerSpecificHeaders(request);
+    }
+
+    private void addServerSpecificHeaders(HttpRequestBase request) {
+        PropertiesReader propertiesReader = new PropertiesReader();
+        // Adding LR specific Headers in 'if' part and for all other servers adding headers in 'else' part
+        if (request.getURI().toString().contains(propertiesReader.getLrProperties().getProperty("lr.host")))
+            request.addHeader(propertiesReader.getLrProperties().getProperty("lr.tokenName"), propertiesReader.getLrProperties().getProperty("lr.tokenValue"));
+        else
+            request.addHeader("Authorization", getAuthHeader());
     }
 
     private String getUrl(String path) {
@@ -109,4 +141,5 @@ public class WebClient {
         byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("UTF-8")));
         return "Basic " + new String(encodedAuth);
     }
+
 }

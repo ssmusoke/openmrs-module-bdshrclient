@@ -145,4 +145,29 @@
     </changeSet>
 
 
+
+    <changeSet id="bdshrclient-041114-2100" author="tw" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from scheduler_task_config where
+                schedulable_class='org.openmrs.module.shrclient.scheduler.tasks.LRSyncTask';
+            </sqlCheck>
+        </preConditions>
+
+        <insert tableName="scheduler_task_config">
+            <column name="name" value="LR Sync Task"/>
+            <column name="schedulable_class" value="org.openmrs.module.shrclient.scheduler.tasks.LRSyncTask"/>
+            <column name="start_time" valueDate=" now() "/>
+            <column name="start_time_pattern" value="MM/dd/yyyy HH:mm:ss"/>
+            <column name="repeat_interval" value="15"/>
+            <column name="start_on_startup" value="1"/>
+            <column name="started" value="1"/>
+            <column name="created_by" value="1"/>
+            <column name="date_created" valueDate=" now() "/>
+            <column name="uuid" valueComputed=" uuid() "/>
+        </insert>
+
+    </changeSet>
+
+
 </databaseChangeLog>

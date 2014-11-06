@@ -23,6 +23,7 @@ public class RestClient {
     public <T> T get(String url, Class<T> returnType) {
         try {
             String response = webClient.get(url);
+
             if (StringUtils.isNotBlank(response)) {
                 return mapper.readValue(response, returnType);
             } else {
