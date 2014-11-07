@@ -13,7 +13,6 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
@@ -26,6 +25,7 @@ public class WebClient {
 
     private static final Logger log = Logger.getLogger(WebClient.class);
     public static final String ZERO_WIDTH_NO_BREAK_SPACE = "\uFEFF";
+    public static final String BLANK_CHARACTER = "";
     private String user;
     private String password;
     private String baseUrl;
@@ -114,18 +114,22 @@ public class WebClient {
             responseString.append(inputLine);
         }
         reader.close();
-        return responseString.toString().replace(ZERO_WIDTH_NO_BREAK_SPACE, "");
+        return responseString.toString().replace(ZERO_WIDTH_NO_BREAK_SPACE, BLANK_CHARACTER);
 //        return EntityUtils.toString(entity);
     }
 
     private void addHeaders(HttpRequestBase request) {
-        request.addHeader("accept", "application/json");
+        addCommonHeaders(request);
         addServerSpecificHeaders(request);
+    }
+
+    private void addCommonHeaders(HttpRequestBase request) {
+        request.addHeader("accept", "application/json");
     }
 
     private void addServerSpecificHeaders(HttpRequestBase request) {
         PropertiesReader propertiesReader = new PropertiesReader();
-        // Adding LR specific Headers in 'if' part and for all other servers adding headers in 'else' part
+        // Adding LR or FR specific Headers in 'if' part and for all other servers adding headers in 'else' part
         if (request.getURI().toString().contains(propertiesReader.getLrProperties().getProperty("lr.host")))
             request.addHeader(propertiesReader.getLrProperties().getProperty("lr.tokenName"), propertiesReader.getLrProperties().getProperty("lr.tokenValue"));
         else
