@@ -18,7 +18,9 @@ public class AddressHierarchyEntryMapper {
     public final static HashMap<String, Integer> LOCATION_LEVELS = new HashMap<String, Integer>(){{
         put("division", 1);
         put("district", 2);
-        put("upazilla", 3);
+        put("upazila", 3);
+        put("paurasava", 4);
+        put("union", 5);
     }};
 
 
@@ -35,7 +37,7 @@ public class AddressHierarchyEntryMapper {
         AddressHierarchyEntry parentAddressHierarchyEntry = getParentAddressHierarchyEntry(parentUserGeneratedId, addressHierarchyService);
 
 
-        addressHierarchyEntry.setName(lrAddressHierarchyEntry.getLocationName().toUpperCase());
+        addressHierarchyEntry.setName(lrAddressHierarchyEntry.getLocationName());
         addressHierarchyEntry.setLevel(addressHierarchyLevel);
 
         addressHierarchyEntry.setParent(parentAddressHierarchyEntry);

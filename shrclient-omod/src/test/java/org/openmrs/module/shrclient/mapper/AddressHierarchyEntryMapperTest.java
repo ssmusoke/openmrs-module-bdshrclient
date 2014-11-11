@@ -39,7 +39,6 @@ public class AddressHierarchyEntryMapperTest {
 
     @Test
     public void shouldCreateAndProperlyPopulateAllTheFieldsIfNullAddressHierarchyEntryIsGiven() throws Exception {
-//        when(addressHierarchyService.getAddressHierarchyEntry(anyInt())).thenReturn(new AddressHierarchyEntry());
         AddressHierarchyEntry addressHierarchyEntry = null;
 
         addressHierarchyEntry = new AddressHierarchyEntryMapper().map(addressHierarchyEntry, lrAddressHierarchyEntry, addressHierarchyService);
@@ -48,7 +47,7 @@ public class AddressHierarchyEntryMapperTest {
         int actualLevelId = level.getId();
         int expectedLevelId = 1;
         assertEquals(expectedLevelId, actualLevelId);
-        assertEquals("BARISAL", addressHierarchyEntry.getName());
+        assertTrue(addressHierarchyEntry.getName().equalsIgnoreCase("Barisal"));
         assertEquals("10", addressHierarchyEntry.getUserGeneratedId());
         assertEquals(null, addressHierarchyEntry.getParent());
     }
@@ -66,10 +65,9 @@ public class AddressHierarchyEntryMapperTest {
         int actualLevelId = level.getId();
         int expectedLevelId = 1;
         assertEquals(expectedLevelId, actualLevelId);
-        assertEquals("BARISAL", addressHierarchyEntry.getName());
+        assertTrue(addressHierarchyEntry.getName().equalsIgnoreCase("Barisal"));
         assertEquals("10", addressHierarchyEntry.getUserGeneratedId());
         assertEquals(null, addressHierarchyEntry.getParent());
-
     }
 
     @Test
@@ -87,7 +85,6 @@ public class AddressHierarchyEntryMapperTest {
         String actualParentUserGeneratedId = addressHierarchyEntryMapper.getParentUserGeneratedId(lrAddressHierarchyEntry.getFullLocationCode());
         String expectedParentUserGeneratedId = "10";
         assertEquals(expectedParentUserGeneratedId, actualParentUserGeneratedId);
-
     }
 
     @Test
@@ -96,8 +93,6 @@ public class AddressHierarchyEntryMapperTest {
         AddressHierarchyEntryMapper addressHierarchyEntryMapper = new AddressHierarchyEntryMapper();
         AddressHierarchyEntry parentAddressHierarchyEntry = addressHierarchyEntryMapper.getParentAddressHierarchyEntry("1010", addressHierarchyService);
         assertNotNull(parentAddressHierarchyEntry);
-//        addressHierarchyService.getAddressHierarchyEntryByUserGenId(
-
     }
 
     @Test
