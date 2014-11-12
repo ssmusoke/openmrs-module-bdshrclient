@@ -30,12 +30,25 @@ public class PropertiesReader {
         return new RestClient(getLrBaseUrl(properties), "", "");
     }
 
+    public RestClient getFrWebClient() {
+        Properties properties = getFrProperties();
+        return new RestClient(getFrBaseUrl(properties), "", "");
+    }
+
     private String getLrBaseUrl(Properties properties) {
         return getBaseUrl(properties.getProperty("lr.scheme"), properties.getProperty("lr.host"), properties.getProperty("lr.context"));
     }
 
+    private String getFrBaseUrl(Properties properties) {
+        return getBaseUrl(properties.getProperty("fr.scheme"), properties.getProperty("fr.host"), properties.getProperty("fr.context"));
+    }
+
     public Properties getLrProperties() {
         return getProperties("lr.properties");
+    }
+
+    public Properties getFrProperties() {
+        return getProperties("fr.properties");
     }
 
     public String getMciBaseUrl(Properties properties) {
@@ -57,10 +70,10 @@ public class PropertiesReader {
                 properties.getProperty("shr.port"));
     }
 
-    private String getBaseUrl(String scheme, String host, String portOrContext) {
-        boolean isPortNo = portOrContext.matches(REGEX_TO_MATCH_PORT_NO);
-        return isPortNo ? String.format("%s://%s" + URL_SEPARATOR_FOR_PORT_NO + "%s", scheme, host, portOrContext)
-                : String.format("%s://%s" + URL_SEPARATOR_FOR_CONTEXT_PATH + "%s", scheme, host, portOrContext);
+    private String getBaseUrl(String scheme, String host, String portNoOrContextPath) {
+        boolean isPortNo = portNoOrContextPath.matches(REGEX_TO_MATCH_PORT_NO);
+        return isPortNo ? String.format("%s://%s" + URL_SEPARATOR_FOR_PORT_NO + "%s", scheme, host, portNoOrContextPath)
+                : String.format("%s://%s" + URL_SEPARATOR_FOR_CONTEXT_PATH + "%s", scheme, host, portNoOrContextPath);
     }
 
     public Properties getShrProperties() {

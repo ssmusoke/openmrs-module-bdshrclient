@@ -115,7 +115,6 @@ public class WebClient {
         }
         reader.close();
         return responseString.toString().replace(ZERO_WIDTH_NO_BREAK_SPACE, BLANK_CHARACTER);
-//        return EntityUtils.toString(entity);
     }
 
     private void addHeaders(HttpRequestBase request) {
