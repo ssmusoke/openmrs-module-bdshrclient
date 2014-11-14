@@ -34,7 +34,7 @@ public class ShrNotifier {
                     Context.getUserService(),
                     Context.getPersonService(),
                     new PatientMapper(Context.getService(AddressHierarchyService.class), new BbsCodeServiceImpl()),
-                    PlatformUtil.getPropertiesReader().getMciWebClient());
+                    new ServiceClientRegistry(PlatformUtil.getPropertiesReader()).getMCIClient());
     }
 
 
@@ -54,7 +54,7 @@ public class ShrNotifier {
         return new EncounterUploader(Context.getEncounterService(), Context.getUserService(),
                 PlatformUtil.getPropertiesReader(),
                 PlatformUtil.getRegisteredComponent(CompositionBundleCreator.class),
-                PlatformUtil.getRegisteredComponent(IdMappingsRepository.class));
+                PlatformUtil.getRegisteredComponent(IdMappingsRepository.class), new ServiceClientRegistry(PlatformUtil.getPropertiesReader()));
     }
 
 

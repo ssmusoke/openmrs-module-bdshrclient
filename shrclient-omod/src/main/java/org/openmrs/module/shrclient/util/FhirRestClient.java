@@ -9,6 +9,7 @@ import org.hl7.fhir.instance.model.AtomFeed;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Map;
 
 public class FhirRestClient {
 
@@ -17,8 +18,8 @@ public class FhirRestClient {
     private final WebClient webClient;
     private final ObjectMapper mapper;
 
-    public FhirRestClient(String baseUrl, String user, String password) {
-        webClient = new WebClient(baseUrl, user, password);
+    public FhirRestClient(String baseUrl, Map<String, String> headers) {
+        webClient = new WebClient(baseUrl, headers);
         mapper = new ObjectMapper();
     }
 

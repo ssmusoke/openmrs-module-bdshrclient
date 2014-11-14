@@ -190,5 +190,22 @@
 
     </changeSet>
 
+    <changeSet id="bdshrclient-131114-1800" author="tw" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from location_tag where
+                name='SharedHealth Locations';
+            </sqlCheck>
+        </preConditions>
+
+        <insert tableName="location_tag">
+            <column name="name" value="SharedHealth Locations"/>
+            <column name="creator" value="1"/>
+            <column name="date_created" valueDate=" now() "/>
+            <column name="uuid" valueComputed=" uuid() " />
+        </insert>
+
+    </changeSet>
+
 
 </databaseChangeLog>

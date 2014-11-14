@@ -20,20 +20,21 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
 public class WebClient {
 
     private static final Logger log = Logger.getLogger(WebClient.class);
     public static final String ZERO_WIDTH_NO_BREAK_SPACE = "\uFEFF";
     public static final String BLANK_CHARACTER = "";
-    private String user;
-    private String password;
     private String baseUrl;
+    private Map<String, String> headers;
 
-    public WebClient(String baseUrl, String user, String password) {
-        this.user = user;
-        this.password = password;
+
+    public WebClient(String baseUrl, Map<String, String> headers) {
         this.baseUrl = baseUrl;
+        this.headers = headers;
     }
 
 
@@ -119,30 +120,24 @@ public class WebClient {
 
     private void addHeaders(HttpRequestBase request) {
         addCommonHeaders(request);
-        addServerSpecificHeaders(request);
+        addCustomHeaders(request);
+    }
+
+    private boolean addCustomHeaders(HttpRequestBase request) {
+        if(null == headers || headers.isEmpty()) return false;
+
+        for (String key : headers.keySet()) {
+            request.addHeader(key, headers.get(key));
+        }
+        return true;
     }
 
     private void addCommonHeaders(HttpRequestBase request) {
         request.addHeader("accept", "application/json");
     }
 
-    private void addServerSpecificHeaders(HttpRequestBase request) {
-        PropertiesReader propertiesReader = new PropertiesReader();
-        // Adding LR or FR specific Headers in 'if' part and for all other servers adding headers in 'else' part
-        if (request.getURI().toString().contains(propertiesReader.getLrProperties().getProperty("lr.host")))
-            request.addHeader(propertiesReader.getLrProperties().getProperty("lr.tokenName"), propertiesReader.getLrProperties().getProperty("lr.tokenValue"));
-        else
-            request.addHeader("Authorization", getAuthHeader());
-    }
-
     private String getUrl(String path) {
         return baseUrl + path;
-    }
-
-    public String getAuthHeader() {
-        String auth = user + ":" + password;
-        byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("UTF-8")));
-        return "Basic " + new String(encodedAuth);
     }
 
 }

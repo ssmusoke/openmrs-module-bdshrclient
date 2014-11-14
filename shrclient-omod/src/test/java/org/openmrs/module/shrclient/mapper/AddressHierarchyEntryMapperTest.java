@@ -91,7 +91,7 @@ public class AddressHierarchyEntryMapperTest {
     public void shouldReturnParentAddressHierarchyEntry() throws Exception {
         when(addressHierarchyService.getAddressHierarchyEntryByUserGenId(anyString())).thenReturn(new AddressHierarchyEntry());
         AddressHierarchyEntryMapper addressHierarchyEntryMapper = new AddressHierarchyEntryMapper();
-        AddressHierarchyEntry parentAddressHierarchyEntry = addressHierarchyEntryMapper.getParentAddressHierarchyEntry("1010", addressHierarchyService);
+        AddressHierarchyEntry parentAddressHierarchyEntry = addressHierarchyEntryMapper.getParent("1010", addressHierarchyService);
         assertNotNull(parentAddressHierarchyEntry);
     }
 
@@ -99,7 +99,7 @@ public class AddressHierarchyEntryMapperTest {
     public void shouldReturnNullIfUGIDIsNotFound() throws Exception {
         when(addressHierarchyService.getAddressHierarchyEntryByUserGenId(NON_EXISTING_UGID)).thenReturn(null);
         AddressHierarchyEntryMapper addressHierarchyEntryMapper = new AddressHierarchyEntryMapper();
-        AddressHierarchyEntry parentAddressHierarchyEntry = addressHierarchyEntryMapper.getParentAddressHierarchyEntry(NON_EXISTING_UGID, addressHierarchyService);
+        AddressHierarchyEntry parentAddressHierarchyEntry = addressHierarchyEntryMapper.getParent(NON_EXISTING_UGID, addressHierarchyService);
         assertNull(parentAddressHierarchyEntry);
     }
 }

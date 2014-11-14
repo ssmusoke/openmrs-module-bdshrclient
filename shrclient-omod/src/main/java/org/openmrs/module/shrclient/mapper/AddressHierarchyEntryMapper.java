@@ -15,7 +15,7 @@ public class AddressHierarchyEntryMapper {
     public static final int BEGIN_INDEX = 0;
 
 
-    public final static HashMap<String, Integer> LOCATION_LEVELS = new HashMap<String, Integer>(){{
+    public final static HashMap<String, Integer> LOCATION_LEVELS = new HashMap<String, Integer>() {{
         put("division", 1);
         put("district", 2);
         put("upazila", 3);
@@ -24,34 +24,28 @@ public class AddressHierarchyEntryMapper {
     }};
 
 
-    public AddressHierarchyEntry map(AddressHierarchyEntry addressHierarchyEntry, LRAddressHierarchyEntry lrAddressHierarchyEntry, AddressHierarchyService addressHierarchyService) {
+    public AddressHierarchyEntry map(AddressHierarchyEntry addressHierarchyEntry,
+                                     LRAddressHierarchyEntry lrAddressHierarchyEntry,
+                                     AddressHierarchyService addressHierarchyService) {
 
         addressHierarchyEntry = addressHierarchyEntry == null ? new AddressHierarchyEntry() : addressHierarchyEntry;
-
-        AddressHierarchyLevel addressHierarchyLevel = createAddressHierarchyLevelFromLocationLevelName(lrAddressHierarchyEntry.getLocationLevelName());
-
+        AddressHierarchyLevel addressHierarchyLevel = createFromLocationLevelName(lrAddressHierarchyEntry.getLocationLevelName());
         addressHierarchyLevel.setLevelId(LOCATION_LEVELS.get(lrAddressHierarchyEntry.getLocationLevelName()));
-
-
         String parentUserGeneratedId = getParentUserGeneratedId(lrAddressHierarchyEntry.getFullLocationCode());
-        AddressHierarchyEntry parentAddressHierarchyEntry = getParentAddressHierarchyEntry(parentUserGeneratedId, addressHierarchyService);
-
-
+        AddressHierarchyEntry parentAddressHierarchyEntry = getParent(parentUserGeneratedId, addressHierarchyService);
         addressHierarchyEntry.setName(lrAddressHierarchyEntry.getLocationName());
         addressHierarchyEntry.setLevel(addressHierarchyLevel);
-
         addressHierarchyEntry.setParent(parentAddressHierarchyEntry);
         addressHierarchyEntry.setUserGeneratedId(lrAddressHierarchyEntry.getFullLocationCode());
-
-
         return addressHierarchyEntry;
     }
 
-    public AddressHierarchyEntry getParentAddressHierarchyEntry(String parentUserGeneratedId, AddressHierarchyService addressHierarchyService) {
+    public AddressHierarchyEntry getParent(String parentUserGeneratedId,
+                                           AddressHierarchyService addressHierarchyService) {
         return addressHierarchyService.getAddressHierarchyEntryByUserGenId(parentUserGeneratedId);
     }
 
-    private AddressHierarchyLevel createAddressHierarchyLevelFromLocationLevelName(String locationLevelName) {
+    private AddressHierarchyLevel createFromLocationLevelName(String locationLevelName) {
         AddressHierarchyLevel addressHierarchyLevel = new AddressHierarchyLevel();
         addressHierarchyLevel.setLevelId(LOCATION_LEVELS.get(locationLevelName));
         addressHierarchyLevel.setName(locationLevelName);

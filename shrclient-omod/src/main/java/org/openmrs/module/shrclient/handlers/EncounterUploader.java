@@ -36,10 +36,12 @@ public class EncounterUploader implements EventWorker {
     private FhirRestClient fhirRestClient;
     private UserService userService;
 
-    public EncounterUploader(EncounterService encounterService, UserService userService, PropertiesReader propertiesReader, CompositionBundleCreator bundleCreator, IdMappingsRepository idMappingsRepository) {
+    public EncounterUploader(EncounterService encounterService, UserService userService, PropertiesReader propertiesReader,
+                             CompositionBundleCreator bundleCreator, IdMappingsRepository idMappingsRepository,
+                             ServiceClientRegistry serviceClientRegistry) {
         this.encounterService = encounterService;
         this.propertiesReader = propertiesReader;
-        this.fhirRestClient = propertiesReader.getShrWebClient();
+        this.fhirRestClient = serviceClientRegistry.getSHRClient();
         this.userService = userService;
         this.bundleCreator = bundleCreator;
         this.idMappingsRepository = idMappingsRepository;
@@ -74,8 +76,8 @@ public class EncounterUploader implements EventWorker {
             EncounterResponse encounterResponse = objectMapper.readValue(shrEncounterUuid, EncounterResponse.class);
             //TODO : set the right url
             String externalUuid = encounterResponse.getEncounterId();
-            Properties shrProperties = propertiesReader.getShrProperties();
-            String url = propertiesReader.getShrBaseUrl(shrProperties) +
+
+            String url = propertiesReader.getShrBaseUrl() +
                     "/patients/" + healthId + "/encounters/" + externalUuid;
             idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), externalUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE, url));
         } catch (Exception e) {

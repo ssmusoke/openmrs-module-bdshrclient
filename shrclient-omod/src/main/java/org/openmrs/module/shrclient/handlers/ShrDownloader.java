@@ -63,8 +63,8 @@ public class ShrDownloader {
 
     public ArrayList<String> getEncounterFeedUrls(PropertiesReader propertiesReader) {
         Properties shrProperties = propertiesReader.getShrProperties();
-        String shrBaseUrl = propertiesReader.getShrBaseUrl(shrProperties);
-        String catchments = (String) shrProperties.get("shr.catchments");
+        String shrBaseUrl = propertiesReader.getShrBaseUrl();
+        String catchments = shrProperties.get("shr.catchments").toString();
         String[] facilityCatchments = catchments.split(",");
         ArrayList<String> catchmentsUrls = new ArrayList<>();
         for (String facilityCatchment : facilityCatchments) {

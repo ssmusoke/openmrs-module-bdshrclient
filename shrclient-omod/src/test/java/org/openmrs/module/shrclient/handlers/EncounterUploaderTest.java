@@ -50,13 +50,18 @@ public class EncounterUploaderTest {
     @Mock
     private IdMappingsRepository idMappingsRepository;
 
+    @Mock
+    private ServiceClientRegistry serviceClientRegistry;
+
     private EncounterUploader encounterUploader;
 
     @Before
     public void setup() {
         initMocks(this);
-        when(propertiesReader.getShrWebClient()).thenReturn(fhirRestClient);
-        encounterUploader = new EncounterUploader(encounterService, userService, propertiesReader, compositionBundleCreator, idMappingsRepository);
+        when(serviceClientRegistry.getSHRClient()).thenReturn(fhirRestClient);
+
+        encounterUploader = new EncounterUploader(encounterService, userService, propertiesReader, compositionBundleCreator, idMappingsRepository,
+                serviceClientRegistry);
     }
 
     @Test

@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class RestClient {
 
@@ -14,8 +15,8 @@ public class RestClient {
     private final ObjectMapper mapper;
     private final WebClient webClient;
 
-    public RestClient(String baseUrl, String user, String password) {
-        webClient = new WebClient(baseUrl, user, password);
+    public RestClient(String baseUrl, Map<String, String> headers) {
+        webClient = new WebClient(baseUrl, headers);
         this.mapper = new ObjectMapper();
         this.mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
@@ -63,7 +64,4 @@ public class RestClient {
         }
     }
 
-    public String getAuthHeader() {
-        return webClient.getAuthHeader();
-    }
 }

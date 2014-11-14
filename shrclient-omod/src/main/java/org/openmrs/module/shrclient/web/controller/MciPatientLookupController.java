@@ -7,6 +7,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.shrclient.handlers.ServiceClientRegistry;
 import org.openmrs.module.shrclient.mci.api.MciPatientSearchResponse;
 import org.openmrs.module.shrclient.mci.api.model.Address;
 import org.openmrs.module.shrclient.mci.api.model.Patient;
@@ -98,7 +99,8 @@ public class MciPatientLookupController {
 
     private void createOrUpdateEncounters(String healthId, org.openmrs.Patient emrPatient) {
         final String url = String.format("/patients/%s/encounters", healthId);
-        List<EncounterBundle> bundles = propertiesReader.getShrWebClient().get(url, new TypeReference<List<EncounterBundle>>() {
+        List<EncounterBundle> bundles = new ServiceClientRegistry(propertiesReader).getSHRClient()
+                .get(url, new TypeReference<List<EncounterBundle>>() {
         });
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
     }
@@ -139,7 +141,7 @@ public class MciPatientLookupController {
     }
 
     private RestClient getMciRestClient() {
-        return propertiesReader.getMciWebClient();
+        return new ServiceClientRegistry(propertiesReader).getMCIClient();
     }
 
     private String getAddressEntryText(String code) {

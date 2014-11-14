@@ -1,22 +1,23 @@
 package org.openmrs.module.shrclient.handlers;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.shrclient.mapper.AddressHierarchyEntryMapper;
 import org.openmrs.module.shrclient.mci.api.model.LRAddressHierarchyEntry;
-import org.openmrs.module.shrclient.util.PlatformUtil;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
-import org.openmrs.module.shrclient.util.SchedulerTaskConfigQueryUtil;
+import org.openmrs.module.shrclient.util.ScheduledTaskHistory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class LRToBahmniUpdater {
-    private final Logger logger = Logger.getLogger(LRToBahmniUpdater.class);
+//purpose: this class represents a location repository and provides synchronization to local OpenMRS server
+public class LocationRegistry {
+    private final Logger logger = Logger.getLogger(LocationRegistry.class);
 
     private static final String ENCODED_SINGLE_SPACE = "%20";
     private static final String SINGLE_SPACE = " ";
@@ -30,19 +31,19 @@ public class LRToBahmniUpdater {
 
     private AddressHierarchyEntryMapper addressHierarchyEntryMapper;
     private AddressHierarchyService addressHierarchyService;
+    private RestClient lrWebClient;
+    private PropertiesReader propertiesReader;
 
-    public LRToBahmniUpdater() {
+    public LocationRegistry(PropertiesReader propertiesReader, RestClient lrWebClient) {
+        this.lrWebClient = lrWebClient;
+        this.propertiesReader = propertiesReader;
         this.addressHierarchyEntryMapper = new AddressHierarchyEntryMapper();
         this.addressHierarchyService = Context.getService(AddressHierarchyService.class);
-        Context.getService(Location)
 
     }
 
-    public void update() {
-        PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
-        RestClient lrWebClient = propertiesReader.getLrWebClient();
-
-        String lastExecutionDateAndTime = new SchedulerTaskConfigQueryUtil().getLastExecutionDateAndTime(LR_SYNC_TASK);
+    public void synchronize() {
+        String lastExecutionDateAndTime = new ScheduledTaskHistory().getLastExecutionDateAndTime(LR_SYNC_TASK);
 
         List<LRAddressHierarchyEntry> lrAddressHierarchyEntriesForDivision = getLrAddressHierarchyEntryList(propertiesReader, "lr.divisions", lrWebClient, lastExecutionDateAndTime);
         List<LRAddressHierarchyEntry> lrAddressHierarchyEntriesForDistrict = getLrAddressHierarchyEntryList(propertiesReader, "lr.districts", lrWebClient, lastExecutionDateAndTime);
@@ -76,25 +77,25 @@ public class LRToBahmniUpdater {
         }
     }
 
-    private List<LRAddressHierarchyEntry> getLrAddressHierarchyEntryList(PropertiesReader propertiesReader, String hierarchy, RestClient lrWebClient, String lastExecutionDateAndTime) {
+    private List<LRAddressHierarchyEntry> getLrAddressHierarchyEntryList(PropertiesReader propertiesReader, String level, RestClient lrWebClient, String lastExecutionDateAndTime) {
         List<LRAddressHierarchyEntry> lrAddressHierarchyEntries = new ArrayList<>();
         List<LRAddressHierarchyEntry> lastRetrievedPartOfList;
         int offset = INITIAL_OFFSET;
 
         do {
-            lastRetrievedPartOfList = Arrays.asList(lrWebClient.get(getUrl(propertiesReader, hierarchy, offset, DEFAULT_LIMIT, lastExecutionDateAndTime), LRAddressHierarchyEntry[].class));
+            lastRetrievedPartOfList = Arrays.asList(lrWebClient.get(getUrl(propertiesReader, level, offset, DEFAULT_LIMIT, lastExecutionDateAndTime), LRAddressHierarchyEntry[].class));
             offset += lastRetrievedPartOfList.size();
             lrAddressHierarchyEntries.addAll(lastRetrievedPartOfList);
-        } while (lastRetrievedPartOfList.size() != EMPTY);
+        } while (lastRetrievedPartOfList.size() == DEFAULT_LIMIT);
         return lrAddressHierarchyEntries;
     }
 
-    private String getUrl(PropertiesReader propertiesReader, String hierarchy, int offset, int limit, String lastExecutionDateAndTime) {
-        return propertiesReader.getLrProperties().getProperty(hierarchy) + getExtraFilters(offset, limit, lastExecutionDateAndTime);
+    private String getUrl(PropertiesReader propertiesReader, String level, int offset, int limit, String lastExecutionDateAndTime) {
+        return propertiesReader.getLrProperties().getProperty(level) + getExtraFilters(offset, limit, lastExecutionDateAndTime);
     }
 
     private String getExtraFilters(int offset, int limit, String lastRanDateAndTime) {
-        if (lastRanDateAndTime == null)
+        if (StringUtils.isBlank(lastRanDateAndTime))
             return String.format(EXTRA_FILTER_PATTERN_WITHOUT_UPDATED_SINCE, offset, limit);
         else
             return String.format(EXTRA_FILTER_PATTERN_WITH_UPDATED_SINCE, offset, limit, lastRanDateAndTime).replace(SINGLE_SPACE, ENCODED_SINGLE_SPACE);

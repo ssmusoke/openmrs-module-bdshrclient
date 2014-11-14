@@ -167,8 +167,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     private void addEncounterToIdMapping(Encounter newEmrEncounter, String externalUuid, String healthId) {
         String internalUuid = newEmrEncounter.getUuid();
         //TODO : put the right url
-        Properties shrProperties = propertiesReader.getShrProperties();
-        String url = propertiesReader.getShrBaseUrl(shrProperties) +
+        String url = propertiesReader.getShrBaseUrl() +
                 "/patients/" + healthId + "/encounters/" + externalUuid;
         idMappingsRepository.saveMapping(new IdMapping(internalUuid, externalUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE, url));
     }
@@ -308,8 +307,8 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     private void addPatientToIdMapping(org.openmrs.Patient emrPatient, String healthId) {
         String patientUuid = emrPatient.getUuid();
         //TODO : put the right url
-        Properties mciProperties = propertiesReader.getMciProperties();
-        String url = propertiesReader.getMciBaseUrl(mciProperties) + "/patients/" + healthId;
+
+        String url = propertiesReader.getMciBaseUrl() + "/patients/" + healthId;
         idMappingsRepository.saveMapping(new IdMapping(patientUuid, healthId, Constants.ID_MAPPING_PATIENT_TYPE, url));
 
     }

@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 
+//purpose: reads properties from property files
 @Component("bdshrPropertiesReader")
 public class PropertiesReader {
 
@@ -17,30 +18,12 @@ public class PropertiesReader {
     public static final String URL_SEPARATOR_FOR_PORT_NO = ":";
 
 
-    public RestClient getMciWebClient() {
-        Properties properties = getMciProperties();
-        return new RestClient(getMciBaseUrl(properties),
-                properties.getProperty("mci.user"),
-                properties.getProperty("mci.password")
-        );
+    public Properties getMciProperties() {
+        return getProperties("mci.properties");
     }
 
-    public RestClient getLrWebClient() {
-        Properties properties = getLrProperties();
-        return new RestClient(getLrBaseUrl(properties), "", "");
-    }
-
-    public RestClient getFrWebClient() {
-        Properties properties = getFrProperties();
-        return new RestClient(getFrBaseUrl(properties), "", "");
-    }
-
-    private String getLrBaseUrl(Properties properties) {
-        return getBaseUrl(properties.getProperty("lr.scheme"), properties.getProperty("lr.host"), properties.getProperty("lr.context"));
-    }
-
-    private String getFrBaseUrl(Properties properties) {
-        return getBaseUrl(properties.getProperty("fr.scheme"), properties.getProperty("fr.host"), properties.getProperty("fr.context"));
+    public Properties getShrProperties() {
+        return getProperties("shr.properties");
     }
 
     public Properties getLrProperties() {
@@ -51,37 +34,37 @@ public class PropertiesReader {
         return getProperties("fr.properties");
     }
 
-    public String getMciBaseUrl(Properties properties) {
+    public String getMciBaseUrl() {
+        Properties properties = getMciProperties();
         return getBaseUrl(properties.getProperty("mci.scheme"), properties.getProperty("mci.host"),
                 properties.getProperty("mci.port"));
     }
 
-    public FhirRestClient getShrWebClient() {
+    public String getShrBaseUrl() {
         Properties properties = getShrProperties();
-        return new FhirRestClient(getShrBaseUrl(properties),
-                properties.getProperty("shr.user"),
-                properties.getProperty("shr.password")
-        );
-    }
-
-    public String getShrBaseUrl(Properties properties) {
         return getBaseUrl(properties.getProperty("shr.scheme"),
                 properties.getProperty("shr.host"),
                 properties.getProperty("shr.port"));
+    }
+
+    public String getLrBaseUrl() {
+        Properties properties = getLrProperties();
+        return getBaseUrl(properties.getProperty("lr.scheme"),
+                properties.getProperty("lr.host"),
+                properties.getProperty("lr.context"));
+    }
+
+    public String getFrBaseUrl() {
+        Properties properties = getFrProperties();
+        return getBaseUrl(properties.getProperty("fr.scheme"),
+                properties.getProperty("fr.host"),
+                properties.getProperty("fr.context"));
     }
 
     private String getBaseUrl(String scheme, String host, String portNoOrContextPath) {
         boolean isPortNo = portNoOrContextPath.matches(REGEX_TO_MATCH_PORT_NO);
         return isPortNo ? String.format("%s://%s" + URL_SEPARATOR_FOR_PORT_NO + "%s", scheme, host, portNoOrContextPath)
                 : String.format("%s://%s" + URL_SEPARATOR_FOR_CONTEXT_PATH + "%s", scheme, host, portNoOrContextPath);
-    }
-
-    public Properties getShrProperties() {
-        return getProperties("shr.properties");
-    }
-
-    public Properties getMciProperties() {
-        return getProperties("mci.properties");
     }
 
     private Properties getProperties(String resource) {
