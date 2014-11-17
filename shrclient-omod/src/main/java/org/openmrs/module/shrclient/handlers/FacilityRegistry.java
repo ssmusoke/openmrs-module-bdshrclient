@@ -1,6 +1,5 @@
 package org.openmrs.module.shrclient.handlers;
 
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.openmrs.Location;
@@ -32,6 +31,7 @@ public class FacilityRegistry {
     public static final String FACILITY_CONTEXT = "fr.facilities";
     public static final String SHR_LOCATION_TAG_NAME = "SharedHealth Locations";
     public static final String ID_MAPPING_TYPE = "fr_location";
+    public static final String INDIVIDUAL_FACILITY_CONTEXT = "fr.facilityUrlFormat";
 
 
     private final String lastExecutionDateTime;
@@ -53,33 +53,40 @@ public class FacilityRegistry {
     }
 
     public void synchronize() {
-        logger.debug("Starting FR location synchronization");
+        logger.info("Starting FR location synchronization");
         List<FRLocationEntry> frLocationEntries = getUpdatesFromFR(FACILITY_CONTEXT);
-        logger.debug("Found " + frLocationEntries.size() + " entries to be synced");
-        if(frLocationEntries.size() == 0) return;
+        logger.info("Found " + frLocationEntries.size() + " entries to be synced");
+        if (frLocationEntries.size() == 0) return;
         LocationTag shrLocationTag = locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME);
+        String facilityUrlFormat = getFacilityUrlFormat();
 
         for (FRLocationEntry frLocationEntry : frLocationEntries) {
             IdMapping idMapping = idMappingsRepository.findByExternalId(frLocationEntry.getId());
             if (idMapping != null)
                 updateExistingLocation(frLocationEntry, idMapping);
-            else
-                createNewLocation(frLocationEntry, shrLocationTag);
+            else {
+                createNewLocation(frLocationEntry, shrLocationTag, facilityUrlFormat);
+            }
         }
     }
 
-    private Location createNewLocation(FRLocationEntry frLocationEntry, LocationTag shrLocationTag) {
-        logger.debug("Creating new location: " + frLocationEntry.getName() );
+    private String getFacilityUrlFormat() {
+        return propertiesReader.getFrBaseUrl() + propertiesReader.getFrProperties().getProperty(INDIVIDUAL_FACILITY_CONTEXT);
+    }
+
+    private Location createNewLocation(FRLocationEntry frLocationEntry, LocationTag shrLocationTag, String locationUrlFormat) {
+        logger.info("Creating new location: " + frLocationEntry.getName());
         Location location = locationMapper.create(frLocationEntry);
         location.addTag(shrLocationTag);
         location = locationService.saveLocation(location);
+        String locationUrl = String.format(locationUrlFormat, frLocationEntry.getId());
         idMappingsRepository.saveMapping(new IdMapping(location.getUuid(), frLocationEntry.getId(),
-                ID_MAPPING_TYPE, StringUtils.EMPTY));
+                ID_MAPPING_TYPE, locationUrl));
         return location;
     }
 
     private Location updateExistingLocation(FRLocationEntry frLocationEntry, IdMapping idMapping) {
-        logger.debug("Updating existing location: " + frLocationEntry.getName() );
+        logger.info("Updating existing location: " + frLocationEntry.getName());
         Location location = locationMapper.updateExisting(
                 locationService.getLocationByUuid(idMapping.getInternalId()), frLocationEntry);
         return locationService.saveLocation(location);

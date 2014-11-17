@@ -1,7 +1,6 @@
 package org.openmrs.module.shrclient.handlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -27,10 +26,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Properties;
-import java.util.Set;
 import java.util.UUID;
 
-import static junit.framework.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
@@ -39,8 +36,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class FacilityRegistryTest {
-    public static final String FACILITY_CONTEXT = "fr.facilities";
-
     @Mock
     LocationService locationService;
     @Mock
@@ -69,7 +64,7 @@ public class FacilityRegistryTest {
         final String existingLocationUuid = UUID.randomUUID().toString();
 
         Properties properties = new Properties();
-        properties.put(FACILITY_CONTEXT, "/facilities");
+        properties.put(FacilityRegistry.FACILITY_CONTEXT, "/facilities");
 
         when(propertiesReader.getFrProperties()).thenReturn(properties);
         when(frWebClient.get("/facilities?offset=0&limit=100", FRLocationEntry[].class)).thenReturn(locationEntries);
@@ -89,7 +84,7 @@ public class FacilityRegistryTest {
                 locationService, scheduledTaskHistory, idMappingsRepository, locationMapper);
         facilityRegistry.synchronize();
 
-        verify(propertiesReader).getFrProperties();
+        verify(propertiesReader, times(2)).getFrProperties();
         verify(frWebClient).get("/facilities?offset=0&limit=100", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getLastExecutionDateAndTime(FacilityRegistry.FR_SYNC_TASK);
 
@@ -100,7 +95,7 @@ public class FacilityRegistryTest {
         final String existingLocationUuid = UUID.randomUUID().toString();
 
         Properties properties = new Properties();
-        properties.put(FACILITY_CONTEXT, "/facilities");
+        properties.put(FacilityRegistry.FACILITY_CONTEXT, "/facilities");
 
         when(propertiesReader.getFrProperties()).thenReturn(properties);
         when(frWebClient.get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(locationEntries);
@@ -121,7 +116,7 @@ public class FacilityRegistryTest {
 
         facilityRegistry.synchronize();
 
-        verify(propertiesReader).getFrProperties();
+        verify(propertiesReader, times(2)).getFrProperties();
         verify(frWebClient).get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getLastExecutionDateAndTime(FacilityRegistry.FR_SYNC_TASK);
 
@@ -133,7 +128,7 @@ public class FacilityRegistryTest {
         String frLocationEntryId = "10000001";
 
         Properties properties = new Properties();
-        properties.put(FACILITY_CONTEXT, "/facilities");
+        properties.put(FacilityRegistry.FACILITY_CONTEXT, "/facilities");
 
         when(propertiesReader.getFrProperties()).thenReturn(properties);
         when(frWebClient.get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(oneLocationEntry(frLocationEntryId));
@@ -147,7 +142,7 @@ public class FacilityRegistryTest {
 
         facilityRegistry.synchronize();
 
-        verify(propertiesReader).getFrProperties();
+        verify(propertiesReader, times(2)).getFrProperties();
         verify(frWebClient).get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getLastExecutionDateAndTime(FacilityRegistry.FR_SYNC_TASK);
         verify(idMappingsRepository).findByExternalId(frLocationEntryId);
@@ -160,7 +155,7 @@ public class FacilityRegistryTest {
         String frLocationEntryId = "10000001";
         String newLocationUuid = UUID.randomUUID().toString();
         Properties properties = new Properties();
-        properties.put(FACILITY_CONTEXT, "/facilities");
+        properties.put(FacilityRegistry.FACILITY_CONTEXT, "/facilities");
 
         when(propertiesReader.getFrProperties()).thenReturn(properties);
         FRLocationEntry[] entries = oneLocationEntry(frLocationEntryId);
@@ -176,7 +171,7 @@ public class FacilityRegistryTest {
 
         facilityRegistry.synchronize();
 
-        verify(propertiesReader).getFrProperties();
+        verify(propertiesReader, times(2)).getFrProperties();
         verify(frWebClient).get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getLastExecutionDateAndTime(FacilityRegistry.FR_SYNC_TASK);
         verify(idMappingsRepository).findByExternalId(frLocationEntryId);
@@ -198,7 +193,7 @@ public class FacilityRegistryTest {
     @Test
     public void shouldSyncMultipleNew() throws Exception {
         Properties properties = new Properties();
-        properties.put(FACILITY_CONTEXT, "/facilities");
+        properties.put(FacilityRegistry.FACILITY_CONTEXT, "/facilities");
 
         when(propertiesReader.getFrProperties()).thenReturn(properties);
         when(frWebClient.get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(locationEntries);
@@ -213,7 +208,7 @@ public class FacilityRegistryTest {
 
         facilityRegistry.synchronize();
 
-        verify(propertiesReader).getFrProperties();
+        verify(propertiesReader, times(2)).getFrProperties();
         verify(frWebClient).get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getLastExecutionDateAndTime(FacilityRegistry.FR_SYNC_TASK);
         verify(locationService).getLocationTagByName(FacilityRegistry.SHR_LOCATION_TAG_NAME);
@@ -226,11 +221,14 @@ public class FacilityRegistryTest {
     @Test
     public void shouldUpdateNothingIfWeGetNothing() throws Exception {
         Properties properties = new Properties();
-        properties.put(FACILITY_CONTEXT, "/facilities");
+        properties.put(FacilityRegistry.FACILITY_CONTEXT, "/facilities");
 
         when(propertiesReader.getFrProperties()).thenReturn(properties);
         when(frWebClient.get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(new FRLocationEntry[]{});
         when(scheduledTaskHistory.getLastExecutionDateAndTime(FacilityRegistry.FR_SYNC_TASK)).thenReturn("2000-12-31 23:55:55");
+        when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString()));
+        when(locationService.getLocationTagByName(FacilityRegistry.SHR_LOCATION_TAG_NAME)).thenReturn(
+                new LocationTag(FacilityRegistry.SHR_LOCATION_TAG_NAME, "foo bar baz"));
 
         FacilityRegistry facilityRegistry = new FacilityRegistry(propertiesReader, frWebClient,
                 locationService, scheduledTaskHistory, idMappingsRepository, locationMapper);
@@ -247,6 +245,30 @@ public class FacilityRegistryTest {
 
     }
 
+    @Test
+    public void shouldCreateIndividualUriForMappedIds() throws Exception {
+        Properties properties = new Properties();
+        properties.put(FacilityRegistry.FACILITY_CONTEXT, "/facilities");
+        properties.put(FacilityRegistry.INDIVIDUAL_FACILITY_CONTEXT, "/%s.json");
+
+        when(propertiesReader.getFrBaseUrl()).thenReturn("http://foo.com");
+        when(propertiesReader.getFrProperties()).thenReturn(properties);
+        when(frWebClient.get("/facilities?offset=0&limit=100", FRLocationEntry[].class)).thenReturn(oneLocationEntry("100001"));
+        when(scheduledTaskHistory.getLastExecutionDateAndTime(FacilityRegistry.FR_SYNC_TASK)).thenReturn(StringUtils.EMPTY);
+        when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString()));
+        when(locationService.getLocationTagByName(FacilityRegistry.SHR_LOCATION_TAG_NAME)).thenReturn(
+                new LocationTag(FacilityRegistry.SHR_LOCATION_TAG_NAME, "foo bar baz"));
+
+        FacilityRegistry facilityRegistry = new FacilityRegistry(propertiesReader, frWebClient,
+                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper);
+
+        facilityRegistry.synchronize();
+
+        verify(propertiesReader, times(2)).getFrProperties();
+        ArgumentCaptor<IdMapping> captor = ArgumentCaptor.forClass(IdMapping.class);
+        verify(idMappingsRepository).saveMapping(captor.capture());
+        assertEquals("http://foo.com/100001.json", captor.getValue().getUri());
+    }
 
     private IdMapping getIdMapping(String externalId, String existingLocationUuid) {
         return new IdMapping(existingLocationUuid, externalId, "fr_location", StringUtils.EMPTY);
