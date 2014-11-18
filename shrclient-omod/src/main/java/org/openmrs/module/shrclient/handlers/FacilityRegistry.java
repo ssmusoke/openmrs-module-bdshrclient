@@ -20,8 +20,8 @@ import java.util.List;
 //purpose: this class represents a facility repository and provides synchronization to local OpenMRS server
 public class FacilityRegistry {
     private final Logger logger = Logger.getLogger(FacilityRegistry.class);
-    private static final int INITIAL_OFFSET = 0;
 
+    private static final int INITIAL_OFFSET = 0;
     private static final int DEFAULT_LIMIT = 100;
     private static final String EXTRA_FILTER_PATTERN_WITHOUT_UPDATED_SINCE = "?offset=%d&limit=%d";
     private static final String EXTRA_FILTER_PATTERN_WITH_UPDATED_SINCE = "?offset=%d&limit=%d&updatedSince=%s";
@@ -93,22 +93,22 @@ public class FacilityRegistry {
     }
 
     private List<FRLocationEntry> getUpdatesFromFR(String facilityContext) {
-        String baseUrl = propertiesReader.getFrProperties().getProperty(facilityContext);
+        String baseContextPath = propertiesReader.getFrProperties().getProperty(facilityContext);
         List<FRLocationEntry> frLocationEntries = new ArrayList<>();
         List<FRLocationEntry> lastRetrievedPartOfList;
         int offset = INITIAL_OFFSET;
 
         do {
-            String completeUrl = buildUrl(baseUrl, offset);
-            lastRetrievedPartOfList = Arrays.asList(frWebClient.get(completeUrl, FRLocationEntry[].class));
+            String completeContextPath = buildCompleteContextPath(baseContextPath, offset);
+            lastRetrievedPartOfList = Arrays.asList(frWebClient.get(completeContextPath, FRLocationEntry[].class));
             offset += lastRetrievedPartOfList.size();
             frLocationEntries.addAll(lastRetrievedPartOfList);
         } while (lastRetrievedPartOfList.size() == DEFAULT_LIMIT);
         return frLocationEntries;
     }
 
-    private String buildUrl(String baseUrl, int offset) {
-        return baseUrl + getExtraFilters(offset);
+    private String buildCompleteContextPath(String baseContextPath, int offset) {
+        return baseContextPath + getExtraFilters(offset);
     }
 
     private String getExtraFilters(int offset) {

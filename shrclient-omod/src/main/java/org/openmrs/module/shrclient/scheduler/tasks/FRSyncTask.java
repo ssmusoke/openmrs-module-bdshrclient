@@ -16,6 +16,7 @@ public class FRSyncTask extends AbstractTask {
     public void execute() {
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
         new FacilityRegistry(propertiesReader, new ServiceClientRegistry(propertiesReader).getFRClient(),
-                Context.getService(LocationService.class), new ScheduledTaskHistory(), new IdMappingsRepository(), new LocationMapper()).synchronize();
+                Context.getService(LocationService.class), new ScheduledTaskHistory(), new IdMappingsRepository(),
+                new LocationMapper()).synchronize();
     }
 }
