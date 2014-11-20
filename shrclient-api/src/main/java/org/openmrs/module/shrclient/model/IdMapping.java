@@ -23,6 +23,9 @@ public class IdMapping {
         this.uri = uri;
     }
 
+    public IdMapping() {
+    }
+
     public String getInternalId() {
         return internalId;
     }

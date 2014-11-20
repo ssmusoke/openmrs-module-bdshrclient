@@ -18,55 +18,93 @@ import java.util.List;
 public class LocationRegistry {
     private final Logger logger = Logger.getLogger(LocationRegistry.class);
 
+    public static final String LR_DIVISIONS_LEVEL_PROPERTY_NAME = "lr.divisions";
+    public static final String LR_DISTRICTS_LEVEL_PROPERTY_NAME = "lr.districts";
+    public static final String LR_UPAZILAS_LEVEL_PROPERTY_NAME = "lr.upazilas";
+    public static final String LR_PAURASAVAS_LEVEL_PROPERTY_NAME = "lr.paurasavas";
+    public static final String LR_UNIONS_LEVEL_PROPERTY_NAME = "lr.unions";
+    public static final String LR_WARDS_LEVEL_PROPERTY_NAME = "lr.wards";
+
     private static final String ENCODED_SINGLE_SPACE = "%20";
     private static final String SINGLE_SPACE = " ";
-    private static final int INITIAL_OFFSET = 0;
     private static final int DEFAULT_LIMIT = 100;
-    private static final String EXTRA_FILTER_PATTERN_WITHOUT_UPDATED_SINCE = "?offset=%d&limit=%d";
-    private static final String EXTRA_FILTER_PATTERN_WITH_UPDATED_SINCE = "?offset=%d&limit=%d&updatedSince=%s";
+    private static final String EXTRA_FILTER_PATTERN_WITHOUT_UPDATED_SINCE = "?offset=%s&limit=%s";
+    private static final String EXTRA_FILTER_PATTERN_WITH_UPDATED_SINCE = "?offset=%s&limit=%s&updatedSince=%s";
     private static final String LR_SYNC_TASK = "LR Sync Task";
 
     private final String lastExecutionDateTime;
+    private ScheduledTaskHistory scheduledTaskHistory;
     private AddressHierarchyEntryMapper addressHierarchyEntryMapper;
     private AddressHierarchyService addressHierarchyService;
     private RestClient lrWebClient;
     private PropertiesReader propertiesReader;
 
-    public LocationRegistry(PropertiesReader propertiesReader, RestClient lrWebClient, AddressHierarchyService addressHierarchyService, ScheduledTaskHistory scheduledTaskHistory, AddressHierarchyEntryMapper addressHierarchyEntryMapper) {
+    public LocationRegistry(PropertiesReader propertiesReader, RestClient lrWebClient, AddressHierarchyService addressHierarchyService,
+                            ScheduledTaskHistory scheduledTaskHistory, AddressHierarchyEntryMapper addressHierarchyEntryMapper) {
         this.lrWebClient = lrWebClient;
         this.propertiesReader = propertiesReader;
+        this.scheduledTaskHistory = scheduledTaskHistory;
         this.addressHierarchyEntryMapper = addressHierarchyEntryMapper;
         this.addressHierarchyService = addressHierarchyService;
         this.lastExecutionDateTime = scheduledTaskHistory.getLastExecutionDateAndTime(LR_SYNC_TASK);
-
     }
 
     public void synchronize() {
-        List<LRAddressHierarchyEntry> lrAddressHierarchyEntriesForDivision = getUpdatesFromLR("lr.divisions");
-        List<LRAddressHierarchyEntry> lrAddressHierarchyEntriesForDistrict = getUpdatesFromLR("lr.districts");
-        List<LRAddressHierarchyEntry> lrAddressHierarchyEntriesForUpazila = getUpdatesFromLR("lr.upazilas");
-        List<LRAddressHierarchyEntry> lrAddressHierarchyEntriesForPaurasavas = getUpdatesFromLR("lr.paurasavas");
-        List<LRAddressHierarchyEntry> lrAddressHierarchyEntriesForUnions = getUpdatesFromLR("lr.unions");
 
-        saveOrUpdateAddressHierarchyEntries(lrAddressHierarchyEntriesForDivision);
-        saveOrUpdateAddressHierarchyEntries(lrAddressHierarchyEntriesForDistrict);
-        saveOrUpdateAddressHierarchyEntries(lrAddressHierarchyEntriesForUpazila);
-        saveOrUpdateAddressHierarchyEntries(lrAddressHierarchyEntriesForPaurasavas);
-        saveOrUpdateAddressHierarchyEntries(lrAddressHierarchyEntriesForUnions);
+        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForDivisions = synchronizeUpdatesByLevel(LR_DIVISIONS_LEVEL_PROPERTY_NAME);
+        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForDistricts = synchronizeUpdatesByLevel(LR_DISTRICTS_LEVEL_PROPERTY_NAME);
+        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForUpazilas = synchronizeUpdatesByLevel(LR_UPAZILAS_LEVEL_PROPERTY_NAME);
+        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForPaurasavas = synchronizeUpdatesByLevel(LR_PAURASAVAS_LEVEL_PROPERTY_NAME);
+        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForUnions = synchronizeUpdatesByLevel(LR_UNIONS_LEVEL_PROPERTY_NAME);
+
+        reinitializeMarkerTableToZero();
     }
 
-    private List<LRAddressHierarchyEntry> getUpdatesFromLR(String level) {
-        String baseContextPath = propertiesReader.getLrProperties().getProperty(level);
-        List<LRAddressHierarchyEntry> lrAddressHierarchyEntries = new ArrayList<>();
+    private void reinitializeMarkerTableToZero() {
+        updateMarkerTableToStoreOffset(0, LR_DIVISIONS_LEVEL_PROPERTY_NAME);
+        updateMarkerTableToStoreOffset(0, LR_DISTRICTS_LEVEL_PROPERTY_NAME);
+        updateMarkerTableToStoreOffset(0, LR_UPAZILAS_LEVEL_PROPERTY_NAME);
+        updateMarkerTableToStoreOffset(0, LR_PAURASAVAS_LEVEL_PROPERTY_NAME);
+        updateMarkerTableToStoreOffset(0, LR_UNIONS_LEVEL_PROPERTY_NAME);
+    }
+
+    private List<LRAddressHierarchyEntry> synchronizeUpdatesByLevel(String levelName) {
+        String baseContextPath = propertiesReader.getLrProperties().getProperty(levelName);
+        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntries = new ArrayList<>();
         List<LRAddressHierarchyEntry> lastRetrievedPartOfList;
-        int offset = INITIAL_OFFSET;
+        int offset = scheduledTaskHistory.getOffset(levelName, LR_SYNC_TASK);
         do {
             String completeContextPath = buildCompleteContextPath(baseContextPath, offset);
-            lastRetrievedPartOfList = Arrays.asList(lrWebClient.get(completeContextPath, LRAddressHierarchyEntry[].class));
-            offset += lastRetrievedPartOfList.size();
-            lrAddressHierarchyEntries.addAll(lastRetrievedPartOfList);
-        } while (lastRetrievedPartOfList.size() == DEFAULT_LIMIT);
-        return lrAddressHierarchyEntries;
+            lastRetrievedPartOfList = getNextChunkOfUpdatesFromLR(completeContextPath);
+            if (lastRetrievedPartOfList != null) {
+                saveOrUpdateAddressHierarchyEntries(lastRetrievedPartOfList);
+                synchronizedAddressHierarchyEntries.addAll(lastRetrievedPartOfList);
+                offset += lastRetrievedPartOfList.size();
+                updateMarkerTableToStoreOffset(offset, levelName);
+            } else {
+                logger.info(synchronizedAddressHierarchyEntries.size() + " entries synchronized");
+                throw new RuntimeException("Failed to Synchronize updates from LR");
+            }
+        } while (lastRetrievedPartOfList != null && lastRetrievedPartOfList.size() == DEFAULT_LIMIT);
+
+        logger.info(synchronizedAddressHierarchyEntries.size() + " entries synchronized");
+        return synchronizedAddressHierarchyEntries;
+    }
+
+    private List<LRAddressHierarchyEntry> getNextChunkOfUpdatesFromLR(String completeContextPath) {
+        List<LRAddressHierarchyEntry> downloadedData = null;
+        try {
+            downloadedData = Arrays.asList(lrWebClient.get(completeContextPath, LRAddressHierarchyEntry[].class));
+        } catch (Exception e) {
+            logger.error("Error while downloading chunk of Updates from LR : " + e);
+        }
+        return downloadedData;
+    }
+
+    private boolean updateMarkerTableToStoreOffset(int offset, String level) {
+        boolean isMarkerUpdated = scheduledTaskHistory.setOffset(level, LR_SYNC_TASK, offset);
+        logger.info(isMarkerUpdated ? "Marker Table Updated" : "Failed to Update Marker Table");
+        return isMarkerUpdated;
     }
 
     private String buildCompleteContextPath(String baseContextPath, int offset) {

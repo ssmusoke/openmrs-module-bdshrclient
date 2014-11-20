@@ -33,6 +33,9 @@ public class RestClient {
         } catch (IOException e) {
             log.error("Error Mapping response to : " + url, e);
             throw new RuntimeException(e);
+        } catch (RuntimeException e) {
+            log.error("Error while connecting the Server : " + url, e);
+            throw new RuntimeException(e);
         }
     }
 
