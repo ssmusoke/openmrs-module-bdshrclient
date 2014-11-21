@@ -21,6 +21,7 @@ public class AddressHierarchyEntryMapper {
         put("upazila", 3);
         put("paurasava", 4);
         put("union", 5);
+        put("ward", 6);
     }};
 
 

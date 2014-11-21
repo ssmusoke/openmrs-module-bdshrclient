@@ -9,6 +9,7 @@ import org.openmrs.module.shrclient.mapper.LocationMapper;
 import org.openmrs.module.shrclient.util.Database;
 import org.openmrs.module.shrclient.util.PlatformUtil;
 import org.openmrs.module.shrclient.util.PropertiesReader;
+import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.util.ScheduledTaskHistory;
 import org.openmrs.scheduler.tasks.AbstractTask;
 import org.openmrs.util.DatabaseUpdater;
@@ -18,13 +19,18 @@ import java.sql.Connection;
 public class FRSyncTask extends AbstractTask {
     @Override
     public void execute() {
-        PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
+        PropertiesReader propertiesReader;
+        RestClient frClient;
         Connection connection;
         try {
+            propertiesReader = PlatformUtil.getPropertiesReader();
+            frClient = new ServiceClientRegistry(propertiesReader).getFRClient();
             connection = DatabaseUpdater.getConnection();
-            new FacilityRegistry(propertiesReader, new ServiceClientRegistry(propertiesReader).getFRClient(),
+
+            new FacilityRegistry(propertiesReader, frClient,
                     Context.getService(LocationService.class), new ScheduledTaskHistory(new Database(connection)), new IdMappingsRepository(),
                     new LocationMapper()).synchronize();
+            
             if (connection != null) connection.close();
         } catch (Exception e) {
             e.printStackTrace();

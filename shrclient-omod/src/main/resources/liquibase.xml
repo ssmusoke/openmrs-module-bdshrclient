@@ -248,5 +248,20 @@
 
     </changeSet>
 
+    <changeSet id="bdshrclient-201114-1600" author="tw" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from markers where
+                last_read_entry_id='FR Sync Task';
+            </sqlCheck>
+        </preConditions>
+
+        <insert tableName="markers">
+            <column name="feed_uri" value="fr.facilities"/>
+            <column name="last_read_entry_id" value="FR Sync Task"/>
+        </insert>
+
+    </changeSet>
+
 
 </databaseChangeLog>

@@ -19,13 +19,17 @@ public class LRSyncTask extends AbstractTask {
 
     @Override
     public void execute() {
-        PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
-        RestClient lrClient = new ServiceClientRegistry(propertiesReader).getLRClient();
+        PropertiesReader propertiesReader;
+        RestClient lrClient;
         Connection connection;
         try {
+            propertiesReader = PlatformUtil.getPropertiesReader();
+            lrClient = new ServiceClientRegistry(propertiesReader).getLRClient();
             connection = DatabaseUpdater.getConnection();
+
             new LocationRegistry(propertiesReader, lrClient, Context.getService(AddressHierarchyService.class),
                     new ScheduledTaskHistory(new Database(connection)), new AddressHierarchyEntryMapper()).synchronize();
+
             if (connection != null) connection.close();
         } catch (Exception e) {
             e.printStackTrace();

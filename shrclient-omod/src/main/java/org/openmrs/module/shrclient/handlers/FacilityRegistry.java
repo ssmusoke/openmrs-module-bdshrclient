@@ -21,7 +21,6 @@ import java.util.List;
 public class FacilityRegistry {
     private final Logger logger = Logger.getLogger(FacilityRegistry.class);
 
-    private static final int INITIAL_OFFSET = 0;
     private static final int DEFAULT_LIMIT = 100;
     private static final String EXTRA_FILTER_PATTERN_WITHOUT_UPDATED_SINCE = "?offset=%d&limit=%d";
     private static final String EXTRA_FILTER_PATTERN_WITH_UPDATED_SINCE = "?offset=%d&limit=%d&updatedSince=%s";
@@ -38,8 +37,12 @@ public class FacilityRegistry {
     private LocationService locationService;
     private IdMappingsRepository idMappingsRepository;
     private LocationMapper locationMapper;
+    private ScheduledTaskHistory scheduledTaskHistory;
     private PropertiesReader propertiesReader;
     private RestClient frWebClient;
+    private LocationTag shrLocationTag;
+    private String facilityUrlFormat;
+
 
     public FacilityRegistry(PropertiesReader propertiesReader, RestClient frWebClient, LocationService locationService,
                             ScheduledTaskHistory scheduledTaskHistory, IdMappingsRepository idMappingsRepository,
@@ -48,26 +51,32 @@ public class FacilityRegistry {
         this.frWebClient = frWebClient;
         this.locationService = locationService;
         this.idMappingsRepository = idMappingsRepository;
+        this.scheduledTaskHistory = scheduledTaskHistory;
         this.locationMapper = locationMapper;
         this.lastExecutionDateTime = scheduledTaskHistory.getLastExecutionDateAndTime(FR_SYNC_TASK);
+        this.shrLocationTag = locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME);
     }
 
     public void synchronize() {
-        logger.info("Starting FR location synchronization");
-        List<FRLocationEntry> frLocationEntries = getUpdatesFromFR(FACILITY_CONTEXT);
-        logger.info("Found " + frLocationEntries.size() + " entries to be synced");
-        if (frLocationEntries.size() == 0) return;
-        LocationTag shrLocationTag = locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME);
-        String facilityUrlFormat = getFacilityUrlFormat();
+        facilityUrlFormat = getFacilityUrlFormat();
+        List<FRLocationEntry> frLocationEntries = synchronizeUpdates(FACILITY_CONTEXT);
+        logger.info(frLocationEntries.size() + " entries updated");
 
-        for (FRLocationEntry frLocationEntry : frLocationEntries) {
-            IdMapping idMapping = idMappingsRepository.findByExternalId(frLocationEntry.getId());
-            if (idMapping != null)
-                updateExistingLocation(frLocationEntry, idMapping);
-            else {
-                createNewLocation(frLocationEntry, shrLocationTag, facilityUrlFormat);
-            }
+        reinitializeMarkerTableToZero();
+    }
+
+    private void reinitializeMarkerTableToZero() {
+        updateMarkerTableToStoreOffset(0, FACILITY_CONTEXT);
+    }
+
+    private List<FRLocationEntry> getNextChunkOfUpdatesFromFR(String completeContextPath) {
+        List<FRLocationEntry> downloadedData = null;
+        try {
+            downloadedData = Arrays.asList(frWebClient.get(completeContextPath, FRLocationEntry[].class));
+        } catch (Exception e) {
+            logger.error("Error while downloading chunk of Updates from LR : " + e);
         }
+        return downloadedData;
     }
 
     private String getFacilityUrlFormat() {
@@ -92,19 +101,46 @@ public class FacilityRegistry {
         return locationService.saveLocation(location);
     }
 
-    private List<FRLocationEntry> getUpdatesFromFR(String facilityContext) {
+    private List<FRLocationEntry> synchronizeUpdates(String facilityContext) {
         String baseContextPath = propertiesReader.getFrProperties().getProperty(facilityContext);
-        List<FRLocationEntry> frLocationEntries = new ArrayList<>();
+        List<FRLocationEntry> synchronizedLocationEntries = new ArrayList<>();
         List<FRLocationEntry> lastRetrievedPartOfList;
-        int offset = INITIAL_OFFSET;
+        int offset = scheduledTaskHistory.getOffset(facilityContext, FR_SYNC_TASK);
 
         do {
             String completeContextPath = buildCompleteContextPath(baseContextPath, offset);
-            lastRetrievedPartOfList = Arrays.asList(frWebClient.get(completeContextPath, FRLocationEntry[].class));
-            offset += lastRetrievedPartOfList.size();
-            frLocationEntries.addAll(lastRetrievedPartOfList);
-        } while (lastRetrievedPartOfList.size() == DEFAULT_LIMIT);
-        return frLocationEntries;
+            lastRetrievedPartOfList = getNextChunkOfUpdatesFromFR(completeContextPath);
+            if (lastRetrievedPartOfList != null) {
+                saveOrUpdateAddressHierarchyEntries(lastRetrievedPartOfList);
+                synchronizedLocationEntries.addAll(lastRetrievedPartOfList);
+                offset += lastRetrievedPartOfList.size();
+                updateMarkerTableToStoreOffset(offset, facilityContext);
+            } else {
+                logger.info(synchronizedLocationEntries.size() + " entries synchronized");
+                throw new RuntimeException("Failed to Synchronize updates from FR");
+            }
+        }
+        while (lastRetrievedPartOfList != null && lastRetrievedPartOfList.size() == DEFAULT_LIMIT);
+
+        logger.info(synchronizedLocationEntries.size() + " entries synchronized");
+        return synchronizedLocationEntries;
+    }
+
+    private boolean updateMarkerTableToStoreOffset(int offset, String level) {
+        boolean isMarkerUpdated = scheduledTaskHistory.setOffset(level, FR_SYNC_TASK, offset);
+        logger.info(isMarkerUpdated ? "Marker Table Updated" : "Failed to Update Marker Table");
+        return isMarkerUpdated;
+    }
+
+    private void saveOrUpdateAddressHierarchyEntries(List<FRLocationEntry> frLocationEntries) {
+        for (FRLocationEntry frLocationEntry : frLocationEntries) {
+            IdMapping idMapping = idMappingsRepository.findByExternalId(frLocationEntry.getId());
+            if (idMapping != null)
+                updateExistingLocation(frLocationEntry, idMapping);
+            else {
+                createNewLocation(frLocationEntry, shrLocationTag, facilityUrlFormat);
+            }
+        }
     }
 
     private String buildCompleteContextPath(String baseContextPath, int offset) {
@@ -113,8 +149,7 @@ public class FacilityRegistry {
 
     private String getExtraFilters(int offset) {
         return StringUtils.isEmpty(lastExecutionDateTime) ?
-                String.format(EXTRA_FILTER_PATTERN_WITHOUT_UPDATED_SINCE, offset, DEFAULT_LIMIT)
-                :
+                String.format(EXTRA_FILTER_PATTERN_WITHOUT_UPDATED_SINCE, offset, DEFAULT_LIMIT) :
                 String.format(EXTRA_FILTER_PATTERN_WITH_UPDATED_SINCE, offset, DEFAULT_LIMIT, lastExecutionDateTime)
                         .replace(SINGLE_SPACE, ENCODED_SINGLE_SPACE);
     }

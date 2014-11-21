@@ -25,12 +25,12 @@ public class LocationRegistry {
     public static final String LR_UNIONS_LEVEL_PROPERTY_NAME = "lr.unions";
     public static final String LR_WARDS_LEVEL_PROPERTY_NAME = "lr.wards";
 
-    private static final String ENCODED_SINGLE_SPACE = "%20";
-    private static final String SINGLE_SPACE = " ";
+    public static final String ENCODED_SINGLE_SPACE = "%20";
+    public static final String SINGLE_SPACE = " ";
     private static final int DEFAULT_LIMIT = 100;
     private static final String EXTRA_FILTER_PATTERN_WITHOUT_UPDATED_SINCE = "?offset=%s&limit=%s";
     private static final String EXTRA_FILTER_PATTERN_WITH_UPDATED_SINCE = "?offset=%s&limit=%s&updatedSince=%s";
-    private static final String LR_SYNC_TASK = "LR Sync Task";
+    public static final String LR_SYNC_TASK = "LR Sync Task";
 
     private final String lastExecutionDateTime;
     private ScheduledTaskHistory scheduledTaskHistory;
@@ -52,10 +52,22 @@ public class LocationRegistry {
     public void synchronize() {
 
         List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForDivisions = synchronizeUpdatesByLevel(LR_DIVISIONS_LEVEL_PROPERTY_NAME);
+        logger.info(synchronizedAddressHierarchyEntriesForDivisions.size() + " entries updated");
+
         List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForDistricts = synchronizeUpdatesByLevel(LR_DISTRICTS_LEVEL_PROPERTY_NAME);
+        logger.info(synchronizedAddressHierarchyEntriesForDistricts.size() + " entries updated");
+
         List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForUpazilas = synchronizeUpdatesByLevel(LR_UPAZILAS_LEVEL_PROPERTY_NAME);
+        logger.info(synchronizedAddressHierarchyEntriesForUpazilas.size() + " entries updated");
+
         List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForPaurasavas = synchronizeUpdatesByLevel(LR_PAURASAVAS_LEVEL_PROPERTY_NAME);
+        logger.info(synchronizedAddressHierarchyEntriesForPaurasavas.size() + " entries updated");
+
         List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForUnions = synchronizeUpdatesByLevel(LR_UNIONS_LEVEL_PROPERTY_NAME);
+        logger.info(synchronizedAddressHierarchyEntriesForUnions.size() + " entries updated");
+
+//        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForWards = synchronizeUpdatesByLevel(LR_WARDS_LEVEL_PROPERTY_NAME);
+//        logger.info(synchronizedAddressHierarchyEntriesForWards.size() + " entries updated");
 
         reinitializeMarkerTableToZero();
     }
@@ -66,6 +78,7 @@ public class LocationRegistry {
         updateMarkerTableToStoreOffset(0, LR_UPAZILAS_LEVEL_PROPERTY_NAME);
         updateMarkerTableToStoreOffset(0, LR_PAURASAVAS_LEVEL_PROPERTY_NAME);
         updateMarkerTableToStoreOffset(0, LR_UNIONS_LEVEL_PROPERTY_NAME);
+        updateMarkerTableToStoreOffset(0, LR_WARDS_LEVEL_PROPERTY_NAME);
     }
 
     private List<LRAddressHierarchyEntry> synchronizeUpdatesByLevel(String levelName) {

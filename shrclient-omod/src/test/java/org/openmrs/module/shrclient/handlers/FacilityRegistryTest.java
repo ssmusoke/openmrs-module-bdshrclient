@@ -55,7 +55,7 @@ public class FacilityRegistryTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        locationEntries = getLocationEntries();
+        locationEntries = getFacilityEntries();
 
     }
 
@@ -235,11 +235,11 @@ public class FacilityRegistryTest {
 
         facilityRegistry.synchronize();
 
-        verify(propertiesReader).getFrProperties();
+        verify(propertiesReader, times(2)).getFrProperties();
         verify(frWebClient).get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getLastExecutionDateAndTime(FacilityRegistry.FR_SYNC_TASK);
         verify(idMappingsRepository, times(0)).findByExternalId(any(String.class));
-        verify(locationService, times(0)).getLocationTagByName(FacilityRegistry.SHR_LOCATION_TAG_NAME);
+        verify(locationService, times(1)).getLocationTagByName(FacilityRegistry.SHR_LOCATION_TAG_NAME);
         verify(locationService, times(0)).saveLocation(any(Location.class));
         verify(idMappingsRepository, times(0)).saveMapping(any(IdMapping.class));
 
@@ -280,7 +280,7 @@ public class FacilityRegistryTest {
         return location;
     }
 
-    public FRLocationEntry[] getLocationEntries() throws IOException {
+    public FRLocationEntry[] getFacilityEntries() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         URL resource = URLClassLoader.getSystemResource("FRResponse/ResponseFromFacilityRegistry.json");
         final String response = FileUtils.readFileToString(new File(resource.getPath()));
