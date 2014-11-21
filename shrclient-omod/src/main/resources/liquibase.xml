@@ -263,5 +263,19 @@
 
     </changeSet>
 
+    <changeSet id="bdshrclient-211114-1800" author="tw">
+        <update tableName="scheduler_task_config">
+            <column name="start_on_startup" value="0" />
+            <where>name IN ('LR Sync Task', 'FR Sync Task')</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="bdshrclient-211114-1810" author="tw">
+        <update tableName="scheduler_task_config">
+            <column name="started" value="0" />
+            <where>name IN ('LR Sync Task', 'FR Sync Task')</where>
+        </update>
+    </changeSet>
+
 
 </databaseChangeLog>
