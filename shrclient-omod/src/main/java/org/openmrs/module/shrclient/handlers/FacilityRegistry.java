@@ -42,6 +42,7 @@ public class FacilityRegistry {
     private RestClient frWebClient;
     private LocationTag shrLocationTag;
     private String facilityUrlFormat;
+    private List<String> failedDuringSaveOrUpdateOperation;
 
 
     public FacilityRegistry(PropertiesReader propertiesReader, RestClient frWebClient, LocationService locationService,
@@ -55,6 +56,7 @@ public class FacilityRegistry {
         this.locationMapper = locationMapper;
         this.lastExecutionDateTime = scheduledTaskHistory.getLastExecutionDateAndTime(FR_SYNC_TASK);
         this.shrLocationTag = locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME);
+        this.failedDuringSaveOrUpdateOperation = new ArrayList<>();
     }
 
     public void synchronize() {
@@ -67,38 +69,6 @@ public class FacilityRegistry {
 
     private void reinitializeMarkerTableToZero() {
         updateMarkerTableToStoreOffset(0, FACILITY_CONTEXT);
-    }
-
-    private List<FRLocationEntry> getNextChunkOfUpdatesFromFR(String completeContextPath) {
-        List<FRLocationEntry> downloadedData = null;
-        try {
-            downloadedData = Arrays.asList(frWebClient.get(completeContextPath, FRLocationEntry[].class));
-        } catch (Exception e) {
-            logger.error("Error while downloading chunk of Updates from LR : " + e);
-        }
-        return downloadedData;
-    }
-
-    private String getFacilityUrlFormat() {
-        return propertiesReader.getFrBaseUrl() + propertiesReader.getFrProperties().getProperty(INDIVIDUAL_FACILITY_CONTEXT);
-    }
-
-    private Location createNewLocation(FRLocationEntry frLocationEntry, LocationTag shrLocationTag, String locationUrlFormat) {
-        logger.info("Creating new location: " + frLocationEntry.getName());
-        Location location = locationMapper.create(frLocationEntry);
-        location.addTag(shrLocationTag);
-        location = locationService.saveLocation(location);
-        String locationUrl = String.format(locationUrlFormat, frLocationEntry.getId());
-        idMappingsRepository.saveMapping(new IdMapping(location.getUuid(), frLocationEntry.getId(),
-                ID_MAPPING_TYPE, locationUrl));
-        return location;
-    }
-
-    private Location updateExistingLocation(FRLocationEntry frLocationEntry, IdMapping idMapping) {
-        logger.info("Updating existing location: " + frLocationEntry.getName());
-        Location location = locationMapper.updateExisting(
-                locationService.getLocationByUuid(idMapping.getInternalId()), frLocationEntry);
-        return locationService.saveLocation(location);
     }
 
     private List<FRLocationEntry> synchronizeUpdates(String facilityContext) {
@@ -123,7 +93,56 @@ public class FacilityRegistry {
         while (lastRetrievedPartOfList != null && lastRetrievedPartOfList.size() == DEFAULT_LIMIT);
 
         logger.info(synchronizedLocationEntries.size() + " entries synchronized");
+        // todo : remove this code once we know where and how to keep this log information for LR & FR
+        logger.info(failedDuringSaveOrUpdateOperation.size() + " entries failed during synchronization");
         return synchronizedLocationEntries;
+    }
+
+    private List<FRLocationEntry> getNextChunkOfUpdatesFromFR(String completeContextPath) {
+        List<FRLocationEntry> downloadedData = null;
+        try {
+            downloadedData = Arrays.asList(frWebClient.get(completeContextPath, FRLocationEntry[].class));
+        } catch (Exception e) {
+            logger.error("Error while downloading chunk of Updates from LR : " + e);
+        }
+        return downloadedData;
+    }
+
+    private String getFacilityUrlFormat() {
+        return propertiesReader.getFrBaseUrl() + propertiesReader.getFrProperties().getProperty(INDIVIDUAL_FACILITY_CONTEXT);
+    }
+
+    private Location createNewLocation(FRLocationEntry frLocationEntry, LocationTag shrLocationTag, String locationUrlFormat) {
+        logger.info("Creating new location: " + frLocationEntry.getName());
+        Location location = null;
+        try {
+            location = locationMapper.create(frLocationEntry);
+            location.addTag(shrLocationTag);
+            location = locationService.saveLocation(location);
+            String locationUrl = String.format(locationUrlFormat, frLocationEntry.getId());
+            idMappingsRepository.saveMapping(new IdMapping(location.getUuid(), frLocationEntry.getId(),
+                    ID_MAPPING_TYPE, locationUrl));
+        } catch (Exception e) {
+            logger.error("Error while creating a new Location : " + e);
+            logger.info("Logging the failed event : " + frLocationEntry.toString());
+            failedDuringSaveOrUpdateOperation.add(frLocationEntry.toString());
+        }
+        return location;
+    }
+
+    private Location updateExistingLocation(FRLocationEntry frLocationEntry, IdMapping idMapping) {
+        logger.info("Updating existing location: " + frLocationEntry.getName());
+        Location location = null;
+        try {
+            location = locationMapper.updateExisting(
+                    locationService.getLocationByUuid(idMapping.getInternalId()), frLocationEntry);
+
+        } catch (Exception e) {
+            logger.error("Error while updating an old Location : " + e);
+            logger.info("Logging the failed event : " + frLocationEntry.toString());
+            failedDuringSaveOrUpdateOperation.add(frLocationEntry.toString());
+        }
+        return locationService.saveLocation(location);
     }
 
     private boolean updateMarkerTableToStoreOffset(int offset, String level) {

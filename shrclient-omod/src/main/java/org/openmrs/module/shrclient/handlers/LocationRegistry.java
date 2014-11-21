@@ -38,6 +38,7 @@ public class LocationRegistry {
     private AddressHierarchyService addressHierarchyService;
     private RestClient lrWebClient;
     private PropertiesReader propertiesReader;
+    private List<String> failedDuringSaveOrUpdateOperation;
 
     public LocationRegistry(PropertiesReader propertiesReader, RestClient lrWebClient, AddressHierarchyService addressHierarchyService,
                             ScheduledTaskHistory scheduledTaskHistory, AddressHierarchyEntryMapper addressHierarchyEntryMapper) {
@@ -47,6 +48,7 @@ public class LocationRegistry {
         this.addressHierarchyEntryMapper = addressHierarchyEntryMapper;
         this.addressHierarchyService = addressHierarchyService;
         this.lastExecutionDateTime = scheduledTaskHistory.getLastExecutionDateAndTime(LR_SYNC_TASK);
+        this.failedDuringSaveOrUpdateOperation = new ArrayList<>();
     }
 
     public void synchronize() {
@@ -101,6 +103,8 @@ public class LocationRegistry {
         } while (lastRetrievedPartOfList != null && lastRetrievedPartOfList.size() == DEFAULT_LIMIT);
 
         logger.info(synchronizedAddressHierarchyEntries.size() + " entries synchronized");
+        // todo : remove this code once we know where and how to keep this log information for LR & FR
+        logger.info(failedDuringSaveOrUpdateOperation.size() + " entries failed during synchronization");
         return synchronizedAddressHierarchyEntries;
     }
 
@@ -143,6 +147,7 @@ public class LocationRegistry {
                 addressHierarchyService.saveAddressHierarchyEntry(addressHierarchyEntry);
             } catch (Exception e) {
                 logger.error("Error during Save Or Update to Local Db : " + e.toString());
+                failedDuringSaveOrUpdateOperation.add(lrAddressHierarchyEntry.toString());
             }
         }
     }
