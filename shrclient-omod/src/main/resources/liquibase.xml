@@ -277,5 +277,12 @@
         </update>
     </changeSet>
 
+    <changeSet id="bdshrclient-241114-1200" author="tw">
+        <update tableName="scheduler_task_config">
+            <column name="repeat_interval" value="86400" />
+            <where>name IN ('LR Sync Task', 'FR Sync Task')</where>
+        </update>
+    </changeSet>
+
 
 </databaseChangeLog>
