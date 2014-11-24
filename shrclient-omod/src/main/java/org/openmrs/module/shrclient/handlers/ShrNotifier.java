@@ -54,7 +54,8 @@ public class ShrNotifier {
         return new EncounterUploader(Context.getEncounterService(), Context.getUserService(),
                 PlatformUtil.getPropertiesReader(),
                 PlatformUtil.getRegisteredComponent(CompositionBundleCreator.class),
-                PlatformUtil.getRegisteredComponent(IdMappingsRepository.class), new ServiceClientRegistry(PlatformUtil.getPropertiesReader()));
+                PlatformUtil.getRegisteredComponent(IdMappingsRepository.class),
+                new ServiceClientRegistry(PlatformUtil.getPropertiesReader()));
     }
 
 

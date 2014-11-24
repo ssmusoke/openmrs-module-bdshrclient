@@ -20,10 +20,10 @@ import java.net.URI;
 import java.util.Map;
 
 public class ShrEncounterFeeds extends AllFeeds {
-    private Map<String, String> connProperties;
+    private Map<String, String> feedHeaders;
 
-    public ShrEncounterFeeds(Map<String, String> connProperties) {
-        this.connProperties = connProperties;
+    public ShrEncounterFeeds(Map<String, String> feedHeaders) {
+        this.feedHeaders = feedHeaders;
     }
 
     @Override
@@ -32,7 +32,8 @@ public class ShrEncounterFeeds extends AllFeeds {
         request.setHeader("Accept", getAcceptHeader());
         request.setHeader("facilityId", getFacilityId());
         try {
-            String response = getResponse(request);
+            String response = execute(request);
+            //works only for application/atom+xml
             WireFeedInput input = new WireFeedInput();
             return (Feed) input.build(new StringReader(response));
         } catch (IOException e) {
@@ -43,7 +44,7 @@ public class ShrEncounterFeeds extends AllFeeds {
         return null;
     }
 
-    public String getResponse(HttpRequestBase request) throws IOException {
+    private String execute(HttpRequestBase request) throws IOException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         try {
             ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
@@ -66,11 +67,11 @@ public class ShrEncounterFeeds extends AllFeeds {
         }
     }
 
-    public String getAcceptHeader() {
-        return connProperties.get("Accept");
+    private String getAcceptHeader() {
+        return feedHeaders.get("Accept");
     }
 
     private String getFacilityId() {
-        return connProperties.get("facilityId");
+        return feedHeaders.get("facilityId");
     }
 }

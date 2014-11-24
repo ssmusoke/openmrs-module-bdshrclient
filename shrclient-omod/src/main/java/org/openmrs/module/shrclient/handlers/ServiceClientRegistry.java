@@ -1,6 +1,6 @@
 package org.openmrs.module.shrclient.handlers;
 
-import org.openmrs.module.shrclient.util.FhirRestClient;
+import org.openmrs.module.shrclient.util.SHRClient;
 import org.openmrs.module.shrclient.util.Headers;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
@@ -26,12 +26,12 @@ public class ServiceClientRegistry {
                 Headers.getBasicAuthHeader(user, password));
     }
 
-    public FhirRestClient getSHRClient() {
+    public SHRClient getSHRClient() {
         Properties properties = propertiesReader.getShrProperties();
         String user = properties.getProperty("shr.user");
         String password = properties.getProperty("shr.password");
 
-        return new FhirRestClient(propertiesReader.getShrBaseUrl(),
+        return new SHRClient(propertiesReader.getShrBaseUrl(),
                 Headers.getBasicAuthHeader(user, password));
     }
 

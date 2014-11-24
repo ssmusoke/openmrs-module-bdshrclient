@@ -5,7 +5,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.openmrs.module.shrclient.util.FhirRestClient;
+import org.openmrs.module.shrclient.util.SHRClient;
 import org.openmrs.module.shrclient.util.Headers;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
@@ -63,17 +63,28 @@ public class ServiceClientRegistryTest {
         when(propertiesReader.getShrProperties()).thenReturn(shrProperties);
         when(propertiesReader.getShrBaseUrl()).thenReturn("http://localhost:8089");
 
-        stubFor(get(urlEqualTo("http://localhost:8089/shr"))
+        stubFor(get(urlEqualTo("/patients/hid01/encounters"))
                 .willReturn(aResponse()
                         .withStatus(200)
-                        .withBody("")));
+                        .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                "<feed xmlns=\"http://www.w3.org/2005/Atom\">\n" +
+                                "    <title>Patient Encounters</title>\n" +
+                                "    <link rel=\"self\" type=\"application/atom+xml\" href=\"http://192.168.33.10:8081/patients/5926602583484399617/encounters\" />\n" +
+                                "    <link rel=\"via\" type=\"application/atom+xml\" href=\"http://192.168.33.10:8081/patients/5926602583484399617/encounters\" />\n" +
+                                "    <author>\n" +
+                                "        <name>FreeSHR</name>\n" +
+                                "    </author>\n" +
+                                "    <id>2885d2c2-b534-4544-8958-0cef4b8fd1db</id>\n" +
+                                "    <generator uri=\"https://github.com/ICT4H/atomfeed\">Atomfeed</generator>\n" +
+                                "    <updated>2014-10-27T12:08:57Z</updated>\n" +
+                                "</feed>")));
 
         ServiceClientRegistry serviceClientRegistry = new ServiceClientRegistry(propertiesReader);
 
-        FhirRestClient shrClient = serviceClientRegistry.getSHRClient();
+        SHRClient shrClient = serviceClientRegistry.getSHRClient();
         assertNotNull(shrClient);
-        shrClient.get("/shr", null);
-        verify(1, getRequestedFor(urlEqualTo("/shr"))
+        shrClient.getEncounters("/patients/hid01/encounters");
+        verify(1, getRequestedFor(urlEqualTo("/patients/hid01/encounters"))
                 .withHeader(Headers.AUTH_HEADER_KEY, matching(getAuthHeader().get(Headers.AUTH_HEADER_KEY))));
     }
 

@@ -16,7 +16,7 @@ import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.module.shrclient.util.FhirRestClient;
+import org.openmrs.module.shrclient.util.SHRClient;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 
 import java.io.IOException;
@@ -36,7 +36,7 @@ public class EncounterUploaderTest {
     private EncounterService encounterService;
 
     @Mock
-    private FhirRestClient fhirRestClient;
+    private SHRClient shrClient;
 
     @Mock
     private PropertiesReader propertiesReader;
@@ -58,9 +58,11 @@ public class EncounterUploaderTest {
     @Before
     public void setup() {
         initMocks(this);
-        when(serviceClientRegistry.getSHRClient()).thenReturn(fhirRestClient);
-
-        encounterUploader = new EncounterUploader(encounterService, userService, propertiesReader, compositionBundleCreator, idMappingsRepository,
+        when(serviceClientRegistry.getSHRClient()).thenReturn(shrClient);
+        encounterUploader = new EncounterUploader(
+                encounterService, userService,
+                propertiesReader, compositionBundleCreator,
+                idMappingsRepository,
                 serviceClientRegistry);
     }
 
@@ -74,13 +76,13 @@ public class EncounterUploaderTest {
 
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME)).thenReturn(new User(2));
-        when(fhirRestClient.post(anyString(), eq(atomFeed))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
+        when(shrClient.post(anyString(), eq(atomFeed))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
         when(compositionBundleCreator.compose(openMrsEncounter)).thenReturn(atomFeed);
         when(idMappingsRepository.findByExternalId(anyString())).thenReturn(null);
         encounterUploader.process(event);
 
         verify(encounterService).getEncounterByUuid(uuid);
-        verify(fhirRestClient).post(anyString(), eq(atomFeed));
+        verify(shrClient).post(anyString(), eq(atomFeed));
         verify(idMappingsRepository).saveMapping(Matchers.<IdMapping>anyObject());
     }
 

@@ -2,6 +2,7 @@ package org.openmrs.module.shrclient.feeds.shr;
 
 import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.model.AtomFeed;
+import org.ict4h.atomfeed.client.exceptions.AtomFeedClientException;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
@@ -39,16 +40,23 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
         AtomFeed feed = encounterBundle.getResourceOrFeed().getFeed();
         String healthId = identifyPatientHealthId(feed);
         org.openmrs.Patient emrPatient = identifyEmrPatient(healthId);
-        if (emrPatient == null) {
-            RestClient mciClient = new ServiceClientRegistry(propertiesReader).getMCIClient();
-            Patient patient = mciClient.get(Constants.MCI_PATIENT_URL + "/" + healthId, Patient.class);
-            emrPatient = mciPatientService.createOrUpdatePatient(patient);
-        }
-
         try {
-            mciPatientService.updateEncounter(emrPatient, encounterBundle, healthId);
+            if (emrPatient == null) {
+                RestClient mciClient = new ServiceClientRegistry(propertiesReader).getMCIClient();
+                Patient patient = mciClient.get(Constants.MCI_PATIENT_URL + "/" + healthId, Patient.class);
+                emrPatient = mciPatientService.createOrUpdatePatient(patient);
+                if (emrPatient == null) {
+                    String message = String.format("Can not identify patient[%s]", healthId);
+                    logger.error(message);
+                    throw new Exception(message);
+                }
+                mciPatientService.updateEncounter(emrPatient, encounterBundle, healthId);
+            }
         } catch (Exception e) {
-            e.printStackTrace();
+            String message = String.format("Error occurred while trying to process encounter[%s] of patient[%s]",
+                    encounterBundle.getEncounterId(), encounterBundle.getHealthId());
+            logger.error(message);
+            throw new AtomFeedClientException(message, e);
         }
     }
 

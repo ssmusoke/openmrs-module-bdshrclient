@@ -17,10 +17,9 @@ import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mci.api.model.EncounterResponse;
 import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.module.shrclient.util.FhirRestClient;
+import org.openmrs.module.shrclient.util.SHRClient;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,7 +32,7 @@ public class EncounterUploader implements EventWorker {
 
     private EncounterService encounterService;
     private PropertiesReader propertiesReader;
-    private FhirRestClient fhirRestClient;
+    private SHRClient shrClient;
     private UserService userService;
 
     public EncounterUploader(EncounterService encounterService, UserService userService, PropertiesReader propertiesReader,
@@ -41,7 +40,7 @@ public class EncounterUploader implements EventWorker {
                              ServiceClientRegistry serviceClientRegistry) {
         this.encounterService = encounterService;
         this.propertiesReader = propertiesReader;
-        this.fhirRestClient = serviceClientRegistry.getSHRClient();
+        this.shrClient = serviceClientRegistry.getSHRClient();
         this.userService = userService;
         this.bundleCreator = bundleCreator;
         this.idMappingsRepository = idMappingsRepository;
@@ -70,7 +69,7 @@ public class EncounterUploader implements EventWorker {
 
             log.debug("Uploading patient encounter to SHR : [ " + openMrsEncounter.getUuid() + "]");
             AtomFeed atomFeed = bundleCreator.compose(openMrsEncounter);
-            String shrEncounterUuid = fhirRestClient.post(String.format("/patients/%s/encounters", healthId), atomFeed);
+            String shrEncounterUuid = shrClient.post(String.format("/patients/%s/encounters", healthId), atomFeed);
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             EncounterResponse encounterResponse = objectMapper.readValue(shrEncounterUuid, EncounterResponse.class);

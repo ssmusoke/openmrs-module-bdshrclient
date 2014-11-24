@@ -7,6 +7,7 @@ import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.feeds.shr.DefaultEncounterFeedWorker;
 import org.openmrs.module.shrclient.feeds.shr.ShrEncounterFeedProcessor;
 import org.openmrs.module.shrclient.service.MciPatientService;
+import org.openmrs.module.shrclient.util.Headers;
 import org.openmrs.module.shrclient.util.PlatformUtil;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 
@@ -22,11 +23,11 @@ public class ShrDownloader {
     public void download() {
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
         ArrayList<String> encounterFeedUrls = getEncounterFeedUrls(propertiesReader);
-        Map<String, String> requestProperties = getRequestProperties();
+        Map<String, String> requestHeaders = getRequestHeaders(propertiesReader);
         DefaultEncounterFeedWorker defaultEncounterFeedWorker = getEncounterFeedWorker();
         for (String encounterFeedUrl : encounterFeedUrls) {
             ShrEncounterFeedProcessor feedProcessor =
-               new ShrEncounterFeedProcessor(encounterFeedUrl, requestProperties, defaultEncounterFeedWorker);
+               new ShrEncounterFeedProcessor(encounterFeedUrl, requestHeaders, defaultEncounterFeedWorker);
             try {
                 feedProcessor.process();
             } catch (URISyntaxException e) {
@@ -43,11 +44,15 @@ public class ShrDownloader {
         return new DefaultEncounterFeedWorker(mciPatientService, patientService, idMappingsRepository, propertiesReader);
     }
 
-    private HashMap<String, String> getRequestProperties() {
+    private HashMap<String, String> getRequestHeaders(PropertiesReader propertiesReader) {
         HashMap<String, String> headers = new HashMap<String, String>();
+        Properties properties = propertiesReader.getShrProperties();
+        String user = properties.getProperty("shr.user");
+        String password = properties.getProperty("shr.password");
         headers.put("Accept", "application/atom+xml");
         //read from headers or application
         headers.put("facilityId", getFacilityId());
+        headers.putAll(Headers.getBasicAuthHeader(user, password));
         return headers;
     }
 
@@ -77,7 +82,7 @@ public class ShrDownloader {
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
         ArrayList<String> encounterFeedUrls = getEncounterFeedUrls(propertiesReader);
 
-        Map<String, String> requestProperties = getRequestProperties();
+        Map<String, String> requestProperties = getRequestHeaders(propertiesReader);
         DefaultEncounterFeedWorker defaultEncounterFeedWorker = getEncounterFeedWorker();
         for (String encounterFeedUrl : encounterFeedUrls) {
             ShrEncounterFeedProcessor feedProcessor =

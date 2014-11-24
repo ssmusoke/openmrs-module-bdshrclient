@@ -1,7 +1,6 @@
 package org.openmrs.module.shrclient.web.controller;
 
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
@@ -99,9 +98,7 @@ public class MciPatientLookupController {
 
     private void createOrUpdateEncounters(String healthId, org.openmrs.Patient emrPatient) {
         final String url = String.format("/patients/%s/encounters", healthId);
-        List<EncounterBundle> bundles = new ServiceClientRegistry(propertiesReader).getSHRClient()
-                .get(url, new TypeReference<List<EncounterBundle>>() {
-        });
+        List<EncounterBundle> bundles = new ServiceClientRegistry(propertiesReader).getSHRClient().getEncounters(url);
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
     }
 

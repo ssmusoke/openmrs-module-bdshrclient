@@ -1,7 +1,6 @@
 package org.openmrs.module.shrclient.util;
 
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -19,7 +18,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,13 +38,13 @@ public class WebClient {
 
     public String get(String path) {
         String url = getUrl(path);
-        log.debug("HTTP get url: " + url);
+        log.debug("HTTP getEncounters url: " + url);
         try {
             HttpGet request = new HttpGet(URI.create(url));
 
-            return getResponse(request);
+            return execute(request);
         } catch (IOException e) {
-            log.error("Error during http get. URL: " + url, e);
+            log.error("Error during http getEncounters. URL: " + url, e);
             throw new RuntimeException(e);
         }
     }
@@ -59,7 +57,7 @@ public class WebClient {
             StringEntity entity = new StringEntity(data);
             entity.setContentType(contentType);
             request.setEntity(entity);
-            return getResponse(request);
+            return execute(request);
         } catch (IOException e) {
             log.error("Error during http post. URL: " + url, e);
             throw new RuntimeException(e);
@@ -74,14 +72,14 @@ public class WebClient {
             StringEntity entity = new StringEntity(data);
             entity.setContentType(contentType);
             request.setEntity(entity);
-            return getResponse(request);
+            return execute(request);
         } catch (IOException e) {
             log.error("Error during http post. URL: " + url, e);
             throw new RuntimeException(e);
         }
     }
 
-    private String getResponse(final HttpRequestBase request) throws IOException {
+    private String execute(final HttpRequestBase request) throws IOException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         try {
             addHeaders(request);
@@ -119,21 +117,20 @@ public class WebClient {
     }
 
     private void addHeaders(HttpRequestBase request) {
-        addCommonHeaders(request);
-        addCustomHeaders(request);
-    }
-
-    private boolean addCustomHeaders(HttpRequestBase request) {
-        if(null == headers || headers.isEmpty()) return false;
-
-        for (String key : headers.keySet()) {
-            request.addHeader(key, headers.get(key));
+        Map<String, String> requestHeaders = getCommonHeaders();
+        if(headers != null) {
+            requestHeaders.putAll(headers);
         }
-        return true;
+
+        for (String key : requestHeaders.keySet()) {
+            request.addHeader(key, requestHeaders.get(key));
+        }
     }
 
-    private void addCommonHeaders(HttpRequestBase request) {
-        request.addHeader("accept", "application/json");
+    private Map<String, String> getCommonHeaders() {
+        Map<String, String> commonHeaders = new HashMap<>();
+        commonHeaders.put("accept", "application/json");
+        return commonHeaders;
     }
 
     private String getUrl(String path) {
