@@ -285,4 +285,20 @@
     </changeSet>
 
 
+    <changeSet id="bdshrclient-241114-1800" author="tw" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from location_tag where
+                name='SharedHealth Locations';
+            </sqlCheck>
+        </preConditions>
+
+        <update tableName="location_tag">
+            <column name="name" value="DGHS Facilities" />
+            <where>name = 'SharedHealth Locations'</where>
+        </update>
+
+    </changeSet>
+
+
 </databaseChangeLog>
