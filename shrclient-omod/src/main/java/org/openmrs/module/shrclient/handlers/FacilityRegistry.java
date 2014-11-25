@@ -28,7 +28,7 @@ public class FacilityRegistry {
     private static final String ENCODED_SINGLE_SPACE = "%20";
     private static final String SINGLE_SPACE = " ";
     public static final String FACILITY_CONTEXT = "fr.facilities";
-    public static final String SHR_LOCATION_TAG_NAME = "SharedHealth Locations";
+    public static final String SHR_LOCATION_TAG_NAME = "DGHS Facilities";
     public static final String ID_MAPPING_TYPE = "fr_location";
     public static final String INDIVIDUAL_FACILITY_CONTEXT = "fr.facilityUrlFormat";
 
@@ -81,7 +81,7 @@ public class FacilityRegistry {
             String completeContextPath = buildCompleteContextPath(baseContextPath, offset);
             lastRetrievedPartOfList = getNextChunkOfUpdatesFromFR(completeContextPath);
             if (lastRetrievedPartOfList != null) {
-                saveOrUpdateAddressHierarchyEntries(lastRetrievedPartOfList);
+                saveOrUpdateFacilityEntries(lastRetrievedPartOfList);
                 synchronizedLocationEntries.addAll(lastRetrievedPartOfList);
                 offset += lastRetrievedPartOfList.size();
                 updateMarkerTableToStoreOffset(offset, facilityContext);
@@ -151,7 +151,7 @@ public class FacilityRegistry {
         return isMarkerUpdated;
     }
 
-    private void saveOrUpdateAddressHierarchyEntries(List<FRLocationEntry> frLocationEntries) {
+    private void saveOrUpdateFacilityEntries(List<FRLocationEntry> frLocationEntries) {
         for (FRLocationEntry frLocationEntry : frLocationEntries) {
             IdMapping idMapping = idMappingsRepository.findByExternalId(frLocationEntry.getId());
             if (idMapping != null)
