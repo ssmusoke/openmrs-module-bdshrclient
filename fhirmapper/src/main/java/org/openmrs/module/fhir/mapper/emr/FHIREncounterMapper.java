@@ -14,12 +14,20 @@ import org.openmrs.VisitType;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.VisitService;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_IN_PATIENT_VISIT_TYPE;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_OUT_PATIENT_VISIT_TYPE;
@@ -44,8 +52,7 @@ public class FHIREncounterMapper {
         Map<String, List<String>> processedList = new HashMap<>();
         org.openmrs.Encounter emrEncounter = new org.openmrs.Encounter();
 
-        final SimpleDateFormat ISODateFomat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
-        Date encounterDate = ISODateFomat.parse(date);
+        Date encounterDate = DateUtil.parseDate(date.toString());
         emrEncounter.setEncounterDatetime(encounterDate);
 
         final String encounterTypeName = fhirEncounter.getType().get(0).getTextSimple();
