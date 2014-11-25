@@ -6,9 +6,9 @@ import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.OMRSHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -98,6 +98,10 @@ public class FHIRObservationsMapper implements FHIRResource {
                 result.setValueAsString(((String_) value).getValue());
             } else if (value instanceof Decimal) {
                 result.setValueNumeric(((Decimal) value).getValue().doubleValue());
+            } else if (value instanceof Date) {
+                DateAndTime date = ((Date) value).getValue();
+                java.util.Date parsedDate = DateUtil.parseDate(date.toString());
+                result.setValueDate(parsedDate);
             } else if (value instanceof CodeableConcept) {
                 List<Coding> codings = ((CodeableConcept) value).getCoding();
                 /* TODO: The last element of codings is the concept. Make this more explicit*/
