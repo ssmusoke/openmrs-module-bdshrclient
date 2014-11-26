@@ -10,6 +10,11 @@ import org.openmrs.VisitType;
 import org.openmrs.module.fhir.utils.Constants;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 import java.util.Set;
 
 @Component
@@ -41,7 +46,9 @@ public class EncounterMapper {
     }
 
     private void setServiceProvider(Encounter encounter) {
-        encounter.setServiceProvider(new ResourceReference().setReferenceSimple("Bahmni"));
+        Properties properties = getProperties("shr.properties");
+        String facilityId = properties.getProperty("shr.facilityId");
+        encounter.setServiceProvider(new ResourceReference().setReferenceSimple(facilityId));
     }
 
     private void setStatus(Encounter encounter) {
@@ -72,6 +79,23 @@ public class EncounterMapper {
             Encounter.EncounterParticipantComponent encounterParticipantComponent = encounter.addParticipant();
             EncounterProvider encounterProvider = encounterProviders.iterator().next();
             encounterParticipantComponent.setIndividual(new ResourceReference().setReferenceSimple(encounterProvider.getProvider().getUuid()));
+        }
+    }
+    private Properties getProperties(String resource) {
+        try {
+            Properties properties = new Properties();
+            final File file = new File(System.getProperty("user.home") + File.separator + ".OpenMRS" + File.separator + resource);
+            final InputStream inputStream;
+            if (file.exists()) {
+                inputStream = new FileInputStream(file);
+            } else {
+                inputStream = getClass().getClassLoader().getResourceAsStream(resource);
+            }
+            properties.load(inputStream);
+            return properties;
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }
