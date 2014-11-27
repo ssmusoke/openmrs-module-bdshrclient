@@ -11,9 +11,11 @@ import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
+import org.openmrs.api.LocationService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.TestHelper;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -40,6 +42,12 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
 
     @Autowired
     ConceptService conceptService;
+
+    @Autowired
+    private IdMappingsRepository idMappingsRepository;
+
+    @Autowired
+    private LocationService locationService;
 
     public ParserBase.ResourceOrFeed loadSampleFHIREncounter() throws Exception {
         ParserBase.ResourceOrFeed parsedResource = new TestHelper().loadSampleFHIREncounter("classpath:testFHIREncounter.xml", springContext);
@@ -74,9 +82,11 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         Assert.assertNotNull(emrEncounter.getEncounterDatetime());
         Assert.assertEquals(encounter.getType().get(0).getTextSimple(), emrEncounter.getEncounterType().getName());
         Assert.assertNotNull(emrEncounter.getEncounterProviders());
+        Assert.assertNotNull(emrEncounter.getLocation());
 
         Assert.assertNotNull(emrEncounter.getVisit());
         Assert.assertEquals("ad41fb41-a41a-4ad6-8835-2f59099acf5a", emrEncounter.getVisit().getUuid());
+        Assert.assertEquals("50ab30be-98af-4dfd-bd04-5455937c443f", emrEncounter.getLocation().getUuid());
     }
 
     @Test

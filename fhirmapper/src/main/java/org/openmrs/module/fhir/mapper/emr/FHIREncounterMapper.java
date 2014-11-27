@@ -2,19 +2,20 @@ package org.openmrs.module.fhir.mapper.emr;
 
 
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.model.AtomEntry;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Resource;
 import org.joda.time.DateTime;
-import org.openmrs.EncounterType;
-import org.openmrs.Patient;
-import org.openmrs.Visit;
-import org.openmrs.VisitType;
+import org.openmrs.*;
 import org.openmrs.api.EncounterService;
+import org.openmrs.api.LocationService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.utils.DateUtil;
+import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,18 +36,25 @@ import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_OUT_PATIENT_VISIT
 @Component
 public class FHIREncounterMapper {
 
-    @Autowired
-    EncounterService encounterService;
+    private Logger logger = Logger.getLogger(FHIREncounterMapper.class);
 
     @Autowired
-    PatientService patientService;
+    private EncounterService encounterService;
 
     @Autowired
-    VisitService visitService;
+    private PatientService patientService;
+
+    @Autowired
+    private VisitService visitService;
 
     @Autowired
     private List<FHIRResource> fhirResources;
 
+    @Autowired
+    private IdMappingsRepository idMappingsRepository;
+
+    @Autowired
+    private LocationService locationService;
 
     public org.openmrs.Encounter map(Encounter fhirEncounter, String date, Patient emrPatient, AtomFeed feed) throws ParseException {
         Map<String, List<String>> processedList = new HashMap<>();
@@ -60,6 +68,16 @@ public class FHIREncounterMapper {
         emrEncounter.setEncounterType(encounterType);
 
         String visitType = getVisitType(fhirEncounter);
+        try{
+
+            String facilityId = fhirEncounter.getServiceProvider().getReferenceSimple();
+            IdMapping idMapping = idMappingsRepository.findByExternalId(facilityId);
+            Location location = locationService.getLocationByUuid(idMapping.getInternalId());
+            emrEncounter.setLocation(location);
+        }catch (Exception e){
+            logger.warn("Could not find idMapping for facility", e);
+        }
+
         emrEncounter.setPatient(emrPatient);
         for (AtomEntry<? extends Resource> atomEntry : feed.getEntryList()) {
             final Resource resource = atomEntry.getResource();
