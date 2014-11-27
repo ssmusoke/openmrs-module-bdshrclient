@@ -41,17 +41,18 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
         String healthId = identifyPatientHealthId(feed);
         org.openmrs.Patient emrPatient = identifyEmrPatient(healthId);
         try {
-            if (emrPatient == null) {
-                RestClient mciClient = new ServiceClientRegistry(propertiesReader).getMCIClient();
-                Patient patient = mciClient.get(Constants.MCI_PATIENT_URL + "/" + healthId, Patient.class);
-                emrPatient = mciPatientService.createOrUpdatePatient(patient);
-                if (emrPatient == null) {
-                    String message = String.format("Can not identify patient[%s]", healthId);
-                    logger.error(message);
-                    throw new Exception(message);
-                }
-                mciPatientService.updateEncounter(emrPatient, encounterBundle, healthId);
+            if (emrPatient != null) return;
+
+            RestClient mciClient = new ServiceClientRegistry(propertiesReader).getMCIClient();
+            Patient patient = mciClient.get(Constants.MCI_PATIENT_URL + "/" + healthId, Patient.class);
+            emrPatient = mciPatientService.createOrUpdatePatient(patient);
+
+            if (null == emrPatient) {
+                String message = String.format("Can not identify patient[%s]", healthId);
+                logger.error(message);
+                throw new Exception(message);
             }
+            mciPatientService.updateEncounter(emrPatient, encounterBundle, healthId);
         } catch (Exception e) {
             String message = String.format("Error occurred while trying to process encounter[%s] of patient[%s]",
                     encounterBundle.getEncounterId(), encounterBundle.getHealthId());
@@ -67,10 +68,8 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
 
     private org.openmrs.Patient identifyEmrPatient(String healthId) {
         IdMapping idMap = idMappingsRepository.findByExternalId(healthId);
-        if (idMap != null) {
-            logger.info("Patient with HealthId " + healthId + " already exists. Using reference to the patient for downloaded encounters.");
-            return patientService.getPatientByUuid(idMap.getInternalId());
-        }
-        return null;
+        if (idMap == null) return null;
+        logger.info("Patient with HealthId " + healthId + " already exists. Using reference to the patient for downloaded encounters.");
+        return patientService.getPatientByUuid(idMap.getInternalId());
     }
 }

@@ -3,7 +3,7 @@ package org.openmrs.module.shrclient.scheduler.tasks;
 import org.openmrs.api.LocationService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.handlers.FacilityRegistry;
+import org.openmrs.module.shrclient.handlers.FacilityPull;
 import org.openmrs.module.shrclient.handlers.ServiceClientRegistry;
 import org.openmrs.module.shrclient.mapper.LocationMapper;
 import org.openmrs.module.shrclient.util.Database;
@@ -27,7 +27,7 @@ public class FRSyncTask extends AbstractTask {
             frClient = new ServiceClientRegistry(propertiesReader).getFRClient();
             connection = DatabaseUpdater.getConnection();
 
-            new FacilityRegistry(propertiesReader, frClient,
+            new FacilityPull(propertiesReader, frClient,
                     Context.getService(LocationService.class), new ScheduledTaskHistory(new Database(connection)), new IdMappingsRepository(),
                     new LocationMapper()).synchronize();
             

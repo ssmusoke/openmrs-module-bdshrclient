@@ -17,8 +17,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public class ShrDownloader {
-    private final Logger logger = Logger.getLogger(ShrDownloader.class);
+public class EncounterPull {
+    private final Logger logger = Logger.getLogger(EncounterPull.class);
 
     public void download() {
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();

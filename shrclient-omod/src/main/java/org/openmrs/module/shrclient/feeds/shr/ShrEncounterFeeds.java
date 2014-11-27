@@ -13,6 +13,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.ict4h.atomfeed.client.repository.AllFeeds;
+import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -51,9 +52,8 @@ public class ShrEncounterFeeds extends AllFeeds {
                 public String handleResponse(final HttpResponse response) throws IOException {
                     int status = response.getStatusLine().getStatusCode();
                     if (status >= 200 && status < 300) {
-                        HttpEntity entity = response.getEntity();
-                        return entity != null ? EntityUtils.toString(entity) : null;
-                    } else if (status == 404) {
+                        return response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : null;
+                    } else if (status == HttpStatus.NOT_FOUND.value()) {
                         return null;
                     } else {
                         throw new ClientProtocolException("Unexpected response status: " + status);

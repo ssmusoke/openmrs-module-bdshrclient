@@ -17,9 +17,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-//purpose: this class represents a facility repository and provides synchronization to local OpenMRS server
-public class FacilityRegistry {
-    private final Logger logger = Logger.getLogger(FacilityRegistry.class);
+public class FacilityPull {
+    private final Logger logger = Logger.getLogger(FacilityPull.class);
 
     private static final int DEFAULT_LIMIT = 100;
     private static final String EXTRA_FILTER_PATTERN_WITHOUT_UPDATED_SINCE = "?offset=%d&limit=%d";
@@ -45,9 +44,9 @@ public class FacilityRegistry {
     private List<String> failedDuringSaveOrUpdateOperation;
 
 
-    public FacilityRegistry(PropertiesReader propertiesReader, RestClient frWebClient, LocationService locationService,
-                            ScheduledTaskHistory scheduledTaskHistory, IdMappingsRepository idMappingsRepository,
-                            LocationMapper locationMapper) {
+    public FacilityPull(PropertiesReader propertiesReader, RestClient frWebClient, LocationService locationService,
+                        ScheduledTaskHistory scheduledTaskHistory, IdMappingsRepository idMappingsRepository,
+                        LocationMapper locationMapper) {
         this.propertiesReader = propertiesReader;
         this.frWebClient = frWebClient;
         this.locationService = locationService;

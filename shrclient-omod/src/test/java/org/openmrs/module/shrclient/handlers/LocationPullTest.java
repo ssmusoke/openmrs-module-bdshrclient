@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
@@ -24,16 +23,15 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.openmrs.module.shrclient.handlers.LocationRegistry.*;
-import static org.openmrs.module.shrclient.handlers.LocationRegistry.LR_DISTRICTS_LEVEL_PROPERTY_NAME;
-import static org.openmrs.module.shrclient.handlers.LocationRegistry.LR_DIVISIONS_LEVEL_PROPERTY_NAME;
-import static org.openmrs.module.shrclient.handlers.LocationRegistry.LR_PAURASAVAS_LEVEL_PROPERTY_NAME;
-import static org.openmrs.module.shrclient.handlers.LocationRegistry.LR_SYNC_TASK;
-import static org.openmrs.module.shrclient.handlers.LocationRegistry.LR_UNIONS_LEVEL_PROPERTY_NAME;
-import static org.openmrs.module.shrclient.handlers.LocationRegistry.LR_UPAZILAS_LEVEL_PROPERTY_NAME;
-import static org.openmrs.module.shrclient.handlers.LocationRegistry.LR_WARDS_LEVEL_PROPERTY_NAME;
+import static org.openmrs.module.shrclient.handlers.LocationPull.*;
+import static org.openmrs.module.shrclient.handlers.LocationPull.LR_DISTRICTS_LEVEL_PROPERTY_NAME;
+import static org.openmrs.module.shrclient.handlers.LocationPull.LR_DIVISIONS_LEVEL_PROPERTY_NAME;
+import static org.openmrs.module.shrclient.handlers.LocationPull.LR_PAURASAVAS_LEVEL_PROPERTY_NAME;
+import static org.openmrs.module.shrclient.handlers.LocationPull.LR_SYNC_TASK;
+import static org.openmrs.module.shrclient.handlers.LocationPull.LR_UNIONS_LEVEL_PROPERTY_NAME;
+import static org.openmrs.module.shrclient.handlers.LocationPull.LR_UPAZILAS_LEVEL_PROPERTY_NAME;
 
-public class LocationRegistryTest {
+public class LocationPullTest {
 
     private String fileContainingDivisionLevelResponse = "DivisionLevelResponseFromLocationRegistry";
     private String fileContainingDistrictLevelResponse = "DistrictLevelResponseFromLocationRegistry";
@@ -117,8 +115,8 @@ public class LocationRegistryTest {
         when(scheduledTaskHistory.setOffset(LR_UNIONS_LEVEL_PROPERTY_NAME, LR_SYNC_TASK, lrAddressHierarchyEntriesForUnions.length)).thenReturn(true);
 //        when(scheduledTaskHistory.setOffset(LR_WARDS_LEVEL_PROPERTY_NAME, LR_SYNC_TASK, lrAddressHierarchyEntriesForWards.length)).thenReturn(true);
 
-        LocationRegistry locationRegistry = new LocationRegistry(propertiesReader, lrWebClient, addressHierarchyService, scheduledTaskHistory, addressHierarchyEntryMapper);
-        locationRegistry.synchronize();
+        LocationPull locationPull = new LocationPull(propertiesReader, lrWebClient, addressHierarchyService, scheduledTaskHistory, addressHierarchyEntryMapper);
+        locationPull.synchronize();
 
         verify(scheduledTaskHistory, times(1)).getLastExecutionDateAndTime(LR_SYNC_TASK);
         verify(propertiesReader, times(5)).getLrProperties();
@@ -186,8 +184,8 @@ public class LocationRegistryTest {
         when(scheduledTaskHistory.setOffset(LR_UNIONS_LEVEL_PROPERTY_NAME, LR_SYNC_TASK, 0)).thenReturn(true);
 //        when(scheduledTaskHistory.setOffset(LR_WARDS_LEVEL_PROPERTY_NAME, LR_SYNC_TASK, 0)).thenReturn(true);
 
-        LocationRegistry locationRegistry = new LocationRegistry(propertiesReader, lrWebClient, addressHierarchyService, scheduledTaskHistory, addressHierarchyEntryMapper);
-        locationRegistry.synchronize();
+        LocationPull locationPull = new LocationPull(propertiesReader, lrWebClient, addressHierarchyService, scheduledTaskHistory, addressHierarchyEntryMapper);
+        locationPull.synchronize();
 
         verify(scheduledTaskHistory, times(1)).getLastExecutionDateAndTime(LR_SYNC_TASK);
         verify(propertiesReader, times(5)).getLrProperties();

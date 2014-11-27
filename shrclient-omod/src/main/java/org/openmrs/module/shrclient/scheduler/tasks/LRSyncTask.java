@@ -2,7 +2,7 @@ package org.openmrs.module.shrclient.scheduler.tasks;
 
 import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
-import org.openmrs.module.shrclient.handlers.LocationRegistry;
+import org.openmrs.module.shrclient.handlers.LocationPull;
 import org.openmrs.module.shrclient.handlers.ServiceClientRegistry;
 import org.openmrs.module.shrclient.mapper.AddressHierarchyEntryMapper;
 import org.openmrs.module.shrclient.util.Database;
@@ -27,7 +27,7 @@ public class LRSyncTask extends AbstractTask {
             lrClient = new ServiceClientRegistry(propertiesReader).getLRClient();
             connection = DatabaseUpdater.getConnection();
 
-            new LocationRegistry(propertiesReader, lrClient, Context.getService(AddressHierarchyService.class),
+            new LocationPull(propertiesReader, lrClient, Context.getService(AddressHierarchyService.class),
                     new ScheduledTaskHistory(new Database(connection)), new AddressHierarchyEntryMapper()).synchronize();
 
             if (connection != null) connection.close();

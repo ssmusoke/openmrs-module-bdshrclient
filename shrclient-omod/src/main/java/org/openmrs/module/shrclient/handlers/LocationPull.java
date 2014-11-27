@@ -15,8 +15,8 @@ import java.util.Arrays;
 import java.util.List;
 
 //purpose: this class represents a location repository and provides synchronization to local OpenMRS server
-public class LocationRegistry {
-    private final Logger logger = Logger.getLogger(LocationRegistry.class);
+public class LocationPull {
+    private final Logger logger = Logger.getLogger(LocationPull.class);
 
     public static final String LR_DIVISIONS_LEVEL_PROPERTY_NAME = "lr.divisions";
     public static final String LR_DISTRICTS_LEVEL_PROPERTY_NAME = "lr.districts";
@@ -40,8 +40,8 @@ public class LocationRegistry {
     private PropertiesReader propertiesReader;
     private List<String> failedDuringSaveOrUpdateOperation;
 
-    public LocationRegistry(PropertiesReader propertiesReader, RestClient lrWebClient, AddressHierarchyService addressHierarchyService,
-                            ScheduledTaskHistory scheduledTaskHistory, AddressHierarchyEntryMapper addressHierarchyEntryMapper) {
+    public LocationPull(PropertiesReader propertiesReader, RestClient lrWebClient, AddressHierarchyService addressHierarchyService,
+                        ScheduledTaskHistory scheduledTaskHistory, AddressHierarchyEntryMapper addressHierarchyEntryMapper) {
         this.lrWebClient = lrWebClient;
         this.propertiesReader = propertiesReader;
         this.scheduledTaskHistory = scheduledTaskHistory;
