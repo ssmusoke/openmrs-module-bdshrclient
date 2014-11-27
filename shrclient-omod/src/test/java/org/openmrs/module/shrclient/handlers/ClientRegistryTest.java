@@ -24,7 +24,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class ServiceClientRegistryTest {
+public class ClientRegistryTest {
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8089);
@@ -48,9 +48,9 @@ public class ServiceClientRegistryTest {
                         .withStatus(200)
                         .withBody("")));
 
-        ServiceClientRegistry serviceClientRegistry = new ServiceClientRegistry(propertiesReader);
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader);
 
-        RestClient mciClient = serviceClientRegistry.getMCIClient();
+        RestClient mciClient = clientRegistry.getMCIClient();
         assertNotNull(mciClient);
         mciClient.get("/mci", String.class);
         verify(1, getRequestedFor(urlEqualTo("/mci"))
@@ -79,9 +79,9 @@ public class ServiceClientRegistryTest {
                                 "    <updated>2014-10-27T12:08:57Z</updated>\n" +
                                 "</feed>")));
 
-        ServiceClientRegistry serviceClientRegistry = new ServiceClientRegistry(propertiesReader);
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader);
 
-        SHRClient shrClient = serviceClientRegistry.getSHRClient();
+        SHRClient shrClient = clientRegistry.getSHRClient();
         assertNotNull(shrClient);
         shrClient.getEncounters("/patients/hid01/encounters");
         verify(1, getRequestedFor(urlEqualTo("/patients/hid01/encounters"))
@@ -105,9 +105,9 @@ public class ServiceClientRegistryTest {
                         .withStatus(200)
                         .withBody("")));
 
-        ServiceClientRegistry serviceClientRegistry = new ServiceClientRegistry(propertiesReader);
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader);
 
-        RestClient frWebClient = serviceClientRegistry.getFRClient();
+        RestClient frWebClient = clientRegistry.getFRClient();
         assertNotNull(frWebClient);
         frWebClient.get("/fr", String.class);
         verify(1, getRequestedFor(urlEqualTo("/fr")).withHeader(xAuthTokenKey, matching(xAuthToken)));
@@ -131,9 +131,9 @@ public class ServiceClientRegistryTest {
                         .withStatus(200)
                         .withBody("")));
 
-        ServiceClientRegistry serviceClientRegistry = new ServiceClientRegistry(propertiesReader);
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader);
 
-        RestClient lrWebClient = serviceClientRegistry.getLRClient();
+        RestClient lrWebClient = clientRegistry.getLRClient();
         assertNotNull(lrWebClient);
         lrWebClient.get("/lr", String.class);
         verify(1, getRequestedFor(urlEqualTo("/lr")).withHeader(xAuthTokenKey, matching(xAuthToken)));

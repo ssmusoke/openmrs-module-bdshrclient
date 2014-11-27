@@ -51,19 +51,19 @@ public class EncounterPushTest {
     private IdMappingsRepository idMappingsRepository;
 
     @Mock
-    private ServiceClientRegistry serviceClientRegistry;
+    private ClientRegistry clientRegistry;
 
     private EncounterPush encounterPush;
 
     @Before
     public void setup() {
         initMocks(this);
-        when(serviceClientRegistry.getSHRClient()).thenReturn(shrClient);
+        when(clientRegistry.getSHRClient()).thenReturn(shrClient);
         encounterPush = new EncounterPush(
                 encounterService, userService,
                 propertiesReader, compositionBundleCreator,
                 idMappingsRepository,
-                serviceClientRegistry);
+                clientRegistry);
     }
 
     @Test

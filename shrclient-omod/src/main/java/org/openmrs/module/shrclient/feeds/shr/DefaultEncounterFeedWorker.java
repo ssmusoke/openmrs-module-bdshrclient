@@ -7,7 +7,7 @@ import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.handlers.ServiceClientRegistry;
+import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.mci.api.model.Patient;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.service.MciPatientService;
@@ -43,7 +43,7 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
         try {
             if (emrPatient != null) return;
 
-            RestClient mciClient = new ServiceClientRegistry(propertiesReader).getMCIClient();
+            RestClient mciClient = new ClientRegistry(propertiesReader).getMCIClient();
             Patient patient = mciClient.get(Constants.MCI_PATIENT_URL + "/" + healthId, Patient.class);
             emrPatient = mciPatientService.createOrUpdatePatient(patient);
 

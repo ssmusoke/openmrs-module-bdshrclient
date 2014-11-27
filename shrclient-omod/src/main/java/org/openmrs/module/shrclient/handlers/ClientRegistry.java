@@ -9,10 +9,10 @@ import java.util.HashMap;
 import java.util.Properties;
 
 
-public class ServiceClientRegistry {
+public class ClientRegistry {
     private PropertiesReader propertiesReader;
 
-    public ServiceClientRegistry(PropertiesReader propertiesReader) {
+    public ClientRegistry(PropertiesReader propertiesReader) {
 
         this.propertiesReader = propertiesReader;
     }

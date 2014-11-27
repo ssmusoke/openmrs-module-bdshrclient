@@ -37,10 +37,10 @@ public class EncounterPush implements EventWorker {
 
     public EncounterPush(EncounterService encounterService, UserService userService, PropertiesReader propertiesReader,
                          CompositionBundleCreator bundleCreator, IdMappingsRepository idMappingsRepository,
-                         ServiceClientRegistry serviceClientRegistry) {
+                         ClientRegistry clientRegistry) {
         this.encounterService = encounterService;
         this.propertiesReader = propertiesReader;
-        this.shrClient = serviceClientRegistry.getSHRClient();
+        this.shrClient = clientRegistry.getSHRClient();
         this.userService = userService;
         this.bundleCreator = bundleCreator;
         this.idMappingsRepository = idMappingsRepository;

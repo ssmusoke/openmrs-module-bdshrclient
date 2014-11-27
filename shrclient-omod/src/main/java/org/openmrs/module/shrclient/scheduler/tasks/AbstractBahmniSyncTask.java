@@ -8,9 +8,9 @@ import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.feeds.openmrs.OpenMRSFeedClientFactory;
+import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.handlers.EncounterPush;
 import org.openmrs.module.shrclient.handlers.PatientPush;
-import org.openmrs.module.shrclient.handlers.ServiceClientRegistry;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;
 import org.openmrs.module.shrclient.util.PlatformUtil;
@@ -27,31 +27,31 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
     public void execute() {
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
         UserService userService = Context.getUserService();
-        ServiceClientRegistry serviceClientRegistry = new ServiceClientRegistry(propertiesReader);
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader);
 
-        PatientPush patientPush = getPatientRegistry(userService, serviceClientRegistry);
-        EncounterPush encounterPush = getEncounterRegistry(propertiesReader, userService, serviceClientRegistry);
+        PatientPush patientPush = getPatientRegistry(userService, clientRegistry);
+        EncounterPush encounterPush = getEncounterRegistry(propertiesReader, userService, clientRegistry);
 
         executeBahmniTask(patientPush, encounterPush);
     }
 
     protected abstract void executeBahmniTask(PatientPush patientPush, EncounterPush encounterPush);
 
-    private EncounterPush getEncounterRegistry(PropertiesReader propertiesReader, UserService userService, ServiceClientRegistry serviceClientRegistry) {
+    private EncounterPush getEncounterRegistry(PropertiesReader propertiesReader, UserService userService, ClientRegistry clientRegistry) {
         return new EncounterPush(Context.getEncounterService(), userService,
                 propertiesReader,
                 PlatformUtil.getRegisteredComponent(CompositionBundleCreator.class),
                 PlatformUtil.getRegisteredComponent(IdMappingsRepository.class),
-                serviceClientRegistry);
+                clientRegistry);
     }
 
-    private PatientPush getPatientRegistry(UserService userService, ServiceClientRegistry serviceClientRegistry) {
+    private PatientPush getPatientRegistry(UserService userService, ClientRegistry clientRegistry) {
         return new PatientPush(
                 Context.getPatientService(),
                 userService,
                 Context.getPersonService(),
                 new PatientMapper(Context.getService(AddressHierarchyService.class), new BbsCodeServiceImpl()),
-                serviceClientRegistry.getMCIClient());
+                clientRegistry.getMCIClient());
     }
 
     protected FeedClient getFeedClient(String uri, EventWorker worker) throws URISyntaxException {
