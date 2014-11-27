@@ -23,9 +23,9 @@ import org.openmrs.module.shrclient.util.PropertiesReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class EncounterUploader implements EventWorker {
+public class EncounterRegistry implements EventWorker {
 
-    private static final Logger log = Logger.getLogger(EncounterUploader.class);
+    private static final Logger log = Logger.getLogger(EncounterRegistry.class);
 
     private CompositionBundleCreator bundleCreator;
     private IdMappingsRepository idMappingsRepository;
@@ -35,7 +35,7 @@ public class EncounterUploader implements EventWorker {
     private SHRClient shrClient;
     private UserService userService;
 
-    public EncounterUploader(EncounterService encounterService, UserService userService, PropertiesReader propertiesReader,
+    public EncounterRegistry(EncounterService encounterService, UserService userService, PropertiesReader propertiesReader,
                              CompositionBundleCreator bundleCreator, IdMappingsRepository idMappingsRepository,
                              ServiceClientRegistry serviceClientRegistry) {
         this.encounterService = encounterService;

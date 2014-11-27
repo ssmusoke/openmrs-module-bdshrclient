@@ -1,18 +1,25 @@
 package org.openmrs.module.shrclient.scheduler.tasks;
 
 import org.apache.log4j.Logger;
+import org.openmrs.module.shrclient.handlers.EncounterRegistry;
+import org.openmrs.module.shrclient.handlers.PatientRegistry;
 
-import org.openmrs.module.shrclient.handlers.ShrNotifier;
-import org.openmrs.scheduler.tasks.AbstractTask;
+import java.net.URISyntaxException;
 
-public class BahmniSyncRetryTask extends AbstractTask {
-
+public class BahmniSyncRetryTask extends AbstractBahmniSyncTask {
     private static final Logger log = Logger.getLogger(BahmniSyncRetryTask.class);
 
+
     @Override
-    public void execute() {
+    protected void executeBahmniTask(PatientRegistry patientRegistry, EncounterRegistry encounterRegistry) {
         log.debug("SCHEDULED JOB:SHR Patient retry Sync Task");
-        new ShrNotifier().retryPatient();
-        new ShrNotifier().retryEncounter();
+        try {
+
+            feedClient(OPENMRS_PATIENT_FEED_URI, patientRegistry).processFailedEvents();
+            feedClient(OPENMRS_ENCOUNTER_FEED_URI, encounterRegistry).processFailedEvents();
+
+        } catch (URISyntaxException e) {
+            log.error(e.getMessage());
+        }
     }
 }

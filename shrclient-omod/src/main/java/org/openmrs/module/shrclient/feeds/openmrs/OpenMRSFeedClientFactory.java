@@ -23,6 +23,7 @@ import org.openmrs.module.atomfeed.transaction.support.AtomFeedSpringTransaction
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 public class OpenMRSFeedClientFactory {
@@ -41,6 +42,11 @@ public class OpenMRSFeedClientFactory {
                 eventWorker);
     }
 
+    public FeedClient getFeedClient(String feedURI, EventWorker eventWorker) throws URISyntaxException {
+        URI uri = new URI(feedURI);
+        return this.getFeedClient(uri,eventWorker);
+    }
+
     private AllFailedEvents getAllFailedEvent(JdbcConnectionProvider connectionProvider) {
         return new AllFailedEventsJdbcImpl(connectionProvider);
     }
@@ -52,6 +58,7 @@ public class OpenMRSFeedClientFactory {
     private AllFeeds getAllFeeds(URI feedURI, JdbcConnectionProvider connectionProvider) {
         return new OpenMRSFeeds(getEventFeedService(connectionProvider), feedURI);
     }
+
 
     private EventFeedService getEventFeedService(JdbcConnectionProvider connectionProvider) {
         return new EventFeedServiceImpl(new FeedGeneratorFactory().getFeedGenerator(

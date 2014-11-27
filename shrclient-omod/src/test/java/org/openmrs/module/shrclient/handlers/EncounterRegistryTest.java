@@ -30,7 +30,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class EncounterUploaderTest {
+public class EncounterRegistryTest {
 
     @Mock
     private EncounterService encounterService;
@@ -53,13 +53,13 @@ public class EncounterUploaderTest {
     @Mock
     private ServiceClientRegistry serviceClientRegistry;
 
-    private EncounterUploader encounterUploader;
+    private EncounterRegistry encounterRegistry;
 
     @Before
     public void setup() {
         initMocks(this);
         when(serviceClientRegistry.getSHRClient()).thenReturn(shrClient);
-        encounterUploader = new EncounterUploader(
+        encounterRegistry = new EncounterRegistry(
                 encounterService, userService,
                 propertiesReader, compositionBundleCreator,
                 idMappingsRepository,
@@ -79,7 +79,7 @@ public class EncounterUploaderTest {
         when(shrClient.post(anyString(), eq(atomFeed))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
         when(compositionBundleCreator.compose(openMrsEncounter)).thenReturn(atomFeed);
         when(idMappingsRepository.findByExternalId(anyString())).thenReturn(null);
-        encounterUploader.process(event);
+        encounterRegistry.process(event);
 
         verify(encounterService).getEncounterByUuid(uuid);
         verify(shrClient).post(anyString(), eq(atomFeed));
@@ -102,7 +102,7 @@ public class EncounterUploaderTest {
         final String uuid = "123abc456";
         final String content = "/openmrs/ws/rest/v1/encounter/" + uuid +
                 "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))";
-        assertEquals(uuid, encounterUploader.getUuid(content));
+        assertEquals(uuid, encounterRegistry.getUuid(content));
     }
 
 }

@@ -19,9 +19,9 @@ import org.openmrs.module.shrclient.util.RestClient;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PatientUploader implements EventWorker {
+public class PatientRegistry implements EventWorker {
 
-    private static final Logger log = Logger.getLogger(PatientUploader.class);
+    private static final Logger log = Logger.getLogger(PatientRegistry.class);
 
     private PatientService patientService;
     private UserService userService;
@@ -29,7 +29,7 @@ public class PatientUploader implements EventWorker {
     private PatientMapper patientMapper;
     private RestClient mciRestClient;
 
-    public PatientUploader(PatientService patientService, UserService userService, PersonService personService,
+    public PatientRegistry(PatientService patientService, UserService userService, PersonService personService,
                            PatientMapper patientMapper, RestClient mciRestClient) {
         this.patientService = patientService;
         this.userService = userService;
