@@ -10,18 +10,13 @@ import org.openmrs.VisitType;
 import org.openmrs.module.fhir.utils.Constants;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 import java.util.Set;
 
 @Component
 public class EncounterMapper {
 
     // TODO: Not complete yet
-    public Encounter map(org.openmrs.Encounter openMrsEncounter) {
+    public Encounter map(org.openmrs.Encounter openMrsEncounter, String facilityId) {
         Encounter encounter = new Encounter();
         final ResourceReference encounterRef = new ResourceReference();
         encounterRef.setReferenceSimple(openMrsEncounter.getUuid());
@@ -31,7 +26,7 @@ public class EncounterMapper {
         setClass(openMrsEncounter, encounter);
         setSubject(openMrsEncounter, encounter);
         setParticipant(openMrsEncounter, encounter);
-        setServiceProvider(encounter);
+        setServiceProvider(encounter,facilityId);
         setIdentifiers(encounter, openMrsEncounter);
         setType(encounter, openMrsEncounter);
         return encounter;
@@ -45,9 +40,7 @@ public class EncounterMapper {
         encounter.addIdentifier().setValueSimple(openMrsEncounter.getUuid());
     }
 
-    private void setServiceProvider(Encounter encounter) {
-        Properties properties = getProperties("shr.properties");
-        String facilityId = properties.getProperty("shr.facilityId");
+    private void setServiceProvider(Encounter encounter, String facilityId) {
         encounter.setServiceProvider(new ResourceReference().setReferenceSimple(facilityId));
     }
 
@@ -79,23 +72,6 @@ public class EncounterMapper {
             Encounter.EncounterParticipantComponent encounterParticipantComponent = encounter.addParticipant();
             EncounterProvider encounterProvider = encounterProviders.iterator().next();
             encounterParticipantComponent.setIndividual(new ResourceReference().setReferenceSimple(encounterProvider.getProvider().getUuid()));
-        }
-    }
-    private Properties getProperties(String resource) {
-        try {
-            Properties properties = new Properties();
-            final File file = new File(System.getProperty("user.home") + File.separator + ".OpenMRS" + File.separator + resource);
-            final InputStream inputStream;
-            if (file.exists()) {
-                inputStream = new FileInputStream(file);
-            } else {
-                inputStream = getClass().getClassLoader().getResourceAsStream(resource);
-            }
-            properties.load(inputStream);
-            return properties;
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 }

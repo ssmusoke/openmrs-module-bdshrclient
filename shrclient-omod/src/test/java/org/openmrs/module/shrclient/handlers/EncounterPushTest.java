@@ -16,12 +16,13 @@ import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.module.shrclient.util.SHRClient;
 import org.openmrs.module.shrclient.util.PropertiesReader;
+import org.openmrs.module.shrclient.util.SHRClient;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyString;
@@ -69,6 +70,8 @@ public class EncounterPushTest {
     @Test
     public void shouldProcessEncounterSyncEvent() throws IOException {
         final String uuid = "123abc456";
+        String facilityId = "10000069";
+
         final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + uuid
                 + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
         org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter();
@@ -77,8 +80,11 @@ public class EncounterPushTest {
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME)).thenReturn(new User(2));
         when(shrClient.post(anyString(), eq(atomFeed))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
-        when(compositionBundleCreator.compose(openMrsEncounter)).thenReturn(atomFeed);
-        when(idMappingsRepository.findByExternalId(anyString())).thenReturn(null);
+        Properties properties = new Properties();
+        properties.setProperty("shr.facilityId", facilityId);
+        when(propertiesReader.getShrProperties()).thenReturn(properties);
+        when(compositionBundleCreator.compose(openMrsEncounter, facilityId)).thenReturn(atomFeed);
+        when(idMappingsRepository.findByExternalId(facilityId)).thenReturn(null);
         encounterPush.process(event);
 
         verify(encounterService).getEncounterByUuid(uuid);

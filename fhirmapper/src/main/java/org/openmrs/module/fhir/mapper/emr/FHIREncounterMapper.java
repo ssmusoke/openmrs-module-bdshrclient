@@ -68,15 +68,7 @@ public class FHIREncounterMapper {
         emrEncounter.setEncounterType(encounterType);
 
         String visitType = getVisitType(fhirEncounter);
-        try{
-
-            String facilityId = fhirEncounter.getServiceProvider().getReferenceSimple();
-            IdMapping idMapping = idMappingsRepository.findByExternalId(facilityId);
-            Location location = locationService.getLocationByUuid(idMapping.getInternalId());
-            emrEncounter.setLocation(location);
-        }catch (Exception e){
-            logger.warn("Could not find idMapping for facility", e);
-        }
+        setInternalFacilityId(emrEncounter, fhirEncounter.getServiceProvider().getReferenceSimple());
 
         emrEncounter.setPatient(emrPatient);
         for (AtomEntry<? extends Resource> atomEntry : feed.getEntryList()) {
@@ -92,6 +84,17 @@ public class FHIREncounterMapper {
         emrEncounter.setVisit(visit);
         visit.addEncounter(emrEncounter);
         return emrEncounter;
+    }
+
+    private void setInternalFacilityId(org.openmrs.Encounter emrEncounter, String facilityId) {
+        try{
+
+            IdMapping idMapping = idMappingsRepository.findByExternalId(facilityId);
+            Location location = locationService.getLocationByUuid(idMapping.getInternalId());
+            emrEncounter.setLocation(location);
+        }catch (Exception e){
+            logger.error("Could not find idMapping for facility : " + facilityId, e);
+        }
     }
 
     private String getVisitType(Encounter fhirEncounter) {

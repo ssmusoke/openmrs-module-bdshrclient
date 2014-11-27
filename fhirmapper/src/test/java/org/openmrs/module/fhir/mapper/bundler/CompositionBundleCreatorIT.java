@@ -1,6 +1,5 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import static junit.framework.Assert.assertEquals;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.junit.Test;
 import org.openmrs.api.context.Context;
@@ -38,7 +37,8 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
     @Test
     public void shouldCreateFhirBundle() throws Exception {
         executeDataSet("shrClientBundleCreatorTestDS.xml");
-        AtomFeed bundle = bundleCreator.compose(Context.getEncounterService().getEncounter(36));
+        String facilityId = "10000036";
+        AtomFeed bundle = bundleCreator.compose(Context.getEncounterService().getEncounter(36), facilityId);
         assertNotNull(bundle);
     }
 }
