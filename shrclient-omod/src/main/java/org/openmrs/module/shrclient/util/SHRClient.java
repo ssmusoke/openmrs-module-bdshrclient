@@ -1,12 +1,10 @@
 package org.openmrs.module.shrclient.util;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.sun.syndication.feed.atom.Content;
 import com.sun.syndication.feed.atom.Entry;
 import com.sun.syndication.feed.atom.Feed;
 import com.sun.syndication.io.FeedException;
 import com.sun.syndication.io.WireFeedInput;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.formats.XmlComposer;
@@ -16,7 +14,6 @@ import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,6 +32,7 @@ public class SHRClient {
         this.headers = headers;
     }
 
+    @SuppressWarnings("unchecked")
     public List<EncounterBundle> getEncounters(final String url) {
         try {
             Map<String, String> requestHeaders = new HashMap<>(headers);
@@ -72,11 +70,11 @@ public class SHRClient {
     }
 
     private String getEntryContent(Entry entry) {
-        if(entry.getContents().isEmpty()){
+        if (entry.getContents().isEmpty()) {
             return null;
         }
         String value = ((Content) (entry.getContents().get(0))).getValue();
-        return value.replaceFirst("^<!\\[CDATA\\[","").replaceFirst("\\]\\]>$","");
+        return value.replaceFirst("^<!\\[CDATA\\[", "").replaceFirst("\\]\\]>$", "");
     }
 
     public String post(final String url, AtomFeed bundle) {

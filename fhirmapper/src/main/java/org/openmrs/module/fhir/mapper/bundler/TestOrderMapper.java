@@ -8,7 +8,6 @@ import org.openmrs.ConceptMap;
 import org.openmrs.Order;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -70,11 +69,11 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
             }
             resources.add(new EmrResource("Specimen", specimen.getIdentifier(), specimen));
         }
-        String specimentIdentifier = specimen.getIdentifier().get(0).getValueSimple();
+        String specimenIdentifier = specimen.getIdentifier().get(0).getValueSimple();
         ResourceReference orderItemSpecimenReference = orderItem.addSpecimen();
-        orderItemSpecimenReference.setReferenceSimple(specimentIdentifier);
+        orderItemSpecimenReference.setReferenceSimple(specimenIdentifier);
         ResourceReference diagnosticOrderSpecimenReference = diagnosticOrder.addSpecimen();
-        diagnosticOrderSpecimenReference.setReferenceSimple(specimentIdentifier);
+        diagnosticOrderSpecimenReference.setReferenceSimple(specimenIdentifier);
     }
 
     private Specimen checkIfSpecimenExists(AtomFeed feed, List<ResourceReference> specimenList, Order order) {
@@ -166,14 +165,19 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         DiagnosticOrder diagnosticOrder;
         diagnosticOrder = new DiagnosticOrder();
         diagnosticOrder.setSubject(fhirEncounter.getSubject());
-        ResourceReference orderer = new ResourceReference();
-        orderer.setReferenceSimple(order.getOrderer().getUuid());
-        diagnosticOrder.setOrderer(orderer);
+        diagnosticOrder.setOrderer(getOrdererReference(order));
         Identifier identifier = diagnosticOrder.addIdentifier();
         identifier.setValueSimple(UUID.randomUUID().toString());
         diagnosticOrder.setEncounter(fhirEncounter.getIndication());
         diagnosticOrder.setStatusSimple(DiagnosticOrder.DiagnosticOrderStatus.requested);
         return diagnosticOrder;
+    }
+
+    //TODO : how do we identify this individual?
+    private ResourceReference getOrdererReference(Order order) {
+        ResourceReference orderer = new ResourceReference();
+        orderer.setReferenceSimple(order.getOrderer().getUuid());
+        return orderer;
     }
 
 }

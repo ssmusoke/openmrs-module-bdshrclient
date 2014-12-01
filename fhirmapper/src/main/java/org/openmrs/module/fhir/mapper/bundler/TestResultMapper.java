@@ -1,14 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.CodeableConcept;
-import org.hl7.fhir.instance.model.DateAndTime;
-import org.hl7.fhir.instance.model.DateTime;
-import org.hl7.fhir.instance.model.DiagnosticReport;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.Enumeration;
-import org.hl7.fhir.instance.model.Identifier;
-import org.hl7.fhir.instance.model.ResourceReference;
+import org.hl7.fhir.instance.model.*;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -16,6 +9,7 @@ import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.lang.Boolean;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -101,6 +95,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
             if (member.getConcept().equals(obs.getConcept())) {
                 List<EmrResource> observationResources = observationMapper.map(member, fhirEncounter);
                 ResourceReference resourceReference = report.addResult();
+                // TODO: how do we identify this observation?
                 resourceReference.setReferenceSimple(observationResources.get(0).getIdentifier().getValueSimple());
                 emrResourceList.addAll(observationResources);
             } else if (MRS_CONCEPT_NAME_LAB_NOTES.equals(member.getConcept().getName().getName())) {
@@ -110,4 +105,12 @@ public class TestResultMapper implements EmrObsResourceHandler {
         return report;
     }
 
+    //TODO : how do we identify this individual?
+    protected ResourceReference getParticipant(Encounter encounter) {
+        List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
+        if ((participants != null) && !participants.isEmpty()) {
+            return participants.get(0).getIndividual();
+        }
+        return null;
+    }
 }

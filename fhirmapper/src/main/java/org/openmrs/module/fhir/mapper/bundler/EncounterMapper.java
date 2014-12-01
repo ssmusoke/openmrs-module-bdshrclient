@@ -86,7 +86,8 @@ public class EncounterMapper {
         if (!encounterProviders.isEmpty()) {
             Encounter.EncounterParticipantComponent encounterParticipantComponent = encounter.addParticipant();
             EncounterProvider encounterProvider = encounterProviders.iterator().next();
-            encounterParticipantComponent.setIndividual(new ResourceReference().setReferenceSimple(encounterProvider.getProvider().getUuid()));
+            encounterParticipantComponent.setIndividual(
+                    new ResourceReference().setReferenceSimple(encounterProvider.getProvider().getUuid()));
         }
     }
 }

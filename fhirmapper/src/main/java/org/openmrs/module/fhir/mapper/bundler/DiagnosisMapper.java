@@ -106,13 +106,6 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         return conceptName.equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_CODED_DIAGNOSIS);
     }
 
-    private ResourceReference getParticipant(Encounter encounter) {
-        List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
-        if ((participants != null) && !participants.isEmpty()) {
-            return participants.get(0).getIndividual();
-        }
-        return null;
-    }
 
     private Enumeration<Condition.ConditionStatus> getConditionStatus(Obs member) {
         Concept diagnosisStatus = member.getValueCoded();
@@ -127,5 +120,14 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
     private CodeableConcept getDiagnosisCategory() {
         return FHIRFeedHelper.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS,
                 FHIRProperties.FHIR_CONDITION_CATEGORY_URL, FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS_DISPLAY);
+    }
+
+    //TODO : how do we identify this individual?
+    protected ResourceReference getParticipant(Encounter encounter) {
+        List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
+        if ((participants != null) && !participants.isEmpty()) {
+            return participants.get(0).getIndividual();
+        }
+        return null;
     }
 }

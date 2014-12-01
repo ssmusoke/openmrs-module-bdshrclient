@@ -1,14 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.Age;
-import org.hl7.fhir.instance.model.CodeableConcept;
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Date;
-import org.hl7.fhir.instance.model.DateAndTime;
-import org.hl7.fhir.instance.model.Decimal;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.FamilyHistory;
+import org.hl7.fhir.instance.model.*;
 import org.openmrs.Concept;
 import org.openmrs.ConceptName;
 import org.openmrs.Obs;
@@ -121,6 +114,15 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
                 coding.setDisplaySimple(valueCoded.getName().getName());
             }
             return concept;
+        }
+        return null;
+    }
+
+    //TODO : how do we identify this individual?
+    protected ResourceReference getParticipant(Encounter encounter) {
+        List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
+        if ((participants != null) && !participants.isEmpty()) {
+            return participants.get(0).getIndividual();
         }
         return null;
     }

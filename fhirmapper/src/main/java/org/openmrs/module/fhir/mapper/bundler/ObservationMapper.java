@@ -1,11 +1,6 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import org.hl7.fhir.instance.model.CodeableConcept;
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.Identifier;
-import org.hl7.fhir.instance.model.Observation;
-import org.hl7.fhir.instance.model.Type;
+import org.hl7.fhir.instance.model.*;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
@@ -128,5 +123,14 @@ public class ObservationMapper implements EmrObsResourceHandler {
 
     private RelatedObservation mapRelatedObservation(Observation observation) {
         return new RelatedObservation(observation);
+    }
+
+    //TODO : how do we identify this individual?
+    protected ResourceReference getParticipant(Encounter encounter) {
+        List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
+        if ((participants != null) && !participants.isEmpty()) {
+            return participants.get(0).getIndividual();
+        }
+        return null;
     }
 }

@@ -6,7 +6,6 @@ import org.hibernate.SessionFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.ServiceContext;
 import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.util.DatabaseUpdater;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;

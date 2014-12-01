@@ -18,6 +18,7 @@ import java.util.UUID;
 import static java.util.Arrays.asList;
 
 @Component
+@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 public class CompositionBundle {
 
     @Autowired
@@ -76,6 +77,7 @@ public class CompositionBundle {
         }
     }
 
+    //TODO: reference should be a relative URL
     private void addResourceSectionToComposition(Composition composition, EmrResource resource) {
         String resourceId = resource.getIdentifier().getValueSimple();
         ResourceReference conditionRef = new ResourceReference();
@@ -84,6 +86,7 @@ public class CompositionBundle {
         composition.addSection().setContent(conditionRef);
     }
 
+    @SuppressWarnings("unchecked")
     private void addAtomEntry(AtomFeed atomFeed, EmrResource resource) {
         AtomEntry resourceEntry = new AtomEntry();
         resourceEntry.setId(new FHIRIdentifier(resource.getIdentifier().getValueSimple()
@@ -99,7 +102,7 @@ public class CompositionBundle {
         DateAndTime encounterDateTime = new DateAndTime(openMrsEncounter.getEncounterDatetime());
         Composition composition = new Composition().setDateSimple(encounterDateTime);
         composition.setEncounter(encounter.getIndication());
-        composition.setStatus(new Enumeration<Composition.CompositionStatus>(Composition.CompositionStatus.final_));
+        composition.setStatus(new Enumeration<>(Composition.CompositionStatus.final_));
         composition.setIdentifier(new Identifier().setValueSimple("Encounter - " + openMrsEncounter.getUuid()));
 
         return composition;

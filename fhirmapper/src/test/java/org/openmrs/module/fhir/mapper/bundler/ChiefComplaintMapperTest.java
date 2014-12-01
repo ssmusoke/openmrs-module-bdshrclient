@@ -34,30 +34,6 @@ public class ChiefComplaintMapperTest extends BaseModuleWebContextSensitiveTest 
         List<EmrResource> complaintResources = chiefComplaintMapper.map(openMrsEncounter.getObsAtTopLevel(false).iterator().next(), encounter);
         Assert.assertFalse(complaintResources.isEmpty());
         Assert.assertEquals(1, complaintResources.size());
-
-//        Condition condition = complaintResources.get(0);
-//        Assert.assertNotNull(condition.getEncounter());
-//        Assert.assertNotNull(condition.getSubject());
-//        Assert.assertNotNull(condition.getAsserter());
-//        CodeableConcept conditionCategory = condition.getCategory();
-//        Assert.assertNotNull(conditionCategory);
-//        Coding conditionCategoryCoding = conditionCategory.getCoding().get(0);
-//        assertEquals(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT, conditionCategoryCoding.getCodeSimple());
-//        assertEquals(FHIRProperties.FHIR_CONDITION_CATEGORY_URL, conditionCategoryCoding.getSystemSimple());
-//        Assert.assertEquals("Complaint", conditionCategoryCoding.getDisplaySimple());
-//        CodeableConcept conditionCode = condition.getCode();
-//        Assert.assertNotNull(conditionCode);
-//        Assert.assertEquals("Right arm pain", conditionCode.getCoding().get(0).getDisplaySimple());
-//        CodeableConcept conditionSeverity = condition.getSeverity();
-//        Assert.assertNotNull(conditionSeverity);
-//        Coding conditionSevitityCode = conditionSeverity.getCoding().get(0);
-//        assertEquals(FHIRProperties.FHIR_SEVERITY_MODERATE, conditionSevitityCode.getDisplaySimple());
-//        assertEquals(FHIRProperties.SNOMED_VALUE_MODERATE_SEVERTY, conditionSevitityCode.getCodeSimple());
-//        assertEquals(FHIRProperties.FHIR_CONDITION_SEVERITY_URL, conditionSevitityCode.getSystemSimple());
-//        Assert.assertEquals(Condition.ConditionStatus.confirmed, condition.getStatusSimple());
-//        Assert.assertEquals("2008-08-18T15:09:05+05:30", condition.getDateAsserted().getValue().toString());
-//        DateTime onsetDateTime = (DateTime) condition.getOnset();
-//        Assert.assertEquals("2008-08-18T13:09:05+05:30", onsetDateTime.getValue().toString());
     }
 
 

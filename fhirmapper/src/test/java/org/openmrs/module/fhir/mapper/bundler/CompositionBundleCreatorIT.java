@@ -12,8 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertNotNull;
+
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTest {

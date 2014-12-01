@@ -99,6 +99,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(3, feed.getEntryList().size());
     }
 
+    @SuppressWarnings("unchecked")
     private void addToAtomFeed(AtomFeed feed, List<EmrResource> mappedResources) {
         for (EmrResource resource : mappedResources) {
             AtomEntry resourceEntry = new AtomEntry();

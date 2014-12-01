@@ -1,14 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.CodeableConcept;
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Condition;
-import org.hl7.fhir.instance.model.DateAndTime;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.Enumeration;
-import org.hl7.fhir.instance.model.Identifier;
-import org.hl7.fhir.instance.model.ResourceReference;
+import org.hl7.fhir.instance.model.*;
 import org.joda.time.DateTime;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
@@ -103,16 +96,17 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
         return assertedDate;
     }
 
-    private ResourceReference getParticipant(Encounter encounter) {
+    private CodeableConcept getChiefComplaintCategory() {
+        return FHIRFeedHelper.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT,
+                FHIRProperties.FHIR_CONDITION_CATEGORY_URL, FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT_DISPLAY);
+    }
+
+    //TODO : how do we identify this individual?
+    protected ResourceReference getParticipant(Encounter encounter) {
         List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
         if ((participants != null) && !participants.isEmpty()) {
             return participants.get(0).getIndividual();
         }
         return null;
-    }
-
-    private CodeableConcept getChiefComplaintCategory() {
-        return FHIRFeedHelper.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT,
-                FHIRProperties.FHIR_CONDITION_CATEGORY_URL, FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT_DISPLAY);
     }
 }
