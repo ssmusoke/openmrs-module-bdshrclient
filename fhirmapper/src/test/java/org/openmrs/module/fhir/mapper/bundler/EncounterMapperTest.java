@@ -56,8 +56,12 @@ public class EncounterMapperTest {
     private SystemProperties getSystemProperties(String facilityId) {
         Properties shrProperties = new Properties();
         shrProperties.setProperty(SystemProperties.FACILITY_ID, facilityId);
+
+        Properties frProperties = new Properties();
+        frProperties.setProperty(SystemProperties.FACILITY_URL_FORMAT, "%s.json");
+
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("mci", "http://mci");
-        return new SystemProperties(baseUrls, shrProperties);
+        return new SystemProperties(baseUrls, shrProperties, frProperties);
     }
 }

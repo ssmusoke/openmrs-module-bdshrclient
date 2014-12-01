@@ -71,7 +71,7 @@ public class EncounterPush implements EventWorker {
             log.debug("Uploading patient encounter to SHR : [ " + openMrsEncounter.getUuid() + "]");
 
             AtomFeed atomFeed = compositionBundle.create(openMrsEncounter, new SystemProperties(propertiesReader.getBaseUrls(),
-                    propertiesReader.getShrProperties()));
+                    propertiesReader.getShrProperties(), propertiesReader.getFrProperties()));
             String shrEncounterUuid = shrClient.post(String.format("/patients/%s/encounters", healthId), atomFeed);
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

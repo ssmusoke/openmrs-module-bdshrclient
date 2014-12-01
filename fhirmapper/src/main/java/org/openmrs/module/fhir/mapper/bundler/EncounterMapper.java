@@ -4,15 +4,13 @@ package org.openmrs.module.fhir.mapper.bundler;
 import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Enumeration;
 import org.hl7.fhir.instance.model.ResourceReference;
-import org.openmrs.EncounterProvider;
-import org.openmrs.Patient;
-import org.openmrs.PersonAttribute;
-import org.openmrs.VisitType;
+import org.openmrs.*;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Type;
 import java.util.Set;
 
 @Component
@@ -34,8 +32,7 @@ public class EncounterMapper {
                                        SystemProperties systemProperties) {
         final ResourceReference encounterRef = new ResourceReference();
         String encounterId = openMrsEncounter.getUuid();
-        encounterRef.setReferenceSimple(
-                new EntityReference().build(org.openmrs.Encounter.class, systemProperties, encounterId));
+        encounterRef.setReferenceSimple(getReference(org.openmrs.Encounter.class, systemProperties, encounterId));
         encounterRef.setDisplaySimple("Encounter - " + encounterId);
         encounter.setIndication(encounterRef);
     }
@@ -49,7 +46,9 @@ public class EncounterMapper {
     }
 
     private void setServiceProvider(Encounter encounter, SystemProperties systemProperties) {
-        encounter.setServiceProvider(new ResourceReference().setReferenceSimple(systemProperties.getFacilityId()));
+        encounter.setServiceProvider(new ResourceReference().setReferenceSimple(
+                getReference(Location.class, systemProperties, systemProperties.getFacilityId())
+        ));
     }
 
     private void setStatus(Encounter encounter) {
@@ -70,12 +69,16 @@ public class EncounterMapper {
         if (null != healthId) {
             ResourceReference subject = new ResourceReference()
                     .setDisplaySimple(healthId.getValue())
-                    .setReferenceSimple(new EntityReference().build(Patient.class, systemProperties, healthId.getValue()));
+                    .setReferenceSimple(getReference(Patient.class, systemProperties, healthId.getValue()));
 
             encounter.setSubject(subject);
         } else {
             throw new RuntimeException("The patient has not been synced yet");
         }
+    }
+
+    private String getReference(Type type, SystemProperties systemProperties, String healthId) {
+        return new EntityReference().build(type, systemProperties, healthId);
     }
 
     private void setParticipant(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {

@@ -6,10 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mock;
-import org.openmrs.Patient;
-import org.openmrs.PersonAttribute;
-import org.openmrs.PersonAttributeType;
-import org.openmrs.User;
+import org.openmrs.*;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.UserService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
@@ -27,6 +24,7 @@ import java.util.HashSet;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -85,7 +83,7 @@ public class EncounterPushTest {
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME)).thenReturn(new User(2));
         when(shrClient.post(anyString(), eq(atomFeed))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
-        when(compositionBundle.create(openMrsEncounter, getSystemProperties(facilityId))).thenReturn(atomFeed);
+        when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(atomFeed);
         when(idMappingsRepository.findByExternalId(facilityId)).thenReturn(null);
         encounterPush.process(event);
 
@@ -116,9 +114,17 @@ public class EncounterPushTest {
 
     private SystemProperties getSystemProperties(String facilityId) {
         Properties shrProperties = getShrProperties(facilityId);
+        Properties frProperties = getFrProperties();
         HashMap<String, String> baseUrls = getBaseUrls();
-        return new SystemProperties(baseUrls, shrProperties);
+        return new SystemProperties(baseUrls, shrProperties, frProperties);
     }
+
+    private Properties getFrProperties() {
+        Properties frProperties = new Properties();
+        frProperties.setProperty(SystemProperties.FACILITY_URL_FORMAT, "foo-bar-%s.json");
+        return frProperties;
+    }
+
 
     private Properties getShrProperties(String facilityId) {
         Properties shrProperties = new Properties();

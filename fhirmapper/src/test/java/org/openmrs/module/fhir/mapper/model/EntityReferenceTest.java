@@ -2,6 +2,7 @@ package org.openmrs.module.fhir.mapper.model;
 
 import org.junit.Test;
 import org.openmrs.Encounter;
+import org.openmrs.Location;
 import org.openmrs.Patient;
 import org.openmrs.module.shrclient.util.SystemProperties;
 
@@ -29,11 +30,24 @@ public class EntityReferenceTest {
         assertEquals("urn:1", entityReference.build(Encounter.class, getSystemProperties("1234"), "1"));
     }
 
+
+    @Test
+    public void shouldCreateFacilityLocationReference() {
+        EntityReference entityReference = new EntityReference();
+        assertEquals("http://fr/foo-bar-1234.json", entityReference.build(Location.class, getSystemProperties("1234"), "1234"));
+    }
+
     private SystemProperties getSystemProperties(String facilityId) {
         Properties shrProperties = new Properties();
         shrProperties.setProperty(SystemProperties.FACILITY_ID, facilityId);
+
+        Properties frProperties = new Properties();
+        frProperties.setProperty(SystemProperties.FACILITY_URL_FORMAT, "foo-bar-%s.json");
+
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("mci", "http://mci");
-        return new SystemProperties(baseUrls, shrProperties);
+        baseUrls.put("fr", "http://fr");
+
+        return new SystemProperties(baseUrls, shrProperties, frProperties);
     }
 }
