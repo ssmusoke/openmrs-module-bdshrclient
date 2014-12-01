@@ -20,10 +20,17 @@ public class EncounterMapperTest {
         encounter.setPatient(getPatient("1234"));
         encounter.setVisit(getVisit());
 
+        String encounterId = encounter.getUuid();
+
         org.hl7.fhir.instance.model.Encounter fhirEncounter = encounterMapper.map(encounter, getSystemProperties("1"));
         ResourceReference subject = fhirEncounter.getSubject();
         assertEquals("1234", subject.getDisplaySimple());
         assertEquals("http://mci/patients/1234", subject.getReferenceSimple());
+
+
+        assertEquals("Encounter - " + encounterId, fhirEncounter.getIndication().getDisplaySimple());
+        assertEquals("urn:" + encounterId, fhirEncounter.getIndication().getReferenceSimple());
+
     }
 
     private Visit getVisit() {

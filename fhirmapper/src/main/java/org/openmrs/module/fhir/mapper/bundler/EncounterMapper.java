@@ -5,8 +5,10 @@ import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Enumeration;
 import org.hl7.fhir.instance.model.ResourceReference;
 import org.openmrs.EncounterProvider;
+import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
 import org.openmrs.VisitType;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.stereotype.Component;
@@ -17,18 +19,25 @@ import java.util.Set;
 public class EncounterMapper {
     public Encounter map(org.openmrs.Encounter openMrsEncounter, SystemProperties systemProperties) {
         Encounter encounter = new Encounter();
-        final ResourceReference encounterRef = new ResourceReference();
-        encounterRef.setReferenceSimple(openMrsEncounter.getUuid());
-        encounterRef.setDisplaySimple("encounter");
-        encounter.setIndication(encounterRef);
+        setEncounterReference(openMrsEncounter, encounter, systemProperties);
         setStatus(encounter);
         setClass(openMrsEncounter, encounter);
         setSubject(openMrsEncounter, encounter, systemProperties);
         setParticipant(openMrsEncounter, encounter);
-        setServiceProvider(encounter, systemProperties.getFacilityId());
+        setServiceProvider(encounter, systemProperties);
         setIdentifiers(encounter, openMrsEncounter);
         setType(encounter, openMrsEncounter);
         return encounter;
+    }
+
+    private void setEncounterReference(org.openmrs.Encounter openMrsEncounter, Encounter encounter,
+                                       SystemProperties systemProperties) {
+        final ResourceReference encounterRef = new ResourceReference();
+        String encounterId = openMrsEncounter.getUuid();
+        encounterRef.setReferenceSimple(
+                new EntityReference().build(org.openmrs.Encounter.class, systemProperties, encounterId));
+        encounterRef.setDisplaySimple("Encounter - " + encounterId);
+        encounter.setIndication(encounterRef);
     }
 
     private void setType(Encounter encounter, org.openmrs.Encounter openMrsEncounter) {
@@ -39,20 +48,20 @@ public class EncounterMapper {
         encounter.addIdentifier().setValueSimple(openMrsEncounter.getUuid());
     }
 
-    private void setServiceProvider(Encounter encounter, String facilityId) {
-        encounter.setServiceProvider(new ResourceReference().setReferenceSimple(facilityId));
+    private void setServiceProvider(Encounter encounter, SystemProperties systemProperties) {
+        encounter.setServiceProvider(new ResourceReference().setReferenceSimple(systemProperties.getFacilityId()));
     }
 
     private void setStatus(Encounter encounter) {
-        encounter.setStatus(new Enumeration<Encounter.EncounterState>(Encounter.EncounterState.finished));
+        encounter.setStatus(new Enumeration<>(Encounter.EncounterState.finished));
     }
 
     private void setClass(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {
         VisitType visitType = openMrsEncounter.getVisit().getVisitType();
         if ("IPD".equals(visitType.getName())) {
-            encounter.setClass_(new Enumeration<Encounter.EncounterClass>(Encounter.EncounterClass.inpatient));
+            encounter.setClass_(new Enumeration<>(Encounter.EncounterClass.inpatient));
         } else {
-            encounter.setClass_(new Enumeration<Encounter.EncounterClass>(Encounter.EncounterClass.outpatient));
+            encounter.setClass_(new Enumeration<>(Encounter.EncounterClass.outpatient));
         }
     }
 
@@ -61,7 +70,7 @@ public class EncounterMapper {
         if (null != healthId) {
             ResourceReference subject = new ResourceReference()
                     .setDisplaySimple(healthId.getValue())
-                    .setReferenceSimple(systemProperties.getMciPatientUrl() + healthId.getValue());
+                    .setReferenceSimple(new EntityReference().build(Patient.class, systemProperties, healthId.getValue()));
 
             encounter.setSubject(subject);
         } else {
