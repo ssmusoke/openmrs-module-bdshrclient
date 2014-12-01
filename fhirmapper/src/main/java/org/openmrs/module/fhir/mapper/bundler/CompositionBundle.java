@@ -2,9 +2,11 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.hl7.fhir.instance.model.*;
-import org.openmrs.Obs;
+import org.hl7.fhir.instance.model.Encounter;
+import org.openmrs.*;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.model.FHIRIdentifier;
+import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,9 +29,9 @@ public class CompositionBundle {
     @Autowired
     private List<EmrOrderResourceHandler> orderResourceHandlers;
 
-    public AtomFeed create(org.openmrs.Encounter emrEncounter, String facilityId) {
+    public AtomFeed create(org.openmrs.Encounter emrEncounter, SystemProperties systemProperties) {
         AtomFeed atomFeed = new AtomFeed();
-        Encounter fhirEncounter = encounterMapper.map(emrEncounter, facilityId);
+        Encounter fhirEncounter = encounterMapper.map(emrEncounter, systemProperties);
         Composition composition = createComposition(emrEncounter, fhirEncounter);
 
         atomFeed.setTitle("Encounter");

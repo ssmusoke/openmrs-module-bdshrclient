@@ -8,15 +8,14 @@ import org.openmrs.EncounterProvider;
 import org.openmrs.PersonAttribute;
 import org.openmrs.VisitType;
 import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 @Component
 public class EncounterMapper {
-
-    // TODO: Not complete yet
-    public Encounter map(org.openmrs.Encounter openMrsEncounter, String facilityId) {
+    public Encounter map(org.openmrs.Encounter openMrsEncounter, SystemProperties systemProperties) {
         Encounter encounter = new Encounter();
         final ResourceReference encounterRef = new ResourceReference();
         encounterRef.setReferenceSimple(openMrsEncounter.getUuid());
@@ -24,9 +23,9 @@ public class EncounterMapper {
         encounter.setIndication(encounterRef);
         setStatus(encounter);
         setClass(openMrsEncounter, encounter);
-        setSubject(openMrsEncounter, encounter);
+        setSubject(openMrsEncounter, encounter, systemProperties);
         setParticipant(openMrsEncounter, encounter);
-        setServiceProvider(encounter,facilityId);
+        setServiceProvider(encounter, systemProperties.getFacilityId());
         setIdentifiers(encounter, openMrsEncounter);
         setType(encounter, openMrsEncounter);
         return encounter;
@@ -57,10 +56,14 @@ public class EncounterMapper {
         }
     }
 
-    private void setSubject(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {
+    private void setSubject(org.openmrs.Encounter openMrsEncounter, Encounter encounter, SystemProperties systemProperties) {
         PersonAttribute healthId = openMrsEncounter.getPatient().getAttribute(Constants.HEALTH_ID_ATTRIBUTE);
         if (null != healthId) {
-            encounter.setSubject(new ResourceReference().setReferenceSimple(healthId.getValue()));
+            ResourceReference subject = new ResourceReference()
+                    .setDisplaySimple(healthId.getValue())
+                    .setReferenceSimple(systemProperties.getMciPatientUrl() + healthId.getValue());
+
+            encounter.setSubject(subject);
         } else {
             throw new RuntimeException("The patient has not been synced yet");
         }

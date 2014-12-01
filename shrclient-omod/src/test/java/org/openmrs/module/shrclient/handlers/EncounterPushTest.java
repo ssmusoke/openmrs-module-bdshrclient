@@ -18,9 +18,11 @@ import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SHRClient;
+import org.openmrs.module.shrclient.util.SystemProperties;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
 
@@ -77,13 +79,13 @@ public class EncounterPushTest {
         org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter();
         final AtomFeed atomFeed = new AtomFeed();
 
+        when(propertiesReader.getBaseUrls()).thenReturn(getBaseUrls());
+        when(propertiesReader.getShrProperties()).thenReturn(getShrProperties(facilityId));
+
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME)).thenReturn(new User(2));
         when(shrClient.post(anyString(), eq(atomFeed))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
-        Properties properties = new Properties();
-        properties.setProperty("shr.facilityId", facilityId);
-        when(propertiesReader.getShrProperties()).thenReturn(properties);
-        when(compositionBundle.create(openMrsEncounter, facilityId)).thenReturn(atomFeed);
+        when(compositionBundle.create(openMrsEncounter, getSystemProperties(facilityId))).thenReturn(atomFeed);
         when(idMappingsRepository.findByExternalId(facilityId)).thenReturn(null);
         encounterPush.process(event);
 
@@ -111,4 +113,22 @@ public class EncounterPushTest {
         assertEquals(uuid, encounterPush.getUuid(content));
     }
 
+
+    private SystemProperties getSystemProperties(String facilityId) {
+        Properties shrProperties = getShrProperties(facilityId);
+        HashMap<String, String> baseUrls = getBaseUrls();
+        return new SystemProperties(baseUrls, shrProperties);
+    }
+
+    private Properties getShrProperties(String facilityId) {
+        Properties shrProperties = new Properties();
+        shrProperties.setProperty(SystemProperties.FACILITY_ID, facilityId);
+        return shrProperties;
+    }
+
+    private HashMap<String, String> getBaseUrls() {
+        HashMap<String, String> baseUrls = new HashMap<>();
+        baseUrls.put("mci", "http://mci");
+        return baseUrls;
+    }
 }

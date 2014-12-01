@@ -3,11 +3,14 @@ package org.openmrs.module.fhir.mapper.bundler;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.junit.Test;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Properties;
 
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
@@ -38,7 +41,13 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
     public void shouldCreateFhirBundle() throws Exception {
         executeDataSet("shrClientBundleCreatorTestDS.xml");
         String facilityId = "10000036";
-        AtomFeed bundle = compositionBundle.create(Context.getEncounterService().getEncounter(36), facilityId);
+        AtomFeed bundle = compositionBundle.create(Context.getEncounterService().getEncounter(36), getSystemProperties(facilityId));
         assertNotNull(bundle);
+    }
+
+    private SystemProperties getSystemProperties(String facilityId) {
+        Properties shrProperties = new Properties();
+        shrProperties.setProperty(SystemProperties.FACILITY_ID, facilityId);
+        return new SystemProperties(new HashMap<String, String>(), shrProperties);
     }
 }

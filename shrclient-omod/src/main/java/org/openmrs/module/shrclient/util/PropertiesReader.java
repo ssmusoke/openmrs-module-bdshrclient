@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Properties;
 
 
@@ -32,6 +33,15 @@ public class PropertiesReader {
 
     public Properties getFrProperties() {
         return getProperties("fr.properties");
+    }
+
+    public HashMap<String, String> getBaseUrls(){
+        HashMap<String, String> baseUrls = new HashMap<>();
+        baseUrls.put("mci", getMciBaseUrl()) ;
+        baseUrls.put("fr", getFrBaseUrl()) ;
+        baseUrls.put("shr", getShrBaseUrl()) ;
+        baseUrls.put("lr", getLrBaseUrl()) ;
+        return baseUrls;
     }
 
     public String getMciBaseUrl() {

@@ -17,8 +17,9 @@ import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mci.api.model.EncounterResponse;
 import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.module.shrclient.util.SHRClient;
 import org.openmrs.module.shrclient.util.PropertiesReader;
+import org.openmrs.module.shrclient.util.SHRClient;
+import org.openmrs.module.shrclient.util.SystemProperties;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -68,8 +69,9 @@ public class EncounterPush implements EventWorker {
             String healthId = healthIdAttribute.getValue();
 
             log.debug("Uploading patient encounter to SHR : [ " + openMrsEncounter.getUuid() + "]");
-            String facilityId = propertiesReader.getShrProperties().getProperty("shr.facilityId");
-            AtomFeed atomFeed = compositionBundle.create(openMrsEncounter, facilityId);
+
+            AtomFeed atomFeed = compositionBundle.create(openMrsEncounter, new SystemProperties(propertiesReader.getBaseUrls(),
+                    propertiesReader.getShrProperties()));
             String shrEncounterUuid = shrClient.post(String.format("/patients/%s/encounters", healthId), atomFeed);
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
