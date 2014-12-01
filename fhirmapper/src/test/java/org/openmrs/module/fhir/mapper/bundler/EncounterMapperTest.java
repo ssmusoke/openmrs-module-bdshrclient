@@ -26,8 +26,6 @@ public class EncounterMapperTest {
         ResourceReference subject = fhirEncounter.getSubject();
         assertEquals("1234", subject.getDisplaySimple());
         assertEquals("http://mci/patients/1234", subject.getReferenceSimple());
-
-
         assertEquals("Encounter - " + encounterId, fhirEncounter.getIndication().getDisplaySimple());
         assertEquals("urn:" + encounterId, fhirEncounter.getIndication().getReferenceSimple());
 

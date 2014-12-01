@@ -12,13 +12,19 @@ import static org.junit.Assert.assertEquals;
 
 public class EntityReferenceTest {
     @Test
-    public void shouldCreatePatientReference() throws Exception {
+    public void shouldDefaultToIdForTypesNotDefined() {
+        EntityReference entityReference = new EntityReference();
+        assertEquals("1", entityReference.build(Integer.class, getSystemProperties("1234"), "1"));
+    }
+
+    @Test
+    public void shouldCreatePatientReference() {
         EntityReference entityReference = new EntityReference();
         assertEquals("http://mci/patients/1", entityReference.build(Patient.class, getSystemProperties("1234"), "1"));
     }
 
     @Test
-    public void shouldCreateEncounterReference() throws Exception {
+    public void shouldCreateEncounterReference() {
         EntityReference entityReference = new EntityReference();
         assertEquals("urn:1", entityReference.build(Encounter.class, getSystemProperties("1234"), "1"));
     }

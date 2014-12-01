@@ -1,18 +1,17 @@
 package org.openmrs.module.fhir.mapper.model;
 
+import org.apache.commons.collections4.map.DefaultedMap;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.module.shrclient.util.SystemProperties;
 
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Map;
 
 public class EntityReference {
 
-    static Map<Type, EntityReference> referenceMap;
+    static DefaultedMap <Type, EntityReference> referenceMap;
     static {
-        referenceMap = new HashMap<>();
+        referenceMap = new DefaultedMap<>(new EntityReference());
         referenceMap.put(Patient.class, new PatientReference());
         referenceMap.put(Encounter.class, new EncounterReference());
     }
@@ -24,7 +23,6 @@ public class EntityReference {
     protected String create(String id, SystemProperties systemProperties) {
         return id;
     }
-
 
     private static class PatientReference extends EntityReference {
 
