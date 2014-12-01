@@ -1,25 +1,26 @@
 package org.openmrs.module.shrclient.mapper;
 
-import org.openmrs.PersonAddress;
 import org.openmrs.PersonAttribute;
-import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.utils.Constants;
-import org.openmrs.module.shrclient.mci.api.model.Address;
 import org.openmrs.module.shrclient.mci.api.model.Patient;
 import org.openmrs.module.shrclient.service.BbsCodeService;
+import org.openmrs.module.shrclient.util.AddressHelper;
 
 import java.text.SimpleDateFormat;
-import java.util.List;
 
 public class PatientMapper {
-
-    private AddressHierarchyService addressHierarchyService;
+    private final AddressHelper addressHelper;
     private BbsCodeService bbsCodeService;
 
-    public PatientMapper(AddressHierarchyService addressHierarchyService, BbsCodeService bbsCodeService) {
-        this.addressHierarchyService = addressHierarchyService;
+    public PatientMapper(BbsCodeService bbsCodeService) {
         this.bbsCodeService = bbsCodeService;
+        this.addressHelper = new AddressHelper();
+    }
+
+    public PatientMapper(BbsCodeService bbsCodeService, AddressHelper addressHelper) {
+        this.bbsCodeService = bbsCodeService;
+        this.addressHelper = addressHelper;
     }
 
     public Patient map(org.openmrs.Patient openMrsPatient) {
@@ -54,8 +55,7 @@ public class PatientMapper {
         if (primaryContact != null) {
             patient.setPrimaryContact(primaryContact);
         }
-
-        patient.setAddress(getAddress(openMrsPatient));
+        patient.setAddress(addressHelper.getMciAddress(openMrsPatient));
         return patient;
     }
 
@@ -66,31 +66,5 @@ public class PatientMapper {
 
     private PersonAttribute getAttribute(org.openmrs.Patient openMrsPatient, String attributeName) {
         return openMrsPatient.getAttribute(attributeName);
-    }
-
-    private Address getAddress(org.openmrs.Patient openMrsPatient) {
-        PersonAddress openMrsPersonAddress = openMrsPatient.getPersonAddress();
-        String addressLine = openMrsPersonAddress.getAddress1();
-        String division = openMrsPersonAddress.getStateProvince();
-        String district = openMrsPersonAddress.getCountyDistrict();
-        String upazilla = openMrsPersonAddress.getAddress3();
-        String cityCorporation = openMrsPersonAddress.getAddress2();
-        String ward = openMrsPersonAddress.getCityVillage();
-
-        List<AddressHierarchyLevel> levels = addressHierarchyService.getOrderedAddressHierarchyLevels();
-        String divisionId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(0), division).get(0).getUserGeneratedId();
-        String districtId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(1), district).get(0).getUserGeneratedId();
-        String upazillaId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(2), upazilla).get(0).getUserGeneratedId();
-        String cityCorporationId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), cityCorporation).get(0).getUserGeneratedId();
-        String wardId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(4), ward).get(0).getUserGeneratedId();
-
-        Address presentAddress = new Address(addressLine,
-                Address.getAddressCodeForLevel(divisionId, 1),
-                Address.getAddressCodeForLevel(districtId, 2),
-                Address.getAddressCodeForLevel(upazillaId, 3),
-                Address.getAddressCodeForLevel(cityCorporationId, 4),
-                Address.getAddressCodeForLevel(wardId, 5),
-                null, null);
-        return presentAddress;
     }
 }

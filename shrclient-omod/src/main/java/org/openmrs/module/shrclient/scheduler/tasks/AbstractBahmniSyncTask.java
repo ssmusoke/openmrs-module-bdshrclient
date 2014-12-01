@@ -4,7 +4,6 @@ import org.ict4h.atomfeed.client.service.EventWorker;
 import org.ict4h.atomfeed.client.service.FeedClient;
 import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.feeds.openmrs.OpenMRSFeedClientFactory;
@@ -50,7 +49,7 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
                 Context.getPatientService(),
                 userService,
                 Context.getPersonService(),
-                new PatientMapper(Context.getService(AddressHierarchyService.class), new BbsCodeServiceImpl()),
+                new PatientMapper(new BbsCodeServiceImpl()),
                 clientRegistry.getMCIClient());
     }
 

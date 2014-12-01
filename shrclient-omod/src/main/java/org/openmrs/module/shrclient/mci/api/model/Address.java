@@ -23,11 +23,11 @@ public class Address {
     private String cityCorporationId;
 
     @JsonProperty("ward_id")
-    private String wardId;
+    private String unionOrUrbanWardId;
 
     @JsonProperty("union_id")
     @JsonInclude(NON_EMPTY)
-    private String unionId;
+    private String ruralWardId;
 
     @JsonProperty("thana_id")
     @JsonInclude(NON_EMPTY)
@@ -36,14 +36,14 @@ public class Address {
     public Address() {
     }
 
-    public Address(String addressLine, String divisionId, String districtId, String upazillaId, String cityCorporationId, String wardId, String unionId, String thanaId) {
+    public Address(String addressLine, String divisionId, String districtId, String upazillaId, String cityCorporationId, String unionOrUrbanWardId, String ruralWardId, String thanaId) {
         this.addressLine = addressLine;
         this.divisionId = divisionId;
         this.districtId = districtId;
         this.upazillaId = upazillaId;
         this.cityCorporationId = cityCorporationId;
-        this.wardId = wardId;
-        this.unionId = unionId;
+        this.unionOrUrbanWardId = unionOrUrbanWardId;
+        this.ruralWardId = ruralWardId;
         this.thanaId = thanaId;
     }
 
@@ -60,8 +60,8 @@ public class Address {
         if (upazillaId != null ? !upazillaId.equals(address.upazillaId) : address.upazillaId != null) return false;
         if (cityCorporationId != null ? !cityCorporationId.equals(address.cityCorporationId) : address.cityCorporationId != null)
             return false;
-        if (wardId != null ? !wardId.equals(address.wardId) : address.wardId != null) return false;
-        if (unionId != null ? !unionId.equals(address.unionId) : address.unionId != null) return false;
+        if (unionOrUrbanWardId != null ? !unionOrUrbanWardId.equals(address.unionOrUrbanWardId) : address.unionOrUrbanWardId != null) return false;
+        if (ruralWardId != null ? !ruralWardId.equals(address.ruralWardId) : address.ruralWardId != null) return false;
         if (thanaId != null ? !thanaId.equals(address.thanaId) : address.thanaId != null) return false;
 
         return true;
@@ -74,8 +74,8 @@ public class Address {
         result = 31 * result + (districtId != null ? districtId.hashCode() : 0);
         result = 31 * result + (upazillaId != null ? upazillaId.hashCode() : 0);
         result = 31 * result + (cityCorporationId != null ? cityCorporationId.hashCode() : 0);
-        result = 31 * result + (wardId != null ? wardId.hashCode() : 0);
-        result = 31 * result + (unionId != null ? unionId.hashCode() : 0);
+        result = 31 * result + (unionOrUrbanWardId != null ? unionOrUrbanWardId.hashCode() : 0);
+        result = 31 * result + (ruralWardId != null ? ruralWardId.hashCode() : 0);
         result = 31 * result + (thanaId != null ? thanaId.hashCode() : 0);
         return result;
     }
@@ -88,8 +88,8 @@ public class Address {
         sb.append(", districtId='").append(districtId).append('\'');
         sb.append(", upazillaId='").append(upazillaId).append('\'');
         sb.append(", cityCorporationId='").append(cityCorporationId).append('\'');
-        sb.append(", wardId='").append(wardId).append('\'');
-        sb.append(", unionId='").append(unionId).append('\'');
+        sb.append(", wardId='").append(unionOrUrbanWardId).append('\'');
+        sb.append(", unionId='").append(ruralWardId).append('\'');
         sb.append(", thanaId='").append(thanaId).append('\'');
         sb.append('}');
         return sb.toString();
@@ -135,12 +135,12 @@ public class Address {
         this.cityCorporationId = cityCorporationId;
     }
 
-    public String getWardId() {
-        return wardId;
+    public String getUnionOrUrbanWardId() {
+        return unionOrUrbanWardId;
     }
 
-    public void setWardId(String wardId) {
-        this.wardId = wardId;
+    public void setUnionOrUrbanWardId(String unionOrUrbanWardId) {
+        this.unionOrUrbanWardId = unionOrUrbanWardId;
     }
 
     public String createUserGeneratedDistrictId() {
@@ -155,16 +155,20 @@ public class Address {
         return divisionId + districtId + upazillaId + cityCorporationId;
     }
 
-    public String createUserGeneratedWardId() {
-        return divisionId + districtId + upazillaId + cityCorporationId + wardId;
+    public String createUserGeneratedUnionOrUrbanWardId() {
+        return divisionId + districtId + upazillaId + cityCorporationId + unionOrUrbanWardId;
     }
 
-    public String getUnionId() {
-        return unionId;
+    public String createUserGeneratedRuralWardId() {
+        return divisionId + districtId + upazillaId + cityCorporationId + unionOrUrbanWardId + ruralWardId;
     }
 
-    public void setUnionId(String unionId) {
-        this.unionId = unionId;
+    public String getRuralWardId() {
+        return ruralWardId;
+    }
+
+    public void setRuralWardId(String ruralWardId) {
+        this.ruralWardId = ruralWardId;
     }
 
     public String getThanaId() {

@@ -3,9 +3,6 @@ package org.openmrs.module.shrclient.mci.api.model;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
-import org.openmrs.module.shrclient.mci.api.model.Address;
-import org.openmrs.module.shrclient.mci.api.model.Patient;
-import org.openmrs.module.shrclient.mci.api.model.Relation;
 
 import static org.junit.Assert.assertEquals;
 
@@ -24,7 +21,7 @@ public class PatientJsonTest {
         address.setDistrictId("04");
         address.setUpazillaId("09");
         address.setCityCorporationId("20");
-        address.setWardId("01");
+        address.setUnionOrUrbanWardId("01");
         patient.setAddress(address);
     }
 

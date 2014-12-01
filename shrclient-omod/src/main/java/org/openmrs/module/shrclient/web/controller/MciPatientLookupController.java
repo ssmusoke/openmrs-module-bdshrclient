@@ -10,7 +10,6 @@ import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.mci.api.MciPatientSearchResponse;
 import org.openmrs.module.shrclient.mci.api.model.Address;
 import org.openmrs.module.shrclient.mci.api.model.Patient;
-import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
@@ -21,13 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 @Controller
 @RequestMapping(value = "/mci")
@@ -36,11 +29,7 @@ public class MciPatientLookupController {
     @Autowired
     private MciPatientService mciPatientService;
     @Autowired
-    private BbsCodeService bbsCodeService;
-    @Autowired
     private PropertiesReader propertiesReader;
-    @Resource(name = "shrProperties")
-    private Properties shrProperties;
 
     @RequestMapping(method = RequestMethod.GET, value = "/search")
     @ResponseBody
@@ -103,7 +92,7 @@ public class MciPatientLookupController {
     }
 
     private Map<String, Object> mapToPatientUIModel(Patient mciPatient) {
-        Map<String, Object> patientModel = new HashMap<String, Object>();
+        Map<String, Object> patientModel = new HashMap<>();
         patientModel.put("firstName", mciPatient.getGivenName());
         patientModel.put("lastName", mciPatient.getSurName());
         patientModel.put("gender", mciPatient.getGender());
@@ -111,14 +100,14 @@ public class MciPatientLookupController {
         patientModel.put("healthId", mciPatient.getHealthId());
         patientModel.put("primaryContact", mciPatient.getPrimaryContact());
 
-        Map<String, String> addressModel = new HashMap<String, String>();
+        Map<String, String> addressModel = new HashMap<>();
         Address address = mciPatient.getAddress();
         addressModel.put("addressLine", address.getAddressLine());
         addressModel.put("division", getAddressEntryText(address.getDivisionId()));
         addressModel.put("district", getAddressEntryText(address.createUserGeneratedDistrictId()));
         addressModel.put("upazilla", getAddressEntryText(address.createUserGeneratedUpazillaId()));
         addressModel.put("cityCorporation", getAddressEntryText(address.createUserGeneratedCityCorporationId()));
-        addressModel.put("ward", getAddressEntryText(address.createUserGeneratedWardId()));
+        addressModel.put("unionOrUrbanWard", getAddressEntryText(address.createUserGeneratedUnionOrUrbanWardId()));
 
         patientModel.put("address", addressModel);
         return patientModel;

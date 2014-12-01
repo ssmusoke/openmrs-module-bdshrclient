@@ -1,5 +1,6 @@
 package org.openmrs.module.shrclient.mapper;
 
+import org.openmrs.module.addresshierarchy.AddressField;
 import org.openmrs.module.shrclient.mci.api.model.Address;
 import org.openmrs.module.shrclient.mci.api.model.Patient;
 import org.openmrs.module.shrclient.service.BbsCodeService;
@@ -12,18 +13,24 @@ import org.openmrs.*;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
+import org.openmrs.module.shrclient.util.AddressHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.openmrs.module.addresshierarchy.AddressField.STATE_PROVINCE;
 
 public class PatientMapperTest {
 
     @Mock
     private AddressHierarchyService addressHierarchyService;
+
+    private AddressHelper addressHelper;
     private BbsCodeService bbsCodeService;
     private PatientMapper patientMapper;
 
@@ -37,7 +44,8 @@ public class PatientMapperTest {
     public void setup() throws Exception {
         initMocks(this);
         this.bbsCodeService = new BbsCodeServiceImpl();
-        patientMapper = new PatientMapper(addressHierarchyService, bbsCodeService);
+        addressHelper = new AddressHelper(addressHierarchyService);
+        patientMapper = new PatientMapper(bbsCodeService, addressHelper);
     }
 
     @Test
@@ -57,8 +65,10 @@ public class PatientMapperTest {
         final String upazilla = "some-upazilla";
         final String cityCorpId = "10203040";
         final String cityCorp = "some-cityCorp";
-        final String wardId = "1020304050";
-        final String ward = "some-ward";
+        final String unionOrUrbanWardId = "1020304050";
+        final String unionOrUrbanWard = "some-urban-ward";
+        final String ruralWardId = "102030405001";
+        final String ruralWard = "some-rural-ward";
 
         Person person = new Person();
         PersonName personName = new PersonName(givenName, middleName, familyName);
@@ -70,28 +80,29 @@ public class PatientMapperTest {
         address.setAddress1(addressLine);
         address.setStateProvince(division);
         address.setCountyDistrict(district);
-        address.setAddress3(upazilla);
-        address.setAddress2(cityCorp);
-        address.setCityVillage(ward);
+        address.setAddress5(upazilla);
+        address.setAddress4(cityCorp);
+        address.setAddress3(unionOrUrbanWard);
+        address.setAddress2(ruralWard);
         person.addAddress(address);
         org.openmrs.Patient openMrsPatient = new org.openmrs.Patient(person);
 
         openMrsPatient.setAttributes(createOpenMrsPersonAttributes());
 
-        List<AddressHierarchyLevel> levels = createAddressHierarchyLevels();
         List<AddressHierarchyEntry> divisionEntries = createAddressHierarchyEntries(divisionId);
         List<AddressHierarchyEntry> districtEntries = createAddressHierarchyEntries(districtId);
         List<AddressHierarchyEntry> upazillaEntries = createAddressHierarchyEntries(upazillaId);
         List<AddressHierarchyEntry> cityCorpEntries = createAddressHierarchyEntries(cityCorpId);
-        List<AddressHierarchyEntry> wardEntries = createAddressHierarchyEntries(wardId);
+        List<AddressHierarchyEntry> unionOrUrbanWardEntries = createAddressHierarchyEntries(unionOrUrbanWardId);
+        List<AddressHierarchyEntry> ruralWardEntries = createAddressHierarchyEntries(ruralWardId);
 
-
-        when(addressHierarchyService.getOrderedAddressHierarchyLevels()).thenReturn(levels);
-        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(0), division)).thenReturn(divisionEntries);
-        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(1), district)).thenReturn(districtEntries);
-        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(2), upazilla)).thenReturn(upazillaEntries);
-        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(3), cityCorp)).thenReturn(cityCorpEntries);
-        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(levels.get(4), ward)).thenReturn(wardEntries);
+        when(addressHierarchyService.getAddressHierarchyLevelByAddressField(any(AddressField.class))).thenReturn(new AddressHierarchyLevel());
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(any(AddressHierarchyLevel.class), eq(division))).thenReturn(divisionEntries);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(any(AddressHierarchyLevel.class), eq(district))).thenReturn(districtEntries);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(any(AddressHierarchyLevel.class), eq(upazilla))).thenReturn(upazillaEntries);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(any(AddressHierarchyLevel.class), eq(cityCorp))).thenReturn(cityCorpEntries);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(any(AddressHierarchyLevel.class), eq(unionOrUrbanWard))).thenReturn(unionOrUrbanWardEntries);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(any(AddressHierarchyLevel.class), eq(ruralWard))).thenReturn(ruralWardEntries);
 
         Patient patient = patientMapper.map(openMrsPatient);
 
@@ -112,7 +123,8 @@ public class PatientMapperTest {
         a.setDistrictId("20");
         a.setUpazillaId("30");
         a.setCityCorporationId("40");
-        a.setWardId("50");
+        a.setUnionOrUrbanWardId("50");
+        a.setRuralWardId("01");
         p.setAddress(a);
 
         assertEquals(p, patient);
@@ -140,20 +152,6 @@ public class PatientMapperTest {
         primaryContactAttrType.setName(Constants.PRIMARY_CONTACT_ATTRIBUTE);
         attributes.add(new PersonAttribute(primaryContactAttrType, primaryContact));
         return attributes;
-    }
-
-    private List<AddressHierarchyLevel> createAddressHierarchyLevels() {
-        AddressHierarchyLevel level1 = new AddressHierarchyLevel();
-        level1.setId(100);
-        AddressHierarchyLevel level2 = new AddressHierarchyLevel();
-        level2.setId(200);
-        AddressHierarchyLevel level3 = new AddressHierarchyLevel();
-        level3.setId(300);
-        AddressHierarchyLevel level4 = new AddressHierarchyLevel();
-        level4.setId(400);
-        AddressHierarchyLevel level5 = new AddressHierarchyLevel();
-        level5.setId(500);
-        return Arrays.asList(level1, level2, level3, level4, level5);
     }
 
     private List<AddressHierarchyEntry> createAddressHierarchyEntries(String id) {

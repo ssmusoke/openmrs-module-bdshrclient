@@ -68,8 +68,8 @@ public class LocationPull {
         List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForUnions = synchronizeUpdatesByLevel(LR_UNIONS_LEVEL_PROPERTY_NAME);
         logger.info(synchronizedAddressHierarchyEntriesForUnions.size() + " entries updated");
 
-//        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForWards = synchronizeUpdatesByLevel(LR_WARDS_LEVEL_PROPERTY_NAME);
-//        logger.info(synchronizedAddressHierarchyEntriesForWards.size() + " entries updated");
+        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForWards = synchronizeUpdatesByLevel(LR_WARDS_LEVEL_PROPERTY_NAME);
+        logger.info(synchronizedAddressHierarchyEntriesForWards.size() + " entries updated");
 
         reinitializeMarkerTableToZero();
     }

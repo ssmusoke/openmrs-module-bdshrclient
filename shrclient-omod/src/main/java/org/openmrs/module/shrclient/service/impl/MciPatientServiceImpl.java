@@ -3,11 +3,16 @@ package org.openmrs.module.shrclient.service.impl;
 import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.openmrs.*;
-import org.openmrs.api.*;
+import org.openmrs.api.AdministrationService;
+import org.openmrs.api.EncounterService;
+import org.openmrs.api.OrderService;
+import org.openmrs.api.PatientService;
+import org.openmrs.api.PersonService;
+import org.openmrs.api.ProviderService;
+import org.openmrs.api.UserService;
+import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
-import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
-import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.idgen.IdentifierSource;
@@ -15,11 +20,11 @@ import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.dao.PatientAttributeSearchHandler;
-import org.openmrs.module.shrclient.mci.api.model.Address;
-import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.mci.api.model.Patient;
+import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.MciPatientService;
+import org.openmrs.module.shrclient.util.AddressHelper;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +35,6 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 
 @Component
 public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPatientService {
@@ -69,13 +73,14 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     @Override
     public org.openmrs.Patient createOrUpdatePatient(Patient mciPatient) {
+        AddressHelper addressHelper = new AddressHelper();
         Integer emrPatientId = new PatientAttributeSearchHandler(Constants.HEALTH_ID_ATTRIBUTE).getUniquePatientIdFor(mciPatient.getHealthId());
         org.openmrs.Patient emrPatient = emrPatientId != null ? patientService.getPatient(emrPatientId) : new org.openmrs.Patient();
 
         emrPatient.setGender(mciPatient.getGender());
         setIdentifier(emrPatient);
         setPersonName(emrPatient, mciPatient);
-        setPersonAddress(emrPatient, mciPatient.getAddress());
+        emrPatient.addAddress(addressHelper.setPersonAddress(emrPatient.getPersonAddress(), mciPatient.getAddress()));
 
         addPersonAttribute(personService, emrPatient, Constants.NATIONAL_ID_ATTRIBUTE, mciPatient.getNationalId());
         addPersonAttribute(personService, emrPatient, Constants.HEALTH_ID_ATTRIBUTE, mciPatient.getHealthId());
@@ -248,42 +253,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         return userService.getUserByUuid(Constants.OPENMRS_DAEMON_USER);
     }
 
-    private void setPersonAddress(org.openmrs.Patient emrPatient, Address address) {
-        AddressHierarchyService addressHierarchyService = Context.getService(AddressHierarchyService.class);
-        PersonAddress emrPatientAddress = emrPatient.getPersonAddress();
-        if (emrPatientAddress == null) {
-            emrPatientAddress = new PersonAddress();
-        }
 
-        AddressHierarchyEntry division = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.getDivisionId());
-        if (division != null) {
-            emrPatientAddress.setStateProvince(division.getName());
-        }
-        AddressHierarchyEntry district = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.createUserGeneratedDistrictId());
-        if (district != null) {
-            emrPatientAddress.setCountyDistrict(district.getName());
-        }
-        AddressHierarchyEntry upazilla = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.createUserGeneratedUpazillaId());
-        if (upazilla != null) {
-            emrPatientAddress.setAddress3(upazilla.getName());
-        }
-        AddressHierarchyEntry cityCorporation = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.createUserGeneratedCityCorporationId());
-        if (cityCorporation != null) {
-            emrPatientAddress.setAddress2(cityCorporation.getName());
-        }
-        AddressHierarchyEntry union = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.createUserGeneratedWardId());
-        if (union != null) {
-            emrPatientAddress.setCityVillage(union.getName());
-        }
-
-        if (!"".equals(address.getAddressLine())) {
-            emrPatientAddress.setAddress1(address.getAddressLine());
-        }
-
-        emrPatientAddress.setPreferred(true);
-        emrPatient.addAddress(emrPatientAddress);
-
-    }
 
     private void addPersonAttribute(PersonService personService, org.openmrs.Patient emrPatient, String attributeName, String attributeValue) {
         PersonAttribute attribute = new PersonAttribute();
