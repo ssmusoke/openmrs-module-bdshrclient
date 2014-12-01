@@ -5,7 +5,7 @@ import org.ict4h.atomfeed.client.service.FeedClient;
 import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
-import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
+import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.feeds.openmrs.OpenMRSFeedClientFactory;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
@@ -40,7 +40,7 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
     private EncounterPush getEncounterRegistry(PropertiesReader propertiesReader, UserService userService, ClientRegistry clientRegistry) {
         return new EncounterPush(Context.getEncounterService(), userService,
                 propertiesReader,
-                PlatformUtil.getRegisteredComponent(CompositionBundleCreator.class),
+                PlatformUtil.getRegisteredComponent(CompositionBundle.class),
                 PlatformUtil.getRegisteredComponent(IdMappingsRepository.class),
                 clientRegistry);
     }

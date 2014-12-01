@@ -12,7 +12,7 @@ import org.openmrs.PersonAttribute;
 import org.openmrs.User;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.UserService;
-import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
+import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mci.api.model.EncounterResponse;
@@ -27,7 +27,7 @@ public class EncounterPush implements EventWorker {
 
     private static final Logger log = Logger.getLogger(EncounterPush.class);
 
-    private CompositionBundleCreator bundleCreator;
+    private CompositionBundle compositionBundle;
     private IdMappingsRepository idMappingsRepository;
 
     private EncounterService encounterService;
@@ -36,13 +36,13 @@ public class EncounterPush implements EventWorker {
     private UserService userService;
 
     public EncounterPush(EncounterService encounterService, UserService userService, PropertiesReader propertiesReader,
-                         CompositionBundleCreator bundleCreator, IdMappingsRepository idMappingsRepository,
+                         CompositionBundle compositionBundle, IdMappingsRepository idMappingsRepository,
                          ClientRegistry clientRegistry) {
         this.encounterService = encounterService;
         this.propertiesReader = propertiesReader;
         this.shrClient = clientRegistry.getSHRClient();
         this.userService = userService;
-        this.bundleCreator = bundleCreator;
+        this.compositionBundle = compositionBundle;
         this.idMappingsRepository = idMappingsRepository;
     }
 
@@ -69,7 +69,7 @@ public class EncounterPush implements EventWorker {
 
             log.debug("Uploading patient encounter to SHR : [ " + openMrsEncounter.getUuid() + "]");
             String facilityId = propertiesReader.getShrProperties().getProperty("shr.facilityId");
-            AtomFeed atomFeed = bundleCreator.compose(openMrsEncounter,facilityId);
+            AtomFeed atomFeed = compositionBundle.create(openMrsEncounter, facilityId);
             String shrEncounterUuid = shrClient.post(String.format("/patients/%s/encounters", healthId), atomFeed);
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

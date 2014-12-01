@@ -16,7 +16,7 @@ import static junit.framework.Assert.assertTrue;
 public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
-    CompositionBundleCreator bundleCreator;
+    CompositionBundle compositionBundle;
 
     @Test
     public void shouldWireAllResourceHandlers() throws Exception {
@@ -25,9 +25,9 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
     }
 
     private void ensureBundleCreatorHasResourceHandlers(String handlerName) throws NoSuchFieldException, IllegalAccessException {
-        final Field field = bundleCreator.getClass().getDeclaredField(handlerName);
+        final Field field = compositionBundle.getClass().getDeclaredField(handlerName);
         field.setAccessible(true);
-        Object instances = field.get(bundleCreator);
+        Object instances = field.get(compositionBundle);
         assertNotNull(instances);
         if (instances instanceof List) {
             assertTrue(((List) instances).size() > 0);
@@ -38,7 +38,7 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
     public void shouldCreateFhirBundle() throws Exception {
         executeDataSet("shrClientBundleCreatorTestDS.xml");
         String facilityId = "10000036";
-        AtomFeed bundle = bundleCreator.compose(Context.getEncounterService().getEncounter(36), facilityId);
+        AtomFeed bundle = compositionBundle.create(Context.getEncounterService().getEncounter(36), facilityId);
         assertNotNull(bundle);
     }
 }

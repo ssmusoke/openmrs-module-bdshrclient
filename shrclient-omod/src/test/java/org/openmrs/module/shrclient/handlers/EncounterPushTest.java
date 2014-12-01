@@ -12,7 +12,7 @@ import org.openmrs.PersonAttributeType;
 import org.openmrs.User;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.UserService;
-import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
+import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -46,7 +46,7 @@ public class EncounterPushTest {
     private UserService userService;
 
     @Mock
-    private CompositionBundleCreator compositionBundleCreator;
+    private CompositionBundle compositionBundle;
 
     @Mock
     private IdMappingsRepository idMappingsRepository;
@@ -62,7 +62,7 @@ public class EncounterPushTest {
         when(clientRegistry.getSHRClient()).thenReturn(shrClient);
         encounterPush = new EncounterPush(
                 encounterService, userService,
-                propertiesReader, compositionBundleCreator,
+                propertiesReader, compositionBundle,
                 idMappingsRepository,
                 clientRegistry);
     }
@@ -83,7 +83,7 @@ public class EncounterPushTest {
         Properties properties = new Properties();
         properties.setProperty("shr.facilityId", facilityId);
         when(propertiesReader.getShrProperties()).thenReturn(properties);
-        when(compositionBundleCreator.compose(openMrsEncounter, facilityId)).thenReturn(atomFeed);
+        when(compositionBundle.create(openMrsEncounter, facilityId)).thenReturn(atomFeed);
         when(idMappingsRepository.findByExternalId(facilityId)).thenReturn(null);
         encounterPush.process(event);
 

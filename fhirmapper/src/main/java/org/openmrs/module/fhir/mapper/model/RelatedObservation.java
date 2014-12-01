@@ -19,7 +19,4 @@ public class RelatedObservation implements PartOf<Observation> {
         return observation;
     }
 
-    public Observation getRelatedObservation() {
-        return relatedObservation;
-    }
 }
