@@ -104,7 +104,7 @@ public class CompositionBundle {
         composition.setEncounter(encounter.getIndication());
         composition.setStatus(new Enumeration<>(Composition.CompositionStatus.final_));
         composition.setIdentifier(new Identifier().setValueSimple("Encounter - " + openMrsEncounter.getUuid()));
-
+        composition.setSubject(encounter.getSubject());
         return composition;
     }
 }
