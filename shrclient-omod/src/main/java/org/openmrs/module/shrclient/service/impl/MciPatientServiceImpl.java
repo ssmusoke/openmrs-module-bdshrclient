@@ -19,7 +19,6 @@ import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.dao.PatientAttributeSearchHandler;
 import org.openmrs.module.shrclient.mci.api.model.Patient;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.service.BbsCodeService;
@@ -74,9 +73,8 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     @Override
     public org.openmrs.Patient createOrUpdatePatient(Patient mciPatient) {
         AddressHelper addressHelper = new AddressHelper();
-        Integer emrPatientId = new PatientAttributeSearchHandler(Constants.HEALTH_ID_ATTRIBUTE).getUniquePatientIdFor(mciPatient.getHealthId());
-        org.openmrs.Patient emrPatient = emrPatientId != null ? patientService.getPatient(emrPatientId) : new org.openmrs.Patient();
-
+        org.openmrs.Patient emrPatient = identifyEmrPatient(mciPatient.getHealthId());
+        if(emrPatient == null) emrPatient = new org.openmrs.Patient();
         emrPatient.setGender(mciPatient.getGender());
         setIdentifier(emrPatient);
         setPersonName(emrPatient, mciPatient);
@@ -161,6 +159,13 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         addEncounterToIdMapping(newEmrEncounter, fhirEncounterId, healthId);
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
+    }
+
+    private org.openmrs.Patient identifyEmrPatient(String healthId) {
+        IdMapping idMap = idMappingsRepository.findByExternalId(healthId);
+        if (idMap == null) return null;
+        logger.info("Patient with HealthId " + healthId + " already exists. Using reference to the patient for downloaded encounters.");
+        return patientService.getPatientByUuid(idMap.getInternalId());
     }
 
     private void saveOrders(Encounter newEmrEncounter) {
