@@ -23,7 +23,7 @@ public class EntityReference {
     }
 
     protected String create(String id, SystemProperties systemProperties) {
-        return id;
+        return "urn:" + id;
     }
 
     private static class PatientReference extends EntityReference {
