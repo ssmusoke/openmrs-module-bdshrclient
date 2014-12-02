@@ -15,7 +15,7 @@ public class EntityReferenceTest {
     @Test
     public void shouldDefaultToIdForTypesNotDefined() {
         EntityReference entityReference = new EntityReference();
-        assertEquals("1", entityReference.build(Integer.class, getSystemProperties("1234"), "1"));
+        assertEquals("urn:1", entityReference.build(Integer.class, getSystemProperties("1234"), "1"));
     }
 
     @Test
