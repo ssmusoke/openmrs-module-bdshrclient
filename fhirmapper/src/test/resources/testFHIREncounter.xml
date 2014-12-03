@@ -63,7 +63,7 @@
                     <reference value="26504add-2d96-44d0-a2f6-d849dc090254"/>
                 </indication>
                 <serviceProvider>
-                    <reference value="10000069"/>
+                    <reference value="http://www.fr.com/10000069.json"/>
                 </serviceProvider>
             </Encounter>
         </content>

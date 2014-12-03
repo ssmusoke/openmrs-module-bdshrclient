@@ -14,6 +14,7 @@ import org.openmrs.api.EncounterService;
 import org.openmrs.api.LocationService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.TestHelper;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -79,10 +80,10 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
 
         Assert.assertNotNull(emrEncounter);
         Assert.assertEquals(emrPatient, emrEncounter.getPatient());
-        Assert.assertNotNull(emrEncounter.getEncounterDatetime());
+        Assert.assertEquals(DateUtil.parseDate("2014-07-10T16:05:09+05:30"), emrEncounter.getEncounterDatetime());
         Assert.assertEquals(encounter.getType().get(0).getTextSimple(), emrEncounter.getEncounterType().getName());
         Assert.assertNotNull(emrEncounter.getEncounterProviders());
-        Assert.assertNotNull(emrEncounter.getLocation());
+        Assert.assertEquals("Bahmni", emrEncounter.getLocation().getName());
 
         Assert.assertNotNull(emrEncounter.getVisit());
         Assert.assertEquals("ad41fb41-a41a-4ad6-8835-2f59099acf5a", emrEncounter.getVisit().getUuid());

@@ -1,6 +1,7 @@
 package org.openmrs.module.fhir.mapper.model;
 
 import org.apache.commons.collections4.map.DefaultedMap;
+import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Encounter;
 import org.openmrs.Location;
 import org.openmrs.Patient;
@@ -20,6 +21,14 @@ public class EntityReference {
 
     public String build(Type type, SystemProperties systemProperties, String id) {
         return referenceMap.get(type).create(id, systemProperties);
+    }
+
+    public String parse(Type type, String url) {
+        return referenceMap.get(type).parseUrl(url);
+    }
+
+    protected String parseUrl(String url) {
+        return url;
     }
 
     protected String create(String id, SystemProperties systemProperties) {
@@ -45,6 +54,12 @@ public class EntityReference {
         @Override
         protected String create(String id, SystemProperties systemProperties) {
             return systemProperties.getFrBaseUrl() + String.format(systemProperties.getFacilityUrlFormat(), id);
+        }
+
+        @Override
+        protected String parseUrl(String facilityUrl) {
+            String s = StringUtils.substringAfterLast(facilityUrl, "/");
+            return StringUtils.substringBefore(s, ".json");
         }
     }
 }
