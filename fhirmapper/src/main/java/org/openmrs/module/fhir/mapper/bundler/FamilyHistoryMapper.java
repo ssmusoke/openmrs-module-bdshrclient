@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_UNIT_FOR_YEARS;
@@ -98,10 +99,23 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
         relationComponent.setBorn(bornOn);
     }
 
+    private String getConceptCode(Concept mrsConcept) {
+        Collection<ConceptName> shortNames = mrsConcept.getShortNames();
+        return shortNames.isEmpty() ? mrsConcept.getName().getName() : ((ConceptName) shortNames.toArray()[0]).getName();
+    }
+
+    private String getConceptDisplay(Concept mrsConcept) {
+        return mrsConcept.getName().getName().toLowerCase();
+    }
+
     private void mapRelationship(FamilyHistory.FamilyHistoryRelationComponent relationComponent, Obs relationship) {
         CodeableConcept codeableConcept = new CodeableConcept();
-        String name = relationship.getValueCoded().getName().getName();
-        FHIRFeedHelper.addFHIRCoding(codeableConcept, name, FHIRProperties.FHIR_SYSTEM_RELATIONSHIP_ROLE, new ArrayList<ConceptName>(relationship.getValueCoded().getShortNames()).get(0).getName());
+        Concept relationshipConcept = relationship.getValueCoded();
+        FHIRFeedHelper.addFHIRCoding(
+                codeableConcept,
+                getConceptCode(relationshipConcept),
+                FHIRProperties.FHIR_SYSTEM_RELATIONSHIP_ROLE,
+                getConceptDisplay(relationshipConcept));
         relationComponent.setRelationship(codeableConcept);
     }
 
