@@ -8,9 +8,11 @@ import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,19 +47,19 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<EmrResource> map(Obs obs, Encounter fhirEncounter) {
-        List<EmrResource> emrResources = new ArrayList<EmrResource>();
+    public List<EmrResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+        List<EmrResource> emrResources = new ArrayList<>();
         for (Obs person : obs.getGroupMembers()) {
-            FamilyHistory familyHistory = createFamilyHistory(person, fhirEncounter);
+            FamilyHistory familyHistory = createFamilyHistory(person, fhirEncounter, systemProperties);
             emrResources.add(new EmrResource(obs.getConcept().getName().getName(), familyHistory.getIdentifier(), familyHistory));
         }
         return emrResources;
     }
 
-    private FamilyHistory createFamilyHistory(Obs person, Encounter fhirEncounter) {
+    private FamilyHistory createFamilyHistory(Obs person, Encounter fhirEncounter, SystemProperties systemProperties) {
         FamilyHistory familyHistory = new FamilyHistory();
         familyHistory.setSubject(fhirEncounter.getSubject());
-        familyHistory.addIdentifier().setValueSimple(person.getUuid());
+        familyHistory.addIdentifier().setValueSimple(new EntityReference().build(Obs.class, systemProperties, person.getUuid()));
         FamilyHistory.FamilyHistoryRelationComponent familyHistoryRelationComponent = familyHistory.addRelation();
         for (Obs member : person.getGroupMembers()) {
             if (MRS_CONCEPT_NAME_RELATIONSHIP.equalsIgnoreCase(member.getConcept().getName().getName())) {

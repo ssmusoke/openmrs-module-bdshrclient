@@ -74,7 +74,7 @@ public class MciPatientLookupController {
         final String healthId = request.getHid();
         Patient mciPatient = searchPatientByHealthId(healthId);
         if (mciPatient != null) {
-            Map<String, String> downloadResponse = new HashMap<String, String>();
+            Map<String, String> downloadResponse = new HashMap<>();
             org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(mciPatient);
             if (emrPatient != null) {
                 createOrUpdateEncounters(healthId, emrPatient);

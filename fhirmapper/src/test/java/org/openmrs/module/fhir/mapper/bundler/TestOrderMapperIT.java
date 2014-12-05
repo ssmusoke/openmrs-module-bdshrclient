@@ -16,6 +16,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.openmrs.module.fhir.TestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
@@ -38,7 +39,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(1, encounter.getOrders().size());
         AtomFeed feed = new AtomFeed();
         Order order = encounter.getOrders().iterator().next();
-        List<EmrResource> mappedResources = testOrderMapper.map(order, fhirEncounter, feed);
+        List<EmrResource> mappedResources = testOrderMapper.map(order, fhirEncounter, feed, getSystemProperties("1"));
         assertNotNull(mappedResources);
         assertEquals(2, mappedResources.size());
     }
@@ -50,7 +51,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(2, encounter.getOrders().size());
         AtomFeed feed = new AtomFeed();
         Order order = encounter.getOrders().iterator().next();
-        List<EmrResource> mappedResources = testOrderMapper.map(order, fhirEncounter, feed);
+        List<EmrResource> mappedResources = testOrderMapper.map(order, fhirEncounter, feed, getSystemProperties("1"));
         assertNotNull(mappedResources);
         assertEquals(1, mappedResources.size());
     }
@@ -62,7 +63,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(2, encounter.getOrders().size());
         AtomFeed feed = new AtomFeed();
         for (Order order : encounter.getOrders()) {
-            List<EmrResource> mappedResources = testOrderMapper.map(order, fhirEncounter, feed);
+            List<EmrResource> mappedResources = testOrderMapper.map(order, fhirEncounter, feed, getSystemProperties("1"));
             assertNotNull(mappedResources);
             addToAtomFeed(feed, mappedResources);
         }
@@ -78,7 +79,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(2, encounter.getOrders().size());
         AtomFeed feed = new AtomFeed();
         for (Order order : encounter.getOrders()) {
-            List<EmrResource> mappedResources = testOrderMapper.map(order, fhirEncounter, feed);
+            List<EmrResource> mappedResources = testOrderMapper.map(order, fhirEncounter, feed, getSystemProperties("1"));
             assertNotNull(mappedResources);
             addToAtomFeed(feed, mappedResources);
         }
@@ -92,7 +93,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(2, encounter.getOrders().size());
         AtomFeed feed = new AtomFeed();
         for (Order order : encounter.getOrders()) {
-            List<EmrResource> mappedResources = testOrderMapper.map(order, fhirEncounter, feed);
+            List<EmrResource> mappedResources = testOrderMapper.map(order, fhirEncounter, feed, getSystemProperties("1"));
             assertNotNull(mappedResources);
             addToAtomFeed(feed, mappedResources);
         }

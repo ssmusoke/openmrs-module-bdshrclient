@@ -14,6 +14,7 @@ import java.util.List;
 import static org.hl7.fhir.instance.model.DiagnosticReport.DiagnosticReportStatus.final_;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
+import static org.openmrs.module.fhir.TestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
@@ -34,7 +35,7 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
         ResourceReference patientHid = new ResourceReference();
         patientHid.setReferenceSimple("patientHid");
         fhirEncounter.setSubject(patientHid);
-        List<EmrResource> emrResources = testResultMapper.map(obsService.getObs(1), fhirEncounter);
+        List<EmrResource> emrResources = testResultMapper.map(obsService.getObs(1), fhirEncounter, getSystemProperties("1"));
         assertNotNull(emrResources);
         assertEquals(2, emrResources.size());
         EmrResource diagnosticReportResource = getResource(ResourceType.DiagnosticReport, emrResources);
@@ -54,7 +55,7 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
         ResourceReference patientHid = new ResourceReference();
         patientHid.setReferenceSimple("patientHid");
         fhirEncounter.setSubject(patientHid);
-        List<EmrResource> emrResources = testResultMapper.map(obsService.getObs(11), fhirEncounter);
+        List<EmrResource> emrResources = testResultMapper.map(obsService.getObs(11), fhirEncounter, getSystemProperties("1"));
         assertNotNull(emrResources);
         assertEquals(6, emrResources.size());
         for (EmrResource emrResource : emrResources) {

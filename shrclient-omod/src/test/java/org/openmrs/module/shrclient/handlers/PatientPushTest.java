@@ -10,21 +10,20 @@ import org.openmrs.User;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.UserService;
-import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
+import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.openmrs.module.fhir.utils.Constants.HEALTH_ID_ATTRIBUTE;
+import static org.openmrs.module.fhir.utils.Constants.OPENMRS_DAEMON_USER;
 
 public class PatientPushTest {
 
@@ -38,6 +37,10 @@ public class PatientPushTest {
     private PatientMapper patientMapper;
     @Mock
     private RestClient restClient;
+    @Mock
+    private PropertiesReader propertiesReader;
+    @Mock
+    private IdMappingsRepository idMappingsRepository;
 
     private PatientPush patientPush;
 
@@ -46,7 +49,7 @@ public class PatientPushTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        patientPush = new PatientPush(patientService, userService, personService, patientMapper, restClient);
+        patientPush = new PatientPush(patientService, userService, personService, patientMapper, propertiesReader, restClient, idMappingsRepository);
     }
 
     @Test
@@ -55,7 +58,7 @@ public class PatientPushTest {
         User shrUser = new User();
         shrUser.setId(2);
         openMrsPatient.setCreator(shrUser);
-        when(userService.getUserByUuid(Constants.OPENMRS_DAEMON_USER)).thenReturn(shrUser);
+        when(userService.getUserByUuid(OPENMRS_DAEMON_USER)).thenReturn(shrUser);
 
         assertFalse(patientPush.isUpdatedByEmrUser(openMrsPatient));
     }
@@ -68,7 +71,7 @@ public class PatientPushTest {
         User shrUser = new User();
         shrUser.setId(2);
         openMrsPatient.setCreator(bahmniUser);
-        when(userService.getUserByUuid(Constants.OPENMRS_DAEMON_USER)).thenReturn(shrUser);
+        when(userService.getUserByUuid(OPENMRS_DAEMON_USER)).thenReturn(shrUser);
 
         assertTrue(patientPush.isUpdatedByEmrUser(openMrsPatient));
     }
@@ -93,13 +96,13 @@ public class PatientPushTest {
         final org.openmrs.Patient openMrsPatient = new org.openmrs.Patient();
 
         PersonAttributeType healthIdAttributeType = new PersonAttributeType();
-        healthIdAttributeType.setName(Constants.HEALTH_ID_ATTRIBUTE);
+        healthIdAttributeType.setName(HEALTH_ID_ATTRIBUTE);
 
         PersonAttribute healthIdAttribute = new PersonAttribute();
         healthIdAttribute.setAttributeType(healthIdAttributeType);
         healthIdAttribute.setValue(healthId);
 
-        Set<PersonAttribute> openMrsPatientAttributes = new HashSet<PersonAttribute>();
+        Set<PersonAttribute> openMrsPatientAttributes = new HashSet<>();
         openMrsPatientAttributes.add(healthIdAttribute);
         openMrsPatient.setAttributes(openMrsPatientAttributes);
 
@@ -111,11 +114,11 @@ public class PatientPushTest {
     public void shouldUpdateOpenMrsPatient_WhenNewHealthIdIsProvided() {
         final org.openmrs.Patient openMrsPatient = new org.openmrs.Patient();
         PersonAttributeType healthIdAttributeType = new PersonAttributeType();
-        healthIdAttributeType.setName(Constants.HEALTH_ID_ATTRIBUTE);
-        Set<PersonAttribute> openMrsPatientAttributes = new HashSet<PersonAttribute>();
+        healthIdAttributeType.setName(HEALTH_ID_ATTRIBUTE);
+        Set<PersonAttribute> openMrsPatientAttributes = new HashSet<>();
         openMrsPatient.setAttributes(openMrsPatientAttributes);
 
-        when(personService.getPersonAttributeTypeByName(Constants.HEALTH_ID_ATTRIBUTE)).thenReturn(healthIdAttributeType);
+        when(personService.getPersonAttributeTypeByName(HEALTH_ID_ATTRIBUTE)).thenReturn(healthIdAttributeType);
         patientPush.updateOpenMrsPatientHealthId(openMrsPatient, healthId);
         verify(patientService).savePatient(any(org.openmrs.Patient.class));
     }

@@ -3,9 +3,11 @@ package org.openmrs.module.fhir.mapper.bundler;
 import org.apache.commons.collections.CollectionUtils;
 import org.hl7.fhir.instance.model.*;
 import org.openmrs.Obs;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,14 +34,14 @@ public class TestResultMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<EmrResource> map(Obs obs, Encounter fhirEncounter) {
-        List<EmrResource> emrResourceList = new ArrayList<EmrResource>();
+    public List<EmrResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+        List<EmrResource> emrResourceList = new ArrayList<>();
         if (obs != null) {
             if (!isPanel(obs)) {
-                buildTestResult(obs, fhirEncounter, emrResourceList);
+                buildTestResult(obs, fhirEncounter, emrResourceList, systemProperties);
             } else {
                 for (Obs observation : obs.getGroupMembers()) {
-                    buildTestResult(observation, fhirEncounter, emrResourceList);
+                    buildTestResult(observation, fhirEncounter, emrResourceList, systemProperties);
                 }
             }
         }
@@ -50,9 +52,9 @@ public class TestResultMapper implements EmrObsResourceHandler {
         return obs.getConcept().getConceptClass().getName().equals(MRS_CONCEPT_CLASS_LAB_SET);
     }
 
-    private void buildTestResult(Obs obs, Encounter fhirEncounter, List<EmrResource> emrResourceList) {
+    private void buildTestResult(Obs obs, Encounter fhirEncounter, List<EmrResource> emrResourceList, SystemProperties systemProperties) {
         for (Obs observation : obs.getGroupMembers()) {
-            DiagnosticReport diagnosticReport = build(observation, fhirEncounter, emrResourceList);
+            DiagnosticReport diagnosticReport = build(observation, fhirEncounter, emrResourceList, systemProperties);
             if (diagnosticReport != null) {
                 EmrResource emrResource = new EmrResource("Diagnostic Report", Arrays.asList(diagnosticReport.getIdentifier()), diagnosticReport);
                 emrResourceList.add(emrResource);
@@ -60,7 +62,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
         }
     }
 
-    private DiagnosticReport build(Obs obs, Encounter fhirEncounter, List<EmrResource> emrResourceList) {
+    private DiagnosticReport build(Obs obs, Encounter fhirEncounter, List<EmrResource> emrResourceList, SystemProperties systemProperties) {
         DiagnosticReport report = new DiagnosticReport();
         CodeableConcept name = FHIRFeedHelper.addReferenceCodes(obs.getConcept(), idMappingsRepository);
         if (name.getCoding().isEmpty()) {
@@ -71,7 +73,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
         report.setIssuedSimple(new DateAndTime(obs.getObsDatetime()));
         report.setSubject(fhirEncounter.getSubject());
         Identifier identifier = new Identifier();
-        identifier.setValueSimple(obs.getUuid());
+        identifier.setValueSimple(new EntityReference().build(Obs.class, systemProperties, obs.getUuid()));
         report.setIdentifier(identifier);
         List<Encounter.EncounterParticipantComponent> participants = fhirEncounter.getParticipant();
         if (CollectionUtils.isNotEmpty(participants)) {
@@ -93,7 +95,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
 
         for (Obs member : obs.getGroupMembers()) {
             if (member.getConcept().equals(obs.getConcept())) {
-                List<EmrResource> observationResources = observationMapper.map(member, fhirEncounter);
+                List<EmrResource> observationResources = observationMapper.map(member, fhirEncounter, systemProperties);
                 ResourceReference resourceReference = report.addResult();
                 // TODO: how do we identify this observation?
                 resourceReference.setReferenceSimple(observationResources.get(0).getIdentifier().getValueSimple());

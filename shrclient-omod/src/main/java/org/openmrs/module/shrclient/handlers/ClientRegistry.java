@@ -1,9 +1,9 @@
 package org.openmrs.module.shrclient.handlers;
 
-import org.openmrs.module.shrclient.util.SHRClient;
 import org.openmrs.module.shrclient.util.Headers;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
+import org.openmrs.module.shrclient.util.SHRClient;
 
 import java.util.HashMap;
 import java.util.Properties;
@@ -13,7 +13,6 @@ public class ClientRegistry {
     private PropertiesReader propertiesReader;
 
     public ClientRegistry(PropertiesReader propertiesReader) {
-
         this.propertiesReader = propertiesReader;
     }
 

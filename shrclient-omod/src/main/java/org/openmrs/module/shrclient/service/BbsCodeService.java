@@ -1,5 +1,8 @@
 package org.openmrs.module.shrclient.service;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public interface BbsCodeService {
 
     public String getGenderCode(String concept);

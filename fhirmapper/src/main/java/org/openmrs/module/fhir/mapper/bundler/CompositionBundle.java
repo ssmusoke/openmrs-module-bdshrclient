@@ -5,6 +5,7 @@ import org.hl7.fhir.instance.model.*;
 import org.hl7.fhir.instance.model.Encounter;
 import org.openmrs.*;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.FHIRIdentifier;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ public class CompositionBundle {
     public AtomFeed create(org.openmrs.Encounter emrEncounter, SystemProperties systemProperties) {
         AtomFeed atomFeed = new AtomFeed();
         Encounter fhirEncounter = encounterMapper.map(emrEncounter, systemProperties);
-        Composition composition = createComposition(emrEncounter, fhirEncounter);
+        Composition composition = createComposition(emrEncounter.getEncounterDatetime(), fhirEncounter, systemProperties);
 
         atomFeed.setTitle("Encounter");
         atomFeed.setUpdated(composition.getDateSimple());
@@ -47,7 +48,7 @@ public class CompositionBundle {
         for (Obs obs : observations) {
             for (EmrObsResourceHandler handler : obsResourceHandlers) {
                 if (handler.handles(obs)) {
-                    List<EmrResource> mappedResources = handler.map(obs, fhirEncounter);
+                    List<EmrResource> mappedResources = handler.map(obs, fhirEncounter, systemProperties);
                     if (CollectionUtils.isNotEmpty(mappedResources)) {
                         addResourcesToBundle(mappedResources, composition, atomFeed);
                     }
@@ -59,7 +60,7 @@ public class CompositionBundle {
         for (org.openmrs.Order order : orders) {
             for (EmrOrderResourceHandler handler : orderResourceHandlers) {
                 if (handler.handles(order)) {
-                    List<EmrResource> mappedResources = handler.map(order, fhirEncounter, atomFeed);
+                    List<EmrResource> mappedResources = handler.map(order, fhirEncounter, atomFeed, systemProperties);
                     if (CollectionUtils.isNotEmpty(mappedResources)) {
                         addResourcesToBundle(mappedResources, composition, atomFeed);
                     }
@@ -98,12 +99,12 @@ public class CompositionBundle {
         atomFeed.addEntry(resourceEntry);
     }
 
-    private Composition createComposition(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {
-        DateAndTime encounterDateTime = new DateAndTime(openMrsEncounter.getEncounterDatetime());
-        Composition composition = new Composition().setDateSimple(encounterDateTime);
+    private Composition createComposition(Date encounterDateTime, Encounter encounter, SystemProperties systemProperties) {
+        DateAndTime encounterDateAndTime = new DateAndTime(encounterDateTime);
+        Composition composition = new Composition().setDateSimple(encounterDateAndTime);
         composition.setEncounter(encounter.getIndication());
         composition.setStatus(new Enumeration<>(Composition.CompositionStatus.final_));
-        composition.setIdentifier(new Identifier().setValueSimple("Encounter - " + openMrsEncounter.getUuid()));
+        composition.setIdentifier(new Identifier().setValueSimple(new EntityReference().build(Composition.class, systemProperties, UUID.randomUUID().toString())));
         composition.setSubject(encounter.getSubject());
         return composition;
     }

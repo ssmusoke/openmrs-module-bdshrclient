@@ -6,8 +6,10 @@ import org.hl7.fhir.instance.model.Encounter;
 import org.openmrs.*;
 import org.openmrs.ConceptMap;
 import org.openmrs.Order;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +18,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import static org.hl7.fhir.instance.model.DiagnosticOrder.DiagnosticOrderStatus.requested;
 import static org.openmrs.module.fhir.mapper.FHIRProperties.LOINC_SOURCE_NAME;
+import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
+import static org.openmrs.module.fhir.utils.FHIRFeedHelper.identifyResource;
 
 @Component("fhirTestOrderMapper")
 public class TestOrderMapper implements EmrOrderResourceHandler {
@@ -33,37 +38,37 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
     }
 
     @Override
-    public List<EmrResource> map(Order order, Encounter fhirEncounter, AtomFeed feed) {
-        resources = new ArrayList<EmrResource>();
+    public List<EmrResource> map(Order order, Encounter fhirEncounter, AtomFeed feed, SystemProperties systemProperties) {
+        resources = new ArrayList<>();
         DiagnosticOrder diagnosticOrder;
-        Resource resource = FHIRFeedHelper.identifyResource(feed.getEntryList(), ResourceType.DiagnosticOrder);
+        Resource resource = identifyResource(feed.getEntryList(), ResourceType.DiagnosticOrder);
         if (resource != null) {
             diagnosticOrder = (DiagnosticOrder) resource;
         } else {
-            diagnosticOrder = createDiagnosticOrder(order, fhirEncounter);
+            diagnosticOrder = createDiagnosticOrder(order, fhirEncounter, systemProperties);
             resources.add(new EmrResource("Diagnostic Order", diagnosticOrder.getIdentifier(), diagnosticOrder));
         }
-        addItemsToDiagnosticOrder(order, diagnosticOrder, feed);
+        addItemsToDiagnosticOrder(order, diagnosticOrder, feed, systemProperties);
         if (CollectionUtils.isEmpty(diagnosticOrder.getItem())) {
             return null;
         }
         return resources;
     }
 
-    private void addItemsToDiagnosticOrder(Order order, DiagnosticOrder diagnosticOrder, AtomFeed feed) {
+    private void addItemsToDiagnosticOrder(Order order, DiagnosticOrder diagnosticOrder, AtomFeed feed, SystemProperties systemProperties) {
         DiagnosticOrder.DiagnosticOrderItemComponent orderItem = diagnosticOrder.addItem();
         CodeableConcept orderCode = findOrderName(order);
         if (orderCode == null) return;
         orderItem.setCode(orderCode);
-        orderItem.setStatusSimple(DiagnosticOrder.DiagnosticOrderStatus.requested);
+        orderItem.setStatusSimple(requested);
 
-        addSpecimenToDiagnosticOrder(order, diagnosticOrder, orderItem, feed);
+        addSpecimenToDiagnosticOrder(order, diagnosticOrder, orderItem, feed, systemProperties);
     }
 
-    private void addSpecimenToDiagnosticOrder(Order order, DiagnosticOrder diagnosticOrder, DiagnosticOrder.DiagnosticOrderItemComponent orderItem, AtomFeed feed) {
-        Specimen specimen = checkIfSpecimenExists(feed, diagnosticOrder.getSpecimen(), order);
+    private void addSpecimenToDiagnosticOrder(Order order, DiagnosticOrder diagnosticOrder, DiagnosticOrder.DiagnosticOrderItemComponent orderItem, AtomFeed feed, SystemProperties systemProperties) {
+        Specimen specimen = getIfSpecimenExists(feed, diagnosticOrder.getSpecimen(), order, systemProperties);
         if (specimen == null) {
-            specimen = getSpecimen(order, diagnosticOrder);
+            specimen = createSpecimen(order, diagnosticOrder, systemProperties);
             if (specimen == null) {
                 return;
             }
@@ -76,16 +81,16 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         diagnosticOrderSpecimenReference.setReferenceSimple(specimenIdentifier);
     }
 
-    private Specimen checkIfSpecimenExists(AtomFeed feed, List<ResourceReference> specimenList, Order order) {
+    private Specimen getIfSpecimenExists(AtomFeed feed, List<ResourceReference> specimenList, Order order, SystemProperties systemProperties) {
         for (ResourceReference resourceReference : specimenList) {
-            Resource resource = FHIRFeedHelper.findResourceByReference(feed, resourceReference);
+            Resource resource = findResourceByReference(feed, resourceReference);
             if (resource != null) {
                 Specimen specimenResource = (Specimen) resource;
 
                 String type = specimenResource.getType().getCoding().get(0).getDisplaySimple();
                 //TODO find based for all Loinc sources
                 String specimen = findLoincReferenceTerm(order);
-                if (shouldUseSameSpecimen(order, specimenResource, type, specimen)) {
+                if (shouldUseSameSpecimen(order, specimenResource, type, specimen, systemProperties)) {
                     return specimenResource;
                 }
             }
@@ -93,10 +98,10 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         return null;
     }
 
-    private boolean shouldUseSameSpecimen(Order order, Specimen specimenResource, String type, String specimen) {
+    private boolean shouldUseSameSpecimen(Order order, Specimen specimenResource, String type, String specimen, SystemProperties systemProperties) {
         if (specimen != null && specimen.equalsIgnoreCase(type)) {
             if (order.getAccessionNumber() != null && specimenResource.getAccessionIdentifier() != null) {
-                return specimenResource.getAccessionIdentifier().getValueSimple().equalsIgnoreCase(order.getAccessionNumber());
+                return specimenResource.getAccessionIdentifier().getValueSimple().equalsIgnoreCase(new EntityReference().build(Order.class, systemProperties, order.getAccessionNumber()));
             }
             return true;
         }
@@ -124,18 +129,18 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
                 conceptReferenceTerm.getConceptSource().getName().startsWith(LOINC_SOURCE_NAME);
     }
 
-    private Specimen getSpecimen(Order order, DiagnosticOrder diagnosticOrder) {
+    private Specimen createSpecimen(Order order, DiagnosticOrder diagnosticOrder, SystemProperties systemProperties) {
         Specimen specimen = new Specimen();
         specimen.setSubject(diagnosticOrder.getSubject());
 
         if (order.getAccessionNumber() != null) {
             Identifier accessionIdentifier = new Identifier();
-            accessionIdentifier.setValueSimple(order.getAccessionNumber());
+            accessionIdentifier.setValueSimple(new EntityReference().build(Order.class, systemProperties, order.getAccessionNumber()));
             specimen.setAccessionIdentifier(accessionIdentifier);
         }
 
         Identifier identifier = specimen.addIdentifier();
-        identifier.setValueSimple(UUID.randomUUID().toString());
+        identifier.setValueSimple(new EntityReference().build(Order.class, systemProperties, UUID.randomUUID().toString()));
 //        Sending order date activated as only ELIS - MRS sync is done. Needs to be changed when we order from MRS
         specimen.setReceivedTimeSimple(new DateAndTime(order.getDateActivated()));
         CodeableConcept codeableConcept = new CodeableConcept();
@@ -161,15 +166,15 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         return result;
     }
 
-    private DiagnosticOrder createDiagnosticOrder(Order order, Encounter fhirEncounter) {
+    private DiagnosticOrder createDiagnosticOrder(Order order, Encounter fhirEncounter, SystemProperties systemProperties) {
         DiagnosticOrder diagnosticOrder;
         diagnosticOrder = new DiagnosticOrder();
         diagnosticOrder.setSubject(fhirEncounter.getSubject());
         diagnosticOrder.setOrderer(getOrdererReference(order));
         Identifier identifier = diagnosticOrder.addIdentifier();
-        identifier.setValueSimple(UUID.randomUUID().toString());
+        identifier.setValueSimple(new EntityReference().build(Order.class, systemProperties, UUID.randomUUID().toString()));
         diagnosticOrder.setEncounter(fhirEncounter.getIndication());
-        diagnosticOrder.setStatusSimple(DiagnosticOrder.DiagnosticOrderStatus.requested);
+        diagnosticOrder.setStatusSimple(requested);
         return diagnosticOrder;
     }
 

@@ -1,20 +1,19 @@
 package org.openmrs.module.shrclient.service.impl;
 
-import org.hl7.fhir.instance.formats.ParserBase;
-import org.hl7.fhir.instance.formats.XmlParser;
 import org.hl7.fhir.instance.model.Date;
+import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
+import org.openmrs.module.shrclient.TestHelper;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.Resource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +23,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
-public class MciPatientServiceImplTest extends BaseModuleWebContextSensitiveTest {
+public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
+
     @Autowired
     private ApplicationContext springContext;
 
@@ -39,25 +39,24 @@ public class MciPatientServiceImplTest extends BaseModuleWebContextSensitiveTest
 
     @Autowired
     ConceptService conceptService;
+    private TestHelper testHelper;
 
-    public ParserBase.ResourceOrFeed loadSampleFHIREncounter(String filePath) throws Exception {
-        Resource resource = springContext.getResource(filePath);
-        final ParserBase.ResourceOrFeed parsedResource =
-                new XmlParser().parseGeneral(resource.getInputStream());
-        return parsedResource;
+    @Before
+    public void setUp() throws Exception {
+        testHelper = new TestHelper();
     }
 
     @Test
     public void shouldSaveEncounter() throws Exception {
         executeDataSet("shrClientEncounterReverseSyncTestDS.xml");
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
-        List<EncounterBundle> bundles = new ArrayList<EncounterBundle>();
+        List<EncounterBundle> bundles = new ArrayList<>();
         EncounterBundle bundle = new EncounterBundle();
         bundle.setEncounterId("shr-enc-id");
         bundle.setPublishedDate(new Date().toString());
         String healthId = "HIDA764177";
         bundle.setHealthId(healthId);
-        bundle.addContent(loadSampleFHIREncounter("classpath:testFHIREncounter.xml"));
+        bundle.addContent(testHelper.loadSampleFHIREncounter("classpath:testFHIREncounter.xml", springContext));
         bundles.add(bundle);
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
@@ -71,12 +70,12 @@ public class MciPatientServiceImplTest extends BaseModuleWebContextSensitiveTest
         String shrEncounterId = "shr-enc-id";
         String healthId = "5915668841731457025";
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
-        List<EncounterBundle> bundles = new ArrayList<EncounterBundle>();
+        List<EncounterBundle> bundles = new ArrayList<>();
         EncounterBundle bundle = new EncounterBundle();
         bundle.setEncounterId(shrEncounterId);
         bundle.setPublishedDate(new Date().toString());
         bundle.setHealthId(healthId);
-        bundle.addContent(loadSampleFHIREncounter("classpath:encounterWithDiagnosticOrder.xml"));
+        bundle.addContent(testHelper.loadSampleFHIREncounter("classpath:encounterWithDiagnosticOrder.xml", springContext));
         bundles.add(bundle);
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 

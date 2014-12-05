@@ -14,32 +14,35 @@
         <content type="text/xml">
             <Composition xmlns="http://hl7.org/fhir">
                 <identifier>
-                    <value value="Encounter - bf537f2b-ea8a-4bf9-9918-10201d74d643"/>
+                    <value value="urn:bf537a2b-ea8a-4bf9-9a18-10201da4d643"/>
                 </identifier>
                 <date value="2014-09-26T17:14:37+05:30"/>
                 <status value="final"/>
                 <encounter>
-                    <reference value="bf537f2b-ea8a-4bf9-9918-10201d74d643"/>
+                    <reference value="urn:bf537f2b-ea8a-4bf9-9918-10201d74d643"/>
                     <display value="encounter"/>
                 </encounter>
                 <section>
                     <content>
-                        <reference value="bf537f2b-ea8a-4bf9-9918-10201d74d643"/>
+                        <reference value="urn:bf537f2b-ea8a-4bf9-9918-10201d74d643"/>
                         <display value="Encounter"/>
                     </content>
                 </section>
                 <section>
                     <content>
-                        <reference value="8585a294-aaae-4e1e-a488-aa28b4d66ec1"/>
+                        <reference value="urn:8585a294-aaae-4e1e-a488-aa28b4d66ec1"/>
                         <display value="Diagnostic Order"/>
                     </content>
                 </section>
                 <section>
                     <content>
-                        <reference value="caad8d8a-4956-483a-85b4-ff3ba711ddc9"/>
+                        <reference value="urn:caad8d8a-4956-483a-85b4-ff3ba711ddc9"/>
                         <display value="Specimen"/>
                     </content>
                 </section>
+                <subject>
+                    <reference value="http://mci.com//api/v1/patients/5915668841731457025"/>
+                </subject>
             </Composition>
         </content>
     </entry>
@@ -53,7 +56,7 @@
         <content type="text/xml">
             <Encounter xmlns="http://hl7.org/fhir">
                 <identifier>
-                    <value value="bf537f2b-ea8a-4bf9-9918-10201d74d643"/>
+                    <value value="urn:bf537f2b-ea8a-4bf9-9918-10201d74d643"/>
                 </identifier>
                 <status value="finished"/>
                 <class value="outpatient"/>
@@ -61,7 +64,7 @@
                     <text value="INVESTIGATION"/>
                 </type>
                 <subject>
-                    <reference value="5915668841731457025"/>
+                    <reference value="http://mci.com//api/v1/patients/5915668841731457025"/>
                 </subject>
                 <participant>
                     <individual>
@@ -69,11 +72,11 @@
                     </individual>
                 </participant>
                 <indication>
-                    <reference value="bf537f2b-ea8a-4bf9-9918-10201d74d643"/>
+                    <reference value="urn:bf537f2b-ea8a-4bf9-9918-10201d74d643"/>
                     <display value="encounter"/>
                 </indication>
                 <serviceProvider>
-                    <reference value="Bahmni"/>
+                    <reference value="http://www.fr.com/10000069.json"/>
                 </serviceProvider>
             </Encounter>
         </content>
@@ -88,20 +91,20 @@
         <content type="text/xml">
             <DiagnosticOrder xmlns="http://hl7.org/fhir">
                 <subject>
-                    <reference value="5915668841731457025"/>
+                    <reference value="http://mci.com//api/v1/patients/5915668841731457025"/>
                 </subject>
                 <orderer>
                     <reference value="990e362e-3721-11e4-962c-005056826e54"/>
                 </orderer>
                 <identifier>
-                    <value value="8585a294-aaae-4e1e-a488-aa28b4d66ec1"/>
+                    <value value="urn:8585a294-aaae-4e1e-a488-aa28b4d66ec1"/>
                 </identifier>
                 <encounter>
-                    <reference value="bf537f2b-ea8a-4bf9-9918-10201d74d643"/>
+                    <reference value="urn:bf537f2b-ea8a-4bf9-9918-10201d74d643"/>
                     <display value="encounter"/>
                 </encounter>
                 <specimen>
-                    <reference value="caad8d8a-4956-483a-85b4-ff3ba711ddc9"/>
+                    <reference value="urn:caad8d8a-4956-483a-85b4-ff3ba711ddc9"/>
                 </specimen>
                 <status value="requested"/>
                 <item>
@@ -113,7 +116,7 @@
                         </coding>
                     </code>
                     <specimen>
-                        <reference value="caad8d8a-4956-483a-85b4-ff3ba711ddc9"/>
+                        <reference value="urn:caad8d8a-4956-483a-85b4-ff3ba711ddc9"/>
                     </specimen>
                     <status value="requested"/>
                 </item>
@@ -130,7 +133,7 @@
         <content type="text/xml">
             <Specimen xmlns="http://hl7.org/fhir">
                 <identifier>
-                    <value value="caad8d8a-4956-483a-85b4-ff3ba711ddc9"/>
+                    <value value="urn:caad8d8a-4956-483a-85b4-ff3ba711ddc9"/>
                 </identifier>
                 <type>
                     <coding>
@@ -138,7 +141,7 @@
                     </coding>
                 </type>
                 <subject>
-                    <reference value="5915668841731457025"/>
+                    <reference value="http://mci.com//api/v1/patients/5915668841731457025"/>
                 </subject>
                 <receivedTime value="2014-09-26T17:14:37+05:30"/>
             </Specimen>

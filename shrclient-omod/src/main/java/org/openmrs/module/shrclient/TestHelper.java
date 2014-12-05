@@ -1,4 +1,4 @@
-package org.openmrs.module.fhir;
+package org.openmrs.module.shrclient;
 
 import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.formats.XmlParser;

@@ -40,6 +40,9 @@
                         <display value="Diagnostic Report"/>
                     </content>
                 </section>
+                <subject>
+                    <reference value="http://mci.com//api/v1/patients/5922200542104256513"/>
+                </subject>
             </Composition>
         </content>
     </entry>
@@ -61,7 +64,7 @@
                     <text value="LAB_RESULT"/>
                 </type>
                 <subject>
-                    <reference value="5922200542104256513"/>
+                    <reference value="http://mci.com//api/v1/patients/5922200542104256513"/>
                 </subject>
                 <participant>
                     <individual>
@@ -73,7 +76,7 @@
                     <display value="encounter"/>
                 </indication>
                 <serviceProvider>
-                    <reference value="Bahmni"/>
+                    <reference value="http://www.fr.com/10000069.json"/>
                 </serviceProvider>
             </Encounter>
         </content>
@@ -101,7 +104,7 @@
                     <value value="ef3e6895-8757-4c7b-b0c3-00de57f739e3"/>
                 </identifier>
                 <subject>
-                    <reference value="5922200542104256513"/>
+                    <reference value="http://mci.com//api/v1/patients/5922200542104256513"/>
                 </subject>
             </Observation>
         </content>
@@ -168,7 +171,7 @@
                 <status value="final"/>
                 <issued value="2014-10-14T17:31:51+05:30"/>
                 <subject>
-                    <reference value="5922200542104256513"/>
+                    <reference value="http://mci.com//api/v1/patients/5922200542104256513"/>
                 </subject>
                 <performer>
                     <reference value="456e6c79-35be-11e4-9d09-08002773bf1c"/>
@@ -210,7 +213,7 @@
                     <value value="af3e6895-8757-4c7b-b0c3-00de57f739e3"/>
                 </identifier>
                 <subject>
-                    <reference value="5922200542104256513"/>
+                    <reference value="http://mci.com//api/v1/patients/5922200542104256513"/>
                 </subject>
             </Observation>
         </content>

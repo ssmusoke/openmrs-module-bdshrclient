@@ -13,7 +13,6 @@ import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.fhir.utils.OMRSHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -29,6 +28,7 @@ import java.util.regex.Pattern;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_CLASS_LAB_SET;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_LAB_NOTES;
+import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
 
 @Component
 public class FHIRDiagnosticReportMapper implements FHIRResource {
@@ -131,7 +131,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResource {
     }
 
     private Obs buildResultObs(AtomFeed feed, Encounter newEmrEncounter, Map<String, List<String>> processedList, DiagnosticReport diagnosticReport, Concept concept) {
-        Observation observationResource = (Observation) FHIRFeedHelper.findResourceByReference(feed, diagnosticReport.getResult().get(0));
+        Observation observationResource = (Observation) findResourceByReference(feed, diagnosticReport.getResult().get(0));
         if (processedList.containsKey(observationResource.getIdentifier().getValueSimple())) {
             List<String> uuids = processedList.get(observationResource.getIdentifier().getValueSimple());
             for (String uuid : uuids) {

@@ -40,9 +40,14 @@ public class EntityReferenceTest {
     public void shouldParseFacilityLocationReference() throws Exception {
         EntityReference entityReference = new EntityReference();
         String facilityId = "1013101";
-        SystemProperties systemProperties = getSystemProperties(facilityId);
-        String facilityUrl = entityReference.build(Location.class, systemProperties, facilityId);
-        assertEquals(facilityId, entityReference.parse(Location.class, facilityUrl));
+        assertEquals(facilityId, entityReference.parse(Location.class, "http://fr.com/hrm/" + facilityId + ".json"));
+    }
+
+    @Test
+    public void shouldParseMciPatientUrl() throws Exception {
+        EntityReference entityReference = new EntityReference();
+        String hid = "hid";
+        assertEquals(hid, entityReference.parse(Patient.class, "http://mci.com/api/v1/patient/" + hid));
     }
 
     private SystemProperties getSystemProperties(String facilityId) {

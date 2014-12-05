@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
+import static org.openmrs.module.fhir.TestHelper.getSystemProperties;
+
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class ChiefComplaintMapperTest extends BaseModuleWebContextSensitiveTest {
 
@@ -31,7 +33,7 @@ public class ChiefComplaintMapperTest extends BaseModuleWebContextSensitiveTest 
         encounter.addParticipant().setIndividual(new ResourceReference());
         org.openmrs.Encounter openMrsEncounter = encounterService.getEncounter(36);
 
-        List<EmrResource> complaintResources = chiefComplaintMapper.map(openMrsEncounter.getObsAtTopLevel(false).iterator().next(), encounter);
+        List<EmrResource> complaintResources = chiefComplaintMapper.map(openMrsEncounter.getObsAtTopLevel(false).iterator().next(), encounter, getSystemProperties("1"));
         Assert.assertFalse(complaintResources.isEmpty());
         Assert.assertEquals(1, complaintResources.size());
     }

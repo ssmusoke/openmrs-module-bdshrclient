@@ -6,17 +6,14 @@ import org.hl7.fhir.instance.model.Composition;
 import org.hl7.fhir.instance.model.Condition;
 import org.hl7.fhir.instance.model.Encounter;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
-import org.openmrs.api.LocationService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.TestHelper;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -44,27 +41,16 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
     @Autowired
     ConceptService conceptService;
 
-    @Autowired
-    private IdMappingsRepository idMappingsRepository;
-
-    @Autowired
-    private LocationService locationService;
-
     public ParserBase.ResourceOrFeed loadSampleFHIREncounter() throws Exception {
         ParserBase.ResourceOrFeed parsedResource = new TestHelper().loadSampleFHIREncounter("classpath:testFHIREncounter.xml", springContext);
         return parsedResource;
-    }
-
-    @Before
-    public void setUp() throws Exception {
-
     }
 
     @Test
     public void shouldMapFhirEncounter() throws Exception {
         executeDataSet("shrClientEncounterReverseSyncTestDS.xml");
         final AtomFeed encounterBundle = loadSampleFHIREncounter().getFeed();
-        Assert.assertEquals("dc1f5f99-fb2f-4ba8-bf24-14ccdee498f9", encounterBundle.getId());
+        Assert.assertEquals("urn:dc1f5f99-fb2f-4ba8-bf24-14ccdee498f9", encounterBundle.getId());
 
         FHIRFeedHelper.getComposition(encounterBundle);
         final Composition composition = FHIRFeedHelper.getComposition(encounterBundle);
@@ -73,7 +59,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         Assert.assertEquals("2014-07-10T16:05:09+05:30", composition.getDateSimple().toString());
         final Encounter encounter = FHIRFeedHelper.getEncounter(encounterBundle);
         Assert.assertNotNull(encounter);
-        Assert.assertEquals("26504add-2d96-44d0-a2f6-d849dc090254", encounter.getIndication().getReferenceSimple());
+        Assert.assertEquals("urn:26504add-2d96-44d0-a2f6-d849dc090254", encounter.getIndication().getReferenceSimple());
 
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
         org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map(encounter, composition.getDateSimple().toString(), emrPatient, encounterBundle);
@@ -97,7 +83,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
 
         List<Condition> conditions = FHIRFeedHelper.getConditions(encounterBundle);
         Assert.assertEquals(2, conditions.size());
-        Assert.assertEquals("HIDA764177", conditions.get(0).getSubject().getReferenceSimple());
+        Assert.assertEquals("http://mci.com//api/v1/patients/HIDA764177", conditions.get(0).getSubject().getReferenceSimple());
 
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
 

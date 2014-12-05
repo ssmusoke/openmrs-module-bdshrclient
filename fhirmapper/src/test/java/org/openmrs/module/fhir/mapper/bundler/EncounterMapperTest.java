@@ -2,14 +2,17 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 import org.hl7.fhir.instance.model.ResourceReference;
 import org.junit.Test;
-import org.openmrs.*;
+import org.openmrs.Encounter;
+import org.openmrs.EncounterType;
+import org.openmrs.Patient;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
+import org.openmrs.Visit;
+import org.openmrs.VisitType;
 import org.openmrs.module.fhir.utils.Constants;
-import org.openmrs.module.shrclient.util.SystemProperties;
-
-import java.util.HashMap;
-import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
+import static org.openmrs.module.fhir.TestHelper.getSystemProperties;
 
 public class EncounterMapperTest {
     @Test
@@ -26,7 +29,7 @@ public class EncounterMapperTest {
         ResourceReference subject = fhirEncounter.getSubject();
         assertEquals("1234", subject.getDisplaySimple());
         assertEquals("http://mci/patients/1234", subject.getReferenceSimple());
-        assertEquals("Encounter - " + encounterId, fhirEncounter.getIndication().getDisplaySimple());
+        assertEquals("Encounter", fhirEncounter.getIndication().getDisplaySimple());
         assertEquals("urn:" + encounterId, fhirEncounter.getIndication().getReferenceSimple());
 
     }
@@ -51,17 +54,5 @@ public class EncounterMapperTest {
         healthIdAttribute.setAttributeType(healthAttributeType);
         healthIdAttribute.setValue(healthId);
         return healthIdAttribute;
-    }
-
-    private SystemProperties getSystemProperties(String facilityId) {
-        Properties shrProperties = new Properties();
-        shrProperties.setProperty(SystemProperties.FACILITY_ID, facilityId);
-
-        Properties frProperties = new Properties();
-        frProperties.setProperty(SystemProperties.FACILITY_URL_FORMAT, "%s.json");
-
-        HashMap<String, String> baseUrls = new HashMap<>();
-        baseUrls.put("mci", "http://mci");
-        return new SystemProperties(baseUrls, shrProperties, frProperties);
     }
 }

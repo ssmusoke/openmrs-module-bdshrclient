@@ -18,7 +18,6 @@ import org.openmrs.api.LocationService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +36,7 @@ import java.util.UUID;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_IN_PATIENT_VISIT_TYPE;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_OUT_PATIENT_VISIT_TYPE;
+import static org.openmrs.module.fhir.utils.DateUtil.parseDate;
 
 @Component
 public class FHIREncounterMapper {
@@ -65,7 +65,7 @@ public class FHIREncounterMapper {
         Map<String, List<String>> processedList = new HashMap<>();
         org.openmrs.Encounter emrEncounter = new org.openmrs.Encounter();
 
-        Date encounterDate = DateUtil.parseDate(date.toString());
+        Date encounterDate = parseDate(date.toString());
         emrEncounter.setEncounterDatetime(encounterDate);
 
         emrEncounter.setPatient(emrPatient);

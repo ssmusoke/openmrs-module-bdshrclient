@@ -9,6 +9,8 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 
 import java.lang.reflect.Type;
 
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+
 public class EntityReference {
 
     static DefaultedMap <Type, EntityReference> referenceMap;
@@ -40,6 +42,11 @@ public class EntityReference {
         @Override
         public String create(String id, SystemProperties systemProperties) {
             return systemProperties.getMciPatientUrl() + id;
+        }
+
+        @Override
+        protected String parseUrl(String url) {
+            return substringAfterLast(url, "/");
         }
     }
 

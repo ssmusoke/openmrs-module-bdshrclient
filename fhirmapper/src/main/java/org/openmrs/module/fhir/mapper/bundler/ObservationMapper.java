@@ -4,9 +4,11 @@ import org.hl7.fhir.instance.model.*;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.RelatedObservation;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -42,10 +44,10 @@ public class ObservationMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<EmrResource> map(Obs obs, Encounter fhirEncounter) {
-        List<EmrResource> result = new ArrayList<EmrResource>();
+    public List<EmrResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+        List<EmrResource> result = new ArrayList<>();
         if (null != obs) {
-            List<Observation> observations = mapToFhirObservation(obs, fhirEncounter);
+            List<Observation> observations = mapToFhirObservation(obs, fhirEncounter, systemProperties);
             for (Observation observation : observations) {
                 result.add(buildResource(observation, obs));
             }
@@ -57,32 +59,32 @@ public class ObservationMapper implements EmrObsResourceHandler {
         return new EmrResource(obs.getConcept().getName().getName(), asList(observation.getIdentifier()), observation);
     }
 
-    public List<Observation> mapToFhirObservation(Obs observation, Encounter fhirEncounter) {
-        List<Observation> result = new ArrayList<Observation>();
-        Observation entry = createObservation(observation, fhirEncounter);
+    public List<Observation> mapToFhirObservation(Obs observation, Encounter fhirEncounter, SystemProperties systemProperties) {
+        List<Observation> result = new ArrayList<>();
+        Observation entry = createObservation(observation, fhirEncounter, systemProperties);
         for (Obs member : observation.getGroupMembers()) {
-            mapGroupMember(member, fhirEncounter, entry, result);
+            mapGroupMember(member, fhirEncounter, entry, result, systemProperties);
         }
         result.add(entry);
         return result;
     }
 
-    private void mapGroupMember(Obs obs, Encounter fhirEncounter, Observation parentObservation, List<Observation> result) {
-        Observation observation = createObservation(obs, fhirEncounter);
-        parentObservation = mapRelatedObservation(observation).mergeWith(parentObservation);
+    private void mapGroupMember(Obs obs, Encounter fhirEncounter, Observation parentObservation, List<Observation> result, SystemProperties systemProperties) {
+        Observation observation = createObservation(obs, fhirEncounter, systemProperties);
+        mapRelatedObservation(observation).mergeWith(parentObservation);
         for (Obs member : obs.getGroupMembers()) {
-            mapGroupMember(member, fhirEncounter, observation, result);
+            mapGroupMember(member, fhirEncounter, observation, result, systemProperties);
         }
         result.add(observation);
     }
 
-    private Observation createObservation(Obs observation, Encounter fhirEncounter) {
+    private Observation createObservation(Obs observation, Encounter fhirEncounter, SystemProperties systemProperties) {
         Observation entry = new Observation();
         entry.setSubject(fhirEncounter.getSubject());
         mapName(observation, entry);
         entry.setStatusSimple(Observation.ObservationStatus.final_);
         entry.setReliabilitySimple(Observation.ObservationReliability.ok);
-        entry.setIdentifier(new Identifier().setValueSimple(observation.getUuid()));
+        entry.setIdentifier(new Identifier().setValueSimple(new EntityReference().build(Obs.class, systemProperties, observation.getUuid())));
         mapValue(observation, entry);
         return entry;
     }

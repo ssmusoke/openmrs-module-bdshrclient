@@ -28,7 +28,7 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
         UserService userService = Context.getUserService();
         ClientRegistry clientRegistry = new ClientRegistry(propertiesReader);
 
-        PatientPush patientPush = getPatientRegistry(userService, clientRegistry);
+        PatientPush patientPush = getPatientRegistry(propertiesReader, userService, clientRegistry);
         EncounterPush encounterPush = getEncounterRegistry(propertiesReader, userService, clientRegistry);
 
         executeBahmniTask(patientPush, encounterPush);
@@ -44,13 +44,15 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
                 clientRegistry);
     }
 
-    private PatientPush getPatientRegistry(UserService userService, ClientRegistry clientRegistry) {
+    private PatientPush getPatientRegistry(PropertiesReader propertiesReader, UserService userService, ClientRegistry clientRegistry) {
         return new PatientPush(
                 Context.getPatientService(),
                 userService,
                 Context.getPersonService(),
                 new PatientMapper(new BbsCodeServiceImpl()),
-                clientRegistry.getMCIClient());
+                propertiesReader,
+                clientRegistry.getMCIClient(),
+                PlatformUtil.getRegisteredComponent(IdMappingsRepository.class));
     }
 
     protected FeedClient getFeedClient(String uri, EventWorker worker) throws URISyntaxException {

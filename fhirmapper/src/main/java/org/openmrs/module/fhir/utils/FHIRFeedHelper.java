@@ -4,7 +4,6 @@ import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.*;
 import org.openmrs.Concept;
 import org.openmrs.ConceptReferenceTerm;
-import org.openmrs.module.fhir.mapper.model.FHIRIdentifier;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 
@@ -88,7 +87,7 @@ public class FHIRFeedHelper {
 
     public static Resource findResourceByReference(AtomFeed bundle, ResourceReference reference) {
         for (AtomEntry<? extends Resource> atomEntry : bundle.getEntryList()) {
-            if (StringUtils.equals(new FHIRIdentifier(atomEntry.getId()).getInternalForm(), reference.getReferenceSimple())) {
+            if (StringUtils.equals(atomEntry.getId(), reference.getReferenceSimple())) {
                 return atomEntry.getResource();
             }
         }

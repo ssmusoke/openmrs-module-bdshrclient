@@ -10,14 +10,20 @@ import org.openmrs.User;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.UserService;
-import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.mci.api.MciPatientUpdateResponse;
 import org.openmrs.module.shrclient.mci.api.model.Patient;
+import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
+import org.openmrs.module.shrclient.util.SystemProperties;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.openmrs.module.fhir.utils.Constants.*;
 
 public class PatientPush implements EventWorker {
 
@@ -27,15 +33,19 @@ public class PatientPush implements EventWorker {
     private UserService userService;
     private PersonService personService;
     private PatientMapper patientMapper;
+    private PropertiesReader propertiesReader;
     private RestClient mciRestClient;
+    private IdMappingsRepository idMappingsRepository;
 
     public PatientPush(PatientService patientService, UserService userService, PersonService personService,
-                       PatientMapper patientMapper, RestClient mciRestClient) {
+                       PatientMapper patientMapper, PropertiesReader propertiesReader, RestClient mciRestClient, IdMappingsRepository idMappingsRepository) {
         this.patientService = patientService;
         this.userService = userService;
         this.personService = personService;
         this.patientMapper = patientMapper;
+        this.propertiesReader = propertiesReader;
         this.mciRestClient = mciRestClient;
+        this.idMappingsRepository = idMappingsRepository;
     }
 
     @Override
@@ -59,15 +69,15 @@ public class PatientPush implements EventWorker {
             Patient patient = patientMapper.map(openMrsPatient);
             log.debug("Patient: [ " + patient + "]");
 
-            PersonAttribute healthIdAttribute = openMrsPatient.getAttribute(Constants.HEALTH_ID_ATTRIBUTE);
+            PersonAttribute healthIdAttribute = openMrsPatient.getAttribute(HEALTH_ID_ATTRIBUTE);
 
 
             if (healthIdAttribute == null) {
-                MciPatientUpdateResponse response = mciRestClient.post(Constants.MCI_PATIENT_URL, patient, MciPatientUpdateResponse.class);
+                MciPatientUpdateResponse response = mciRestClient.post(MCI_PATIENT_URL, patient, MciPatientUpdateResponse.class);
                 updateOpenMrsPatientHealthId(openMrsPatient, response.getHealthId());
             } else {
                 String healthId = healthIdAttribute.getValue();
-                String url = Constants.MCI_PATIENT_URL + "/" + healthId;
+                String url = MCI_PATIENT_URL + "/" + healthId;
                 MciPatientUpdateResponse response = mciRestClient.put(url, patient, MciPatientUpdateResponse.class);
             }
 
@@ -86,7 +96,7 @@ public class PatientPush implements EventWorker {
             return;
         }
 
-        PersonAttribute healthIdAttribute = openMrsPatient.getAttribute(Constants.HEALTH_ID_ATTRIBUTE);
+        PersonAttribute healthIdAttribute = openMrsPatient.getAttribute(HEALTH_ID_ATTRIBUTE);
         if (healthIdAttribute != null && healthId.equals(healthIdAttribute.getValue())) {
             log.debug("OpenMRS patient health id is same as the health id provided. Hence, not updated.");
             return;
@@ -94,10 +104,11 @@ public class PatientPush implements EventWorker {
 
         if (healthIdAttribute == null) {
             healthIdAttribute = new PersonAttribute();
-            PersonAttributeType healthAttrType = personService.getPersonAttributeTypeByName(Constants.HEALTH_ID_ATTRIBUTE);
+            PersonAttributeType healthAttrType = personService.getPersonAttributeTypeByName(HEALTH_ID_ATTRIBUTE);
             healthIdAttribute.setAttributeType(healthAttrType);
             healthIdAttribute.setValue(healthId);
             openMrsPatient.addAttribute(healthIdAttribute);
+            addPatientToIdMapping(openMrsPatient, healthId);
 
         } else {
             healthIdAttribute.setValue(healthId);
@@ -120,9 +131,17 @@ public class PatientPush implements EventWorker {
         return !shrClientSystemUser.getId().equals(changedByUser.getId());
     }
 
+    private void addPatientToIdMapping(org.openmrs.Patient emrPatient, String healthId) {
+        String patientUuid = emrPatient.getUuid();
+        SystemProperties systemProperties = new SystemProperties(propertiesReader.getBaseUrls(), propertiesReader.getShrProperties(), propertiesReader.getFrProperties());
+        String url = new EntityReference().build(org.openmrs.Patient.class, systemProperties, healthId);
+        idMappingsRepository.saveMapping(new IdMapping(patientUuid, healthId, ID_MAPPING_PATIENT_TYPE, url));
+
+    }
+
     private User getShrClientSystemUser() {
         //OpenMRS Daemon user. UUID hardcoded in org.openmrs.api.Context.Daemon
-        return userService.getUserByUuid(Constants.OPENMRS_DAEMON_USER);
+        return userService.getUserByUuid(OPENMRS_DAEMON_USER);
         //return userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME);
     }
 

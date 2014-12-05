@@ -23,7 +23,7 @@ public class EncounterMapper {
         setSubject(openMrsEncounter, encounter, systemProperties);
         setParticipant(openMrsEncounter, encounter);
         setServiceProvider(encounter, systemProperties);
-        setIdentifiers(encounter, openMrsEncounter);
+        setIdentifiers(encounter, openMrsEncounter, systemProperties);
         setType(encounter, openMrsEncounter);
         return encounter;
     }
@@ -33,7 +33,7 @@ public class EncounterMapper {
         final ResourceReference encounterRef = new ResourceReference();
         String encounterId = openMrsEncounter.getUuid();
         encounterRef.setReferenceSimple(getReference(org.openmrs.Encounter.class, systemProperties, encounterId));
-        encounterRef.setDisplaySimple("Encounter - " + encounterId);
+        encounterRef.setDisplaySimple("Encounter");
         encounter.setIndication(encounterRef);
     }
 
@@ -41,8 +41,8 @@ public class EncounterMapper {
         encounter.addType().setTextSimple(openMrsEncounter.getEncounterType().getName());
     }
 
-    private void setIdentifiers(Encounter encounter, org.openmrs.Encounter openMrsEncounter) {
-        encounter.addIdentifier().setValueSimple(openMrsEncounter.getUuid());
+    private void setIdentifiers(Encounter encounter, org.openmrs.Encounter openMrsEncounter, SystemProperties systemProperties) {
+        encounter.addIdentifier().setValueSimple(getReference(org.openmrs.Encounter.class, systemProperties, openMrsEncounter.getUuid()));
     }
 
     private void setServiceProvider(Encounter encounter, SystemProperties systemProperties) {
@@ -77,8 +77,8 @@ public class EncounterMapper {
         }
     }
 
-    private String getReference(Type type, SystemProperties systemProperties, String healthId) {
-        return new EntityReference().build(type, systemProperties, healthId);
+    private String getReference(Type type, SystemProperties systemProperties, String id) {
+        return new EntityReference().build(type, systemProperties, id);
     }
 
     private void setParticipant(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {

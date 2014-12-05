@@ -14,8 +14,10 @@ import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -49,17 +51,17 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<EmrResource> map(Obs obs, Encounter fhirEncounter) {
-        List<EmrResource> diagnoses = new ArrayList<EmrResource>();
+    public List<EmrResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+        List<EmrResource> diagnoses = new ArrayList<>();
 
-        EmrResource fhirCondition = createFHIRCondition(fhirEncounter, obs);
+        EmrResource fhirCondition = createFHIRCondition(fhirEncounter, obs, systemProperties);
         if (fhirCondition != null) {
             diagnoses.add(fhirCondition);
         }
         return diagnoses;
     }
 
-    private EmrResource createFHIRCondition(Encounter encounter, Obs obs) {
+    private EmrResource createFHIRCondition(Encounter encounter, Obs obs, SystemProperties systemProperties) {
         Condition condition = new Condition();
         condition.setEncounter(encounter.getIndication());
         condition.setSubject(encounter.getSubject());
@@ -88,7 +90,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         condition.setDateAsserted(onsetDate);
 
         Identifier identifier = condition.addIdentifier();
-        identifier.setValueSimple(obs.getUuid());
+        identifier.setValueSimple(new EntityReference().build(Obs.class, systemProperties, obs.getUuid()));
 
         if (CollectionUtils.isEmpty(condition.getCode().getCoding())) {
             return null;

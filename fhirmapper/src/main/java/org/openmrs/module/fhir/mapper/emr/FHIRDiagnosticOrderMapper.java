@@ -14,7 +14,6 @@ import org.openmrs.api.ProviderService;
 import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.utils.Constants;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.fhir.utils.OMRSHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,6 +25,7 @@ import java.util.Map;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CARE_SETTING_FOR_INPATIENT;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CARE_SETTING_FOR_OUTPATIENT;
+import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
 
 
 @Component
@@ -81,7 +81,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResource {
     }
 
     private String getCareSetting(AtomFeed feed, DiagnosticOrder diagnosticOrder) {
-        org.hl7.fhir.instance.model.Encounter fhirEncounter = (org.hl7.fhir.instance.model.Encounter) FHIRFeedHelper.findResourceByReference(feed, diagnosticOrder.getEncounter());
+        org.hl7.fhir.instance.model.Encounter fhirEncounter = (org.hl7.fhir.instance.model.Encounter) findResourceByReference(feed, diagnosticOrder.getEncounter());
         org.hl7.fhir.instance.model.Enumeration<org.hl7.fhir.instance.model.Encounter.EncounterClass> fhirEncounterClass = fhirEncounter.getClass_();
         return fhirEncounterClass.getValue().equals(org.hl7.fhir.instance.model.Encounter.EncounterClass.inpatient) ? MRS_CARE_SETTING_FOR_INPATIENT : MRS_CARE_SETTING_FOR_OUTPATIENT;
     }

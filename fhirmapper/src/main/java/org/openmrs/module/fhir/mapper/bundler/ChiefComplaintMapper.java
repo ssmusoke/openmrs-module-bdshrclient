@@ -7,8 +7,10 @@ import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,23 +39,23 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<EmrResource> map(Obs obs, Encounter fhirEncounter) {
-        List<EmrResource> chiefComplaints = new ArrayList<EmrResource>();
+    public List<EmrResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+        List<EmrResource> chiefComplaints = new ArrayList<>();
         for (Obs member : obs.getGroupMembers()) {
             if (member.getConcept().getName().getName().equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA)) {
-                chiefComplaints.add(createFHIRCondition(fhirEncounter, member));
+                chiefComplaints.add(createFHIRCondition(fhirEncounter, member, systemProperties));
             }
         }
         return chiefComplaints;
     }
 
-    private EmrResource createFHIRCondition(Encounter encounter, Obs obs) {
+    private EmrResource createFHIRCondition(Encounter encounter, Obs obs, SystemProperties systemProperties) {
         Condition condition = new Condition();
         condition.setEncounter(encounter.getIndication());
         condition.setSubject(encounter.getSubject());
         condition.setAsserter(getParticipant(encounter));
         condition.setCategory(getChiefComplaintCategory());
-        condition.setStatus(new Enumeration<Condition.ConditionStatus>(Condition.ConditionStatus.confirmed));
+        condition.setStatus(new Enumeration<>(Condition.ConditionStatus.confirmed));
 
         org.hl7.fhir.instance.model.Date assertedDate = new org.hl7.fhir.instance.model.Date();
         assertedDate.setValue(new DateAndTime(obs.getObsDatetime()));
@@ -81,7 +83,7 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
         }
 
         Identifier identifier = condition.addIdentifier();
-        identifier.setValueSimple(obs.getUuid());
+        identifier.setValueSimple(new EntityReference().build(Obs.class, systemProperties, obs.getUuid()));
 
         return new EmrResource(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT, condition.getIdentifier(), condition);
     }
