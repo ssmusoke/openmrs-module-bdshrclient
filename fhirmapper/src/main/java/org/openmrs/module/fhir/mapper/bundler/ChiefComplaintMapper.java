@@ -20,6 +20,7 @@ import java.util.Set;
 
 import static org.openmrs.module.fhir.mapper.model.ObservationType.CHIEF_COMPLAINT_DATA;
 import static org.openmrs.module.fhir.mapper.model.ObservationType.HISTORY_AND_EXAMINATION;
+import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addReferenceCodes;
 
 @Component
 public class ChiefComplaintMapper implements EmrObsResourceHandler {
@@ -28,7 +29,7 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
     private IdMappingsRepository idMappingsRepository;
 
     @Override
-    public boolean handles(Obs observation) {
+    public boolean canHandle(Obs observation) {
         CompoundObservation obs = new CompoundObservation(observation);
         if (obs.isOfType(HISTORY_AND_EXAMINATION)) {
             if (obs.findMember(CHIEF_COMPLAINT_DATA) != null) {
@@ -65,7 +66,7 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
         for (Obs member : obsMembers) {
             final String memberConceptName = member.getConcept().getName().getName();
             if (memberConceptName.equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT)) {
-                final CodeableConcept complaintCode = FHIRFeedHelper.addReferenceCodes(member.getValueCoded(), idMappingsRepository);
+                final CodeableConcept complaintCode = addReferenceCodes(member.getValueCoded(), idMappingsRepository);
                 if (CollectionUtils.isEmpty(complaintCode.getCoding())) {
                     Coding coding = complaintCode.addCoding();
                     coding.setDisplaySimple(member.getValueCoded().getName().getName());

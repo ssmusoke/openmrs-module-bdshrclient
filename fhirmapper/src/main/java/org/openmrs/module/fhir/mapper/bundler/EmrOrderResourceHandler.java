@@ -8,6 +8,6 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 import java.util.List;
 
 public interface EmrOrderResourceHandler {
-    boolean handles(Order order);
+    boolean canHandle(Order order);
     List<EmrResource> map(Order order, Encounter fhirEncounter, AtomFeed feed, SystemProperties systemProperties);
 }

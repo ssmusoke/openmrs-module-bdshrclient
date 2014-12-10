@@ -13,7 +13,7 @@ import java.util.List;
 import static org.openmrs.module.fhir.TestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
-public class ChiefComplaintMapperTest extends BaseModuleWebContextSensitiveTest {
+public class ChiefComplaintMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     ChiefComplaintMapper chiefComplaintMapper;

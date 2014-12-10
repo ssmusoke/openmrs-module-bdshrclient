@@ -8,7 +8,7 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 import java.util.List;
 
 public interface EmrObsResourceHandler {
-    boolean handles(Obs observation);
+    boolean canHandle(Obs observation);
     List<EmrResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties);
 
 }

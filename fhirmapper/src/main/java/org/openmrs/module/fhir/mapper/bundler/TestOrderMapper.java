@@ -33,7 +33,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
     private List<EmrResource> resources;
 
     @Override
-    public boolean handles(Order order) {
+    public boolean canHandle(Order order) {
         return (order instanceof TestOrder) && order.getOrderType().getName().equals("Lab Order");
     }
 

@@ -29,7 +29,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
     private IdMappingsRepository idMappingsRepository;
 
     @Override
-    public boolean handles(Obs observation) {
+    public boolean canHandle(Obs observation) {
         return MRS_ENC_TYPE_LAB_RESULT.equals(observation.getEncounter().getEncounterType().getName());
     }
 

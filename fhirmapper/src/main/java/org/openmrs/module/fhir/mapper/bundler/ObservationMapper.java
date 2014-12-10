@@ -1,5 +1,6 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.hl7.fhir.instance.model.*;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
@@ -7,7 +8,6 @@ import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.RelatedObservation;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,9 +17,8 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_ENC_TYPE_LAB_RESULT;
-import static org.openmrs.module.fhir.mapper.model.ObservationType.FAMILY_HISTORY;
-import static org.openmrs.module.fhir.mapper.model.ObservationType.HISTORY_AND_EXAMINATION;
-import static org.openmrs.module.fhir.mapper.model.ObservationType.VISIT_DIAGNOSES;
+import static org.openmrs.module.fhir.mapper.model.ObservationType.*;
+import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addReferenceCodes;
 
 @Component("FHIRObservationMapper")
 public class ObservationMapper implements EmrObsResourceHandler {
@@ -34,7 +33,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public boolean handles(Obs observation) {
+    public boolean canHandle(Obs observation) {
         CompoundObservation obs = new CompoundObservation(observation);
         if (obs.isOfType(HISTORY_AND_EXAMINATION) || obs.isOfType(VISIT_DIAGNOSES) || obs.isOfType(FAMILY_HISTORY)) {
             return false;
@@ -47,10 +46,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
     public List<EmrResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
         List<EmrResource> result = new ArrayList<>();
         if (null != obs) {
-            List<Observation> observations = mapToFhirObservation(obs, fhirEncounter, systemProperties);
-            for (Observation observation : observations) {
-                result.add(buildResource(observation, obs));
-            }
+            result  = mapToFhirObservation(obs, fhirEncounter, systemProperties);
         }
         return result;
     }
@@ -59,23 +55,25 @@ public class ObservationMapper implements EmrObsResourceHandler {
         return new EmrResource(obs.getConcept().getName().getName(), asList(observation.getIdentifier()), observation);
     }
 
-    public List<Observation> mapToFhirObservation(Obs observation, Encounter fhirEncounter, SystemProperties systemProperties) {
-        List<Observation> result = new ArrayList<>();
-        Observation entry = createObservation(observation, fhirEncounter, systemProperties);
+    public List<EmrResource> mapToFhirObservation(Obs observation, Encounter fhirEncounter, SystemProperties systemProperties) {
+        List<EmrResource> result = new ArrayList<>();
+        Observation fhirObservation = createObservation(observation, fhirEncounter, systemProperties);
+        EmrResource entry = buildResource(fhirObservation, observation);
         for (Obs member : observation.getGroupMembers()) {
-            mapGroupMember(member, fhirEncounter, entry, result, systemProperties);
+            mapGroupMember(member, fhirEncounter, fhirObservation, result, systemProperties);
         }
         result.add(entry);
         return result;
     }
 
-    private void mapGroupMember(Obs obs, Encounter fhirEncounter, Observation parentObservation, List<Observation> result, SystemProperties systemProperties) {
+    private void mapGroupMember(Obs obs, Encounter fhirEncounter, Observation parentObservation, List<EmrResource> result, SystemProperties systemProperties) {
         Observation observation = createObservation(obs, fhirEncounter, systemProperties);
+        EmrResource entry = buildResource(observation, obs);
         mapRelatedObservation(observation).mergeWith(parentObservation);
         for (Obs member : obs.getGroupMembers()) {
             mapGroupMember(member, fhirEncounter, observation, result, systemProperties);
         }
-        result.add(observation);
+        result.add(entry);
     }
 
     private Observation createObservation(Obs observation, Encounter fhirEncounter, SystemProperties systemProperties) {
@@ -107,20 +105,12 @@ public class ObservationMapper implements EmrObsResourceHandler {
         if (null == observation.getConcept()) {
             return null;
         }
-        IdMapping mapping = idMappingsRepository.findByInternalId(observation.getConcept().getUuid());
-        if (null == mapping) {
-            CodeableConcept result = new CodeableConcept();
-            Coding coding = result.addCoding();
+        CodeableConcept observationName = addReferenceCodes(observation.getConcept(), idMappingsRepository);
+        if (CollectionUtils.isEmpty(observationName.getCoding())) {
+            Coding coding = observationName.addCoding();
             coding.setDisplaySimple(observation.getConcept().getName().getName());
-            return result;
-        } else {
-            CodeableConcept result = new CodeableConcept();
-            Coding coding = result.addCoding();
-            coding.setSystemSimple(mapping.getUri());
-            coding.setDisplaySimple(observation.getConcept().getName().getName());
-            coding.setCodeSimple(mapping.getExternalId());
-            return result;
         }
+        return observationName;
     }
 
     private RelatedObservation mapRelatedObservation(Observation observation) {

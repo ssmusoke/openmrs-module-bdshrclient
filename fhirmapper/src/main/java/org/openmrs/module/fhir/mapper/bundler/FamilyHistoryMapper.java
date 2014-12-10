@@ -41,7 +41,7 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
     ObservationValueMapper observationValueMapper;
 
     @Override
-    public boolean handles(Obs observation) {
+    public boolean canHandle(Obs observation) {
         CompoundObservation obs = new CompoundObservation(observation);
         return obs.isOfType(ObservationType.FAMILY_HISTORY);
     }

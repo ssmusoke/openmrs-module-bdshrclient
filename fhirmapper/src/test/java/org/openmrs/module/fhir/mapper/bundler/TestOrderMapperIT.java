@@ -29,7 +29,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Before
     public void setUp() throws Exception {
-        executeDataSet("labOrder.xml");
+        executeDataSet("labOrderDS.xml");
     }
 
     @Test

@@ -47,7 +47,7 @@ public class CompositionBundle {
         final Set<Obs> observations = emrEncounter.getObsAtTopLevel(false);
         for (Obs obs : observations) {
             for (EmrObsResourceHandler handler : obsResourceHandlers) {
-                if (handler.handles(obs)) {
+                if (handler.canHandle(obs)) {
                     List<EmrResource> mappedResources = handler.map(obs, fhirEncounter, systemProperties);
                     if (CollectionUtils.isNotEmpty(mappedResources)) {
                         addResourcesToBundle(mappedResources, composition, atomFeed);
@@ -59,7 +59,7 @@ public class CompositionBundle {
         Set<org.openmrs.Order> orders = emrEncounter.getOrders();
         for (org.openmrs.Order order : orders) {
             for (EmrOrderResourceHandler handler : orderResourceHandlers) {
-                if (handler.handles(order)) {
+                if (handler.canHandle(order)) {
                     List<EmrResource> mappedResources = handler.map(order, fhirEncounter, atomFeed, systemProperties);
                     if (CollectionUtils.isNotEmpty(mappedResources)) {
                         addResourcesToBundle(mappedResources, composition, atomFeed);

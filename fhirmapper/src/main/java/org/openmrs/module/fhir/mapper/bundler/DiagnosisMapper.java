@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.openmrs.module.fhir.mapper.model.ObservationType.VISIT_DIAGNOSES;
+import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addReferenceCodes;
 
 @Component("fhirDiagnosisMapper")
 public class DiagnosisMapper implements EmrObsResourceHandler {
@@ -45,7 +46,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public boolean handles(Obs observation) {
+    public boolean canHandle(Obs observation) {
         CompoundObservation obs = new CompoundObservation(observation);
         return obs.isOfType(VISIT_DIAGNOSES);
     }
@@ -75,7 +76,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         for (Obs member : obsMembers) {
             Concept memberConcept = member.getConcept();
             if (isCodedDiagnosisObservation(memberConcept)) {
-                CodeableConcept diagnosisCode = FHIRFeedHelper.addReferenceCodes(member.getValueCoded(), idMappingsRepository);
+                CodeableConcept diagnosisCode = addReferenceCodes(member.getValueCoded(), idMappingsRepository);
                 if (CollectionUtils.isEmpty(diagnosisCode.getCoding())) {
                     return null;
                 }
