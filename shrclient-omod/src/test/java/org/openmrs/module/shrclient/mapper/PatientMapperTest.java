@@ -23,7 +23,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.openmrs.module.addresshierarchy.AddressField.STATE_PROVINCE;
 
 public class PatientMapperTest {
 
@@ -121,7 +120,7 @@ public class PatientMapperTest {
         a.setAddressLine(addressLine);
         a.setDivisionId("10");
         a.setDistrictId("20");
-        a.setUpazillaId("30");
+        a.setUpazilaId("30");
         a.setCityCorporationId("40");
         a.setUnionOrUrbanWardId("50");
         a.setRuralWardId("01");
