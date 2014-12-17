@@ -25,7 +25,7 @@ public class Address {
     @JsonProperty("union_or_urban_ward_id")
     private String unionOrUrbanWardId;
 
-    @JsonProperty("union_id")
+    @JsonProperty("rural_ward_id")
     @JsonInclude(NON_EMPTY)
     private String ruralWardId;
 
@@ -88,8 +88,8 @@ public class Address {
         sb.append(", districtId='").append(districtId).append('\'');
         sb.append(", upazilaId='").append(upazilaId).append('\'');
         sb.append(", cityCorporationId='").append(cityCorporationId).append('\'');
-        sb.append(", wardId='").append(unionOrUrbanWardId).append('\'');
-        sb.append(", unionId='").append(ruralWardId).append('\'');
+        sb.append(", unionOrUrbanWardId='").append(unionOrUrbanWardId).append('\'');
+        sb.append(", ruralWardId='").append(ruralWardId).append('\'');
         sb.append(", thanaId='").append(thanaId).append('\'');
         sb.append('}');
         return sb.toString();
