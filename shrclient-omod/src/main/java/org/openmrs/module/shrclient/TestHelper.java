@@ -23,8 +23,10 @@ public class TestHelper {
         Properties frProperties = new Properties();
         frProperties.setProperty(SystemProperties.FACILITY_URL_FORMAT, "%s.json");
 
+        Properties trProperties = new Properties();
+
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("mci", "http://mci");
-        return new SystemProperties(baseUrls, shrProperties, frProperties);
+        return new SystemProperties(baseUrls, shrProperties, frProperties, trProperties);
     }
 }

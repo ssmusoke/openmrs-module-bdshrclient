@@ -6,6 +6,7 @@ import org.hl7.fhir.instance.model.Encounter;
 import org.openmrs.*;
 import org.openmrs.ConceptMap;
 import org.openmrs.Order;
+import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -20,6 +21,7 @@ import java.util.UUID;
 
 import static org.hl7.fhir.instance.model.DiagnosticOrder.DiagnosticOrderStatus.requested;
 import static org.openmrs.module.fhir.mapper.FHIRProperties.LOINC_SOURCE_NAME;
+import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_LAB_ORDER_TYPE;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.identifyResource;
 
@@ -27,6 +29,7 @@ import static org.openmrs.module.fhir.utils.FHIRFeedHelper.identifyResource;
 public class TestOrderMapper implements EmrOrderResourceHandler {
 
     private static final int TEST_TYPE_POSITION_IN_SPLITED_CONCEPT_REF_TERM = 3;
+
     @Autowired
     private IdMappingsRepository idMappingsRepository;
 
@@ -34,7 +37,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
 
     @Override
     public boolean canHandle(Order order) {
-        return (order instanceof TestOrder) && order.getOrderType().getName().equals("Lab Order");
+        return (order instanceof TestOrder) && order.getOrderType().getName().equalsIgnoreCase(MRS_LAB_ORDER_TYPE);
     }
 
     @Override

@@ -36,4 +36,7 @@ public class MRSProperties {
     public static final String MRS_ENC_TYPE_LAB_RESULT = "LAB_RESULT";
 
     public static final String MRS_CONCEPT_CLASS_LAB_SET = "LabSet";
+
+    public static final String MRS_DRUG_ORDER_TYPE = "Drug Order";
+    public static final String MRS_LAB_ORDER_TYPE = "Lab Order";
 }

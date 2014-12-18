@@ -26,20 +26,20 @@ public class FHIRFeedHelper {
         coding.setDisplaySimple(display);
     }
 
-    public static CodeableConcept addReferenceCodes(Concept obsConcept, IdMappingsRepository idMappingsRepository) {
+    public static CodeableConcept addReferenceCodes(Concept concept, IdMappingsRepository idMappingsRepository) {
         CodeableConcept codeableConcept = new CodeableConcept();
-        Collection<org.openmrs.ConceptMap> conceptMappings = obsConcept.getConceptMappings();
+        Collection<org.openmrs.ConceptMap> conceptMappings = concept.getConceptMappings();
         for (org.openmrs.ConceptMap mapping : conceptMappings) {
             ConceptReferenceTerm conceptReferenceTerm = mapping.getConceptReferenceTerm();
             final IdMapping idMapping = idMappingsRepository.findByInternalId(conceptReferenceTerm.getUuid());
             if(idMapping == null) {
                 continue;
             }
-            addFHIRCoding(codeableConcept, conceptReferenceTerm.getCode(), idMapping.getUri(), obsConcept.getName().getName());
+            addFHIRCoding(codeableConcept, conceptReferenceTerm.getCode(), idMapping.getUri(), concept.getName().getName());
         }
-        IdMapping idMapping = idMappingsRepository.findByInternalId(obsConcept.getUuid());
+        IdMapping idMapping = idMappingsRepository.findByInternalId(concept.getUuid());
         if(idMapping != null) {
-            addFHIRCoding(codeableConcept, idMapping.getExternalId(), idMapping.getUri(), obsConcept.getName().getName());
+            addFHIRCoding(codeableConcept, idMapping.getExternalId(), idMapping.getUri(), concept.getName().getName());
         }
         return codeableConcept;
     }

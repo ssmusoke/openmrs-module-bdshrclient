@@ -18,7 +18,6 @@ public class PropertiesReader {
     public static final String URL_SEPARATOR_FOR_CONTEXT_PATH = "/";
     public static final String URL_SEPARATOR_FOR_PORT_NO = ":";
 
-
     public Properties getMciProperties() {
         return getProperties("mci.properties");
     }
@@ -35,13 +34,25 @@ public class PropertiesReader {
         return getProperties("fr.properties");
     }
 
+    public Properties getTrProperties() {
+        return getProperties("tr_atomfeed_properties.properties");
+    }
+
+
     public HashMap<String, String> getBaseUrls(){
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("mci", getMciBaseUrl()) ;
         baseUrls.put("fr", getFrBaseUrl()) ;
         baseUrls.put("shr", getShrBaseUrl()) ;
         baseUrls.put("lr", getLrBaseUrl()) ;
+        baseUrls.put("tr",getTrBaseUrl());
         return baseUrls;
+    }
+
+    private String getTrBaseUrl() {
+        Properties properties = getTrProperties();
+        return getBaseUrl(properties.getProperty("tr.scheme"), properties.getProperty("tr.host"),
+                properties.getProperty("tr.port"));
     }
 
     public String getMciBaseUrl() {

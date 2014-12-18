@@ -49,6 +49,6 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
     private SystemProperties getSystemProperties(String facilityId) {
         Properties shrProperties = new Properties();
         shrProperties.setProperty(SystemProperties.FACILITY_ID, facilityId);
-        return new SystemProperties(new HashMap<String, String>(), shrProperties, new Properties());
+        return new SystemProperties(new HashMap<String, String>(), shrProperties, new Properties(), new Properties());
     }
 }

@@ -23,8 +23,14 @@ public class TestHelper {
         Properties frProperties = new Properties();
         frProperties.setProperty(SystemProperties.FACILITY_URL_FORMAT, "%s.json");
 
+        Properties trProperties = new Properties();
+        trProperties.setProperty("tr.base.valuset.url", "openmrs/ws/rest/v1/tr/vs");
+        trProperties.setProperty("tr.valueset.route", "sample-route");
+        trProperties.setProperty("tr.valueset.quantityunits", "sample-units");
+
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("mci", "http://mci");
-        return new SystemProperties(baseUrls, shrProperties, frProperties);
+        baseUrls.put("tr", "http://tr");
+        return new SystemProperties(baseUrls, shrProperties, frProperties, trProperties);
     }
 }

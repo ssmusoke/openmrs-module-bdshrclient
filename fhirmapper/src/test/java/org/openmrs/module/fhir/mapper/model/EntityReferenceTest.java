@@ -53,6 +53,7 @@ public class EntityReferenceTest {
     private SystemProperties getSystemProperties(String facilityId) {
         Properties shrProperties = new Properties();
         shrProperties.setProperty(SystemProperties.FACILITY_ID, facilityId);
+        Properties trProperties = new Properties();
 
         Properties frProperties = new Properties();
         frProperties.setProperty(SystemProperties.FACILITY_URL_FORMAT, "foo-bar/%s.json");
@@ -61,6 +62,6 @@ public class EntityReferenceTest {
         baseUrls.put("mci", "http://mci");
         baseUrls.put("fr", "http://fr");
 
-        return new SystemProperties(baseUrls, shrProperties, frProperties);
+        return new SystemProperties(baseUrls, shrProperties, frProperties, trProperties);
     }
 }
