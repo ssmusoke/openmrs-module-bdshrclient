@@ -299,6 +299,9 @@
         </update>
 
     </changeSet>
-
+    
+    <changeSet id="bdshrclient-241219-1500" author="tw" context="setup">
+        <modifyDataType tableName="address_hierarchy_entry" columnName="user_generated_id" newDataType="varchar(12)" />
+    </changeSet>
 
 </databaseChangeLog>

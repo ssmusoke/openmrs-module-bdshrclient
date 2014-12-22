@@ -1,5 +1,6 @@
 package org.openmrs.module.shrclient.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.openmrs.PersonAddress;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.AddressField;
@@ -7,6 +8,8 @@ import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.shrclient.mci.api.model.Address;
+
+import java.util.List;
 
 import static org.openmrs.module.shrclient.mci.api.model.Address.getAddressCodeForLevel;
 import static org.openmrs.module.shrclient.util.AddressLevel.*;
@@ -46,25 +49,40 @@ public class AddressHelper {
         String wardOrUnion = openMrsPersonAddress.getAddress3();
         String ruralWard = openMrsPersonAddress.getAddress2();
 
-        String divisionId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(getAddressHierarchyLevel(Division), division).get(0).getUserGeneratedId();
-        String districtId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(getAddressHierarchyLevel(Zilla), district).get(0).getUserGeneratedId();
-        String upazillaId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(getAddressHierarchyLevel(Upazilla), upazilla).get(0).getUserGeneratedId();
-        String cityCorporationId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(getAddressHierarchyLevel(Paurasava), cityCorporation).get(0).getUserGeneratedId();
-        String wardOrUnionId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(getAddressHierarchyLevel(UnionOrWard), wardOrUnion).get(0).getUserGeneratedId();
-        String ruralWardId = null;
-        if(ruralWard != null) {
-            ruralWardId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(getAddressHierarchyLevel(RuralWard), ruralWard).get(0).getUserGeneratedId();
-        }
+        AddressHierarchyLevel divisionLevel = getAddressHierarchyLevel(Division);
+        String divisionId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(divisionLevel, division).get(0).getUserGeneratedId();
+        AddressHierarchyLevel districtLevel = getAddressHierarchyLevel(Zilla);
+        String districtId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(districtLevel, district).get(0).getUserGeneratedId();
+        AddressHierarchyLevel upazilaLevel = getAddressHierarchyLevel(Upazilla);
+        String upazillaId = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(upazilaLevel, upazilla).get(0).getUserGeneratedId();
+
+
+        String cityCorporationId = getAddressHierarchyLevelUserGenId(Paurasava, cityCorporation);
+        String wardOrUnionId = getAddressHierarchyLevelUserGenId(UnionOrWard, wardOrUnion);
+        String ruralWardId = getAddressHierarchyLevelUserGenId(RuralWard, ruralWard);
+
+        String corpLevelCode = cityCorporationId != null? getAddressCodeForLevel(cityCorporationId, Paurasava.getLevelNumber()) : null;
+        String unionOrUrbanWardLevelCode = wardOrUnionId != null ? getAddressCodeForLevel(wardOrUnionId, UnionOrWard.getLevelNumber()) : null;
+        String ruralWardLevelCode = ruralWardId != null ? getAddressCodeForLevel(ruralWardId, RuralWard.getLevelNumber()) : null;
 
         Address presentAddress = new Address(addressLine,
                 getAddressCodeForLevel(divisionId, Division.getLevelNumber()),
                 getAddressCodeForLevel(districtId, Zilla.getLevelNumber()),
                 getAddressCodeForLevel(upazillaId, Upazilla.getLevelNumber()),
-                getAddressCodeForLevel(cityCorporationId, Paurasava.getLevelNumber()),
-                getAddressCodeForLevel(wardOrUnionId, UnionOrWard.getLevelNumber()),
-                ruralWardId != null ? getAddressCodeForLevel(ruralWardId, RuralWard.getLevelNumber()) : null,
+                corpLevelCode,
+                unionOrUrbanWardLevelCode,
+                ruralWardLevelCode,
                 null);
         return presentAddress;
+    }
+
+    private String getAddressHierarchyLevelUserGenId(AddressLevel level, String name) {
+        if (StringUtils.isNotBlank(name)) {
+            AddressHierarchyLevel hierarchyLevel = getAddressHierarchyLevel(level);
+            List<AddressHierarchyEntry> entries = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(hierarchyLevel, name);
+            return entries.isEmpty() ? null : entries.get(0).getUserGeneratedId();
+        }
+        return null;
     }
 
     public PersonAddress setPersonAddress(PersonAddress emrPatientAddress, Address address) {
