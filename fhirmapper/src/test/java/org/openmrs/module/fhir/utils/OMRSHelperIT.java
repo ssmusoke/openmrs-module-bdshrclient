@@ -1,11 +1,7 @@
 package org.openmrs.module.fhir.utils;
 
 
-import static java.util.Arrays.asList;
 import org.hl7.fhir.instance.model.Coding;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
@@ -14,6 +10,9 @@ import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.junit.Assert.*;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class OMRSHelperIT extends BaseModuleWebContextSensitiveTest {
@@ -56,6 +55,36 @@ public class OMRSHelperIT extends BaseModuleWebContextSensitiveTest {
         Concept concept = omrsHelper.findConcept(codings);
         assertNotNull(concept);
         assertTrue(concept.getName().getName().equals("xyz concept") || concept.getName().getName().equals("pqr concept"));
+    }
+
+    @Test
+    public void shouldMapConceptGivenCodeOfFullySpecifiedName() {
+        assertEquals(conceptService.getConcept(401), omrsHelper.findConceptFromValueSetCode("http://tr.com/Value-Set-Concept", "Value Set Answer 1"));
+    }
+
+    @Test
+    public void shouldMapConceptGivenCodeOfShortName() {
+        assertEquals(conceptService.getConcept(401), omrsHelper.findConceptFromValueSetCode("http://tr.com/Value-Set-Concept", "VSA-1"));
+    }
+
+    @Test
+    public void shouldMapConceptGivenCodeOfReferenceTerm(){
+        assertEquals(conceptService.getConcept(401), omrsHelper.findConceptFromValueSetCode("http://tr.com/Value-Set-Concept", "VSA-ref"));
+    }
+
+    @Test
+    public void shouldMatchBasedOnShortName() {
+        Concept conceptWithShortName = conceptService.getConcept(401);
+        assertTrue(omrsHelper.shortNameFound(conceptWithShortName, "VSA-1"));
+        assertFalse(omrsHelper.shortNameFound(conceptWithShortName, "irrelevant short name"));
+    }
+
+    @Test
+    public void shouldMatchBasedOnReferenceTerm(){
+        Concept conceptWithReferenceTerm = conceptService.getConcept(401);
+        assertTrue(omrsHelper.referenceTermCodeFound(conceptWithReferenceTerm, "VSA-ref"));
+        assertFalse(omrsHelper.referenceTermCodeFound(conceptWithReferenceTerm, "invalid ref term"));
+
     }
 
     private Coding buildCoding(String uri, String externalId, String code, String display) {

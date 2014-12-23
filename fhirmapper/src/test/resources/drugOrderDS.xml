@@ -71,6 +71,17 @@
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <!--Creating Units-->
 
+    <!-- Creating dose-->
+    <concept concept_id="806" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1"
+             date_created="2005-01-01 00:00:00.0" uuid="7h7379ba-eee8-a1a3-bh2b-a8a02a1vafyl"/>
+    <concept_name concept_name_id="806" concept_id="806" name="Thousand Units" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="g3zazzv9-e1w4-41d4-b2d6-bc4335835bbe"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <concept_name concept_name_id="806" concept_id="806" name="TU" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="g3zazzv9-e1w4-41d4-b2d6-bc4335835bbe"
+                  concept_name_type="SHORT" locale_preferred="0"/>
+    <!--Creationg dose-->
+
     <!--Creating Routes-->
     <concept concept_id="701" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1"
              date_created="2005-01-01 00:00:00.0" uuid="7f7379ba-3ca8-11e3-bf2b-a8a02a1cab75"/>

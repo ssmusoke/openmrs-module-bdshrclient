@@ -17,4 +17,26 @@
     <shr_id_mapping id="1" internal_id="juydg80f-1yz9-4da3-bb88-812ectrabcd" external_id="101" type="concept" uri="/concepts/101"></shr_id_mapping>
     <shr_id_mapping id="2" internal_id="123dg80f-1yz9-4da3-ba88-812eaaaabcd" external_id="1101" type="concept_reference_term" uri="/refterms/1101"></shr_id_mapping>
     <shr_id_mapping id="3" internal_id="456f680f-1yz9-4da3-ba88-812eaaaabcd" external_id="1102" type="concept_reference_term" uri="/refterms/1102"></shr_id_mapping>
+
+    <!--Value Set-->
+    <concept concept_id="500" retired="false" datatype_id="4" class_id="11" is_set="true" creator="1" date_created="2004-08-12 00:00:00.0" version=""
+             changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4da3-ald8-812ectrabcd"/>
+    <concept_name concept_id="500" concept_name_id="300" name="Value Set Concept" locale="en" creator="1"
+                  date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1"
+                  voided="false" uuid="lkiay80e-1fz9-fda3-2b88-8122als8687h"/>
+
+    <concept concept_id="401" retired="false" datatype_id="4" class_id="11" is_set="true" creator="1" date_created="2004-08-12 00:00:00.0" version=""
+             changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-adle-ald8-812ectrabcd"/>
+    <concept_name concept_id="401" concept_name_id="401" name="Value Set Answer 1" locale="en" creator="1"
+                  date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1"
+                  voided="false" uuid="lkiay80e-1fz9-fda3-2b88-812aalsa687h"/>
+    <concept_name concept_name_id="806" concept_id="401" name="VSA-1" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="g3zazzv9-e1w4-41d4-b2d6-bc4335835bbe"
+                  concept_name_type="SHORT" locale_preferred="0"/>
+    <concept_answer concept_answer_id="500" concept_id="500" answer_concept="401" sort_weight="1" date_created="2004-08-12 00:00:00.0" creator="1" uuid="qkiay80e-1fz9-fda3-2ba8-qa2aalqa687h" />
+    <concept_reference_term concept_reference_term_id="10" concept_source_id="1" code="VSA-ref" name="VS-ref-name"
+                            creator="1" date_created="2004-08-12 00:00:00.0" uuid="aaea67Zc-bZ4e-ab04-7028-c3b9941hji94"></concept_reference_term>
+    <concept_reference_map concept_map_id="10" concept_id="401" concept_reference_term_id="10" concept_map_type_id="1" creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_map>
+
+    <!--Value Set-->
 </dataset>

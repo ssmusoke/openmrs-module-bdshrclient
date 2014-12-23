@@ -7,6 +7,7 @@ import org.hl7.fhir.instance.model.Schedule.ScheduleRepeatComponent;
 import org.openmrs.*;
 import org.openmrs.Order;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.fhir.utils.UnitsHelpers;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_DRUG_ORDER_TYPE;
+import static org.openmrs.module.fhir.utils.FHIRFeedHelper.getValueSetCode;
 
 @Component
 public class DrugOrderMapper implements EmrOrderResourceHandler {
@@ -130,18 +132,6 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         }
         coding.setDisplaySimple(concept.getName().getName());
         return codeableConcept;
-    }
-
-    private String getValueSetCode(Concept concept) {
-        for (org.openmrs.ConceptMap mapping : concept.getConceptMappings()) {
-            if (mapping.getConceptMapType().getUuid().equals(ConceptMapType.SAME_AS_MAP_TYPE_UUID)) {
-                return mapping.getConceptReferenceTerm().getCode();
-            }
-        }
-        for (ConceptName conceptName : concept.getShortNames()) {
-            return conceptName.getName();
-        }
-        return concept.getName().getName();
     }
 
     private void setDoseQuantity(DrugOrder drugOrder, MedicationPrescription.MedicationPrescriptionDosageInstructionComponent dosageInstruction, SystemProperties systemProperties) {

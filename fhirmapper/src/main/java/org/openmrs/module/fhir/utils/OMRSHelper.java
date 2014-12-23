@@ -1,11 +1,9 @@
 package org.openmrs.module.fhir.utils;
 
+import ch.lambdaj.Lambda;
 import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.Coding;
-import org.openmrs.Concept;
-import org.openmrs.ConceptMap;
-import org.openmrs.ConceptName;
-import org.openmrs.ConceptReferenceTerm;
+import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -16,7 +14,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static ch.lambdaj.Lambda.extract;
+import static ch.lambdaj.Lambda.on;
 import static java.util.Locale.ENGLISH;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.equalTo;
 import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_CONCEPT_TYPE;
 import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_REFERENCE_TERM_TYPE;
 
@@ -48,6 +50,33 @@ public class OMRSHelper {
             }
         }
         return findConceptByReferenceTermMapping(referenceTermMap);
+    }
+
+    public Concept findConceptFromValueSetCode(String system, String code) {
+        String valueSet = StringUtils.replace(StringUtils.substringAfterLast(system, "/"), "-", " ");
+        Concept valueSetConcept = conceptService.getConceptByName(valueSet);
+        if (valueSetConcept != null) {
+            for (ConceptAnswer answer : valueSetConcept.getAnswers()) {
+                Concept concept = answer.getAnswerConcept();
+                if (referenceTermCodeFound(concept, code) || shortNameFound(concept, code) || fullNameMatchFound(concept, code))
+                    return concept;
+            }
+        }
+        return conceptService.getConceptByName(code);
+    }
+
+    private boolean fullNameMatchFound(Concept concept, String code) {
+        return concept.getName().getName().equals(code);
+    }
+
+    public boolean referenceTermCodeFound(Concept concept, String code) {
+        return Lambda.exists(extract(concept.getConceptMappings(),
+                        on(ConceptMap.class).getConceptReferenceTerm().getCode()),
+                is(equalTo(code)));
+    }
+
+    public boolean shortNameFound(Concept concept, String code) {
+        return Lambda.exists(extract(concept.getShortNames(), on(ConceptName.class).getName()), is(equalTo(code)));
     }
 
     private Concept findConceptByReferenceTermMapping(Map<ConceptReferenceTerm, String> referenceTermMapping) {

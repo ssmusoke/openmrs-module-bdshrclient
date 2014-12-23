@@ -3,6 +3,8 @@ package org.openmrs.module.fhir.utils;
 import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.*;
 import org.openmrs.Concept;
+import org.openmrs.ConceptMapType;
+import org.openmrs.ConceptName;
 import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -42,6 +44,18 @@ public class FHIRFeedHelper {
             addFHIRCoding(codeableConcept, idMapping.getExternalId(), idMapping.getUri(), concept.getName().getName());
         }
         return codeableConcept;
+    }
+
+    public static String getValueSetCode(Concept concept) {
+        for (org.openmrs.ConceptMap mapping : concept.getConceptMappings()) {
+            if (mapping.getConceptMapType().getUuid().equals(ConceptMapType.SAME_AS_MAP_TYPE_UUID)) {
+                return mapping.getConceptReferenceTerm().getCode();
+            }
+        }
+        for (ConceptName conceptName : concept.getShortNames()) {
+            return conceptName.getName();
+        }
+        return concept.getName().getName();
     }
 
     public static Composition getComposition(AtomFeed bundle) {
