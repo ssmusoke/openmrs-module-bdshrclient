@@ -25,13 +25,6 @@ public class Database {
             return resultSet;
         } catch (Exception e) {
             throw new RuntimeException("Error occurred while executing " + query + " : ", e);
-        } finally {
-            try {
-                if (resultSet != null) resultSet.close();
-                if (statement != null) statement.close();
-            } catch (SQLException e) {
-                logger.warn("Could not close db statement ", e);
-            }
         }
     }
 
