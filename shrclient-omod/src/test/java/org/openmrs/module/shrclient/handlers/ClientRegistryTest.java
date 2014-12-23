@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.openmrs.module.shrclient.identity.IdentityToken;
 import org.openmrs.module.shrclient.util.Headers;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
@@ -157,7 +158,7 @@ public class ClientRegistryTest {
         RestClient isWebClient = clientRegistry.getIdentityServiceClient();
         assertNotNull(isWebClient);
         IdentityToken responseToken = isWebClient.post("/login", authRequest, IdentityToken.class );
-        assertEquals(responseToken.getToken(), token.toString());
+        assertEquals(responseToken.toString(), token.toString());
     }
 
     private java.util.Map<String, String> getAuthHeader() {
