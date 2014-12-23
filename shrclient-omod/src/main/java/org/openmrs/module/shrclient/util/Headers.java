@@ -8,6 +8,7 @@ import java.util.Map;
 
 public class Headers {
     public static final String AUTH_HEADER_KEY = "Authorization";
+    public static final String AUTH_TOKEN_KEY = "X-Auth-Token";
 
     public static Map<String, String> getBasicAuthHeader(String user, String password) {
         HashMap<String, String> header = new HashMap<>();
