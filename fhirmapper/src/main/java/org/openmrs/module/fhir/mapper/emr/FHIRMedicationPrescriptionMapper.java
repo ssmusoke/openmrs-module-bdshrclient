@@ -4,9 +4,7 @@ import org.hl7.fhir.instance.model.*;
 import org.openmrs.DrugOrder;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
-import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.utils.OMRSHelper;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -14,12 +12,9 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class FHIRMedicationPrescriptionMapper implements FHIRResource{
+public class FHIRMedicationPrescriptionMapper implements FHIRResource {
     @Autowired
-    private ConceptService conceptService;
-
-    @Autowired
-    private IdMappingsRepository idMappingsRepository;
+    OMRSHelper omrsHelper;
 
     @Override
     public boolean canHandle(Resource resource) {
@@ -34,7 +29,9 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResource{
         MedicationPrescription.MedicationPrescriptionDosageInstructionComponent dosageInstruction = prescription.getDosageInstruction().get(0);
         Quantity doseQuantity = dosageInstruction.getDoseQuantity();
         drugOrder.setDose(doseQuantity.getValueSimple().doubleValue());
-        drugOrder.setDoseUnits(new OMRSHelper(conceptService, idMappingsRepository).findConceptFromValueSetCode(doseQuantity.getSystemSimple(), doseQuantity.getCodeSimple()));
+        drugOrder.setDoseUnits(omrsHelper.findConceptFromValueSetCode(doseQuantity.getSystemSimple(), doseQuantity.getCodeSimple()));
+        Coding routeCoding = dosageInstruction.getRoute().getCoding().get(0);
+        drugOrder.setRoute(omrsHelper.findConceptFromValueSetCode(routeCoding.getSystemSimple(), routeCoding.getCodeSimple()));
 
         newEmrEncounter.addOrder(drugOrder);
     }

@@ -64,5 +64,6 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
 
         assertEquals(new Double(3), drugOrder.getDose());
         assertEquals(conceptService.getConcept(806), drugOrder.getDoseUnits());
+        assertEquals(conceptService.getConcept(701), drugOrder.getRoute());
     }
 }

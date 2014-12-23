@@ -113,8 +113,8 @@
                     <route>
                         <coding>
                             <system value="http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/vs/Route-of-Administration"/>
-                            <code value="implant"/>
-                            <display value="implant"/>
+                            <code value="Oral"/>
+                            <display value="Oral"/>
                         </coding>
                     </route>
                     <doseQuantity>
