@@ -47,4 +47,10 @@ public class ClientRegistry {
         headers.put(properties.getProperty("fr.tokenName"), properties.getProperty("fr.tokenValue"));
         return new RestClient(propertiesReader.getFrBaseUrl(), headers);
     }
+
+    public RestClient getIdentityServiceClient() {
+        Properties properties = propertiesReader.getIdentityProperties();
+        HashMap<String, String> headers = new HashMap<>();
+        return new RestClient(propertiesReader.getIdentityServerBaseUrl(), headers);
+    }
 }

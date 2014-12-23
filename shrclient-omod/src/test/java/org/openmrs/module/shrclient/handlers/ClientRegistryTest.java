@@ -5,21 +5,16 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.openmrs.module.shrclient.util.SHRClient;
 import org.openmrs.module.shrclient.util.Headers;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
+import org.openmrs.module.shrclient.util.SHRClient;
 
 import java.util.Properties;
+import java.util.UUID;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.matching;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -69,8 +64,10 @@ public class ClientRegistryTest {
                         .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                 "<feed xmlns=\"http://www.w3.org/2005/Atom\">\n" +
                                 "    <title>Patient Encounters</title>\n" +
-                                "    <link rel=\"self\" type=\"application/atom+xml\" href=\"http://192.168.33.10:8081/patients/5926602583484399617/encounters\" />\n" +
-                                "    <link rel=\"via\" type=\"application/atom+xml\" href=\"http://192.168.33.10:8081/patients/5926602583484399617/encounters\" />\n" +
+                                "    <link rel=\"self\" type=\"application/atom+xml\" href=\"http://192.168.33" +
+                                ".10:8081/patients/5926602583484399617/encounters\" />\n" +
+                                "    <link rel=\"via\" type=\"application/atom+xml\" href=\"http://192.168.33" +
+                                ".10:8081/patients/5926602583484399617/encounters\" />\n" +
                                 "    <author>\n" +
                                 "        <name>FreeSHR</name>\n" +
                                 "    </author>\n" +
@@ -139,6 +136,30 @@ public class ClientRegistryTest {
         verify(1, getRequestedFor(urlEqualTo("/lr")).withHeader(xAuthTokenKey, matching(xAuthToken)));
     }
 
+    @Test
+    public void testCreateIdentityServiceClient() throws Exception {
+        when(propertiesReader.getIdentityServerBaseUrl()).thenReturn("http://localhost:8089");
+
+        UUID token = UUID.randomUUID();
+        String authRequest = "{\"user\" : \"foo\",\"password\" : \"bar\"}";
+        String response = "{\"token\" : \"" + token.toString() + "\"}";
+
+        stubFor(post(urlMatching("/login"))
+                .withRequestBody(containing("foo"))
+                .withHeader("Content-Type", equalTo("application/json"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader(Headers.AUTH_TOKEN_KEY, token.toString())
+                        .withBody(response)));
+
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader);
+
+        RestClient isWebClient = clientRegistry.getIdentityServiceClient();
+        assertNotNull(isWebClient);
+        IdentityToken responseToken = isWebClient.post("/login", authRequest, IdentityToken.class );
+        assertEquals(responseToken.getToken(), token.toString());
+    }
+
     private java.util.Map<String, String> getAuthHeader() {
         return Headers.getBasicAuthHeader("champoo", "*****");
     }
@@ -149,4 +170,5 @@ public class ClientRegistryTest {
         properties.setProperty(passwordKey, "*****");
         return properties;
     }
+
 }

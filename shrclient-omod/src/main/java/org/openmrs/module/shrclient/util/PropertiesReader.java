@@ -38,6 +38,10 @@ public class PropertiesReader {
         return getProperties("tr_atomfeed_properties.properties");
     }
 
+    public Properties getIdentityProperties() {
+        return getProperties("identity.properties");
+    }
+
 
     public HashMap<String, String> getBaseUrls(){
         HashMap<String, String> baseUrls = new HashMap<>();
@@ -80,6 +84,13 @@ public class PropertiesReader {
         return getBaseUrl(properties.getProperty("fr.scheme"),
                 properties.getProperty("fr.host"),
                 properties.getProperty("fr.context"));
+    }
+
+    public String getIdentityServerBaseUrl() {
+        Properties properties = getIdentityProperties();
+        return getBaseUrl(properties.getProperty("identity.scheme"),
+                properties.getProperty("identity.host"),
+                properties.getProperty("identity.port"));
     }
 
     private String getBaseUrl(String scheme, String host, String portNoOrContextPath) {

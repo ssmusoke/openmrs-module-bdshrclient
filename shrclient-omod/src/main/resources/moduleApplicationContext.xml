@@ -35,4 +35,5 @@
 
     <util:properties id="mciProperties" location="classpath:mci.properties" />
     <util:properties id="shrProperties" location="classpath:shr.properties" />
+    <util:properties id="identityProperties" location="classpath:identity.properties" />
 </beans>
