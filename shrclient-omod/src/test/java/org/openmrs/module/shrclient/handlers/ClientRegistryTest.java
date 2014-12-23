@@ -5,6 +5,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.openmrs.module.shrclient.identity.Identity;
+import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityToken;
 import org.openmrs.module.shrclient.util.Headers;
 import org.openmrs.module.shrclient.util.PropertiesReader;
@@ -28,6 +30,9 @@ public class ClientRegistryTest {
     @Mock
     private PropertiesReader propertiesReader;
 
+    @Mock
+    private IdentityStore identityStore;
+
     @Before
     public void setUp() throws Exception {
         initMocks(this);
@@ -44,7 +49,7 @@ public class ClientRegistryTest {
                         .withStatus(200)
                         .withBody("")));
 
-        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader);
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader, null);
 
         RestClient mciClient = clientRegistry.getMCIClient();
         assertNotNull(mciClient);
@@ -59,7 +64,11 @@ public class ClientRegistryTest {
         when(propertiesReader.getShrProperties()).thenReturn(shrProperties);
         when(propertiesReader.getShrBaseUrl()).thenReturn("http://localhost:8089");
 
+        UUID token = UUID.randomUUID();
+        when(identityStore.getToken()).thenReturn(new IdentityToken(token.toString()));
+
         stubFor(get(urlEqualTo("/patients/hid01/encounters"))
+                .withHeader(Headers.AUTH_TOKEN_KEY, equalTo(token.toString()))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -77,13 +86,66 @@ public class ClientRegistryTest {
                                 "    <updated>2014-10-27T12:08:57Z</updated>\n" +
                                 "</feed>")));
 
-        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader);
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader, identityStore);
 
         SHRClient shrClient = clientRegistry.getSHRClient();
         assertNotNull(shrClient);
         shrClient.getEncounters("/patients/hid01/encounters");
         verify(1, getRequestedFor(urlEqualTo("/patients/hid01/encounters"))
-                .withHeader(Headers.AUTH_HEADER_KEY, matching(getAuthHeader().get(Headers.AUTH_HEADER_KEY))));
+                .withHeader(Headers.AUTH_TOKEN_KEY, matching(token.toString())));
+    }
+    @Test
+    public void testCreateSHRClientWhenIdentityTokenAbsent() throws Exception {
+        Properties shrProperties = getSecureServerProperties("shr.user", "shr.password");
+        when(propertiesReader.getShrProperties()).thenReturn(shrProperties);
+        when(propertiesReader.getShrBaseUrl()).thenReturn("http://localhost:8089");
+        when(propertiesReader.getIdentityServerBaseUrl()).thenReturn("http://localhost:8089");
+
+        when(propertiesReader.getIdentity()).thenReturn(new Identity("foo", "bar"));
+
+        //here the token is set to null, so ClientRegistry should get a new token
+        when(identityStore.getToken()).thenReturn(null);
+
+        UUID token = UUID.randomUUID();
+        String authRequest = "{\"user\" : \"foo\",\"password\" : \"bar\"}";
+        String response = "{\"token\" : \"" + token.toString() + "\"}";
+
+        stubFor(post(urlMatching("/login"))
+                .withRequestBody(containing("foo"))
+                .withHeader("Content-Type", equalTo("application/json"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader(Headers.AUTH_TOKEN_KEY, token.toString())
+                        .withBody(response)));
+
+
+
+        stubFor(get(urlEqualTo("/patients/hid01/encounters"))
+                .withHeader(Headers.AUTH_TOKEN_KEY, equalTo(token.toString()))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                "<feed xmlns=\"http://www.w3.org/2005/Atom\">\n" +
+                                "    <title>Patient Encounters</title>\n" +
+                                "    <link rel=\"self\" type=\"application/atom+xml\" href=\"http://192.168.33" +
+                                ".10:8081/patients/5926602583484399617/encounters\" />\n" +
+                                "    <link rel=\"via\" type=\"application/atom+xml\" href=\"http://192.168.33" +
+                                ".10:8081/patients/5926602583484399617/encounters\" />\n" +
+                                "    <author>\n" +
+                                "        <name>FreeSHR</name>\n" +
+                                "    </author>\n" +
+                                "    <id>2885d2c2-b534-4544-8958-0cef4b8fd1db</id>\n" +
+                                "    <generator uri=\"https://github.com/ICT4H/atomfeed\">Atomfeed</generator>\n" +
+                                "    <updated>2014-10-27T12:08:57Z</updated>\n" +
+                                "</feed>")));
+
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader, identityStore);
+
+        SHRClient shrClient = clientRegistry.getSHRClient();
+        assertNotNull(shrClient);
+        shrClient.getEncounters("/patients/hid01/encounters");
+        verify(1, getRequestedFor(urlEqualTo("/patients/hid01/encounters"))
+                .withHeader(Headers.AUTH_TOKEN_KEY, matching(token.toString())));
     }
 
     @Test
@@ -103,7 +165,7 @@ public class ClientRegistryTest {
                         .withStatus(200)
                         .withBody("")));
 
-        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader);
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader, null);
 
         RestClient frWebClient = clientRegistry.getFRClient();
         assertNotNull(frWebClient);
@@ -129,7 +191,7 @@ public class ClientRegistryTest {
                         .withStatus(200)
                         .withBody("")));
 
-        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader);
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader, null);
 
         RestClient lrWebClient = clientRegistry.getLRClient();
         assertNotNull(lrWebClient);
@@ -153,7 +215,7 @@ public class ClientRegistryTest {
                         .withHeader(Headers.AUTH_TOKEN_KEY, token.toString())
                         .withBody(response)));
 
-        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader);
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader, null);
 
         RestClient isWebClient = clientRegistry.getIdentityServiceClient();
         assertNotNull(isWebClient);

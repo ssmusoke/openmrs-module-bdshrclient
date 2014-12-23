@@ -1,5 +1,7 @@
 package org.openmrs.module.shrclient.handlers;
 
+import org.openmrs.module.shrclient.identity.IdentityStore;
+import org.openmrs.module.shrclient.identity.IdentityToken;
 import org.openmrs.module.shrclient.util.Headers;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
@@ -11,9 +13,11 @@ import java.util.Properties;
 
 public class ClientRegistry {
     private PropertiesReader propertiesReader;
+    private IdentityStore identityStore;
 
-    public ClientRegistry(PropertiesReader propertiesReader) {
+    public ClientRegistry(PropertiesReader propertiesReader, IdentityStore identityStore) {
         this.propertiesReader = propertiesReader;
+        this.identityStore = identityStore;
     }
 
     public RestClient getMCIClient() {
@@ -26,12 +30,20 @@ public class ClientRegistry {
     }
 
     public SHRClient getSHRClient() {
+        IdentityToken token = getOrCreateToken();
         Properties properties = propertiesReader.getShrProperties();
-        String user = properties.getProperty("shr.user");
-        String password = properties.getProperty("shr.password");
-
         return new SHRClient(propertiesReader.getShrBaseUrl(),
-                Headers.getBasicAuthHeader(user, password));
+                Headers.getIdentityHeader(token));
+    }
+
+    private IdentityToken getOrCreateToken() {
+        IdentityToken token = identityStore.getToken();
+        if(token == null) {
+            token = getIdentityServiceClient().post("/login", propertiesReader.getIdentity(),
+                    IdentityToken.class);
+            identityStore.setToken(token);
+        }
+        return token;
     }
 
     public RestClient getLRClient() {

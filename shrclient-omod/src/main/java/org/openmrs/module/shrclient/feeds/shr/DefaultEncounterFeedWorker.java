@@ -5,6 +5,7 @@ import org.hl7.fhir.instance.model.AtomFeed;
 import org.ict4h.atomfeed.client.exceptions.AtomFeedClientException;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
+import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.mci.api.model.Patient;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.PropertiesReader;
@@ -15,17 +16,17 @@ import static org.openmrs.module.fhir.utils.Constants.MCI_PATIENT_URL;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.getEncounter;
 
 public class DefaultEncounterFeedWorker implements EncounterEventWorker {
-
-
     private MciPatientService mciPatientService;
     private PropertiesReader propertiesReader;
+    private IdentityStore identityStore;
 
     private final Logger logger = Logger.getLogger(DefaultEncounterFeedWorker.class);
 
     public DefaultEncounterFeedWorker(MciPatientService mciPatientService,
-                                      PropertiesReader propertiesReader) {
+                                      PropertiesReader propertiesReader, IdentityStore identityStore) {
         this.mciPatientService = mciPatientService;
         this.propertiesReader = propertiesReader;
+        this.identityStore = identityStore;
     }
 
     @Override
@@ -34,7 +35,7 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
         AtomFeed feed = encounterBundle.getResourceOrFeed().getFeed();
         String healthId = identifyPatientHealthId(feed);
         try {
-            RestClient mciClient = new ClientRegistry(propertiesReader).getMCIClient();
+            RestClient mciClient = new ClientRegistry(propertiesReader, identityStore).getMCIClient();
             Patient patient = mciClient.get(MCI_PATIENT_URL + "/" + healthId, Patient.class);
             org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(patient);
 

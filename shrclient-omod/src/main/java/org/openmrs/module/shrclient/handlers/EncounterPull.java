@@ -4,6 +4,7 @@ package org.openmrs.module.shrclient.handlers;
 import org.apache.log4j.Logger;
 import org.openmrs.module.shrclient.feeds.shr.DefaultEncounterFeedWorker;
 import org.openmrs.module.shrclient.feeds.shr.ShrEncounterFeedProcessor;
+import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.Headers;
 import org.openmrs.module.shrclient.util.PlatformUtil;
@@ -36,8 +37,9 @@ public class EncounterPull {
 
     private DefaultEncounterFeedWorker getEncounterFeedWorker() {
         MciPatientService mciPatientService = PlatformUtil.getRegisteredComponent(MciPatientService.class);
-        PropertiesReader propertiesReader = PlatformUtil.getRegisteredComponent(PropertiesReader.class);
-        return new DefaultEncounterFeedWorker(mciPatientService, propertiesReader);
+        PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
+        IdentityStore identityStore = PlatformUtil.getIdentityStore();
+        return new DefaultEncounterFeedWorker(mciPatientService, propertiesReader, identityStore);
     }
 
     private HashMap<String, String> getRequestHeaders(PropertiesReader propertiesReader) {

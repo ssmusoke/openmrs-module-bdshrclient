@@ -4,6 +4,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.handlers.LocationPull;
+import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.mapper.AddressHierarchyEntryMapper;
 import org.openmrs.module.shrclient.util.Database;
 import org.openmrs.module.shrclient.util.PlatformUtil;
@@ -24,7 +25,8 @@ public class LRSyncTask extends AbstractTask {
         Connection connection;
         try {
             propertiesReader = PlatformUtil.getPropertiesReader();
-            lrClient = new ClientRegistry(propertiesReader).getLRClient();
+            IdentityStore identityStore = PlatformUtil.getIdentityStore();
+            lrClient = new ClientRegistry(propertiesReader, identityStore).getLRClient();
             connection = DatabaseUpdater.getConnection();
 
             new LocationPull(propertiesReader, lrClient, Context.getService(AddressHierarchyService.class),

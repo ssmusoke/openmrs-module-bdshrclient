@@ -5,6 +5,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.handlers.FacilityPull;
+import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.mapper.LocationMapper;
 import org.openmrs.module.shrclient.util.Database;
 import org.openmrs.module.shrclient.util.PlatformUtil;
@@ -24,7 +25,8 @@ public class FRSyncTask extends AbstractTask {
         Connection connection;
         try {
             propertiesReader = PlatformUtil.getPropertiesReader();
-            frClient = new ClientRegistry(propertiesReader).getFRClient();
+            IdentityStore identityStore = PlatformUtil.getIdentityStore();
+            frClient = new ClientRegistry(propertiesReader, identityStore).getFRClient();
             connection = DatabaseUpdater.getConnection();
 
             new FacilityPull(propertiesReader, frClient,

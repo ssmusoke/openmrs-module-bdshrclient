@@ -10,6 +10,7 @@ import org.openmrs.module.shrclient.feeds.openmrs.OpenMRSFeedClientFactory;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.handlers.EncounterPush;
 import org.openmrs.module.shrclient.handlers.PatientPush;
+import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;
 import org.openmrs.module.shrclient.util.PlatformUtil;
@@ -25,8 +26,9 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
     @Override
     public void execute() {
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
+        IdentityStore identityStore = PlatformUtil.getIdentityStore();
         UserService userService = Context.getUserService();
-        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader);
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader, identityStore);
 
         PatientPush patientPush = getPatientRegistry(propertiesReader, userService, clientRegistry);
         EncounterPush encounterPush = getEncounterRegistry(propertiesReader, userService, clientRegistry);

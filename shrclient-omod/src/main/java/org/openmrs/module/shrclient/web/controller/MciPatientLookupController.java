@@ -7,6 +7,7 @@ import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
+import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.mci.api.MciPatientSearchResponse;
 import org.openmrs.module.shrclient.mci.api.model.Address;
 import org.openmrs.module.shrclient.mci.api.model.Patient;
@@ -30,6 +31,8 @@ public class MciPatientLookupController {
     private MciPatientService mciPatientService;
     @Autowired
     private PropertiesReader propertiesReader;
+    @Autowired
+    private IdentityStore identityStore;
 
     @RequestMapping(method = RequestMethod.GET, value = "/search")
     @ResponseBody
@@ -87,7 +90,7 @@ public class MciPatientLookupController {
 
     private void createOrUpdateEncounters(String healthId, org.openmrs.Patient emrPatient) {
         final String url = String.format("/patients/%s/encounters", healthId);
-        List<EncounterBundle> bundles = new ClientRegistry(propertiesReader).getSHRClient().getEncounters(url);
+        List<EncounterBundle> bundles = new ClientRegistry(propertiesReader, identityStore).getSHRClient().getEncounters(url);
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
     }
 
@@ -127,7 +130,7 @@ public class MciPatientLookupController {
     }
 
     private RestClient getMciRestClient() {
-        return new ClientRegistry(propertiesReader).getMCIClient();
+        return new ClientRegistry(propertiesReader, identityStore).getMCIClient();
     }
 
     private String getAddressEntryText(String code) {
