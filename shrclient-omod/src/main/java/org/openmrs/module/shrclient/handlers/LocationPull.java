@@ -1,6 +1,5 @@
 package org.openmrs.module.shrclient.handlers;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
@@ -28,17 +27,16 @@ public class LocationPull {
     public static final String ENCODED_SINGLE_SPACE = "%20";
     public static final String SINGLE_SPACE = " ";
     private static final int DEFAULT_LIMIT = 100;
-    private static final String EXTRA_FILTER_PATTERN_WITHOUT_UPDATED_SINCE = "?offset=%s&limit=%s";
-    private static final String EXTRA_FILTER_PATTERN_WITH_UPDATED_SINCE = "?offset=%s&limit=%s&updatedSince=%s";
-    public static final String LR_SYNC_TASK = "LR Sync Task";
+    private static final String EXTRA_FILTER_PATTERN = "?offset=%s&limit=%s&updatedSince=%s";
+    private static final int MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED = 1000;
 
-    private final String lastExecutionDateTime;
     private ScheduledTaskHistory scheduledTaskHistory;
     private AddressHierarchyEntryMapper addressHierarchyEntryMapper;
     private AddressHierarchyService addressHierarchyService;
     private RestClient lrWebClient;
     private PropertiesReader propertiesReader;
     private List<String> failedDuringSaveOrUpdateOperation;
+    private int noOfEntriesSynchronizedSoFar;
 
     public LocationPull(PropertiesReader propertiesReader, RestClient lrWebClient, AddressHierarchyService addressHierarchyService,
                         ScheduledTaskHistory scheduledTaskHistory, AddressHierarchyEntryMapper addressHierarchyEntryMapper) {
@@ -47,11 +45,11 @@ public class LocationPull {
         this.scheduledTaskHistory = scheduledTaskHistory;
         this.addressHierarchyEntryMapper = addressHierarchyEntryMapper;
         this.addressHierarchyService = addressHierarchyService;
-        this.lastExecutionDateTime = scheduledTaskHistory.getLastExecutionDateAndTime(LR_SYNC_TASK);
         this.failedDuringSaveOrUpdateOperation = new ArrayList<>();
     }
 
     public void synchronize() {
+        noOfEntriesSynchronizedSoFar = 0;
 
         List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForDivisions = synchronizeUpdatesByLevel(LR_DIVISIONS_LEVEL_PROPERTY_NAME);
         logger.info(synchronizedAddressHierarchyEntriesForDivisions.size() + " entries updated");
@@ -70,41 +68,46 @@ public class LocationPull {
 
         List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForWards = synchronizeUpdatesByLevel(LR_WARDS_LEVEL_PROPERTY_NAME);
         logger.info(synchronizedAddressHierarchyEntriesForWards.size() + " entries updated");
-
-        reinitializeMarkerTableToZero();
-    }
-
-    private void reinitializeMarkerTableToZero() {
-        updateMarkerTableToStoreOffset(0, LR_DIVISIONS_LEVEL_PROPERTY_NAME);
-        updateMarkerTableToStoreOffset(0, LR_DISTRICTS_LEVEL_PROPERTY_NAME);
-        updateMarkerTableToStoreOffset(0, LR_UPAZILAS_LEVEL_PROPERTY_NAME);
-        updateMarkerTableToStoreOffset(0, LR_PAURASAVAS_LEVEL_PROPERTY_NAME);
-        updateMarkerTableToStoreOffset(0, LR_UNIONS_LEVEL_PROPERTY_NAME);
-        updateMarkerTableToStoreOffset(0, LR_WARDS_LEVEL_PROPERTY_NAME);
     }
 
     private List<LRAddressHierarchyEntry> synchronizeUpdatesByLevel(String levelName) {
         String baseContextPath = propertiesReader.getLrProperties().getProperty(levelName);
         List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntries = new ArrayList<>();
         List<LRAddressHierarchyEntry> lastRetrievedPartOfList;
-        int offset = scheduledTaskHistory.getOffset(levelName, LR_SYNC_TASK);
+
+        if (noOfEntriesSynchronizedSoFar >= MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED) {
+            return synchronizedAddressHierarchyEntries;
+        }
+
+        int offset = scheduledTaskHistory.getOffset(levelName);
+        String updatedSince = scheduledTaskHistory.getUpdatedSinceDateAndTime(levelName);
+
         do {
-            String completeContextPath = buildCompleteContextPath(baseContextPath, offset);
+            String completeContextPath = buildCompleteContextPath(baseContextPath, offset, updatedSince);
             lastRetrievedPartOfList = getNextChunkOfUpdatesFromLR(completeContextPath);
             if (lastRetrievedPartOfList != null) {
                 saveOrUpdateAddressHierarchyEntries(lastRetrievedPartOfList);
                 synchronizedAddressHierarchyEntries.addAll(lastRetrievedPartOfList);
                 offset += lastRetrievedPartOfList.size();
                 updateMarkerTableToStoreOffset(offset, levelName);
+                noOfEntriesSynchronizedSoFar += lastRetrievedPartOfList.size();
             } else {
                 logger.info(synchronizedAddressHierarchyEntries.size() + " entries synchronized");
                 throw new RuntimeException("Failed to Synchronize updates from LR");
             }
-        } while (lastRetrievedPartOfList != null && lastRetrievedPartOfList.size() == DEFAULT_LIMIT);
+        }
+        while (lastRetrievedPartOfList != null && lastRetrievedPartOfList.size() == DEFAULT_LIMIT && noOfEntriesSynchronizedSoFar < MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED);
+
+        if (lastRetrievedPartOfList != null && lastRetrievedPartOfList.size() < DEFAULT_LIMIT && noOfEntriesSynchronizedSoFar < MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED) {
+            scheduledTaskHistory.setUpdatedSinceDateAndTime(levelName);
+            updateMarkerTableToStoreOffset(0, levelName);
+        }
 
         logger.info(synchronizedAddressHierarchyEntries.size() + " entries synchronized");
-        // todo : remove this code once we know where and how to keep this log information for LR & FR
         logger.info(failedDuringSaveOrUpdateOperation.size() + " entries failed during synchronization");
+        logger.info("Synchronization Failed for the following Facilities");
+        logger.info(failedDuringSaveOrUpdateOperation.toString());
+
         return synchronizedAddressHierarchyEntries;
     }
 
@@ -119,19 +122,17 @@ public class LocationPull {
     }
 
     private boolean updateMarkerTableToStoreOffset(int offset, String level) {
-        boolean isMarkerUpdated = scheduledTaskHistory.setOffset(level, LR_SYNC_TASK, offset);
+        boolean isMarkerUpdated = scheduledTaskHistory.setOffset(level, offset);
         logger.info(isMarkerUpdated ? "Marker Table Updated" : "Failed to Update Marker Table");
         return isMarkerUpdated;
     }
 
-    private String buildCompleteContextPath(String baseContextPath, int offset) {
-        return baseContextPath + getExtraFilters(offset);
+    private String buildCompleteContextPath(String baseContextPath, int offset, String updatedSince) {
+        return baseContextPath + getExtraFilters(offset, updatedSince);
     }
 
-    private String getExtraFilters(int offset) {
-        return StringUtils.isEmpty(lastExecutionDateTime) ?
-                String.format(EXTRA_FILTER_PATTERN_WITHOUT_UPDATED_SINCE, offset, DEFAULT_LIMIT) :
-                String.format(EXTRA_FILTER_PATTERN_WITH_UPDATED_SINCE, offset, DEFAULT_LIMIT, lastExecutionDateTime).replace(SINGLE_SPACE, ENCODED_SINGLE_SPACE);
+    private String getExtraFilters(int offset, String updatedSince) {
+        return String.format(EXTRA_FILTER_PATTERN, offset, DEFAULT_LIMIT, updatedSince).replace(SINGLE_SPACE, ENCODED_SINGLE_SPACE);
     }
 
     private void saveOrUpdateAddressHierarchyEntries(List<LRAddressHierarchyEntry> lrAddressHierarchyEntries) {
@@ -139,11 +140,11 @@ public class LocationPull {
             AddressHierarchyEntry addressHierarchyEntry = addressHierarchyService.getAddressHierarchyEntryByUserGenId(lrAddressHierarchyEntry.getFullLocationCode());
             addressHierarchyEntry = addressHierarchyEntryMapper.map(addressHierarchyEntry, lrAddressHierarchyEntry, addressHierarchyService);
             try {
-                if (addressHierarchyEntry.getId() == null)
+                if (addressHierarchyEntry.getId() == null) {
                     logger.info("Saving Address Hierarchy Entry to Local DB : \n" + addressHierarchyEntry.toString());
-                else
+                } else {
                     logger.info("Updating Address Hierarchy Entry to Local Db : " + addressHierarchyEntry.toString());
-
+                }
                 addressHierarchyService.saveAddressHierarchyEntry(addressHierarchyEntry);
             } catch (Exception e) {
                 logger.error("Error during Save Or Update to Local Db : " + e.toString());

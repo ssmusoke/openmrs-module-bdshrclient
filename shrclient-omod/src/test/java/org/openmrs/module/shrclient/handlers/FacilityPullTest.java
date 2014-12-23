@@ -34,6 +34,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.openmrs.module.shrclient.handlers.FacilityPull.FACILITY_CONTEXT;
+import static org.openmrs.module.shrclient.handlers.FacilityPull.SHR_LOCATION_TAG_NAME;
 
 public class FacilityPullTest {
     @Mock
@@ -64,11 +66,12 @@ public class FacilityPullTest {
         final String existingLocationUuid = UUID.randomUUID().toString();
 
         Properties properties = new Properties();
-        properties.put(FacilityPull.FACILITY_CONTEXT, "/facilities");
+        properties.put(FACILITY_CONTEXT, "/facilities");
+        String initialDateAndTime = "0000-00-00%2000:00:00";
 
         when(propertiesReader.getFrProperties()).thenReturn(properties);
-        when(frWebClient.get("/facilities?offset=0&limit=100", FRLocationEntry[].class)).thenReturn(locationEntries);
-        when(scheduledTaskHistory.getLastExecutionDateAndTime(FacilityPull.FR_SYNC_TASK)).thenReturn(StringUtils.EMPTY);
+        when(frWebClient.get("/facilities?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", FRLocationEntry[].class)).thenReturn(locationEntries);
+        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(FACILITY_CONTEXT)).thenReturn(initialDateAndTime);
         when(idMappingsRepository.findByExternalId(any(String.class))).then(new Answer<Object>() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -86,8 +89,8 @@ public class FacilityPullTest {
         facilityPull.synchronize();
 
         verify(propertiesReader, times(2)).getFrProperties();
-        verify(frWebClient).get("/facilities?offset=0&limit=100", FRLocationEntry[].class);
-        verify(scheduledTaskHistory).getLastExecutionDateAndTime(FacilityPull.FR_SYNC_TASK);
+        verify(frWebClient).get("/facilities?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", FRLocationEntry[].class);
+        verify(scheduledTaskHistory).getUpdatedSinceDateAndTime(FACILITY_CONTEXT);
 
     }
 
@@ -96,11 +99,11 @@ public class FacilityPullTest {
         final String existingLocationUuid = UUID.randomUUID().toString();
 
         Properties properties = new Properties();
-        properties.put(FacilityPull.FACILITY_CONTEXT, "/facilities");
+        properties.put(FACILITY_CONTEXT, "/facilities");
 
         when(propertiesReader.getFrProperties()).thenReturn(properties);
         when(frWebClient.get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(locationEntries);
-        when(scheduledTaskHistory.getLastExecutionDateAndTime(FacilityPull.FR_SYNC_TASK)).thenReturn("2000-12-31 23:55:55");
+        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(FACILITY_CONTEXT)).thenReturn("2000-12-31 23:55:55");
         when(idMappingsRepository.findByExternalId(any(String.class))).then(new Answer<Object>() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -119,7 +122,7 @@ public class FacilityPullTest {
 
         verify(propertiesReader, times(2)).getFrProperties();
         verify(frWebClient).get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
-        verify(scheduledTaskHistory).getLastExecutionDateAndTime(FacilityPull.FR_SYNC_TASK);
+        verify(scheduledTaskHistory, times(1)).getUpdatedSinceDateAndTime(FACILITY_CONTEXT);
 
     }
 
@@ -129,11 +132,11 @@ public class FacilityPullTest {
         String frLocationEntryId = "10000001";
 
         Properties properties = new Properties();
-        properties.put(FacilityPull.FACILITY_CONTEXT, "/facilities");
+        properties.put(FACILITY_CONTEXT, "/facilities");
 
         when(propertiesReader.getFrProperties()).thenReturn(properties);
         when(frWebClient.get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(oneLocationEntry(frLocationEntryId));
-        when(scheduledTaskHistory.getLastExecutionDateAndTime(FacilityPull.FR_SYNC_TASK)).thenReturn("2000-12-31 23:55:55");
+        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(FACILITY_CONTEXT)).thenReturn("2000-12-31 23:55:55");
         when(idMappingsRepository.findByExternalId(frLocationEntryId)).thenReturn(getIdMapping(frLocationEntryId, existingLocationUuid));
         when(locationService.getLocationByUuid(existingLocationUuid)).thenReturn(getFacilityLocation(existingLocationUuid));
         when(locationService.saveLocation(any(Location.class))).thenReturn(null);
@@ -145,7 +148,7 @@ public class FacilityPullTest {
 
         verify(propertiesReader, times(2)).getFrProperties();
         verify(frWebClient).get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
-        verify(scheduledTaskHistory).getLastExecutionDateAndTime(FacilityPull.FR_SYNC_TASK);
+        verify(scheduledTaskHistory).getUpdatedSinceDateAndTime(FACILITY_CONTEXT);
         verify(idMappingsRepository).findByExternalId(frLocationEntryId);
         verify(locationService).getLocationByUuid(existingLocationUuid);
         verify(locationService).saveLocation(any(Location.class));
@@ -156,16 +159,16 @@ public class FacilityPullTest {
         String frLocationEntryId = "10000001";
         String newLocationUuid = UUID.randomUUID().toString();
         Properties properties = new Properties();
-        properties.put(FacilityPull.FACILITY_CONTEXT, "/facilities");
+        properties.put(FACILITY_CONTEXT, "/facilities");
 
         when(propertiesReader.getFrProperties()).thenReturn(properties);
         FRLocationEntry[] entries = oneLocationEntry(frLocationEntryId);
         when(frWebClient.get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(entries);
-        when(scheduledTaskHistory.getLastExecutionDateAndTime(FacilityPull.FR_SYNC_TASK)).thenReturn("2000-12-31 23:55:55");
+        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(FACILITY_CONTEXT)).thenReturn("2000-12-31 23:55:55");
         when(idMappingsRepository.findByExternalId(frLocationEntryId)).thenReturn(null);
         when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(newLocationUuid));
-        when(locationService.getLocationTagByName(FacilityPull.SHR_LOCATION_TAG_NAME)).thenReturn(
-                new LocationTag(FacilityPull.SHR_LOCATION_TAG_NAME, "foo bar baz"));
+        when(locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME)).thenReturn(
+                new LocationTag(SHR_LOCATION_TAG_NAME, "foo bar baz"));
 
         FacilityPull facilityPull = new FacilityPull(propertiesReader, frWebClient,
                 locationService, scheduledTaskHistory, idMappingsRepository, locationMapper);
@@ -174,14 +177,14 @@ public class FacilityPullTest {
 
         verify(propertiesReader, times(2)).getFrProperties();
         verify(frWebClient).get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
-        verify(scheduledTaskHistory).getLastExecutionDateAndTime(FacilityPull.FR_SYNC_TASK);
+        verify(scheduledTaskHistory).getUpdatedSinceDateAndTime(FACILITY_CONTEXT);
         verify(idMappingsRepository).findByExternalId(frLocationEntryId);
 
         ArgumentCaptor<Location> locationArgumentCaptor = ArgumentCaptor.forClass(Location.class);
         verify(locationService).saveLocation(locationArgumentCaptor.capture());
         Location location = locationArgumentCaptor.getValue();
         assertEquals(1, location.getTags().size());
-        assertEquals(FacilityPull.SHR_LOCATION_TAG_NAME,
+        assertEquals(SHR_LOCATION_TAG_NAME,
                 new ArrayList<>(location.getTags()).get(0).getName());
 
         ArgumentCaptor<IdMapping> idMappingArgumentCaptor = ArgumentCaptor.forClass(IdMapping.class);
@@ -194,15 +197,15 @@ public class FacilityPullTest {
     @Test
     public void shouldSyncMultipleNew() throws Exception {
         Properties properties = new Properties();
-        properties.put(FacilityPull.FACILITY_CONTEXT, "/facilities");
+        properties.put(FACILITY_CONTEXT, "/facilities");
 
         when(propertiesReader.getFrProperties()).thenReturn(properties);
         when(frWebClient.get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(locationEntries);
-        when(scheduledTaskHistory.getLastExecutionDateAndTime(FacilityPull.FR_SYNC_TASK)).thenReturn("2000-12-31 23:55:55");
+        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(FACILITY_CONTEXT)).thenReturn("2000-12-31 23:55:55");
         when(idMappingsRepository.findByExternalId(any(String.class))).thenReturn(null);
         when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString()));
-        when(locationService.getLocationTagByName(FacilityPull.SHR_LOCATION_TAG_NAME)).thenReturn(
-                new LocationTag(FacilityPull.SHR_LOCATION_TAG_NAME, "foo bar baz"));
+        when(locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME)).thenReturn(
+                new LocationTag(SHR_LOCATION_TAG_NAME, "foo bar baz"));
 
         FacilityPull facilityPull = new FacilityPull(propertiesReader, frWebClient,
                 locationService, scheduledTaskHistory, idMappingsRepository, locationMapper);
@@ -211,8 +214,8 @@ public class FacilityPullTest {
 
         verify(propertiesReader, times(2)).getFrProperties();
         verify(frWebClient).get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
-        verify(scheduledTaskHistory).getLastExecutionDateAndTime(FacilityPull.FR_SYNC_TASK);
-        verify(locationService).getLocationTagByName(FacilityPull.SHR_LOCATION_TAG_NAME);
+        verify(scheduledTaskHistory).getUpdatedSinceDateAndTime(FACILITY_CONTEXT);
+        verify(locationService).getLocationTagByName(SHR_LOCATION_TAG_NAME);
         verify(idMappingsRepository, times(10)).findByExternalId(any(String.class));
         verify(locationService, times(10)).saveLocation(any(Location.class));
         verify(idMappingsRepository, times(10)).saveMapping(any(IdMapping.class));
@@ -222,14 +225,14 @@ public class FacilityPullTest {
     @Test
     public void shouldUpdateNothingIfWeGetNothing() throws Exception {
         Properties properties = new Properties();
-        properties.put(FacilityPull.FACILITY_CONTEXT, "/facilities");
+        properties.put(FACILITY_CONTEXT, "/facilities");
 
         when(propertiesReader.getFrProperties()).thenReturn(properties);
         when(frWebClient.get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(new FRLocationEntry[]{});
-        when(scheduledTaskHistory.getLastExecutionDateAndTime(FacilityPull.FR_SYNC_TASK)).thenReturn("2000-12-31 23:55:55");
+        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(FACILITY_CONTEXT)).thenReturn("2000-12-31 23:55:55");
         when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString()));
-        when(locationService.getLocationTagByName(FacilityPull.SHR_LOCATION_TAG_NAME)).thenReturn(
-                new LocationTag(FacilityPull.SHR_LOCATION_TAG_NAME, "foo bar baz"));
+        when(locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME)).thenReturn(
+                new LocationTag(SHR_LOCATION_TAG_NAME, "foo bar baz"));
 
         FacilityPull facilityPull = new FacilityPull(propertiesReader, frWebClient,
                 locationService, scheduledTaskHistory, idMappingsRepository, locationMapper);
@@ -238,9 +241,9 @@ public class FacilityPullTest {
 
         verify(propertiesReader, times(2)).getFrProperties();
         verify(frWebClient).get("/facilities?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
-        verify(scheduledTaskHistory).getLastExecutionDateAndTime(FacilityPull.FR_SYNC_TASK);
+        verify(scheduledTaskHistory).getUpdatedSinceDateAndTime(FACILITY_CONTEXT);
         verify(idMappingsRepository, times(0)).findByExternalId(any(String.class));
-        verify(locationService, times(1)).getLocationTagByName(FacilityPull.SHR_LOCATION_TAG_NAME);
+        verify(locationService, times(1)).getLocationTagByName(SHR_LOCATION_TAG_NAME);
         verify(locationService, times(0)).saveLocation(any(Location.class));
         verify(idMappingsRepository, times(0)).saveMapping(any(IdMapping.class));
 
@@ -249,16 +252,17 @@ public class FacilityPullTest {
     @Test
     public void shouldCreateIndividualUriForMappedIds() throws Exception {
         Properties properties = new Properties();
-        properties.put(FacilityPull.FACILITY_CONTEXT, "/facilities");
+        properties.put(FACILITY_CONTEXT, "/facilities");
         properties.put(FacilityPull.INDIVIDUAL_FACILITY_CONTEXT, "/%s.json");
+        String initialDateAndTime = "0000-00-00%2000:00:00";
 
         when(propertiesReader.getFrBaseUrl()).thenReturn("http://foo.com");
         when(propertiesReader.getFrProperties()).thenReturn(properties);
-        when(frWebClient.get("/facilities?offset=0&limit=100", FRLocationEntry[].class)).thenReturn(oneLocationEntry("100001"));
-        when(scheduledTaskHistory.getLastExecutionDateAndTime(FacilityPull.FR_SYNC_TASK)).thenReturn(StringUtils.EMPTY);
+        when(frWebClient.get("/facilities?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", FRLocationEntry[].class)).thenReturn(oneLocationEntry("100001"));
+        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(FACILITY_CONTEXT)).thenReturn(initialDateAndTime);
         when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString()));
-        when(locationService.getLocationTagByName(FacilityPull.SHR_LOCATION_TAG_NAME)).thenReturn(
-                new LocationTag(FacilityPull.SHR_LOCATION_TAG_NAME, "foo bar baz"));
+        when(locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME)).thenReturn(
+                new LocationTag(SHR_LOCATION_TAG_NAME, "foo bar baz"));
 
         FacilityPull facilityPull = new FacilityPull(propertiesReader, frWebClient,
                 locationService, scheduledTaskHistory, idMappingsRepository, locationMapper);

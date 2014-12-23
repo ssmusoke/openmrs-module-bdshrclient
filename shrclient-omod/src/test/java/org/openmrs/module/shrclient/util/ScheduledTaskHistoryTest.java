@@ -1,6 +1,5 @@
 package org.openmrs.module.shrclient.util;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -12,13 +11,10 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.openmrs.module.shrclient.util.ScheduledTaskHistory.QUERY_FORMAT_TO_GET_LAST_EXECUTION_TIME;
-import static org.openmrs.module.shrclient.util.ScheduledTaskHistory.QUERY_FORMAT_TO_GET_OFFSET;
-import static org.openmrs.module.shrclient.util.ScheduledTaskHistory.QUERY_FORMAT_TO_SET_OFFSET;
+import static org.openmrs.module.shrclient.util.ScheduledTaskHistory.*;
 
 public class ScheduledTaskHistoryTest {
 
-    public static final String SOME_DATE_TIME_WITH_JUNK_AT_THE_END = "Some DateTime!!";
     public static final String SOME_DATE_TIME_WITHOUT_JUNK = "Some DateTime";
     private static final int OFF_SET = 100;
     private static final String LR_DIVISIONS_LEVEL = "lr.divisions";
@@ -35,15 +31,15 @@ public class ScheduledTaskHistoryTest {
     }
 
     @Test
-    public void shouldFetchLastExecutionDateAndTruncateJunks() throws SQLException {
+    public void shouldFetchUpdatedSinceDateAndTime() throws SQLException {
         String taskName = "LR Sync Task";
-        String query = String.format(QUERY_FORMAT_TO_GET_LAST_EXECUTION_TIME, taskName);
+        String query = String.format(QUERY_FORMAT_TO_GET_UPDATED_SINCE, taskName);
 
         when(resultSet.next()).thenReturn(true);
-        when(resultSet.getString(1)).thenReturn(SOME_DATE_TIME_WITH_JUNK_AT_THE_END);
+        when(resultSet.getString(1)).thenReturn(SOME_DATE_TIME_WITHOUT_JUNK);
         when(database.get(query)).thenReturn(resultSet);
 
-        String lastExecutionDateAndTime = new ScheduledTaskHistory(database).getLastExecutionDateAndTime(taskName);
+        String lastExecutionDateAndTime = new ScheduledTaskHistory(database).getUpdatedSinceDateAndTime(taskName);
 
         verify(resultSet).next();
         verify(resultSet).getString(1);
@@ -53,19 +49,24 @@ public class ScheduledTaskHistoryTest {
     }
 
     @Test
-    public void shouldFetchOffset() throws Exception {
+    public void shouldSetUpdatedSinceDateAndTime() {
+
+    }
+
+    @Test
+    public void shouldFetchOffset() throws SQLException {
 
         String taskName = "FR Sync Task";
         String query = String.format(QUERY_FORMAT_TO_GET_OFFSET, LR_DIVISIONS_LEVEL, taskName);
 
         when(resultSet.next()).thenReturn(true);
-        when(resultSet.getString(1)).thenReturn("100");
+        when(resultSet.getInt(1)).thenReturn(100);
         when(database.get(query)).thenReturn(resultSet);
 
-        int offSet = new ScheduledTaskHistory(database).getOffset(LR_DIVISIONS_LEVEL, taskName);
+        int offSet = new ScheduledTaskHistory(database).getOffset(LR_DIVISIONS_LEVEL);
 
         verify(resultSet).next();
-        verify(resultSet).getString(1);
+        verify(resultSet).getInt(1);
         verify(database).get(query);
 
         assertEquals(OFF_SET, offSet);
@@ -79,10 +80,11 @@ public class ScheduledTaskHistoryTest {
 
         when(database.save(query)).thenReturn(true);
 
-        Boolean isExecuted = new ScheduledTaskHistory(database).setOffset(LR_DIVISIONS_LEVEL, taskName, OFF_SET);
+        Boolean isExecuted = new ScheduledTaskHistory(database).setOffset(LR_DIVISIONS_LEVEL, OFF_SET);
 
         verify(database).save(query);
 
         assertEquals(true, isExecuted);
     }
+
 }

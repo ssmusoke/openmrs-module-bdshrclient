@@ -21,18 +21,16 @@ public class FacilityPull {
     private final Logger logger = Logger.getLogger(FacilityPull.class);
 
     private static final int DEFAULT_LIMIT = 100;
-    private static final String EXTRA_FILTER_PATTERN_WITHOUT_UPDATED_SINCE = "?offset=%d&limit=%d";
-    private static final String EXTRA_FILTER_PATTERN_WITH_UPDATED_SINCE = "?offset=%d&limit=%d&updatedSince=%s";
-    public static final String FR_SYNC_TASK = "FR Sync Task";
+    private static final String EXTRA_FILTER_PATTERN = "?offset=%d&limit=%d&updatedSince=%s";
     private static final String ENCODED_SINGLE_SPACE = "%20";
     private static final String SINGLE_SPACE = " ";
     public static final String FACILITY_CONTEXT = "fr.facilities";
     public static final String SHR_LOCATION_TAG_NAME = "DGHS Facilities";
     public static final String ID_MAPPING_TYPE = "fr_location";
     public static final String INDIVIDUAL_FACILITY_CONTEXT = "fr.facilityUrlFormat";
+    private static final int MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED = 1000;
 
 
-    private final String lastExecutionDateTime;
     private LocationService locationService;
     private IdMappingsRepository idMappingsRepository;
     private LocationMapper locationMapper;
@@ -42,6 +40,7 @@ public class FacilityPull {
     private LocationTag shrLocationTag;
     private String facilityUrlFormat;
     private List<String> failedDuringSaveOrUpdateOperation;
+    private int noOfEntriesSynchronizedSoFar;
 
 
     public FacilityPull(PropertiesReader propertiesReader, RestClient frWebClient, LocationService locationService,
@@ -53,47 +52,55 @@ public class FacilityPull {
         this.idMappingsRepository = idMappingsRepository;
         this.scheduledTaskHistory = scheduledTaskHistory;
         this.locationMapper = locationMapper;
-        this.lastExecutionDateTime = scheduledTaskHistory.getLastExecutionDateAndTime(FR_SYNC_TASK);
         this.shrLocationTag = locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME);
         this.failedDuringSaveOrUpdateOperation = new ArrayList<>();
     }
 
     public void synchronize() {
+        noOfEntriesSynchronizedSoFar = 0;
         facilityUrlFormat = getFacilityUrlFormat();
         List<FRLocationEntry> frLocationEntries = synchronizeUpdates(FACILITY_CONTEXT);
         logger.info(frLocationEntries.size() + " entries updated");
-
-        reinitializeMarkerTableToZero();
-    }
-
-    private void reinitializeMarkerTableToZero() {
-        updateMarkerTableToStoreOffset(0, FACILITY_CONTEXT);
     }
 
     private List<FRLocationEntry> synchronizeUpdates(String facilityContext) {
         String baseContextPath = propertiesReader.getFrProperties().getProperty(facilityContext);
         List<FRLocationEntry> synchronizedLocationEntries = new ArrayList<>();
         List<FRLocationEntry> lastRetrievedPartOfList;
-        int offset = scheduledTaskHistory.getOffset(facilityContext, FR_SYNC_TASK);
+
+        if (noOfEntriesSynchronizedSoFar >= MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED) {
+            return synchronizedLocationEntries;
+        }
+
+        int offset = scheduledTaskHistory.getOffset(facilityContext);
+        String updatedSince = scheduledTaskHistory.getUpdatedSinceDateAndTime(facilityContext);
 
         do {
-            String completeContextPath = buildCompleteContextPath(baseContextPath, offset);
+            String completeContextPath = buildCompleteContextPath(baseContextPath, offset, updatedSince);
             lastRetrievedPartOfList = getNextChunkOfUpdatesFromFR(completeContextPath);
             if (lastRetrievedPartOfList != null) {
                 saveOrUpdateFacilityEntries(lastRetrievedPartOfList);
                 synchronizedLocationEntries.addAll(lastRetrievedPartOfList);
                 offset += lastRetrievedPartOfList.size();
                 updateMarkerTableToStoreOffset(offset, facilityContext);
+                noOfEntriesSynchronizedSoFar += lastRetrievedPartOfList.size();
             } else {
                 logger.info(synchronizedLocationEntries.size() + " entries synchronized");
                 throw new RuntimeException("Failed to Synchronize updates from FR");
             }
         }
-        while (lastRetrievedPartOfList != null && lastRetrievedPartOfList.size() == DEFAULT_LIMIT);
+        while (lastRetrievedPartOfList != null && lastRetrievedPartOfList.size() == DEFAULT_LIMIT && noOfEntriesSynchronizedSoFar < MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED);
+
+        if (lastRetrievedPartOfList != null && lastRetrievedPartOfList.size() < DEFAULT_LIMIT && noOfEntriesSynchronizedSoFar < MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED) {
+            scheduledTaskHistory.setUpdatedSinceDateAndTime(facilityContext);
+            updateMarkerTableToStoreOffset(0, facilityContext);
+        }
 
         logger.info(synchronizedLocationEntries.size() + " entries synchronized");
-        // todo : remove this code once we know where and how to keep this log information for LR & FR
         logger.info(failedDuringSaveOrUpdateOperation.size() + " entries failed during synchronization");
+        logger.info("Synchronization Failed for the following Facilities");
+        logger.info(failedDuringSaveOrUpdateOperation.toString());
+
         return synchronizedLocationEntries;
     }
 
@@ -145,7 +152,7 @@ public class FacilityPull {
     }
 
     private boolean updateMarkerTableToStoreOffset(int offset, String level) {
-        boolean isMarkerUpdated = scheduledTaskHistory.setOffset(level, FR_SYNC_TASK, offset);
+        boolean isMarkerUpdated = scheduledTaskHistory.setOffset(level, offset);
         logger.info(isMarkerUpdated ? "Marker Table Updated" : "Failed to Update Marker Table");
         return isMarkerUpdated;
     }
@@ -161,14 +168,12 @@ public class FacilityPull {
         }
     }
 
-    private String buildCompleteContextPath(String baseContextPath, int offset) {
-        return baseContextPath + getExtraFilters(offset);
+    private String buildCompleteContextPath(String baseContextPath, int offset, String updatedSince) {
+        return baseContextPath + getExtraFilters(offset, updatedSince);
     }
 
-    private String getExtraFilters(int offset) {
-        return StringUtils.isEmpty(lastExecutionDateTime) ?
-                String.format(EXTRA_FILTER_PATTERN_WITHOUT_UPDATED_SINCE, offset, DEFAULT_LIMIT) :
-                String.format(EXTRA_FILTER_PATTERN_WITH_UPDATED_SINCE, offset, DEFAULT_LIMIT, lastExecutionDateTime)
+    private String getExtraFilters(int offset, String updatedSince) {
+        return String.format(EXTRA_FILTER_PATTERN, offset, DEFAULT_LIMIT, updatedSince)
                         .replace(SINGLE_SPACE, ENCODED_SINGLE_SPACE);
     }
 

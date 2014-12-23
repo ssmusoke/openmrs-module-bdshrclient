@@ -7,15 +7,17 @@ import org.apache.log4j.Logger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.Date;
 
 //purpose: represents run history of scheduled tasks
 public class ScheduledTaskHistory {
     private final Logger logger = Logger.getLogger(ScheduledTaskHistory.class);
 
-    public static final String QUERY_FORMAT_TO_GET_LAST_EXECUTION_TIME = "select last_execution_time from scheduler_task_config where name = '%s'";
-    public static final String QUERY_FORMAT_TO_GET_OFFSET = "select feed_uri_for_last_read_entry from markers where feed_uri = '%s' and last_read_entry_id = '%s'";
-    public static final String QUERY_FORMAT_TO_SET_OFFSET = "update markers set feed_uri_for_last_read_entry = %d where feed_uri = '%s' and last_read_entry_id = '%s'";
-    public static final int GARBAGE_CHARACTER_LENGTH_IN_DATETIME_FIELD = 2;
+    public static final String QUERY_FORMAT_TO_GET_UPDATED_SINCE = "select feed_uri_for_last_read_entry from markers where feed_uri = '%s'";
+    public static final String QUERY_FORMAT_TO_SET_UPDATED_SINCE = "update markers set feed_uri_for_last_read_entry = '%s' where feed_uri = '%s'";
+    public static final String QUERY_FORMAT_TO_GET_OFFSET = "select last_read_entry_id from markers where feed_uri = '%s'";
+    public static final String QUERY_FORMAT_TO_SET_OFFSET = "update markers set last_read_entry_id = %d where feed_uri = '%s'";
     private Database database;
 
 
@@ -23,12 +25,12 @@ public class ScheduledTaskHistory {
         this.database = database;
     }
 
-    public String getLastExecutionDateAndTime(String taskName) {
-        String query = String.format(QUERY_FORMAT_TO_GET_LAST_EXECUTION_TIME, taskName);
+    public String getUpdatedSinceDateAndTime(String levelName) {
+        String query = String.format(QUERY_FORMAT_TO_GET_UPDATED_SINCE, levelName);
         ResultSet resultSet = database.get(query);
-        String lastExecutionTime = null;
+        String updatedSinceDataAndTime = null;
         try {
-            lastExecutionTime = resultSet.next() ? resultSet.getString(1) : StringUtils.EMPTY;
+            updatedSinceDataAndTime = resultSet.next() ? resultSet.getString(1) : StringUtils.EMPTY;
         } catch (SQLException e) {
             logger.error("Error while fetching Last Execution Date And Time");
             e.printStackTrace();
@@ -42,21 +44,15 @@ public class ScheduledTaskHistory {
                 e.printStackTrace();
             }
         }
-        return removeUnwantedCharactersAtTheEnd(lastExecutionTime);
+        return updatedSinceDataAndTime;
     }
 
-    private String removeUnwantedCharactersAtTheEnd(String lastExecutionTime) {
-        return lastExecutionTime == null ?
-                StringUtils.EMPTY :
-                lastExecutionTime.substring(0, lastExecutionTime.length() - GARBAGE_CHARACTER_LENGTH_IN_DATETIME_FIELD);
-    }
-
-    public int getOffset(String levelName, String taskName) {
-        String query = String.format(QUERY_FORMAT_TO_GET_OFFSET, levelName, taskName);
+    public int getOffset(String levelName) {
+        String query = String.format(QUERY_FORMAT_TO_GET_OFFSET, levelName);
         ResultSet resultSet = database.get(query);
         int offset = 0;
         try {
-            offset = resultSet.next() ? getInteger(resultSet) : 0;
+            offset = resultSet.next() ? resultSet.getInt(1) : 0;
         } catch (SQLException e) {
             logger.error("Error while fetching Offset");
             e.printStackTrace();
@@ -73,13 +69,19 @@ public class ScheduledTaskHistory {
         return offset;
     }
 
-    private int getInteger(ResultSet resultSet) throws SQLException {
-        String result = resultSet.getString(1);
-        return StringUtils.isBlank(result) ? 0 : Integer.parseInt(result);
+    public boolean setOffset(String level, int offset) {
+        String query = String.format(QUERY_FORMAT_TO_SET_OFFSET, offset, level);
+        return database.save(query);
     }
 
-    public boolean setOffset(String level, String taskName, int offset) {
-        String query = String.format(QUERY_FORMAT_TO_SET_OFFSET, offset, level, taskName);
+    public boolean setUpdatedSinceDateAndTime(String levelName) {
+        String query = String.format(QUERY_FORMAT_TO_SET_UPDATED_SINCE, getCurrentDateAndTime(), levelName);
         return database.save(query);
+    }
+
+    private String getCurrentDateAndTime() {
+        String date = new Timestamp(new Date().getTime()).toString();
+        int indexOfPeriod = date.indexOf(".");
+        return indexOfPeriod != -1 ? date.substring(0, indexOfPeriod) : date;
     }
 }

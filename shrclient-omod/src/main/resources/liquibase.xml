@@ -300,8 +300,16 @@
 
     </changeSet>
     
-    <changeSet id="bdshrclient-241219-1500" author="tw" context="setup">
+    <changeSet id="bdshrclient-221214-1500" author="tw" context="setup">
         <modifyDataType tableName="address_hierarchy_entry" columnName="user_generated_id" newDataType="varchar(12)" />
+    </changeSet>
+
+    <changeSet id="bdshrclient-221214-1800" author="tw" context="setup">
+        <update tableName="markers">
+            <column name="last_read_entry_id" value="0" />
+            <column name="feed_uri_for_last_read_entry" value="0000-00-00 00:00:00" />
+            <where>feed_uri IN ('fr.facilities', 'lr.divisions', 'lr.districts', 'lr.upazilas', 'lr.paurasavas', 'lr.unions', 'lr.wards')</where>
+        </update>
     </changeSet>
 
 </databaseChangeLog>
