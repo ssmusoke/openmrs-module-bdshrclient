@@ -109,8 +109,15 @@ public class MciPatientLookupController {
         addressModel.put("division", getAddressEntryText(address.getDivisionId()));
         addressModel.put("district", getAddressEntryText(address.createUserGeneratedDistrictId()));
         addressModel.put("upazilla", getAddressEntryText(address.createUserGeneratedUpazillaId()));
-        addressModel.put("cityCorporation", getAddressEntryText(address.createUserGeneratedCityCorporationId()));
-        addressModel.put("unionOrUrbanWard", getAddressEntryText(address.createUserGeneratedUnionOrUrbanWardId()));
+
+        /*TODO: find any alternative to fix through hibernate Restriction*/
+        if(address.getCityCorporationId()!= null){
+            addressModel.put("cityCorporation", getAddressEntryText(address.createUserGeneratedCityCorporationId()));
+            if(address.getUnionOrUrbanWardId()!= null)
+                addressModel.put("unionOrUrbanWard", getAddressEntryText(address.createUserGeneratedUnionOrUrbanWardId()));
+        }
+
+
 
         patientModel.put("address", addressModel);
         return patientModel;
@@ -135,7 +142,9 @@ public class MciPatientLookupController {
 
     private String getAddressEntryText(String code) {
         AddressHierarchyService addressHierarchyService = Context.getService(AddressHierarchyService.class);
+
         AddressHierarchyEntry entry = addressHierarchyService.getAddressHierarchyEntryByUserGenId(code);
         return entry.getName();
+
     }
 }
