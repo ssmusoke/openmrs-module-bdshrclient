@@ -103,6 +103,9 @@
                 </medication>
                 <dosageInstruction>
                     <timingSchedule>
+                        <event>
+                            <start value="2014-12-25T12:21:10+05:30" />
+                        </event>
                         <repeat>
                             <frequency value="1"/>
                             <duration value="1"/>

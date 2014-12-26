@@ -1,13 +1,12 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import org.hl7.fhir.instance.model.*;
-import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Integer;
 import org.hl7.fhir.instance.model.Schedule.ScheduleRepeatComponent;
-import org.openmrs.*;
+import org.openmrs.Concept;
+import org.openmrs.DrugOrder;
 import org.openmrs.Order;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.fhir.utils.UnitsHelpers;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -29,6 +28,8 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 
     @Autowired
     private IdMappingsRepository idMappingsRepository;
+    @Autowired
+    private UnitsHelpers unitsHelpers;
     private final int DEFAULT_DURATION = 1;
 
     @Override
@@ -84,7 +85,6 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
     }
 
     private void setRepeatComponent(DrugOrder drugOrder, Schedule schedule) {
-        UnitsHelpers unitsHelpers = new UnitsHelpers();
         Decimal duration = getDuration();
         String conceptName = drugOrder.getFrequency().getConcept().getName().getName();
         Schedule.UnitsOfTime frequencyUnit = unitsHelpers.getUnitsOfTime(conceptName);

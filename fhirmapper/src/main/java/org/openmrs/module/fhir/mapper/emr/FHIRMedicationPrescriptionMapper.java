@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.Coding;
 import org.hl7.fhir.instance.model.MedicationPrescription;
+import org.hl7.fhir.instance.model.Period;
 import org.hl7.fhir.instance.model.Quantity;
 import org.hl7.fhir.instance.model.Resource;
 import org.hl7.fhir.instance.model.ResourceType;
@@ -16,6 +17,7 @@ import org.openmrs.OrderFrequency;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.OrderService;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.OMRSHelper;
 import org.openmrs.module.fhir.utils.UnitsHelpers;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -28,6 +30,7 @@ import java.util.Map;
 
 import static java.lang.Math.abs;
 import static org.hl7.fhir.instance.model.MedicationPrescription.MedicationPrescriptionDosageInstructionComponent;
+import static org.openmrs.module.fhir.utils.UnitsHelpers.UnitToDaysConverter;
 
 @Component
 public class FHIRMedicationPrescriptionMapper implements FHIRResource {
@@ -43,6 +46,9 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResource {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private UnitsHelpers unitsHelpers;
+
     @Override
     public boolean canHandle(Resource resource) {
         return ResourceType.MedicationPrescription.equals(resource.getResourceType());
@@ -57,24 +63,37 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResource {
         mapDrug(prescription, drugOrder);
         MedicationPrescriptionDosageInstructionComponent dosageInstruction = prescription.getDosageInstruction().get(0);
         mapDosageAndRoute(drugOrder, dosageInstruction);
-        mapFrequencyAndDuration(drugOrder, dosageInstruction);
+        mapFrequencyAndDurationAndScheduledDate(drugOrder, dosageInstruction);
         newEmrEncounter.addOrder(drugOrder);
     }
 
-    private void mapFrequencyAndDuration(DrugOrder drugOrder, MedicationPrescriptionDosageInstructionComponent dosageInstruction) {
+    private void mapFrequencyAndDurationAndScheduledDate(DrugOrder drugOrder, MedicationPrescriptionDosageInstructionComponent dosageInstruction) {
         if (dosageInstruction.getTiming() instanceof Schedule) {
             Schedule schedule = (Schedule) dosageInstruction.getTiming();
-            drugOrder.setDuration(schedule.getRepeat().getCountSimple());
-            UnitsHelpers unitsHelpers = new UnitsHelpers();
-            UnitsHelpers.UnitToDaysConverter unit = unitsHelpers.getUnitsOfTimeMapper().get(schedule.getRepeat().getUnitsSimple());
-            String units = unit.getUnits();
-            Concept durationUnits = conceptService.getConceptByName(units);
-            drugOrder.setDurationUnits(durationUnits);
+            UnitToDaysConverter unit = unitsHelpers.getUnitsOfTimeMapper().get(schedule.getRepeat().getUnitsSimple());
+            setOrderDuration(drugOrder, schedule, unit);
             setOrderFrequency(drugOrder, schedule, unit);
+            setScheduledDate(drugOrder, schedule);
         }
     }
 
-    private void setOrderFrequency(DrugOrder drugOrder, Schedule schedule, UnitsHelpers.UnitToDaysConverter unit) {
+    private void setScheduledDate(DrugOrder drugOrder, Schedule schedule) {
+        if (!schedule.getEvent().isEmpty()) {
+            Period period = schedule.getEvent().get(0);
+            if(period.getStartSimple() != null) {
+                drugOrder.setScheduledDate(DateUtil.parseDate(period.getStartSimple().toString()));
+            }
+        }
+    }
+
+    private void setOrderDuration(DrugOrder drugOrder, Schedule schedule, UnitToDaysConverter unit) {
+        drugOrder.setDuration(schedule.getRepeat().getCountSimple());
+        String units = unit.getUnits();
+        Concept durationUnits = conceptService.getConceptByName(units);
+        drugOrder.setDurationUnits(durationUnits);
+    }
+
+    private void setOrderFrequency(DrugOrder drugOrder, Schedule schedule, UnitToDaysConverter unit) {
         double frequencyPerDay = schedule.getRepeat().getFrequencySimple() / unit.getInDays();
         List<OrderFrequency> orderFrequencies = orderService.getOrderFrequencies(false);
         if (!orderFrequencies.isEmpty()) {

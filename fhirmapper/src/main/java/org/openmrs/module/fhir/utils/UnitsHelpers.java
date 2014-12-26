@@ -1,12 +1,14 @@
 package org.openmrs.module.fhir.utils;
 
 import org.hl7.fhir.instance.model.Schedule.UnitsOfTime;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.hl7.fhir.instance.model.Schedule.UnitsOfTime.*;
 
+@Component
 public class UnitsHelpers {
     //TODO : rename
     public enum UnitToDaysConverter {
