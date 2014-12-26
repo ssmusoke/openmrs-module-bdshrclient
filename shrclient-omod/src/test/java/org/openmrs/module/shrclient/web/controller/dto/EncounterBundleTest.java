@@ -5,9 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Composition;
 import org.hl7.fhir.instance.model.ResourceType;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;

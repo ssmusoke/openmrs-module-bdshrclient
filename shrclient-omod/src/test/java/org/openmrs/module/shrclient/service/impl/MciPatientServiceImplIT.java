@@ -3,8 +3,10 @@ package org.openmrs.module.shrclient.service.impl;
 import org.hl7.fhir.instance.model.Date;
 import org.junit.Before;
 import org.junit.Test;
+import org.openmrs.DrugOrder;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
+import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
@@ -21,6 +23,7 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
@@ -86,4 +89,33 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         assertFalse(orders.isEmpty());
         assertEquals(1, orders.size());
     }
+
+    @Test
+    public void shouldSaveDrugOrders() throws Exception {
+        executeDataSet("testDataSets/drugOrderDS.xml");
+        String healthId = "5947482439084408833";
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, "shr-enc-id", "encounterBundles/encounterWithMedicationPrescription.xml");
+        Patient emrPatient = patientService.getPatient(1);
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+
+        List<Encounter> encountersByPatient = encounterService.getEncountersByPatient(emrPatient);
+        assertEquals(1, encountersByPatient.size());
+        Encounter encounter = encountersByPatient.get(0);
+        Set<Order> orders = encounter.getOrders();
+        assertFalse(orders.isEmpty());
+        assertEquals(1, orders.size());
+        assertTrue(orders.iterator().next() instanceof DrugOrder);
+    }
+
+    private List<EncounterBundle> getEncounterBundles(String healthId, String shrEncounterId, String encounterBundleFilePath) throws Exception {
+        List<EncounterBundle> bundles = new ArrayList<>();
+        EncounterBundle bundle = new EncounterBundle();
+        bundle.setEncounterId(shrEncounterId);
+        bundle.setPublishedDate(new Date().toString());
+        bundle.setHealthId(healthId);
+        bundle.addContent(testHelper.loadSampleFHIREncounter(encounterBundleFilePath, springContext));
+        bundles.add(bundle);
+        return bundles;
+    }
+
 }

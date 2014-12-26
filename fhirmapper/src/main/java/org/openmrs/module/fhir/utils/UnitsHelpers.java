@@ -8,11 +8,12 @@ import java.util.Map;
 import static org.hl7.fhir.instance.model.Schedule.UnitsOfTime.*;
 
 public class UnitsHelpers {
+    //TODO : rename
     public enum UnitToDaysConverter {
         Hour("Hour(s)", h, 0.041667),
-        Day("Days(s)", d, 1),
+        Day("Day(s)", d, 1),
         Week("Week(s)", wk, 7),
-        Month("Months(s)", mo, 30);
+        Month("Month(s)", mo, 30);
 
         private final String units;
         private final UnitsOfTime unitsOfTime;
