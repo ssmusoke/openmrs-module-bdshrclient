@@ -30,7 +30,7 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapLabTestResults() throws Exception {
-        executeDataSet("labResultDS.xml");
+        executeDataSet("testDataSets/labResultDS.xml");
         Encounter fhirEncounter = buildEncounter();
         ResourceReference patientHid = new ResourceReference();
         patientHid.setReferenceSimple("patientHid");
@@ -50,7 +50,7 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapLabPanelResults() throws Exception {
-        executeDataSet("labResultDS.xml");
+        executeDataSet("testDataSets/labResultDS.xml");
         Encounter fhirEncounter = buildEncounter();
         ResourceReference patientHid = new ResourceReference();
         patientHid.setReferenceSimple("patientHid");

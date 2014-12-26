@@ -26,7 +26,7 @@ public class OMRSHelperIT extends BaseModuleWebContextSensitiveTest {
 
     @Before
     public void setUp() throws Exception {
-        executeDataSet("omrsHelperTestDS.xml");
+        executeDataSet("testDataSets/omrsHelperTestDS.xml");
     }
 
     @Test

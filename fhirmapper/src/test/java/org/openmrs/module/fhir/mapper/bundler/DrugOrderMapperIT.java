@@ -15,10 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.Date;
 
 import static org.hl7.fhir.instance.model.Schedule.UnitsOfTime.d;
-import static org.hl7.fhir.instance.model.Schedule.UnitsOfTime.h;
 import static org.hl7.fhir.instance.model.Schedule.UnitsOfTime.wk;
 import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.TestHelper.getSystemProperties;
@@ -33,7 +31,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Before
     public void setUp() throws Exception {
-        executeDataSet("drugOrderDS.xml");
+        executeDataSet("testDataSets/drugOrderDS.xml");
     }
 
     @Test

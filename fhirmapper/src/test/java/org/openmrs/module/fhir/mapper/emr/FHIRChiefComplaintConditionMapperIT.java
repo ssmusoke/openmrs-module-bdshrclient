@@ -35,12 +35,12 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
     private FHIRChiefComplaintConditionMapper fhirChiefComplaintConditionMapper;
 
     public ParserBase.ResourceOrFeed loadSampleFHIREncounter() throws Exception {
-        return new TestHelper().loadSampleFHIREncounter("classpath:testFHIREncounter.xml", springContext);
+        return new TestHelper().loadSampleFHIREncounter("classpath:encounterBundles/testFHIREncounter.xml", springContext);
     }
 
     @Before
     public void setUp() throws Exception {
-        executeDataSet("shrChiefComplaintReverseSyncTestDS.xml");
+        executeDataSet("testDataSets/shrChiefComplaintReverseSyncTestDS.xml");
     }
 
     @Test

@@ -7,6 +7,7 @@ import org.openmrs.DrugOrder;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.Patient;
+import org.openmrs.TestOrder;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
@@ -51,16 +52,10 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldSaveEncounter() throws Exception {
-        executeDataSet("shrClientEncounterReverseSyncTestDS.xml");
+        executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
-        List<EncounterBundle> bundles = new ArrayList<>();
-        EncounterBundle bundle = new EncounterBundle();
-        bundle.setEncounterId("shr-enc-id");
-        bundle.setPublishedDate(new Date().toString());
         String healthId = "HIDA764177";
-        bundle.setHealthId(healthId);
-        bundle.addContent(testHelper.loadSampleFHIREncounter("classpath:testFHIREncounter.xml", springContext));
-        bundles.add(bundle);
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, "shr-enc-id", "classpath:encounterBundles/testFHIREncounter.xml");
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         List<org.openmrs.Encounter> encountersByPatient = encounterService.getEncountersByPatient(emrPatient);
@@ -68,18 +63,11 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    public void shouldSaveOrders() throws Exception {
-        executeDataSet("shrDiagnosticOrderSyncTestDS.xml");
-        String shrEncounterId = "shr-enc-id";
+    public void shouldSaveTestOrders() throws Exception {
+        executeDataSet("testDataSets/shrDiagnosticOrderSyncTestDS.xml");
         String healthId = "5915668841731457025";
-        org.openmrs.Patient emrPatient = patientService.getPatient(1);
-        List<EncounterBundle> bundles = new ArrayList<>();
-        EncounterBundle bundle = new EncounterBundle();
-        bundle.setEncounterId(shrEncounterId);
-        bundle.setPublishedDate(new Date().toString());
-        bundle.setHealthId(healthId);
-        bundle.addContent(testHelper.loadSampleFHIREncounter("classpath:encounterWithDiagnosticOrder.xml", springContext));
-        bundles.add(bundle);
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, "shr-enc-id", "classpath:encounterBundles/encounterWithDiagnosticOrder.xml");
+        Patient emrPatient = patientService.getPatient(1);
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         List<org.openmrs.Encounter> encountersByPatient = encounterService.getEncountersByPatient(emrPatient);
@@ -88,6 +76,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         Set<Order> orders = encounter.getOrders();
         assertFalse(orders.isEmpty());
         assertEquals(1, orders.size());
+        assertTrue(orders.iterator().next() instanceof TestOrder);
     }
 
     @Test

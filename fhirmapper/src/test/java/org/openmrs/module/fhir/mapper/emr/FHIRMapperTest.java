@@ -33,8 +33,8 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapObservations() throws Exception {
-        executeDataSet("shrClientObservationsTestDs.xml");
-        AtomFeed encounterBundle = new TestHelper().loadSampleFHIREncounter("classpath:testFHIRObservation.xml", springContext).getFeed();
+        executeDataSet("testDataSets/shrClientObservationsTestDs.xml");
+        AtomFeed encounterBundle = new TestHelper().loadSampleFHIREncounter("classpath:encounterBundles/testFHIRObservation.xml", springContext).getFeed();
 
         Patient patient = patientService.getPatient(1);
 

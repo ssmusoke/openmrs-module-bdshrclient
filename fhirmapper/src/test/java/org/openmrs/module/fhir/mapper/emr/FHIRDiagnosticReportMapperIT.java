@@ -47,7 +47,7 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
 
     @Before
     public void setUp() throws Exception {
-        executeDataSet("labResultDS.xml");
+        executeDataSet("testDataSets/labResultDS.xml");
     }
 
     @Test

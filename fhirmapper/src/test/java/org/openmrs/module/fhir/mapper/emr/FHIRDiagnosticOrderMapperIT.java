@@ -56,7 +56,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Before
     public void setUp() throws Exception {
-        executeDataSet("labOrderDS.xml");
+        executeDataSet("testDataSets/labOrderDS.xml");
         bundle = loadSampleFHIREncounter().getFeed();
     }
 

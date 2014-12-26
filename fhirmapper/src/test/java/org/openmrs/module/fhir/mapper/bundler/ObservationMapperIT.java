@@ -30,7 +30,7 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Before
     public void setUp() throws Exception {
-        executeDataSet("shrClientObservationsTestDs.xml");
+        executeDataSet("testDataSets/shrClientObservationsTestDs.xml");
     }
 
     @Test

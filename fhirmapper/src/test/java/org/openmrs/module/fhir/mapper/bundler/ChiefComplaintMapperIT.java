@@ -26,7 +26,7 @@ public class ChiefComplaintMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldCreateFHIRConditionFromChiefComplaint() throws Exception {
-        executeDataSet("shrClientChiefComplaintTestDS.xml");
+        executeDataSet("testDataSets/shrClientChiefComplaintTestDS.xml");
         Encounter encounter = new Encounter();
         encounter.setIndication(new ResourceReference());
         encounter.setSubject(new ResourceReference());

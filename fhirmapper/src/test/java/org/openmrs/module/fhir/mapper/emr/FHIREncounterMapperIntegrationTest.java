@@ -42,13 +42,13 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
     ConceptService conceptService;
 
     public ParserBase.ResourceOrFeed loadSampleFHIREncounter() throws Exception {
-        ParserBase.ResourceOrFeed parsedResource = new TestHelper().loadSampleFHIREncounter("classpath:testFHIREncounter.xml", springContext);
+        ParserBase.ResourceOrFeed parsedResource = new TestHelper().loadSampleFHIREncounter("classpath:encounterBundles/testFHIREncounter.xml", springContext);
         return parsedResource;
     }
 
     @Test
     public void shouldMapFhirEncounter() throws Exception {
-        executeDataSet("shrClientEncounterReverseSyncTestDS.xml");
+        executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
         final AtomFeed encounterBundle = loadSampleFHIREncounter().getFeed();
         Assert.assertEquals("urn:dc1f5f99-fb2f-4ba8-bf24-14ccdee498f9", encounterBundle.getId());
 
@@ -78,7 +78,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
 
     @Test
     public void shouldMapFhirConditions() throws Exception {
-        executeDataSet("shrClientEncounterReverseSyncTestDS.xml");
+        executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
         final AtomFeed encounterBundle = loadSampleFHIREncounter().getFeed();
 
         List<Condition> conditions = FHIRFeedHelper.getConditions(encounterBundle);

@@ -96,7 +96,7 @@
     <concept_name concept_name_id="902" concept_id="902" name="Once a day" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a37ae9a9-e1a4-41d4-b2d6-bc4335835eaa"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
-    <order_frequency order_frequency_id="902" concept_id="902" frequency_per_day="1" creator="1"
+    <order_frequency order_frequency_id="1" concept_id="902" frequency_per_day="1" creator="1"
                      date_created="2005-01-01 00:00:00.0"
                      retired="0" uuid="3c43a5b8-af04-11e4-b8c1-080027b662ec"/>
 
@@ -105,7 +105,7 @@
     <concept_name concept_name_id="903" concept_id="903" name="Twice a week" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a67ae9a9-e1a4-41r4-b2d6-bc4335835eaa"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
-    <order_frequency order_frequency_id="903" concept_id="903" frequency_per_day="0.28571" creator="1"
+    <order_frequency order_frequency_id="2" concept_id="903" frequency_per_day="0.28571" creator="1"
                      date_created="2005-01-01 00:00:00.0"
                      retired="0" uuid="3d43a5b8-af04-11e4-b9c1-080027b662ec"/>
 
@@ -114,7 +114,7 @@
     <concept_name concept_name_id="904" concept_id="904" name="Every 3 hours" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a57ae9a9-g1a4-41r4-b2d6-bc4335835eaa"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
-    <order_frequency order_frequency_id="904" concept_id="904" frequency_per_day="8" creator="1"
+    <order_frequency order_frequency_id="3" concept_id="904" frequency_per_day="8" creator="1"
                      date_created="2005-01-01 00:00:00.0"
                      retired="0" uuid="3r43a5b8-af04-11t4-b9c1-080027b662ec"/>
 
@@ -123,7 +123,7 @@
     <concept_name concept_name_id="905" concept_id="905" name="Every 2 hours" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a57ae9a9-g1z4-41r4-b2d6-bz4335835eaa"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
-    <order_frequency order_frequency_id="905" concept_id="905" frequency_per_day="12" creator="1"
+    <order_frequency order_frequency_id="4" concept_id="905" frequency_per_day="12" creator="1"
                      date_created="2005-01-01 00:00:00.0"
                      retired="0" uuid="3r43a5b8-af04-11t4-b9c1-0w00w7bz62zc"/>
 

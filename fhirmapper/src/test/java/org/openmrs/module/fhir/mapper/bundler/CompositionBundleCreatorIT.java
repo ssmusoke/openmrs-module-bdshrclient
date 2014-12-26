@@ -40,7 +40,7 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
 
     @Test
     public void shouldCreateFhirBundle() throws Exception {
-        executeDataSet("shrClientBundleCreatorTestDS.xml");
+        executeDataSet("testDataSets/shrClientBundleCreatorTestDS.xml");
         String facilityId = "10000036";
         AtomFeed bundle = compositionBundle.create(Context.getEncounterService().getEncounter(36), getSystemProperties(facilityId));
         assertNotNull(bundle);
