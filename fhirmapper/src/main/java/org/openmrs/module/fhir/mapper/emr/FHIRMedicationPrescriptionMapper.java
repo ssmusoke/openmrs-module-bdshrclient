@@ -1,8 +1,6 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Coding;
 import org.hl7.fhir.instance.model.MedicationPrescription;
 import org.hl7.fhir.instance.model.Period;
 import org.hl7.fhir.instance.model.Quantity;
@@ -17,11 +15,8 @@ import org.openmrs.OrderFrequency;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.OrderService;
-import org.openmrs.module.fhir.utils.DateUtil;
-import org.openmrs.module.fhir.utils.OMRSHelper;
+import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.UnitsHelpers;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,16 +24,15 @@ import java.util.List;
 import java.util.Map;
 
 import static java.lang.Math.abs;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hl7.fhir.instance.model.MedicationPrescription.MedicationPrescriptionDosageInstructionComponent;
+import static org.openmrs.module.fhir.utils.DateUtil.parseDate;
 import static org.openmrs.module.fhir.utils.UnitsHelpers.UnitToDaysConverter;
 
 @Component
 public class FHIRMedicationPrescriptionMapper implements FHIRResource {
     @Autowired
-    private OMRSHelper omrsHelper;
-
-    @Autowired
-    private IdMappingsRepository idMappingsRepository;
+    private OMRSConceptLookup omrsConceptLookup;
 
     @Autowired
     private ConceptService conceptService;
@@ -60,7 +54,9 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResource {
 
         DrugOrder drugOrder = new DrugOrder();
         drugOrder.setPatient(emrPatient);
-        mapDrug(prescription, drugOrder);
+        Drug drug = mapDrug(prescription);
+        if (drug == null) return;
+        drugOrder.setDrug(drug);
         MedicationPrescriptionDosageInstructionComponent dosageInstruction = prescription.getDosageInstruction().get(0);
         mapDosageAndRoute(drugOrder, dosageInstruction);
         mapFrequencyAndDurationAndScheduledDate(drugOrder, dosageInstruction);
@@ -81,7 +77,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResource {
         if (!schedule.getEvent().isEmpty()) {
             Period period = schedule.getEvent().get(0);
             if(period.getStartSimple() != null) {
-                drugOrder.setScheduledDate(DateUtil.parseDate(period.getStartSimple().toString()));
+                drugOrder.setScheduledDate(parseDate(period.getStartSimple().toString()));
             }
         }
     }
@@ -118,20 +114,27 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResource {
     private void mapDosageAndRoute(DrugOrder drugOrder, MedicationPrescriptionDosageInstructionComponent dosageInstruction) {
         Quantity doseQuantity = dosageInstruction.getDoseQuantity();
         drugOrder.setDose(doseQuantity.getValueSimple().doubleValue());
-        drugOrder.setDoseUnits(omrsHelper.findConceptFromValueSetCode(doseQuantity.getSystemSimple(), doseQuantity.getCodeSimple()));
-        Coding routeCoding = dosageInstruction.getRoute().getCoding().get(0);
-        drugOrder.setRoute(omrsHelper.findConceptFromValueSetCode(routeCoding.getSystemSimple(), routeCoding.getCodeSimple()));
+        drugOrder.setDoseUnits(omrsConceptLookup.findConceptFromValueSetCode(doseQuantity.getSystemSimple(), doseQuantity.getCodeSimple()));
+        drugOrder.setRoute(mapRoute(drugOrder, dosageInstruction));
     }
 
-    private void mapDrug(MedicationPrescription prescription, DrugOrder drugOrder) {
-        String drugExternalId = StringUtils.substringAfterLast(prescription.getMedication().getReferenceSimple(), "/");
-        IdMapping idMapping = idMappingsRepository.findByExternalId(drugExternalId);
-        Drug drug = null;
-        if (idMapping != null) {
-            drug = conceptService.getDrugByUuid(idMapping.getInternalId());
-        } else {
+    private Concept mapRoute(DrugOrder drugOrder, MedicationPrescriptionDosageInstructionComponent dosageInstruction) {
+        Concept route = null;
+        if (!dosageInstruction.getRoute().getCoding().isEmpty()) {
+            route = omrsConceptLookup.findConcept(dosageInstruction.getRoute().getCoding());
+            if (route == null) {
+                route = conceptService.getConceptByName(dosageInstruction.getRoute().getCoding().get(0).getDisplaySimple());
+            }
+        }
+        return route;
+    }
+
+    private Drug mapDrug(MedicationPrescription prescription) {
+        String drugExternalId = substringAfterLast(prescription.getMedication().getReferenceSimple(), "/");
+        Drug drug = omrsConceptLookup.findDrugOrder(drugExternalId);
+        if(drug == null) {
             drug = conceptService.getDrugByNameOrId(prescription.getMedication().getDisplaySimple());
         }
-        drugOrder.setDrug(drug);
+        return drug;
     }
 }

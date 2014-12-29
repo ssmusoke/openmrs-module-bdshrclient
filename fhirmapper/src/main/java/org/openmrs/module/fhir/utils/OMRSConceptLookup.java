@@ -3,7 +3,12 @@ package org.openmrs.module.fhir.utils;
 import ch.lambdaj.Lambda;
 import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.Coding;
-import org.openmrs.*;
+import org.openmrs.Concept;
+import org.openmrs.ConceptAnswer;
+import org.openmrs.ConceptMap;
+import org.openmrs.ConceptName;
+import org.openmrs.ConceptReferenceTerm;
+import org.openmrs.Drug;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -19,37 +24,55 @@ import static ch.lambdaj.Lambda.on;
 import static java.util.Locale.ENGLISH;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
+import static org.openmrs.ConceptMapType.SAME_AS_MAP_TYPE_UUID;
 import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_CONCEPT_TYPE;
 import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_REFERENCE_TERM_TYPE;
 
 @Component
-public class OMRSHelper {
+public class OMRSConceptLookup {
 
     private ConceptService conceptService;
     private IdMappingsRepository idMappingsRepository;
 
     @Autowired
-    public OMRSHelper(ConceptService conceptService, IdMappingsRepository repository) {
+    public OMRSConceptLookup(ConceptService conceptService, IdMappingsRepository repository) {
         this.conceptService = conceptService;
         this.idMappingsRepository = repository;
     }
 
     public Concept findConcept(List<Coding> codings) {
-        Map<ConceptReferenceTerm, String> referenceTermMap = new HashMap<ConceptReferenceTerm, String>();
+        Map<ConceptReferenceTerm, String> referenceTermMap = new HashMap<>();
         for (Coding coding : codings) {
-            String uuid = getUuid(coding.getSystemSimple());
-            if (StringUtils.isNotBlank(uuid)) {
-                IdMapping idMapping = idMappingsRepository.findByExternalId(uuid);
-                if (idMapping != null) {
-                    if (ID_MAPPING_CONCEPT_TYPE.equalsIgnoreCase(idMapping.getType())) {
-                        return conceptService.getConceptByUuid(idMapping.getInternalId());
-                    } else if (ID_MAPPING_REFERENCE_TERM_TYPE.equalsIgnoreCase(idMapping.getType())) {
-                        referenceTermMap.put(conceptService.getConceptReferenceTermByUuid(idMapping.getInternalId()), coding.getDisplaySimple());
+            if (isValueSetUrl(coding.getSystemSimple())) {
+                Concept concept = findConceptFromValueSetCode(coding.getSystemSimple(), coding.getCodeSimple());
+                if (concept != null) return concept;
+            } else {
+                String uuid = getUuid(coding.getSystemSimple());
+                if (StringUtils.isNotBlank(uuid)) {
+                    IdMapping idMapping = idMappingsRepository.findByExternalId(uuid);
+                    if (idMapping != null) {
+                        if (ID_MAPPING_CONCEPT_TYPE.equalsIgnoreCase(idMapping.getType())) {
+                            return conceptService.getConceptByUuid(idMapping.getInternalId());
+                        } else if (ID_MAPPING_REFERENCE_TERM_TYPE.equalsIgnoreCase(idMapping.getType())) {
+                            referenceTermMap.put(conceptService.getConceptReferenceTermByUuid(idMapping.getInternalId()), coding.getDisplaySimple());
+                        }
                     }
                 }
             }
         }
         return findConceptByReferenceTermMapping(referenceTermMap);
+    }
+
+    private boolean isValueSetUrl(String systemSimple) {
+        return StringUtils.contains(systemSimple, "tr/vs/");
+    }
+
+    public Drug findDrugOrder(String drugExternalId) {
+        IdMapping idMapping = idMappingsRepository.findByExternalId(drugExternalId);
+        if (idMapping != null) {
+            return conceptService.getDrugByUuid(idMapping.getInternalId());
+        }
+        return null;
     }
 
     public Concept findConceptFromValueSetCode(String system, String code) {
@@ -99,7 +122,7 @@ public class OMRSHelper {
         final String conceptName = referenceTermMapping.get(refTerm);
         Concept concept = new Concept();
         concept.addName(new ConceptName(conceptName, ENGLISH));
-        concept.addConceptMapping(new ConceptMap(refTerm, conceptService.getConceptMapTypeByName("SAME-AS")));
+        concept.addConceptMapping(new ConceptMap(refTerm, conceptService.getConceptMapTypeByUuid(SAME_AS_MAP_TYPE_UUID)));
         return conceptService.saveConcept(concept);
     }
 

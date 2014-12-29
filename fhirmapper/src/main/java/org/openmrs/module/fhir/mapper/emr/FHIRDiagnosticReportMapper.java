@@ -13,7 +13,7 @@ import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
-import org.openmrs.module.fhir.utils.OMRSHelper;
+import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReferen
 @Component
 public class FHIRDiagnosticReportMapper implements FHIRResource {
     @Autowired
-    private OMRSHelper omrsHelper;
+    private OMRSConceptLookup omrsConceptLookup;
     @Autowired
     private FHIRObservationsMapper observationsMapper;
     @Autowired
@@ -53,7 +53,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResource {
         DiagnosticReport diagnosticReport = (DiagnosticReport) resource;
         if (processedList.containsKey(diagnosticReport.getIdentifier().getValueSimple()))
             return;
-        Concept concept = omrsHelper.findConcept(diagnosticReport.getName().getCoding());
+        Concept concept = omrsConceptLookup.findConcept(diagnosticReport.getName().getCoding());
         if (concept == null) {
             return;
         }

@@ -12,7 +12,7 @@ import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
-import org.openmrs.module.fhir.utils.OMRSHelper;
+import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +26,7 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
     @Autowired
     private ConceptService conceptService;
     @Autowired
-    private OMRSHelper omrsHelper;
+    private OMRSConceptLookup omrsConceptLookup;
 
 
     public FHIRDiagnosisConditionMapper() {
@@ -63,7 +63,7 @@ public class FHIRDiagnosisConditionMapper implements FHIRResource {
         Concept bahmniDiagnosisStatus = conceptService.getConceptByName("Bahmni Diagnosis Status");
         Concept bahmniDiagnosisRevised = conceptService.getConceptByName("Bahmni Diagnosis Revised");
 
-        Concept diagnosisConceptAnswer = omrsHelper.findConcept(condition.getCode().getCoding());
+        Concept diagnosisConceptAnswer = omrsConceptLookup.findConcept(condition.getCode().getCoding());
         Concept diagnosisSeverityAnswer = identifyDiagnosisSeverity(diagnosisOrder);
         Concept diagnosisCertaintyAnswer = identifyDiagnosisCertainty(condition, diagnosisCertainty);
 

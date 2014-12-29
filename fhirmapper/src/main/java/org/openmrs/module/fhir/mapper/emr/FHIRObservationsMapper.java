@@ -7,7 +7,7 @@ import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.utils.DateUtil;
-import org.openmrs.module.fhir.utils.OMRSHelper;
+import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,7 +29,7 @@ public class FHIRObservationsMapper implements FHIRResource {
     IdMappingsRepository idMappingsRepository;
 
     @Autowired
-    OMRSHelper omrsHelper;
+    OMRSConceptLookup omrsConceptLookup;
 
     @Override
     public boolean canHandle(Resource resource) {
@@ -105,7 +105,7 @@ public class FHIRObservationsMapper implements FHIRResource {
             } else if (value instanceof CodeableConcept) {
                 List<Coding> codings = ((CodeableConcept) value).getCoding();
                 /* TODO: The last element of codings is the concept. Make this more explicit*/
-                Concept concept = omrsHelper.findConcept(codings);
+                Concept concept = omrsConceptLookup.findConcept(codings);
                 if (concept != null) {
                     result.setValueCoded(concept);
                 } else {
@@ -120,7 +120,7 @@ public class FHIRObservationsMapper implements FHIRResource {
         if (observationName.getCoding().isEmpty()) {
             return null;
         }
-        Concept concept = omrsHelper.findConcept(observationName.getCoding());
+        Concept concept = omrsConceptLookup.findConcept(observationName.getCoding());
         if(concept == null) {
             return conceptService.getConceptByName(observationName.getCoding().get(0).getDisplaySimple());
         }

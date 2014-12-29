@@ -9,7 +9,7 @@ import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
-import org.openmrs.module.fhir.utils.OMRSHelper;
+import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +24,7 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResource {
     @Autowired
     private ConceptService conceptService;
     @Autowired
-    private OMRSHelper omrsHelper;
+    private OMRSConceptLookup omrsConceptLookup;
 
     private static final int CONVERTION_PARAMETER_FOR_MINUTES = (60 * 1000);
 
@@ -52,7 +52,7 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResource {
 
         Obs chiefComplaintObs = new Obs();
         List<Coding> conditionCoding = condition.getCode().getCoding();
-        Concept conceptAnswer = omrsHelper.findConcept(conditionCoding);
+        Concept conceptAnswer = omrsConceptLookup.findConcept(conditionCoding);
         if (conceptAnswer == null) {
             if(CollectionUtils.isNotEmpty(conditionCoding)) {
                 String displayName = conditionCoding.get(0).getDisplaySimple();

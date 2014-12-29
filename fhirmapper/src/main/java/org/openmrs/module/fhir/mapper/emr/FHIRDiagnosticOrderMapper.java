@@ -14,7 +14,7 @@ import org.openmrs.api.ProviderService;
 import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.utils.Constants;
-import org.openmrs.module.fhir.utils.OMRSHelper;
+import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +31,7 @@ import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReferen
 @Component
 public class FHIRDiagnosticOrderMapper implements FHIRResource {
     @Autowired
-    private OMRSHelper omrsHelper;
+    private OMRSConceptLookup omrsConceptLookup;
 
     @Autowired
     private ProviderService providerService;
@@ -56,7 +56,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResource {
         List<DiagnosticOrder.DiagnosticOrderItemComponent> item = diagnosticOrder.getItem();
         ArrayList<String> processedTestOrderUuids = new ArrayList<>();
         for (DiagnosticOrder.DiagnosticOrderItemComponent diagnosticOrderItemComponent : item) {
-            Concept testOrderConcept = omrsHelper.findConcept(diagnosticOrderItemComponent.getCode().getCoding());
+            Concept testOrderConcept = omrsConceptLookup.findConcept(diagnosticOrderItemComponent.getCode().getCoding());
             if (testOrderConcept != null) {
                 TestOrder testOrder = createTestOrder(feed, diagnosticOrder, patient, encounter, testOrderConcept);
                 encounter.addOrder(testOrder);
