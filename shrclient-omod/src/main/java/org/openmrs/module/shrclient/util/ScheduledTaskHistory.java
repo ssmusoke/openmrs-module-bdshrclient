@@ -7,7 +7,7 @@ import org.apache.log4j.Logger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 //purpose: represents run history of scheduled tasks
@@ -79,9 +79,7 @@ public class ScheduledTaskHistory {
         return database.save(query);
     }
 
-    private String getCurrentDateAndTime() {
-        String date = new Timestamp(new Date().getTime()).toString();
-        int indexOfPeriod = date.indexOf(".");
-        return indexOfPeriod != -1 ? date.substring(0, indexOfPeriod) : date;
+    public String getCurrentDateAndTime() {
+        return new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date());
     }
 }

@@ -49,11 +49,6 @@ public class ScheduledTaskHistoryTest {
     }
 
     @Test
-    public void shouldSetUpdatedSinceDateAndTime() {
-
-    }
-
-    @Test
     public void shouldFetchOffset() throws SQLException {
 
         String taskName = "FR Sync Task";
@@ -86,5 +81,4 @@ public class ScheduledTaskHistoryTest {
 
         assertEquals(true, isExecuted);
     }
-
 }
