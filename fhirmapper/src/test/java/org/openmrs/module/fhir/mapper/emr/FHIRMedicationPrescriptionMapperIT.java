@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -65,6 +66,18 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
 
         assertEquals(conceptService.getDrug(301), drugOrder.getDrug());
         assertEquals(conceptService.getConcept(301), drugOrder.getConcept());
+    }
+
+    @Test
+    public void shouldMapProviderToDrug(){
+        Encounter mappedEncounter = new Encounter();
+        Patient patient = new Patient();
+        mapper.map(feed, resource, patient, mappedEncounter,new HashMap<String, List<String>>());
+
+        assertEquals(1, mappedEncounter.getOrders().size());
+        Order order = mappedEncounter.getOrders().iterator().next();
+        //TODO : test against medication prescription prescriber field.
+        assertNotNull(order.getOrderer());
     }
 
     @Test

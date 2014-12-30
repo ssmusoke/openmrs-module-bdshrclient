@@ -1,6 +1,6 @@
 package org.openmrs.module.fhir.utils;
 
-import ch.lambdaj.Lambda;
+import org.apache.commons.collections4.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.Coding;
 import org.openmrs.Concept;
@@ -19,11 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ch.lambdaj.Lambda.extract;
-import static ch.lambdaj.Lambda.on;
 import static java.util.Locale.ENGLISH;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.equalTo;
+import static org.apache.commons.collections4.CollectionUtils.exists;
 import static org.openmrs.ConceptMapType.SAME_AS_MAP_TYPE_UUID;
 import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_CONCEPT_TYPE;
 import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_REFERENCE_TERM_TYPE;
@@ -92,14 +89,22 @@ public class OMRSConceptLookup {
         return concept.getName().getName().equals(code);
     }
 
-    public boolean referenceTermCodeFound(Concept concept, String code) {
-        return Lambda.exists(extract(concept.getConceptMappings(),
-                        on(ConceptMap.class).getConceptReferenceTerm().getCode()),
-                is(equalTo(code)));
+    public boolean referenceTermCodeFound(Concept concept, final String code) {
+        return exists(concept.getConceptMappings(), new Predicate<ConceptMap>() {
+            @Override
+            public boolean evaluate(ConceptMap conceptMap) {
+                return conceptMap.getConceptReferenceTerm().getCode().equals(code);
+            }
+        });
     }
 
-    public boolean shortNameFound(Concept concept, String code) {
-        return Lambda.exists(extract(concept.getShortNames(), on(ConceptName.class).getName()), is(equalTo(code)));
+    public boolean shortNameFound(Concept concept, final String code) {
+        return exists(concept.getShortNames(), new Predicate<ConceptName>() {
+            @Override
+            public boolean evaluate(ConceptName conceptName) {
+                return conceptName.getName().equals(code);
+            }
+        });
     }
 
     private Concept findConceptByReferenceTermMapping(Map<ConceptReferenceTerm, String> referenceTermMapping) {

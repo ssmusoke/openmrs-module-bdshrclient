@@ -11,6 +11,7 @@ import org.openmrs.TestOrder;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
+import org.openmrs.api.ProviderService;
 import org.openmrs.module.shrclient.TestHelper;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
@@ -22,9 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
@@ -43,6 +42,10 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     ConceptService conceptService;
+
+    @Autowired
+    private ProviderService providerService;
+
     private TestHelper testHelper;
 
     @Before
@@ -60,6 +63,9 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
 
         List<org.openmrs.Encounter> encountersByPatient = encounterService.getEncountersByPatient(emrPatient);
         assertEquals(1, encountersByPatient.size());
+        Encounter encounter = encountersByPatient.iterator().next();
+        assertEquals(1, encounter.getEncounterProviders().size());
+        assertEquals(providerService.getProvider(22), encounter.getEncounterProviders().iterator().next().getProvider());
     }
 
     @Test

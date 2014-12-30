@@ -8,7 +8,6 @@ import org.openmrs.api.EncounterService;
 import org.openmrs.api.OrderService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
-import org.openmrs.api.ProviderService;
 import org.openmrs.api.UserService;
 import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
@@ -16,6 +15,7 @@ import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
@@ -33,7 +33,6 @@ import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -59,9 +58,6 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     PersonService personService;
 
     @Autowired
-    private ProviderService providerService;
-
-    @Autowired
     private OrderService orderService;
 
     @Autowired
@@ -70,13 +66,19 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     @Autowired
     private PropertiesReader propertiesReader;
 
+    @Autowired
+    private ProviderLookupService providerLookupService;
+
+    @Autowired
+    private UserService userService;
+
     private static final Logger logger = Logger.getLogger(MciPatientServiceImpl.class);
 
     @Override
     public org.openmrs.Patient createOrUpdatePatient(Patient mciPatient) {
         AddressHelper addressHelper = new AddressHelper();
         org.openmrs.Patient emrPatient = identifyEmrPatient(mciPatient.getHealthId());
-        if(emrPatient == null) emrPatient = new org.openmrs.Patient();
+        if (emrPatient == null) emrPatient = new org.openmrs.Patient();
         emrPatient.setGender(mciPatient.getGender());
         setIdentifier(emrPatient);
         setPersonName(emrPatient, mciPatient);
@@ -92,7 +94,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
             addPersonAttribute(personService, emrPatient, Constants.OCCUPATION_ATTRIBUTE, occupationConceptId);
         } else {
             logger.warn(String.format("Can't update occupation for patient. " +
-                    "Can't identify relevant concept for patient hid:%s, occupation:%s, code:%s",
+                            "Can't identify relevant concept for patient hid:%s, occupation:%s, code:%s",
                     mciPatient.getHealthId(), occupationConceptName, mciPatient.getOccupation()));
         }
 
@@ -158,9 +160,9 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, feed);
 
         setEncounterProviderAndCreator(newEmrEncounter);
-        addEncounterToIdMapping(newEmrEncounter, fhirEncounterId, healthId);
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
+        addEncounterToIdMapping(newEmrEncounter, fhirEncounterId, healthId);
     }
 
     private org.openmrs.Patient identifyEmrPatient(String healthId) {
@@ -185,14 +187,11 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     private void setEncounterProviderAndCreator(org.openmrs.Encounter newEmrEncounter) {
-        User systemUser = getShrClientSystemUser();
+        User systemUser = getOpenMRSDeamonUser();
         setCreator(newEmrEncounter, systemUser);
         setCreator(newEmrEncounter.getVisit(), systemUser);
 
-        Collection<Provider> providersByPerson = providerService.getProvidersByPerson(systemUser.getPerson());
-        if ((providersByPerson != null) & !providersByPerson.isEmpty()) {
-            newEmrEncounter.addProvider(encounterService.getEncounterRoleByUuid(EncounterRole.UNKNOWN_ENCOUNTER_ROLE_UUID), providersByPerson.iterator().next());
-        }
+        newEmrEncounter.addProvider(encounterService.getEncounterRoleByUuid(EncounterRole.UNKNOWN_ENCOUNTER_ROLE_UUID), providerLookupService.shrClientSystemProvider());
     }
 
     private boolean shouldSyncEncounter(String encounterId) {
@@ -217,7 +216,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     private void setCreator(org.openmrs.Patient emrPatient) {
-        User systemUser = getShrClientSystemUser();
+        User systemUser = getOpenMRSDeamonUser();
         if (emrPatient.getCreator() == null) {
             emrPatient.setCreator(systemUser);
         } else {
@@ -254,12 +253,9 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         emrPersonName.setFamilyName(mciPatient.getSurName());
     }
 
-    private User getShrClientSystemUser() {
-        UserService userService = Context.getUserService();
-        //return userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME);
+    private User getOpenMRSDeamonUser() {
         return userService.getUserByUuid(Constants.OPENMRS_DAEMON_USER);
     }
-
 
 
     private void addPersonAttribute(PersonService personService, org.openmrs.Patient emrPatient, String attributeName, String attributeValue) {

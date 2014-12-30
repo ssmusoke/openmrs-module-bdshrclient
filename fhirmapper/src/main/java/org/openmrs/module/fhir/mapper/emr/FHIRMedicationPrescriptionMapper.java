@@ -13,9 +13,11 @@ import org.openmrs.DrugOrder;
 import org.openmrs.Encounter;
 import org.openmrs.OrderFrequency;
 import org.openmrs.Patient;
+import org.openmrs.Provider;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
+import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.fhir.utils.UnitsHelpers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -43,6 +45,9 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResource {
     @Autowired
     private UnitsHelpers unitsHelpers;
 
+    @Autowired
+    private ProviderLookupService providerLookupService;
+
     @Override
     public boolean canHandle(Resource resource) {
         return ResourceType.MedicationPrescription.equals(resource.getResourceType());
@@ -60,7 +65,13 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResource {
         MedicationPrescriptionDosageInstructionComponent dosageInstruction = prescription.getDosageInstruction().get(0);
         mapDosageAndRoute(drugOrder, dosageInstruction);
         mapFrequencyAndDurationAndScheduledDate(drugOrder, dosageInstruction);
+        drugOrder.setOrderer(getOrderer(prescription));
         newEmrEncounter.addOrder(drugOrder);
+    }
+
+    private Provider getOrderer(MedicationPrescription prescription) {
+        //TODO : Lookup from medication prescription prescriber field.
+        return providerLookupService.shrClientSystemProvider();
     }
 
     private void mapFrequencyAndDurationAndScheduledDate(DrugOrder drugOrder, MedicationPrescriptionDosageInstructionComponent dosageInstruction) {
