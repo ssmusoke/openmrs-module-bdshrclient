@@ -7,12 +7,9 @@ import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.TestOrder;
-import org.openmrs.User;
 import org.openmrs.api.OrderService;
-import org.openmrs.api.UserService;
-import org.openmrs.api.context.Context;
-import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
+import org.openmrs.module.fhir.utils.OrderCareSettingLookupService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,10 +17,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CARE_SETTING_FOR_INPATIENT;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CARE_SETTING_FOR_OUTPATIENT;
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
 
 
 @Component
@@ -36,6 +29,9 @@ public class FHIRDiagnosticOrderMapper implements FHIRResource {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private OrderCareSettingLookupService orderCareSettingLookupService;
 
     @Override
     public boolean canHandle(Resource resource) {
@@ -74,19 +70,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResource {
         testOrder.setEncounter(encounter);
         testOrder.setOrderer(providerLookupService.shrClientSystemProvider());
         testOrder.setDateActivated(encounter.getEncounterDatetime());
-        testOrder.setCareSetting(orderService.getCareSettingByName(getCareSetting(feed, diagnosticOrder)));
+        testOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(feed));
         return testOrder;
     }
-
-    private String getCareSetting(AtomFeed feed, DiagnosticOrder diagnosticOrder) {
-        org.hl7.fhir.instance.model.Encounter fhirEncounter = (org.hl7.fhir.instance.model.Encounter) findResourceByReference(feed, diagnosticOrder.getEncounter());
-        org.hl7.fhir.instance.model.Enumeration<org.hl7.fhir.instance.model.Encounter.EncounterClass> fhirEncounterClass = fhirEncounter.getClass_();
-        return fhirEncounterClass.getValue().equals(org.hl7.fhir.instance.model.Encounter.EncounterClass.inpatient) ? MRS_CARE_SETTING_FOR_INPATIENT : MRS_CARE_SETTING_FOR_OUTPATIENT;
-    }
-
-    private User getShrClientSystemUser() {
-        UserService userService = Context.getUserService();
-        return userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME);
-    }
-
 }

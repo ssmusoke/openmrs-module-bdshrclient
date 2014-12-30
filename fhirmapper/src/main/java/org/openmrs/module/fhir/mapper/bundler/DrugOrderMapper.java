@@ -42,6 +42,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         ArrayList<EmrResource> emrResources = new ArrayList<>();
         DrugOrder drugOrder = (DrugOrder) order;
         MedicationPrescription prescription = new MedicationPrescription();
+        prescription.setEncounter(fhirEncounter.getIndication());
         setPatient(fhirEncounter, prescription);
         prescription.setDateWritten(getDateWritten(drugOrder));
         prescription.setMedication(getMedication(drugOrder));

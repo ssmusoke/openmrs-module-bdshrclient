@@ -13,6 +13,8 @@ import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.shrclient.TestHelper;
+import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -45,6 +47,9 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     private ProviderService providerService;
+
+    @Autowired
+    private IdMappingsRepository idMappingsRepository;
 
     private TestHelper testHelper;
 
@@ -89,13 +94,16 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     public void shouldSaveDrugOrders() throws Exception {
         executeDataSet("testDataSets/drugOrderDS.xml");
         String healthId = "5947482439084408833";
-        List<EncounterBundle> bundles = getEncounterBundles(healthId, "shr-enc-id", "encounterBundles/encounterWithMedicationPrescription.xml");
-        Patient emrPatient = patientService.getPatient(1);
+        String shrEncounterId = "shr-enc-id";
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/encounterWithMedicationPrescription.xml");
+        Patient emrPatient = patientService.getPatient(110);
+        assertEquals(0, encounterService.getEncountersByPatient(emrPatient).size());
+
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
-        List<Encounter> encountersByPatient = encounterService.getEncountersByPatient(emrPatient);
-        assertEquals(1, encountersByPatient.size());
-        Encounter encounter = encountersByPatient.get(0);
+        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        assertNotNull(idMapping);
+        Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
         Set<Order> orders = encounter.getOrders();
         assertFalse(orders.isEmpty());
         assertEquals(1, orders.size());

@@ -97,6 +97,10 @@
                 <prescriber>
                     <reference value="20ba5ebe-6f06-11e4-b8c1-080027b662ec"/>
                 </prescriber>
+                <encounter>
+                    <reference value="urn:e8fa9a3b-0661-419c-bf00-aca51dd033cb"/>
+                    <display value="encounter"/>
+                </encounter>
                 <medication>
                     <reference value="/openmrs/ws/rest/v1/tr/drugs/104"/>
                     <display value="Lactic Acid"/>

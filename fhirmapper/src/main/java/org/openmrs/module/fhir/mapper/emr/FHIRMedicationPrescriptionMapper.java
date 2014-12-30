@@ -17,6 +17,7 @@ import org.openmrs.Provider;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
+import org.openmrs.module.fhir.utils.OrderCareSettingLookupService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.fhir.utils.UnitsHelpers;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.lang.Math.abs;
+import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hl7.fhir.instance.model.MedicationPrescription.MedicationPrescriptionDosageInstructionComponent;
 import static org.openmrs.module.fhir.utils.DateUtil.parseDate;
@@ -48,6 +50,9 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResource {
     @Autowired
     private ProviderLookupService providerLookupService;
 
+    @Autowired
+    private OrderCareSettingLookupService orderCareSettingLookupService;
+
     @Override
     public boolean canHandle(Resource resource) {
         return ResourceType.MedicationPrescription.equals(resource.getResourceType());
@@ -66,7 +71,17 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResource {
         mapDosageAndRoute(drugOrder, dosageInstruction);
         mapFrequencyAndDurationAndScheduledDate(drugOrder, dosageInstruction);
         drugOrder.setOrderer(getOrderer(prescription));
+        drugOrder.setNumRefills(0);
+        drugOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(feed));
+
+        processedList.put(((MedicationPrescription) resource).getIdentifier().get(0).getValueSimple(), asList(drugOrder.getUuid()));
         newEmrEncounter.addOrder(drugOrder);
+    }
+
+    private void mapQuantity(DrugOrder drugOrder, UnitToDaysConverter unit) {
+        double quantity = drugOrder.getDose() * drugOrder.getDuration() * drugOrder.getFrequency().getFrequencyPerDay() * unit.getInDays();
+        drugOrder.setQuantity(quantity);
+        drugOrder.setQuantityUnits(conceptService.getConceptByName("Unit(s)"));
     }
 
     private Provider getOrderer(MedicationPrescription prescription) {
@@ -80,6 +95,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResource {
             UnitToDaysConverter unit = unitsHelpers.getUnitsOfTimeMapper().get(schedule.getRepeat().getUnitsSimple());
             setOrderDuration(drugOrder, schedule, unit);
             setOrderFrequency(drugOrder, schedule, unit);
+            mapQuantity(drugOrder, unit);
             setScheduledDate(drugOrder, schedule);
         }
     }

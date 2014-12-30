@@ -83,7 +83,7 @@ public class FHIRFeedHelper {
     }
 
     public static Encounter getEncounter(AtomFeed bundle) {
-        Resource resource = identifyResource(bundle.getEntryList(), ResourceType.Encounter);
+        Resource resource = findResourceByReference(bundle, getComposition(bundle).getEncounter());
         return resource != null ? (Encounter) resource : null;
     }
 
