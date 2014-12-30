@@ -11,6 +11,7 @@ import org.openmrs.Concept;
 import org.openmrs.Drug;
 import org.openmrs.DrugOrder;
 import org.openmrs.Encounter;
+import org.openmrs.Order;
 import org.openmrs.OrderFrequency;
 import org.openmrs.Patient;
 import org.openmrs.Provider;
@@ -101,10 +102,12 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResource {
     }
 
     private void setScheduledDate(DrugOrder drugOrder, Schedule schedule) {
+        drugOrder.setUrgency(Order.Urgency.ROUTINE);
         if (!schedule.getEvent().isEmpty()) {
             Period period = schedule.getEvent().get(0);
             if(period.getStartSimple() != null) {
                 drugOrder.setScheduledDate(parseDate(period.getStartSimple().toString()));
+                drugOrder.setUrgency(Order.Urgency.ON_SCHEDULED_DATE);
             }
         }
     }

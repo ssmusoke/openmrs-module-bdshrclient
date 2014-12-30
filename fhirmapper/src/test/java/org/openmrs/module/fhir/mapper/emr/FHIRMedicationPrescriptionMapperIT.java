@@ -21,9 +21,8 @@ import org.springframework.context.ApplicationContext;
 import java.util.HashMap;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.*;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSensitiveTest {
@@ -56,11 +55,7 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
 
     @Test
     public void shouldMapMedicationToDrug(){
-        Encounter mappedEncounter = new Encounter();
-        mapper.map(feed, resource, new Patient(), mappedEncounter,new HashMap<String, List<String>>());
-
-        assertEquals(1, mappedEncounter.getOrders().size());
-        Order order = mappedEncounter.getOrders().iterator().next();
+        Order order = getOrder();
         assertTrue(order instanceof DrugOrder);
         DrugOrder drugOrder = (DrugOrder) order;
 
@@ -70,14 +65,23 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
 
     @Test
     public void shouldMapProviderToDrug(){
-        Encounter mappedEncounter = new Encounter();
-        Patient patient = new Patient();
-        mapper.map(feed, resource, patient, mappedEncounter,new HashMap<String, List<String>>());
-
-        assertEquals(1, mappedEncounter.getOrders().size());
-        Order order = mappedEncounter.getOrders().iterator().next();
+        Order order = getOrder();
         //TODO : test against medication prescription prescriber field.
         assertNotNull(order.getOrderer());
+    }
+
+    @Test
+    public void shouldSetCareSettingAndNumRefills() throws Exception {
+        Order order = getOrder();
+        assertEquals("OutPatient", order.getCareSetting().getName());
+        assertEquals(0, ((DrugOrder) order).getNumRefills().intValue());
+    }
+
+    @Test
+    public void shouldMapQuantity() throws Exception {
+        DrugOrder order = (DrugOrder) getOrder();
+        assertThat(order.getQuantity().doubleValue(), is(6.0));
+        assertEquals(conceptService.getConcept(810), order.getQuantityUnits());
     }
 
     @Test
@@ -96,12 +100,7 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
 
     @Test
     public void shouldMapFrequencyAndDurationAndScheduledDateToDrug(){
-        Encounter mappedEncounter = new Encounter();
-        Patient patient = new Patient();
-        mapper.map(feed, resource, patient, mappedEncounter,new HashMap<String, List<String>>());
-
-        assertEquals(1, mappedEncounter.getOrders().size());
-        Order order = mappedEncounter.getOrders().iterator().next();
+        Order order = getOrder();
         assertTrue(order instanceof DrugOrder);
         DrugOrder drugOrder = (DrugOrder) order;
 
@@ -111,20 +110,26 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
         assertEquals(conceptService.getConcept(902), drugOrder.getFrequency().getConcept());
 
         assertEquals(DateUtil.parseDate("2014-12-25T12:21:10+05:30"), drugOrder.getScheduledDate());
+        assertEquals(Order.Urgency.ON_SCHEDULED_DATE, drugOrder.getUrgency());
     }
 
     @Test
     public void shouldMapDrugDosageAndRoutes(){
-        Encounter mappedEncounter = new Encounter();
-        mapper.map(feed, resource, new Patient(), mappedEncounter,new HashMap<String, List<String>>());
-
-        assertEquals(1, mappedEncounter.getOrders().size());
-        Order order = mappedEncounter.getOrders().iterator().next();
+        Order order = getOrder();
         assertTrue(order instanceof DrugOrder);
         DrugOrder drugOrder = (DrugOrder) order;
 
         assertEquals(new Double(3), drugOrder.getDose());
         assertEquals(conceptService.getConcept(806), drugOrder.getDoseUnits());
         assertEquals(conceptService.getConcept(701), drugOrder.getRoute());
+    }
+
+    private Order getOrder() {
+        Encounter mappedEncounter = new Encounter();
+        Patient patient = new Patient();
+        mapper.map(feed, resource, patient, mappedEncounter,new HashMap<String, List<String>>());
+
+        assertEquals(1, mappedEncounter.getOrders().size());
+        return mappedEncounter.getOrders().iterator().next();
     }
 }
