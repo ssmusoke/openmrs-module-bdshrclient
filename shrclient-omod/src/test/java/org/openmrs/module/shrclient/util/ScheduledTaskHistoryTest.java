@@ -16,7 +16,7 @@ import static org.openmrs.module.shrclient.util.ScheduledTaskHistory.*;
 public class ScheduledTaskHistoryTest {
 
     public static final String SOME_DATE_TIME_WITHOUT_JUNK = "Some DateTime";
-    private static final int OFF_SET = 100;
+    private static final String OFF_SET = "100";
     private static final String LR_DIVISIONS_LEVEL = "lr.divisions";
 
     @Mock
@@ -33,13 +33,13 @@ public class ScheduledTaskHistoryTest {
     @Test
     public void shouldFetchUpdatedSinceDateAndTime() throws SQLException {
         String taskName = "LR Sync Task";
-        String query = String.format(QUERY_FORMAT_TO_GET_UPDATED_SINCE, taskName);
+        String query = String.format(QUERY_FORMAT_TO_GET_FEED_URI_FOR_LAST_READ_ENTRY, taskName);
 
         when(resultSet.next()).thenReturn(true);
         when(resultSet.getString(1)).thenReturn(SOME_DATE_TIME_WITHOUT_JUNK);
         when(database.get(query)).thenReturn(resultSet);
 
-        String lastExecutionDateAndTime = new ScheduledTaskHistory(database).getUpdatedSinceDateAndTime(taskName);
+        String lastExecutionDateAndTime = new ScheduledTaskHistory(database).getFeedUriForLastReadEntryByFeedUri(taskName);
 
         verify(resultSet).next();
         verify(resultSet).getString(1);
@@ -49,33 +49,14 @@ public class ScheduledTaskHistoryTest {
     }
 
     @Test
-    public void shouldFetchOffset() throws SQLException {
-
-        String taskName = "FR Sync Task";
-        String query = String.format(QUERY_FORMAT_TO_GET_OFFSET, LR_DIVISIONS_LEVEL, taskName);
-
-        when(resultSet.next()).thenReturn(true);
-        when(resultSet.getInt(1)).thenReturn(100);
-        when(database.get(query)).thenReturn(resultSet);
-
-        int offSet = new ScheduledTaskHistory(database).getOffset(LR_DIVISIONS_LEVEL);
-
-        verify(resultSet).next();
-        verify(resultSet).getInt(1);
-        verify(database).get(query);
-
-        assertEquals(OFF_SET, offSet);
-    }
-
-    @Test
     public void shouldSetTheOffsetInDatabase() {
 
         String taskName = "FR Sync Task";
-        String query = String.format(QUERY_FORMAT_TO_SET_OFFSET, OFF_SET, LR_DIVISIONS_LEVEL, taskName);
+        String query = String.format(QUERY_FORMAT_TO_SET_LAST_READ_ENTRY_ID, OFF_SET, LR_DIVISIONS_LEVEL, taskName);
 
         when(database.save(query)).thenReturn(true);
 
-        Boolean isExecuted = new ScheduledTaskHistory(database).setOffset(LR_DIVISIONS_LEVEL, OFF_SET);
+        Boolean isExecuted = new ScheduledTaskHistory(database).setLastReadEntryId(OFF_SET, LR_DIVISIONS_LEVEL);
 
         verify(database).save(query);
 

@@ -2,7 +2,6 @@ package org.openmrs.module.shrclient.handlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -24,11 +23,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.openmrs.module.shrclient.handlers.LocationPull.*;
-import static org.openmrs.module.shrclient.handlers.LocationPull.LR_DISTRICTS_LEVEL_PROPERTY_NAME;
-import static org.openmrs.module.shrclient.handlers.LocationPull.LR_DIVISIONS_LEVEL_PROPERTY_NAME;
-import static org.openmrs.module.shrclient.handlers.LocationPull.LR_PAURASAVAS_LEVEL_PROPERTY_NAME;
-import static org.openmrs.module.shrclient.handlers.LocationPull.LR_UNIONS_LEVEL_PROPERTY_NAME;
-import static org.openmrs.module.shrclient.handlers.LocationPull.LR_UPAZILAS_LEVEL_PROPERTY_NAME;
+import static org.openmrs.module.shrclient.handlers.LocationPull.LR_DISTRICTS_LEVEL_FEED_URI;
+import static org.openmrs.module.shrclient.handlers.LocationPull.LR_DIVISIONS_LEVEL_FEED_URI;
+import static org.openmrs.module.shrclient.handlers.LocationPull.LR_PAURASAVAS_LEVEL_FEED_URI;
+import static org.openmrs.module.shrclient.handlers.LocationPull.LR_UNIONS_LEVEL_FEED_URI;
+import static org.openmrs.module.shrclient.handlers.LocationPull.LR_UPAZILAS_LEVEL_FEED_URI;
 
 public class LocationPullTest {
 
@@ -61,6 +60,8 @@ public class LocationPullTest {
     LRAddressHierarchyEntry[] lrAddressHierarchyEntriesForPaurasavas;
     LRAddressHierarchyEntry[] lrAddressHierarchyEntriesForUnions;
     LRAddressHierarchyEntry[] lrAddressHierarchyEntriesForWards;
+    Properties properties;
+
 
     @Before
     public void setUp() throws Exception {
@@ -71,34 +72,35 @@ public class LocationPullTest {
         lrAddressHierarchyEntriesForPaurasavas = getAddressHierarchyEntries(fileContainingPaurasavaLevelResponse);
         lrAddressHierarchyEntriesForUnions = getAddressHierarchyEntries(fileContainingUnionLevelResponse);
         lrAddressHierarchyEntriesForWards = getAddressHierarchyEntries(fileContainingWardLevelResponse);
+        properties = new Properties();
+        properties.put("lr.scheme", "http");
+        properties.put("lr.host", "hrmtest.dghs.gov.bd");
+        properties.put("lr.context", "api/1.0");
+        properties.put(LR_DIVISIONS, "/locations/list/division");
+        properties.put(LR_DISTRICTS, "/locations/list/district");
+        properties.put(LR_UPAZILAS, "/locations/list/upazila");
+        properties.put(LR_PAURASAVAS, "/locations/list/paurasava");
+        properties.put(LR_UNIONS, "/locations/list/union");
+        properties.put(LR_WARDS, "/locations/list/ward");
     }
 
     @Test
     public void shouldSynchronizeAllTheUpdatesForFirstTime() throws Exception {
 
-        Properties properties = new Properties();
-        properties.put(LR_DIVISIONS_LEVEL_PROPERTY_NAME, "/locations/list/division");
-        properties.put(LR_DISTRICTS_LEVEL_PROPERTY_NAME, "/locations/list/district");
-        properties.put(LR_UPAZILAS_LEVEL_PROPERTY_NAME, "/locations/list/upazila");
-        properties.put(LR_PAURASAVAS_LEVEL_PROPERTY_NAME, "/locations/list/paurasava");
-        properties.put(LR_UNIONS_LEVEL_PROPERTY_NAME, "/locations/list/union");
-        properties.put(LR_WARDS_LEVEL_PROPERTY_NAME, "/locations/list/ward");
+        String feedUriForLastReadEntryAtDivisionLevel = "http://hrmtest.dghs.gov.bd/api/1.0/locations/list/division?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00";
+        String feedUriForLastReadEntryAtDistrictLevel = "http://hrmtest.dghs.gov.bd/api/1.0/locations/list/district?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00";
+        String feedUriForLastReadEntryAtUpazilaLevel = "http://hrmtest.dghs.gov.bd/api/1.0/locations/list/upazila?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00";
+        String feedUriForLastReadEntryAtPaurasavaLevel = "http://hrmtest.dghs.gov.bd/api/1.0/locations/list/paurasava?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00";
+        String feedUriForLastReadEntryAtUnionLevel = "http://hrmtest.dghs.gov.bd/api/1.0/locations/list/union?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00";
+        String feedUriForLastReadEntryAtWardLevel = "http://hrmtest.dghs.gov.bd/api/1.0/locations/list/ward?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00";
 
-        String initialDateAndTime = "0000-00-00%2000:00:00";
-
-        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(LR_DIVISIONS_LEVEL_PROPERTY_NAME)).thenReturn(initialDateAndTime);
-        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(LR_DISTRICTS_LEVEL_PROPERTY_NAME)).thenReturn(initialDateAndTime);
-        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(LR_UPAZILAS_LEVEL_PROPERTY_NAME)).thenReturn(initialDateAndTime);
-        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(LR_PAURASAVAS_LEVEL_PROPERTY_NAME)).thenReturn(initialDateAndTime);
-        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(LR_UNIONS_LEVEL_PROPERTY_NAME)).thenReturn(initialDateAndTime);
-        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(LR_WARDS_LEVEL_PROPERTY_NAME)).thenReturn(initialDateAndTime);
+        when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(LR_DIVISIONS_LEVEL_FEED_URI)).thenReturn(feedUriForLastReadEntryAtDivisionLevel);
+        when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(LR_DISTRICTS_LEVEL_FEED_URI)).thenReturn(feedUriForLastReadEntryAtDistrictLevel);
+        when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(LR_UPAZILAS_LEVEL_FEED_URI)).thenReturn(feedUriForLastReadEntryAtUpazilaLevel);
+        when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(LR_PAURASAVAS_LEVEL_FEED_URI)).thenReturn(feedUriForLastReadEntryAtPaurasavaLevel);
+        when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(LR_UNIONS_LEVEL_FEED_URI)).thenReturn(feedUriForLastReadEntryAtUnionLevel);
+        when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(LR_WARDS_LEVEL_FEED_URI)).thenReturn(feedUriForLastReadEntryAtWardLevel);
         when(propertiesReader.getLrProperties()).thenReturn(properties);
-        when(scheduledTaskHistory.getOffset(LR_DIVISIONS_LEVEL_PROPERTY_NAME)).thenReturn(0);
-        when(scheduledTaskHistory.getOffset(LR_DISTRICTS_LEVEL_PROPERTY_NAME)).thenReturn(0);
-        when(scheduledTaskHistory.getOffset(LR_UPAZILAS_LEVEL_PROPERTY_NAME)).thenReturn(0);
-        when(scheduledTaskHistory.getOffset(LR_PAURASAVAS_LEVEL_PROPERTY_NAME)).thenReturn(0);
-        when(scheduledTaskHistory.getOffset(LR_UNIONS_LEVEL_PROPERTY_NAME)).thenReturn(0);
-        when(scheduledTaskHistory.getOffset(LR_WARDS_LEVEL_PROPERTY_NAME)).thenReturn(0);
 
         String divisionContextPath = "/locations/list/division?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00";
         String districtContextPath = "/locations/list/district?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00";
@@ -114,29 +116,30 @@ public class LocationPullTest {
         when(lrWebClient.get(unionContextPath, LRAddressHierarchyEntry[].class)).thenReturn(lrAddressHierarchyEntriesForUnions);
         when(lrWebClient.get(wardContextPath, LRAddressHierarchyEntry[].class)).thenReturn(lrAddressHierarchyEntriesForWards);
 
-        when(scheduledTaskHistory.setOffset(LR_DIVISIONS_LEVEL_PROPERTY_NAME, lrAddressHierarchyEntriesForDivisions.length)).thenReturn(true);
-        when(scheduledTaskHistory.setOffset(LR_DISTRICTS_LEVEL_PROPERTY_NAME, lrAddressHierarchyEntriesForDistricts.length)).thenReturn(true);
-        when(scheduledTaskHistory.setOffset(LR_UPAZILAS_LEVEL_PROPERTY_NAME, lrAddressHierarchyEntriesForUpazilas.length)).thenReturn(true);
-        when(scheduledTaskHistory.setOffset(LR_PAURASAVAS_LEVEL_PROPERTY_NAME, lrAddressHierarchyEntriesForPaurasavas.length)).thenReturn(true);
-        when(scheduledTaskHistory.setOffset(LR_UNIONS_LEVEL_PROPERTY_NAME, lrAddressHierarchyEntriesForUnions.length)).thenReturn(true);
-        when(scheduledTaskHistory.setOffset(LR_WARDS_LEVEL_PROPERTY_NAME, lrAddressHierarchyEntriesForWards.length)).thenReturn(true);
+        String lastReadEntryIdForDivision = "60";
+        String lastReadEntryIdForDistrict = "3061";
+        String lastReadEntryIdForUpazila = "100610";
+        String lastReadEntryIdForPaurasava = "10066987";
+        String lastReadEntryIdForUnion = "1004099913";
+        String lastReadEntryIdForWard = "100409991501";
+
+        when(scheduledTaskHistory.setLastReadEntryId(LR_DIVISIONS_LEVEL_FEED_URI, lastReadEntryIdForDivision)).thenReturn(true);
+        when(scheduledTaskHistory.setLastReadEntryId(LR_DISTRICTS_LEVEL_FEED_URI, lastReadEntryIdForDistrict)).thenReturn(true);
+        when(scheduledTaskHistory.setLastReadEntryId(LR_UPAZILAS_LEVEL_FEED_URI, lastReadEntryIdForUpazila)).thenReturn(true);
+        when(scheduledTaskHistory.setLastReadEntryId(LR_PAURASAVAS_LEVEL_FEED_URI, lastReadEntryIdForPaurasava)).thenReturn(true);
+        when(scheduledTaskHistory.setLastReadEntryId(LR_UNIONS_LEVEL_FEED_URI, lastReadEntryIdForUnion)).thenReturn(true);
+        when(scheduledTaskHistory.setLastReadEntryId(LR_WARDS_LEVEL_FEED_URI, lastReadEntryIdForWard)).thenReturn(true);
 
         LocationPull locationPull = new LocationPull(propertiesReader, lrWebClient, addressHierarchyService, scheduledTaskHistory, addressHierarchyEntryMapper);
         locationPull.synchronize();
 
-        verify(scheduledTaskHistory, times(1)).getUpdatedSinceDateAndTime(LR_DIVISIONS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getUpdatedSinceDateAndTime(LR_DISTRICTS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getUpdatedSinceDateAndTime(LR_UPAZILAS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getUpdatedSinceDateAndTime(LR_PAURASAVAS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getUpdatedSinceDateAndTime(LR_UNIONS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getUpdatedSinceDateAndTime(LR_WARDS_LEVEL_PROPERTY_NAME);
-        verify(propertiesReader, times(6)).getLrProperties();
-        verify(scheduledTaskHistory, times(1)).getOffset(LR_DIVISIONS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getOffset(LR_DISTRICTS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getOffset(LR_UPAZILAS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getOffset(LR_PAURASAVAS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getOffset(LR_UNIONS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getOffset(LR_WARDS_LEVEL_PROPERTY_NAME);
+        verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(LR_DIVISIONS_LEVEL_FEED_URI);
+        verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(LR_DISTRICTS_LEVEL_FEED_URI);
+        verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(LR_UPAZILAS_LEVEL_FEED_URI);
+        verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(LR_PAURASAVAS_LEVEL_FEED_URI);
+        verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(LR_UNIONS_LEVEL_FEED_URI);
+        verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(LR_WARDS_LEVEL_FEED_URI);
+        verify(propertiesReader, times(12)).getLrProperties();
 
         verify(lrWebClient).get(divisionContextPath, LRAddressHierarchyEntry[].class);
         verify(lrWebClient).get(districtContextPath, LRAddressHierarchyEntry[].class);
@@ -145,46 +148,38 @@ public class LocationPullTest {
         verify(lrWebClient).get(unionContextPath, LRAddressHierarchyEntry[].class);
         verify(lrWebClient).get(wardContextPath, LRAddressHierarchyEntry[].class);
 
-        verify(scheduledTaskHistory, times(1)).setOffset(LR_DIVISIONS_LEVEL_PROPERTY_NAME, lrAddressHierarchyEntriesForDivisions.length);
-        verify(scheduledTaskHistory, times(1)).setOffset(LR_DISTRICTS_LEVEL_PROPERTY_NAME, lrAddressHierarchyEntriesForDistricts.length);
-        verify(scheduledTaskHistory, times(1)).setOffset(LR_UPAZILAS_LEVEL_PROPERTY_NAME, lrAddressHierarchyEntriesForUpazilas.length);
-        verify(scheduledTaskHistory, times(1)).setOffset(LR_PAURASAVAS_LEVEL_PROPERTY_NAME, lrAddressHierarchyEntriesForPaurasavas.length);
-        verify(scheduledTaskHistory, times(1)).setOffset(LR_UNIONS_LEVEL_PROPERTY_NAME, lrAddressHierarchyEntriesForUnions.length);
-        verify(scheduledTaskHistory, times(1)).setOffset(LR_WARDS_LEVEL_PROPERTY_NAME, lrAddressHierarchyEntriesForWards.length);
+        verify(scheduledTaskHistory, times(1)).setLastReadEntryId(lastReadEntryIdForDivision, LR_DIVISIONS_LEVEL_FEED_URI);
+        verify(scheduledTaskHistory, times(1)).setLastReadEntryId(lastReadEntryIdForDistrict, LR_DISTRICTS_LEVEL_FEED_URI);
+        verify(scheduledTaskHistory, times(1)).setLastReadEntryId(lastReadEntryIdForUpazila, LR_UPAZILAS_LEVEL_FEED_URI);
+        verify(scheduledTaskHistory, times(1)).setLastReadEntryId(lastReadEntryIdForPaurasava, LR_PAURASAVAS_LEVEL_FEED_URI);
+        verify(scheduledTaskHistory, times(1)).setLastReadEntryId(lastReadEntryIdForUnion, LR_UNIONS_LEVEL_FEED_URI);
+        verify(scheduledTaskHistory, times(1)).setLastReadEntryId(lastReadEntryIdForWard, LR_WARDS_LEVEL_FEED_URI);
     }
 
     @Test
     public void shouldNotSynchronizeAnyUpdatesWhenAllUpdatesHaveTakenPlaceBeforeLastExecutionDataAndTime() throws Exception {
-        Properties properties = new Properties();
-        properties.put(LR_DIVISIONS_LEVEL_PROPERTY_NAME, "/locations/list/division");
-        properties.put(LR_DISTRICTS_LEVEL_PROPERTY_NAME, "/locations/list/district");
-        properties.put(LR_UPAZILAS_LEVEL_PROPERTY_NAME, "/locations/list/upazila");
-        properties.put(LR_PAURASAVAS_LEVEL_PROPERTY_NAME, "/locations/list/paurasava");
-        properties.put(LR_UNIONS_LEVEL_PROPERTY_NAME, "/locations/list/union");
-        properties.put(LR_WARDS_LEVEL_PROPERTY_NAME, "/locations/list/ward");
 
-        String stringedDate = "2014-11-11 12:00:00";
+        String feedUriForLastReadEntryAtDivisionLevel = "http://hrmtest.dghs.gov.bd/api/1.0/locations/list/division?offset=0&limit=100&updatedSince=2014-11-11 12:00:00";
+        String feedUriForLastReadEntryAtDistrictLevel = "http://hrmtest.dghs.gov.bd/api/1.0/locations/list/district?offset=0&limit=100&updatedSince=2014-11-11 12:00:00";
+        String feedUriForLastReadEntryAtUpazilaLevel = "http://hrmtest.dghs.gov.bd/api/1.0/locations/list/upazila?offset=0&limit=100&updatedSince=2014-11-11 12:00:00";
+        String feedUriForLastReadEntryAtPaurasavaLevel = "http://hrmtest.dghs.gov.bd/api/1.0/locations/list/paurasava?offset=0&limit=100&updatedSince=2014-11-11 12:00:00";
+        String feedUriForLastReadEntryAtUnionLevel = "http://hrmtest.dghs.gov.bd/api/1.0/locations/list/union?offset=0&limit=100&updatedSince=2014-11-11 12:00:00";
+        String feedUriForLastReadEntryAtWardLevel = "http://hrmtest.dghs.gov.bd/api/1.0/locations/list/ward?offset=0&limit=100&updatedSince=2014-11-11 12:00:00";
 
-        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(LR_DIVISIONS_LEVEL_PROPERTY_NAME)).thenReturn(stringedDate);
-        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(LR_DISTRICTS_LEVEL_PROPERTY_NAME)).thenReturn(stringedDate);
-        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(LR_UPAZILAS_LEVEL_PROPERTY_NAME)).thenReturn(stringedDate);
-        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(LR_PAURASAVAS_LEVEL_PROPERTY_NAME)).thenReturn(stringedDate);
-        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(LR_UNIONS_LEVEL_PROPERTY_NAME)).thenReturn(stringedDate);
-        when(scheduledTaskHistory.getUpdatedSinceDateAndTime(LR_WARDS_LEVEL_PROPERTY_NAME)).thenReturn(stringedDate);
+        when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(LR_DIVISIONS_LEVEL_FEED_URI)).thenReturn(feedUriForLastReadEntryAtDivisionLevel);
+        when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(LR_DISTRICTS_LEVEL_FEED_URI)).thenReturn(feedUriForLastReadEntryAtDistrictLevel);
+        when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(LR_UPAZILAS_LEVEL_FEED_URI)).thenReturn(feedUriForLastReadEntryAtUpazilaLevel);
+        when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(LR_PAURASAVAS_LEVEL_FEED_URI)).thenReturn(feedUriForLastReadEntryAtPaurasavaLevel);
+        when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(LR_UNIONS_LEVEL_FEED_URI)).thenReturn(feedUriForLastReadEntryAtUnionLevel);
+        when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(LR_WARDS_LEVEL_FEED_URI)).thenReturn(feedUriForLastReadEntryAtWardLevel);
         when(propertiesReader.getLrProperties()).thenReturn(properties);
-        when(scheduledTaskHistory.getOffset(LR_DIVISIONS_LEVEL_PROPERTY_NAME)).thenReturn(0);
-        when(scheduledTaskHistory.getOffset(LR_DISTRICTS_LEVEL_PROPERTY_NAME)).thenReturn(0);
-        when(scheduledTaskHistory.getOffset(LR_UPAZILAS_LEVEL_PROPERTY_NAME)).thenReturn(0);
-        when(scheduledTaskHistory.getOffset(LR_PAURASAVAS_LEVEL_PROPERTY_NAME)).thenReturn(0);
-        when(scheduledTaskHistory.getOffset(LR_UNIONS_LEVEL_PROPERTY_NAME)).thenReturn(0);
-        when(scheduledTaskHistory.getOffset(LR_WARDS_LEVEL_PROPERTY_NAME)).thenReturn(0);
 
-        String divisionContextPath = "/locations/list/division?offset=0&limit=100&updatedSince=" + stringedDate;
-        String districtContextPath = "/locations/list/district?offset=0&limit=100&updatedSince=" + stringedDate;
-        String upazilaContextPath = "/locations/list/upazila?offset=0&limit=100&updatedSince=" + stringedDate;
-        String paurasavaContextPath = "/locations/list/paurasava?offset=0&limit=100&updatedSince=" + stringedDate;
-        String unionContextPath = "/locations/list/union?offset=0&limit=100&updatedSince=" + stringedDate;
-        String wardContextPath = "/locations/list/ward?offset=0&limit=100&updatedSince=" + stringedDate;
+        String divisionContextPath = "/locations/list/division?offset=0&limit=100&updatedSince=2014-11-11%2012:00:00";
+        String districtContextPath = "/locations/list/district?offset=0&limit=100&updatedSince=2014-11-11%2012:00:00";
+        String upazilaContextPath = "/locations/list/upazila?offset=0&limit=100&updatedSince=2014-11-11%2012:00:00";
+        String paurasavaContextPath = "/locations/list/paurasava?offset=0&limit=100&updatedSince=2014-11-11%2012:00:00";
+        String unionContextPath = "/locations/list/union?offset=0&limit=100&updatedSince=2014-11-11%2012:00:00";
+        String wardContextPath = "/locations/list/ward?offset=0&limit=100&updatedSince=2014-11-11%2012:00:00";
 
         when(lrWebClient.get(divisionContextPath.replace(SINGLE_SPACE, ENCODED_SINGLE_SPACE), LRAddressHierarchyEntry[].class)).thenReturn(new LRAddressHierarchyEntry[]{});
         when(lrWebClient.get(districtContextPath.replace(SINGLE_SPACE, ENCODED_SINGLE_SPACE), LRAddressHierarchyEntry[].class)).thenReturn(new LRAddressHierarchyEntry[]{});
@@ -193,29 +188,16 @@ public class LocationPullTest {
         when(lrWebClient.get(unionContextPath.replace(SINGLE_SPACE, ENCODED_SINGLE_SPACE), LRAddressHierarchyEntry[].class)).thenReturn(new LRAddressHierarchyEntry[]{});
         when(lrWebClient.get(wardContextPath.replace(SINGLE_SPACE, ENCODED_SINGLE_SPACE), LRAddressHierarchyEntry[].class)).thenReturn(new LRAddressHierarchyEntry[]{});
 
-        when(scheduledTaskHistory.setOffset(LR_DIVISIONS_LEVEL_PROPERTY_NAME, 0)).thenReturn(true);
-        when(scheduledTaskHistory.setOffset(LR_DISTRICTS_LEVEL_PROPERTY_NAME, 0)).thenReturn(true);
-        when(scheduledTaskHistory.setOffset(LR_UPAZILAS_LEVEL_PROPERTY_NAME, 0)).thenReturn(true);
-        when(scheduledTaskHistory.setOffset(LR_PAURASAVAS_LEVEL_PROPERTY_NAME, 0)).thenReturn(true);
-        when(scheduledTaskHistory.setOffset(LR_UNIONS_LEVEL_PROPERTY_NAME, 0)).thenReturn(true);
-        when(scheduledTaskHistory.setOffset(LR_WARDS_LEVEL_PROPERTY_NAME, 0)).thenReturn(true);
-
         LocationPull locationPull = new LocationPull(propertiesReader, lrWebClient, addressHierarchyService, scheduledTaskHistory, addressHierarchyEntryMapper);
         locationPull.synchronize();
 
-        verify(scheduledTaskHistory, times(1)).getUpdatedSinceDateAndTime(LR_DIVISIONS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getUpdatedSinceDateAndTime(LR_DISTRICTS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getUpdatedSinceDateAndTime(LR_UPAZILAS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getUpdatedSinceDateAndTime(LR_PAURASAVAS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getUpdatedSinceDateAndTime(LR_UNIONS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getUpdatedSinceDateAndTime(LR_WARDS_LEVEL_PROPERTY_NAME);
-        verify(propertiesReader, times(6)).getLrProperties();
-        verify(scheduledTaskHistory, times(1)).getOffset(LR_DIVISIONS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getOffset(LR_DISTRICTS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getOffset(LR_UPAZILAS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getOffset(LR_PAURASAVAS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getOffset(LR_UNIONS_LEVEL_PROPERTY_NAME);
-        verify(scheduledTaskHistory, times(1)).getOffset(LR_WARDS_LEVEL_PROPERTY_NAME);
+        verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(LR_DIVISIONS_LEVEL_FEED_URI);
+        verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(LR_DISTRICTS_LEVEL_FEED_URI);
+        verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(LR_UPAZILAS_LEVEL_FEED_URI);
+        verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(LR_PAURASAVAS_LEVEL_FEED_URI);
+        verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(LR_UNIONS_LEVEL_FEED_URI);
+        verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(LR_WARDS_LEVEL_FEED_URI);
+        verify(propertiesReader, times(12)).getLrProperties();
 
         verify(lrWebClient).get(divisionContextPath.replace(SINGLE_SPACE, ENCODED_SINGLE_SPACE), LRAddressHierarchyEntry[].class);
         verify(lrWebClient).get(districtContextPath.replace(SINGLE_SPACE, ENCODED_SINGLE_SPACE), LRAddressHierarchyEntry[].class);
@@ -223,13 +205,6 @@ public class LocationPullTest {
         verify(lrWebClient).get(paurasavaContextPath.replace(SINGLE_SPACE, ENCODED_SINGLE_SPACE), LRAddressHierarchyEntry[].class);
         verify(lrWebClient).get(unionContextPath.replace(SINGLE_SPACE, ENCODED_SINGLE_SPACE), LRAddressHierarchyEntry[].class);
         verify(lrWebClient).get(wardContextPath.replace(SINGLE_SPACE, ENCODED_SINGLE_SPACE), LRAddressHierarchyEntry[].class);
-
-        verify(scheduledTaskHistory, times(2)).setOffset(LR_DIVISIONS_LEVEL_PROPERTY_NAME, 0);
-        verify(scheduledTaskHistory, times(2)).setOffset(LR_DISTRICTS_LEVEL_PROPERTY_NAME, 0);
-        verify(scheduledTaskHistory, times(2)).setOffset(LR_UPAZILAS_LEVEL_PROPERTY_NAME, 0);
-        verify(scheduledTaskHistory, times(2)).setOffset(LR_PAURASAVAS_LEVEL_PROPERTY_NAME, 0);
-        verify(scheduledTaskHistory, times(2)).setOffset(LR_UNIONS_LEVEL_PROPERTY_NAME, 0);
-        verify(scheduledTaskHistory, times(2)).setOffset(LR_WARDS_LEVEL_PROPERTY_NAME, 0);
     }
 
     public LRAddressHierarchyEntry[] getAddressHierarchyEntries(String responseFileName) throws IOException {

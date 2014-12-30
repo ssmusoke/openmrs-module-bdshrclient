@@ -312,4 +312,41 @@
         </update>
     </changeSet>
 
+    <changeSet id="bdshrclient-291214-1800" author="tw" context="setup">
+        <delete tableName="markers">
+            <where>feed_uri IN ('fr.facilities', 'lr.divisions', 'lr.districts', 'lr.upazilas', 'lr.paurasavas', 'lr.unions', 'lr.wards')</where>
+        </delete>
+    </changeSet>
+    
+    <changeSet id="bdshrclient-291214-1805" author="tw">
+
+        <insert tableName="markers">
+            <column name="feed_uri" value="urn://lr/divisions"/>
+        </insert>
+
+        <insert tableName="markers">
+            <column name="feed_uri" value="urn://lr/districts"/>
+        </insert>
+
+        <insert tableName="markers">
+            <column name="feed_uri" value="urn://lr/upazilas"/>
+        </insert>
+
+        <insert tableName="markers">
+            <column name="feed_uri" value="urn://lr/paurasavas"/>
+        </insert>
+
+        <insert tableName="markers">
+            <column name="feed_uri" value="urn://lr/unions"/>
+        </insert>
+
+        <insert tableName="markers">
+            <column name="feed_uri" value="urn://lr/wards"/>
+        </insert>
+
+        <insert tableName="markers">
+            <column name="feed_uri" value="urn://fr/facilities"/>
+        </insert>
+    </changeSet>
+
 </databaseChangeLog>

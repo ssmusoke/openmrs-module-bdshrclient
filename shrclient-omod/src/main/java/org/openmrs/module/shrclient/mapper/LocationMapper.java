@@ -5,6 +5,8 @@ import org.openmrs.module.shrclient.mci.api.model.FRLocationEntry;
 
 public class LocationMapper {
 
+    public static final String RETIRE_REASON = "Upstream Deletion";
+
     public Location updateExisting(Location location, FRLocationEntry locationEntry) {
         return writeChanges(location, locationEntry);
     }
@@ -15,7 +17,13 @@ public class LocationMapper {
 
     private Location writeChanges(Location location, FRLocationEntry locationEntry) {
         location.setName(locationEntry.getName());
-        location.setRetired("0".equals(locationEntry.getActive()));
+        if ("0".equals(locationEntry.getActive())) {
+            location.setRetired(true);
+            location.setRetireReason(RETIRE_REASON);
+        } else {
+            location.setRetired(false);
+            location.setRetireReason(null);
+        }
         return location;
     }
 }

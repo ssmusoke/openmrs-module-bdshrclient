@@ -13,22 +13,30 @@ import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.util.ScheduledTaskHistory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.IOException;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import static org.openmrs.module.shrclient.util.URLParser.parseURL;
 
 public class FacilityPull {
     private final Logger logger = Logger.getLogger(FacilityPull.class);
 
+    private static final int INITIAL_OFFSET = 0;
+    private static final String OFFSET = "offset";
+    private static final String UPDATED_SINCE = "updatedSince";
     private static final int DEFAULT_LIMIT = 100;
     private static final String EXTRA_FILTER_PATTERN = "?offset=%d&limit=%d&updatedSince=%s";
     private static final String ENCODED_SINGLE_SPACE = "%20";
     private static final String SINGLE_SPACE = " ";
-    public static final String FACILITY_CONTEXT = "fr.facilities";
+    public static final String FR_FACILITY_LEVEL_FEED_URI = "urn://fr/facilities";
+    public static final String FR_FACILITIES = "fr.facilities";
     public static final String SHR_LOCATION_TAG_NAME = "DGHS Facilities";
     public static final String ID_MAPPING_TYPE = "fr_location";
     public static final String INDIVIDUAL_FACILITY_CONTEXT = "fr.facilityUrlFormat";
     private static final int MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED = 1000;
+    private static final String INITIAL_DATETIME = "0000-00-00 00:00:00";
 
 
     private LocationService locationService;
@@ -56,14 +64,14 @@ public class FacilityPull {
         this.failedDuringSaveOrUpdateOperation = new ArrayList<>();
     }
 
-    public void synchronize() {
+    public void synchronize() throws IOException {
         noOfEntriesSynchronizedSoFar = 0;
         facilityUrlFormat = getFacilityUrlFormat();
-        List<FRLocationEntry> frLocationEntries = synchronizeUpdates(FACILITY_CONTEXT);
+        List<FRLocationEntry> frLocationEntries = synchronizeUpdates(FR_FACILITIES, FR_FACILITY_LEVEL_FEED_URI);
         logger.info(frLocationEntries.size() + " entries updated");
     }
 
-    private List<FRLocationEntry> synchronizeUpdates(String facilityContext) {
+    private List<FRLocationEntry> synchronizeUpdates(String facilityContext, String feedUri) throws IOException {
         String baseContextPath = propertiesReader.getFrProperties().getProperty(facilityContext);
         List<FRLocationEntry> synchronizedLocationEntries = new ArrayList<>();
         List<FRLocationEntry> lastRetrievedPartOfList;
@@ -72,17 +80,28 @@ public class FacilityPull {
             return synchronizedLocationEntries;
         }
 
-        int offset = scheduledTaskHistory.getOffset(facilityContext);
-        String updatedSince = scheduledTaskHistory.getUpdatedSinceDateAndTime(facilityContext);
+        String feedUriForLastReadEntry = scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(feedUri);
+        int offset;
+        String updatedSince;
 
+        if (StringUtils.isBlank(feedUriForLastReadEntry)) {
+            offset = INITIAL_OFFSET;
+            updatedSince = INITIAL_DATETIME;
+        } else {
+            Map<String, String> parameters = parseURL(new URL(feedUriForLastReadEntry));
+            offset = Integer.parseInt(parameters.get(OFFSET));
+            updatedSince = parameters.get(UPDATED_SINCE);
+        }
+
+        String baseUrl = getBaseUrl(propertiesReader.getFrProperties());
+        String completeContextPath;
         do {
-            String completeContextPath = buildCompleteContextPath(baseContextPath, offset, updatedSince);
+            completeContextPath = buildCompleteContextPath(baseContextPath, offset, updatedSince);
             lastRetrievedPartOfList = getNextChunkOfUpdatesFromFR(completeContextPath);
             if (lastRetrievedPartOfList != null) {
                 saveOrUpdateFacilityEntries(lastRetrievedPartOfList);
                 synchronizedLocationEntries.addAll(lastRetrievedPartOfList);
                 offset += lastRetrievedPartOfList.size();
-                updateMarkerTableToStoreOffset(offset, facilityContext);
                 noOfEntriesSynchronizedSoFar += lastRetrievedPartOfList.size();
             } else {
                 logger.info(synchronizedLocationEntries.size() + " entries synchronized");
@@ -91,9 +110,20 @@ public class FacilityPull {
         }
         while (lastRetrievedPartOfList != null && lastRetrievedPartOfList.size() == DEFAULT_LIMIT && noOfEntriesSynchronizedSoFar < MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED);
 
-        if (lastRetrievedPartOfList != null && lastRetrievedPartOfList.size() < DEFAULT_LIMIT && noOfEntriesSynchronizedSoFar < MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED) {
-            scheduledTaskHistory.setUpdatedSinceDateAndTime(facilityContext);
-            updateMarkerTableToStoreOffset(0, facilityContext);
+        String nextCompleteContextPath;
+        if (lastRetrievedPartOfList != null) {
+            if (lastRetrievedPartOfList.size() == DEFAULT_LIMIT) {
+                nextCompleteContextPath = buildCompleteContextPath(baseContextPath, offset, INITIAL_DATETIME);
+                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(baseUrl + nextCompleteContextPath, feedUri);
+            } else {
+                nextCompleteContextPath = buildCompleteContextPath(baseContextPath, INITIAL_OFFSET, getCurrentDateAndTime());
+                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(baseUrl + nextCompleteContextPath, feedUri);
+            }
+
+            if (!synchronizedLocationEntries.isEmpty()) {
+                FRLocationEntry frLocationEntry = lastRetrievedPartOfList.get(lastRetrievedPartOfList.size() - 1);
+                scheduledTaskHistory.setLastReadEntryId(frLocationEntry.getId(), feedUri);
+            }
         }
 
         logger.info(synchronizedLocationEntries.size() + " entries synchronized");
@@ -116,6 +146,10 @@ public class FacilityPull {
 
     private String getFacilityUrlFormat() {
         return propertiesReader.getFrBaseUrl() + propertiesReader.getFrProperties().getProperty(INDIVIDUAL_FACILITY_CONTEXT);
+    }
+
+    private String getBaseUrl(Properties properties) {
+        return properties.getProperty("fr.scheme") + "://" + properties.getProperty("fr.host") + "/" + properties.getProperty("fr.context");
     }
 
     private Location createNewLocation(FRLocationEntry frLocationEntry, LocationTag shrLocationTag, String locationUrlFormat) {
@@ -151,12 +185,6 @@ public class FacilityPull {
         return locationService.saveLocation(location);
     }
 
-    private boolean updateMarkerTableToStoreOffset(int offset, String level) {
-        boolean isMarkerUpdated = scheduledTaskHistory.setOffset(level, offset);
-        logger.info(isMarkerUpdated ? "Marker Table Updated" : "Failed to Update Marker Table");
-        return isMarkerUpdated;
-    }
-
     private void saveOrUpdateFacilityEntries(List<FRLocationEntry> frLocationEntries) {
         for (FRLocationEntry frLocationEntry : frLocationEntries) {
             IdMapping idMapping = idMappingsRepository.findByExternalId(frLocationEntry.getId());
@@ -174,7 +202,11 @@ public class FacilityPull {
 
     private String getExtraFilters(int offset, String updatedSince) {
         return String.format(EXTRA_FILTER_PATTERN, offset, DEFAULT_LIMIT, updatedSince)
-                        .replace(SINGLE_SPACE, ENCODED_SINGLE_SPACE);
+                .replace(SINGLE_SPACE, ENCODED_SINGLE_SPACE);
+    }
+
+    private String getCurrentDateAndTime() {
+        return new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date());
     }
 
 }

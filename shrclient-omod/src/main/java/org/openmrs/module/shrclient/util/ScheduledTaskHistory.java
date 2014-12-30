@@ -14,10 +14,9 @@ import java.util.Date;
 public class ScheduledTaskHistory {
     private final Logger logger = Logger.getLogger(ScheduledTaskHistory.class);
 
-    public static final String QUERY_FORMAT_TO_GET_UPDATED_SINCE = "select feed_uri_for_last_read_entry from markers where feed_uri = '%s'";
-    public static final String QUERY_FORMAT_TO_SET_UPDATED_SINCE = "update markers set feed_uri_for_last_read_entry = '%s' where feed_uri = '%s'";
-    public static final String QUERY_FORMAT_TO_GET_OFFSET = "select last_read_entry_id from markers where feed_uri = '%s'";
-    public static final String QUERY_FORMAT_TO_SET_OFFSET = "update markers set last_read_entry_id = %d where feed_uri = '%s'";
+    public static final String QUERY_FORMAT_TO_GET_FEED_URI_FOR_LAST_READ_ENTRY = "select feed_uri_for_last_read_entry from markers where feed_uri = '%s'";
+    public static final String QUERY_FORMAT_TO_SET_FEED_URI_FOR_LAST_READ_ENTRY = "update markers set feed_uri_for_last_read_entry = '%s' where feed_uri = '%s'";
+    public static final String QUERY_FORMAT_TO_SET_LAST_READ_ENTRY_ID = "update markers set last_read_entry_id = %s where feed_uri = '%s'";
     private Database database;
 
 
@@ -25,12 +24,12 @@ public class ScheduledTaskHistory {
         this.database = database;
     }
 
-    public String getUpdatedSinceDateAndTime(String levelName) {
-        String query = String.format(QUERY_FORMAT_TO_GET_UPDATED_SINCE, levelName);
+    public String getFeedUriForLastReadEntryByFeedUri(String feedUri) {
+        String query = String.format(QUERY_FORMAT_TO_GET_FEED_URI_FOR_LAST_READ_ENTRY, feedUri);
         ResultSet resultSet = database.get(query);
-        String updatedSinceDataAndTime = null;
+        String feedUriForLastReadEntry = null;
         try {
-            updatedSinceDataAndTime = resultSet.next() ? resultSet.getString(1) : StringUtils.EMPTY;
+            feedUriForLastReadEntry = resultSet.next() ? resultSet.getString(1) : StringUtils.EMPTY;
         } catch (SQLException e) {
             logger.error("Error while fetching Last Execution Date And Time");
             e.printStackTrace();
@@ -44,42 +43,16 @@ public class ScheduledTaskHistory {
                 e.printStackTrace();
             }
         }
-        return updatedSinceDataAndTime;
+        return feedUriForLastReadEntry;
     }
 
-    public int getOffset(String levelName) {
-        String query = String.format(QUERY_FORMAT_TO_GET_OFFSET, levelName);
-        ResultSet resultSet = database.get(query);
-        int offset = 0;
-        try {
-            offset = resultSet.next() ? resultSet.getInt(1) : 0;
-        } catch (SQLException e) {
-            logger.error("Error while fetching Offset");
-            e.printStackTrace();
-        } finally {
-            try {
-                Statement statement = resultSet.getStatement();
-                if (resultSet != null) resultSet.close();
-                if (statement != null) statement.close();
-            } catch (SQLException e) {
-                logger.warn("Could not close db statement or resultSet ", e);
-                e.printStackTrace();
-            }
-        }
-        return offset;
-    }
-
-    public boolean setOffset(String level, int offset) {
-        String query = String.format(QUERY_FORMAT_TO_SET_OFFSET, offset, level);
+    public boolean setLastReadEntryId(String id, String feedUri) {
+        String query = String.format(QUERY_FORMAT_TO_SET_LAST_READ_ENTRY_ID, id, feedUri);
         return database.save(query);
     }
 
-    public boolean setUpdatedSinceDateAndTime(String levelName) {
-        String query = String.format(QUERY_FORMAT_TO_SET_UPDATED_SINCE, getCurrentDateAndTime(), levelName);
+    public boolean setFeedUriForLastReadEntryByFeedUri(String feedUriForLastReadEntry, String feedUri) {
+        String query = String.format(QUERY_FORMAT_TO_SET_FEED_URI_FOR_LAST_READ_ENTRY, feedUriForLastReadEntry, feedUri);
         return database.save(query);
-    }
-
-    public String getCurrentDateAndTime() {
-        return new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date());
     }
 }
