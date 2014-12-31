@@ -31,4 +31,18 @@ public class HeadersTest {
         assertTrue(basicAuthHeader.containsKey(Headers.AUTH_TOKEN_KEY));
         assertEquals(basicAuthHeader.get(Headers.AUTH_TOKEN_KEY), token);
     }
+
+    @Test
+    public void shouldCreateBasicAuthHeaderWithIdentityHeader() throws Exception {
+        String token = UUID.randomUUID().toString();
+        Map<String, String> basicAuthHeader = Headers.getBasicAuthAndIdentityHeader("foo", "bar", new IdentityToken(token));
+
+        assertTrue(basicAuthHeader.containsKey(Headers.AUTH_HEADER_KEY));
+        assertTrue(basicAuthHeader.get(Headers.AUTH_HEADER_KEY).startsWith("Basic "));
+        byte[] encodedAuth = Base64.encodeBase64("foo:bar".getBytes(Charset.forName("UTF-8")));
+        assertEquals(basicAuthHeader.get(Headers.AUTH_HEADER_KEY), "Basic " + new String(encodedAuth));
+
+        assertTrue(basicAuthHeader.containsKey(Headers.AUTH_TOKEN_KEY));
+        assertEquals(basicAuthHeader.get(Headers.AUTH_TOKEN_KEY), token);
+    }
 }

@@ -43,19 +43,65 @@ public class ClientRegistryTest {
         Properties mciProperties = getSecureServerProperties("mci.user", "mci.password");
         when(propertiesReader.getMciProperties()).thenReturn(mciProperties);
         when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:8089");
-
+        UUID token = UUID.randomUUID();
+        when(identityStore.getToken()).thenReturn(new IdentityToken(token.toString()));
         stubFor(get(urlEqualTo("http://localhost:8089/mci"))
+                .withHeader(Headers.AUTH_TOKEN_KEY, equalTo(token.toString()))
+                .withHeader(Headers.AUTH_HEADER_KEY, equalTo(getAuthHeader().get(Headers.AUTH_HEADER_KEY)))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withBody("")));
 
-        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader, null);
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader, identityStore);
 
         RestClient mciClient = clientRegistry.getMCIClient();
         assertNotNull(mciClient);
         mciClient.get("/mci", String.class);
         verify(1, getRequestedFor(urlEqualTo("/mci"))
-                .withHeader(Headers.AUTH_HEADER_KEY, matching(getAuthHeader().get(Headers.AUTH_HEADER_KEY))));
+                .withHeader(Headers.AUTH_HEADER_KEY, matching(getAuthHeader().get(Headers.AUTH_HEADER_KEY)))
+                .withHeader(Headers.AUTH_TOKEN_KEY, matching(token.toString())));
+    }
+
+    @Test
+    public void testCreateMCIClientWhenIdentityTokenAbsent() throws Exception {
+        Properties mciProperties = getSecureServerProperties("mci.user", "mci.password");
+        when(propertiesReader.getMciProperties()).thenReturn(mciProperties);
+        when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:8089");
+        when(propertiesReader.getIdentityServerBaseUrl()).thenReturn("http://localhost:8089");
+
+        when(propertiesReader.getIdentity()).thenReturn(new Identity("foo", "bar"));
+
+        //here the token is set to null, so ClientRegistry should get a new token
+        when(identityStore.getToken()).thenReturn(null);
+
+        UUID token = UUID.randomUUID();
+        String response = "{\"token\" : \"" + token.toString() + "\"}";
+
+        stubFor(post(urlMatching("/login"))
+                .withRequestBody(containing("foo"))
+                .withHeader("Content-Type", equalTo("application/json"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader(Headers.AUTH_TOKEN_KEY, token.toString())
+                        .withBody(response)));
+
+
+
+        stubFor(get(urlEqualTo("http://localhost:8089/mci"))
+                .withHeader(Headers.AUTH_TOKEN_KEY, equalTo(token.toString()))
+                .withHeader(Headers.AUTH_HEADER_KEY, equalTo(getAuthHeader().get(Headers.AUTH_HEADER_KEY)))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody("")));
+
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader, identityStore);
+
+        RestClient mciClient = clientRegistry.getMCIClient();
+        assertNotNull(mciClient);
+        mciClient.get("/mci", String.class);
+        verify(1, getRequestedFor(urlEqualTo("/mci"))
+                .withHeader(Headers.AUTH_HEADER_KEY, matching(getAuthHeader().get(Headers.AUTH_HEADER_KEY)))
+                .withHeader(Headers.AUTH_TOKEN_KEY, matching(token.toString())));
     }
 
     @Test
@@ -94,6 +140,7 @@ public class ClientRegistryTest {
         verify(1, getRequestedFor(urlEqualTo("/patients/hid01/encounters"))
                 .withHeader(Headers.AUTH_TOKEN_KEY, matching(token.toString())));
     }
+
     @Test
     public void testCreateSHRClientWhenIdentityTokenAbsent() throws Exception {
         Properties shrProperties = getSecureServerProperties("shr.user", "shr.password");

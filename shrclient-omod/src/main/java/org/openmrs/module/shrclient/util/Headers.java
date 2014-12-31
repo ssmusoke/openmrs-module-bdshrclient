@@ -25,4 +25,11 @@ public class Headers {
         header.put(AUTH_TOKEN_KEY, token.toString());
         return header;
     }
+
+    public static Map<String, String> getBasicAuthAndIdentityHeader(String user, String password, IdentityToken token) {
+        HashMap<String, String> header = new HashMap<>();
+        header.putAll(getBasicAuthHeader(user, password));
+        header.putAll(getIdentityHeader(token));
+        return header;
+    }
 }

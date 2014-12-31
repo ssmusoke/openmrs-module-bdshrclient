@@ -21,12 +21,13 @@ public class ClientRegistry {
     }
 
     public RestClient getMCIClient() {
+        IdentityToken token = getOrCreateToken();
         Properties properties = propertiesReader.getMciProperties();
         String user = properties.getProperty("mci.user");
         String password = properties.getProperty("mci.password");
 
         return new RestClient(propertiesReader.getMciBaseUrl(),
-                Headers.getBasicAuthHeader(user, password));
+                Headers.getBasicAuthAndIdentityHeader(user, password, token));
     }
 
     public SHRClient getSHRClient() {
