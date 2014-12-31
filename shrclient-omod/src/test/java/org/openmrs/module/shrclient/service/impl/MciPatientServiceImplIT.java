@@ -63,12 +63,13 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
         String healthId = "HIDA764177";
-        List<EncounterBundle> bundles = getEncounterBundles(healthId, "shr-enc-id", "classpath:encounterBundles/testFHIREncounter.xml");
+        String shrEncounterId = "shr-enc-id";
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "classpath:encounterBundles/testFHIREncounter.xml");
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
-        List<org.openmrs.Encounter> encountersByPatient = encounterService.getEncountersByPatient(emrPatient);
-        assertEquals(1, encountersByPatient.size());
-        Encounter encounter = encountersByPatient.iterator().next();
+        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        assertNotNull(idMapping);
+        Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
         assertEquals(1, encounter.getEncounterProviders().size());
         assertEquals(providerService.getProvider(22), encounter.getEncounterProviders().iterator().next().getProvider());
     }
@@ -77,13 +78,14 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     public void shouldSaveTestOrders() throws Exception {
         executeDataSet("testDataSets/shrDiagnosticOrderSyncTestDS.xml");
         String healthId = "5915668841731457025";
-        List<EncounterBundle> bundles = getEncounterBundles(healthId, "shr-enc-id", "classpath:encounterBundles/encounterWithDiagnosticOrder.xml");
+        String shrEncounterId = "shr-enc-id";
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "classpath:encounterBundles/encounterWithDiagnosticOrder.xml");
         Patient emrPatient = patientService.getPatient(1);
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
-        List<org.openmrs.Encounter> encountersByPatient = encounterService.getEncountersByPatient(emrPatient);
-        assertEquals(1, encountersByPatient.size());
-        Encounter encounter = encountersByPatient.get(0);
+        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        assertNotNull(idMapping);
+        Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
         Set<Order> orders = encounter.getOrders();
         assertFalse(orders.isEmpty());
         assertEquals(1, orders.size());

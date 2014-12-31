@@ -31,26 +31,25 @@ import static java.lang.Math.abs;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hl7.fhir.instance.model.MedicationPrescription.MedicationPrescriptionDosageInstructionComponent;
+import static org.openmrs.module.fhir.mapper.MRSProperties.DRUG_ORDER_QUANTITY_UNITS_CONCEPT_NAME;
 import static org.openmrs.module.fhir.utils.DateUtil.parseDate;
 import static org.openmrs.module.fhir.utils.UnitsHelpers.UnitToDaysConverter;
 
 @Component
 public class FHIRMedicationPrescriptionMapper implements FHIRResource {
+    private static final int DEFAULT_NUM_REFILLS = 0;
+    private static final String URL_SEPERATOR = "/";
+
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
-
     @Autowired
     private ConceptService conceptService;
-
     @Autowired
     private OrderService orderService;
-
     @Autowired
     private UnitsHelpers unitsHelpers;
-
     @Autowired
     private ProviderLookupService providerLookupService;
-
     @Autowired
     private OrderCareSettingLookupService orderCareSettingLookupService;
 
@@ -72,7 +71,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResource {
         mapDosageAndRoute(drugOrder, dosageInstruction);
         mapFrequencyAndDurationAndScheduledDate(drugOrder, dosageInstruction);
         drugOrder.setOrderer(getOrderer(prescription));
-        drugOrder.setNumRefills(0);
+        drugOrder.setNumRefills(DEFAULT_NUM_REFILLS);
         drugOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(feed));
 
         processedList.put(((MedicationPrescription) resource).getIdentifier().get(0).getValueSimple(), asList(drugOrder.getUuid()));
@@ -82,7 +81,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResource {
     private void mapQuantity(DrugOrder drugOrder, UnitToDaysConverter unit) {
         double quantity = drugOrder.getDose() * drugOrder.getDuration() * drugOrder.getFrequency().getFrequencyPerDay() * unit.getInDays();
         drugOrder.setQuantity(quantity);
-        drugOrder.setQuantityUnits(conceptService.getConceptByName("Unit(s)"));
+        drugOrder.setQuantityUnits(conceptService.getConceptByName(DRUG_ORDER_QUANTITY_UNITS_CONCEPT_NAME));
     }
 
     private Provider getOrderer(MedicationPrescription prescription) {
@@ -145,10 +144,10 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResource {
         Quantity doseQuantity = dosageInstruction.getDoseQuantity();
         drugOrder.setDose(doseQuantity.getValueSimple().doubleValue());
         drugOrder.setDoseUnits(omrsConceptLookup.findConceptFromValueSetCode(doseQuantity.getSystemSimple(), doseQuantity.getCodeSimple()));
-        drugOrder.setRoute(mapRoute(drugOrder, dosageInstruction));
+        drugOrder.setRoute(mapRoute(dosageInstruction));
     }
 
-    private Concept mapRoute(DrugOrder drugOrder, MedicationPrescriptionDosageInstructionComponent dosageInstruction) {
+    private Concept mapRoute(MedicationPrescriptionDosageInstructionComponent dosageInstruction) {
         Concept route = null;
         if (!dosageInstruction.getRoute().getCoding().isEmpty()) {
             route = omrsConceptLookup.findConcept(dosageInstruction.getRoute().getCoding());
@@ -160,7 +159,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResource {
     }
 
     private Drug mapDrug(MedicationPrescription prescription) {
-        String drugExternalId = substringAfterLast(prescription.getMedication().getReferenceSimple(), "/");
+        String drugExternalId = substringAfterLast(prescription.getMedication().getReferenceSimple(), URL_SEPERATOR);
         Drug drug = omrsConceptLookup.findDrugOrder(drugExternalId);
         if(drug == null) {
             drug = conceptService.getDrugByNameOrId(prescription.getMedication().getDisplaySimple());
