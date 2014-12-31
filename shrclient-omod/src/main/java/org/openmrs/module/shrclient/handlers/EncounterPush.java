@@ -83,7 +83,7 @@ public class EncounterPush implements EventWorker {
                     "/patients/" + healthId + "/encounters/" + externalUuid;
             idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), externalUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE, url));
         } catch (Exception e) {
-            log.error("Error while processing patient sync event.", e);
+            log.error("Error while processing encounter sync event.", e);
             throw new RuntimeException(e);
         }
     }
