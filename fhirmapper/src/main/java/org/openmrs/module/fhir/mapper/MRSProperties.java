@@ -41,4 +41,7 @@ public class MRSProperties {
     public static final String MRS_LAB_ORDER_TYPE = "Lab Order";
 
     public static final String DRUG_ORDER_QUANTITY_UNITS_CONCEPT_NAME = "Unit(s)";
+    public static final String MRS_CONCEPT_IMMUNIZATION_INCIDENT = "Immunization Incident";
+    public static final String MRS_CONCEPT_VACCINATION_REFUSED = "Vaccination Refused";
+    public static final String MRS_CONCEPT_VACCINE = "Vaccine";
 }
