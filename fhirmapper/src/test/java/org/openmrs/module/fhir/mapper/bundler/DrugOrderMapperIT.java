@@ -40,10 +40,10 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         Encounter fhirEncounter = getFhirEncounter();
 
         assertTrue(orderMapper.canHandle(order));
-        List<EmrResource> emrResources = orderMapper.map(order, fhirEncounter, new AtomFeed(), getSystemProperties("1"));
+        List<FHIRResource> FHIRResources = orderMapper.map(order, fhirEncounter, new AtomFeed(), getSystemProperties("1"));
 
-        assertEquals(1, emrResources.size());
-        MedicationPrescription prescription = (MedicationPrescription) emrResources.get(0).getResource();
+        assertEquals(1, FHIRResources.size());
+        MedicationPrescription prescription = (MedicationPrescription) FHIRResources.get(0).getResource();
         assertMedicationPrescription(prescription);
         assertEquals(1, prescription.getDosageInstruction().size());
         MedicationPrescriptionDosageInstructionComponent dosageInstruction = prescription.getDosageInstruction().get(0);
@@ -57,8 +57,8 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         Order order = orderService.getOrder(17);
         Encounter fhirEncounter = getFhirEncounter();
 
-        List<EmrResource> emrResources = orderMapper.map(order, fhirEncounter, new AtomFeed(), getSystemProperties("1"));
-        MedicationPrescription prescription = (MedicationPrescription) emrResources.get(0).getResource();
+        List<FHIRResource> FHIRResources = orderMapper.map(order, fhirEncounter, new AtomFeed(), getSystemProperties("1"));
+        MedicationPrescription prescription = (MedicationPrescription) FHIRResources.get(0).getResource();
         assertSchedule(prescription.getDosageInstruction().get(0), 10, 1, 2, wk);
     }
 
@@ -67,8 +67,8 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         Order order = orderService.getOrder(18);
         Encounter fhirEncounter = getFhirEncounter();
 
-        List<EmrResource> emrResources = orderMapper.map(order, fhirEncounter, new AtomFeed(), getSystemProperties("1"));
-        MedicationPrescription prescription = (MedicationPrescription) emrResources.get(0).getResource();
+        List<FHIRResource> FHIRResources = orderMapper.map(order, fhirEncounter, new AtomFeed(), getSystemProperties("1"));
+        MedicationPrescription prescription = (MedicationPrescription) FHIRResources.get(0).getResource();
         assertSchedule(prescription.getDosageInstruction().get(0), 70, 1, 8, d);
     }
 
@@ -77,8 +77,8 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         Order order = orderService.getOrder(19);
         Encounter fhirEncounter = getFhirEncounter();
 
-        List<EmrResource> emrResources = orderMapper.map(order, fhirEncounter, new AtomFeed(), getSystemProperties("1"));
-        MedicationPrescription prescription = (MedicationPrescription) emrResources.get(0).getResource();
+        List<FHIRResource> FHIRResources = orderMapper.map(order, fhirEncounter, new AtomFeed(), getSystemProperties("1"));
+        MedicationPrescription prescription = (MedicationPrescription) FHIRResources.get(0).getResource();
         assertSchedule(prescription.getDosageInstruction().get(0), 2, 1, 12, d);
     }
 

@@ -47,13 +47,13 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<EmrResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
-        List<EmrResource> emrResources = new ArrayList<>();
+    public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+        List<FHIRResource> FHIRResources = new ArrayList<>();
         for (Obs person : obs.getGroupMembers()) {
             FamilyHistory familyHistory = createFamilyHistory(person, fhirEncounter, systemProperties);
-            emrResources.add(new EmrResource(obs.getConcept().getName().getName(), familyHistory.getIdentifier(), familyHistory));
+            FHIRResources.add(new FHIRResource(obs.getConcept().getName().getName(), familyHistory.getIdentifier(), familyHistory));
         }
-        return emrResources;
+        return FHIRResources;
     }
 
     private FamilyHistory createFamilyHistory(Obs person, Encounter fhirEncounter, SystemProperties systemProperties) {

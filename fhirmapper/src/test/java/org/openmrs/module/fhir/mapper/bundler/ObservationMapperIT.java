@@ -38,18 +38,18 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
         Obs vitalsObs = obsService.getObs(11);
         assertTrue(observationMapper.canHandle(vitalsObs));
 
-        List<EmrResource> emrResources = observationMapper.map(vitalsObs, new Encounter(), getSystemProperties("1"));
-        assertEquals(4, emrResources.size());
-        for (EmrResource emrResource : emrResources) {
-            Observation observation = (Observation) emrResource.getResource();
+        List<FHIRResource> FHIRResources = observationMapper.map(vitalsObs, new Encounter(), getSystemProperties("1"));
+        assertEquals(4, FHIRResources.size());
+        for (FHIRResource FHIRResource : FHIRResources) {
+            Observation observation = (Observation) FHIRResource.getResource();
             assertTrue(isNotEmpty(observation.getName().getCoding()));
-            if (emrResource.getResourceName().equals("Vitals")) {
+            if (FHIRResource.getResourceName().equals("Vitals")) {
                 assertVitalsObservation(observation);
-            } else if (emrResource.getResourceName().equals("Blood Pressure")) {
+            } else if (FHIRResource.getResourceName().equals("Blood Pressure")) {
                 assertBloodPressureObservation(observation);
-            } else if (emrResource.getResourceName().equals("Diastolic")) {
+            } else if (FHIRResource.getResourceName().equals("Diastolic")) {
                 assertDiastolicObservation(observation);
-            } else if (emrResource.getResourceName().equals("Pulse")) {
+            } else if (FHIRResource.getResourceName().equals("Pulse")) {
                 assertPulseObservation(observation);
             }
         }

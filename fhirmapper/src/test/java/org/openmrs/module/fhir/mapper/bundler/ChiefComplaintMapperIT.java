@@ -33,7 +33,7 @@ public class ChiefComplaintMapperIT extends BaseModuleWebContextSensitiveTest {
         encounter.addParticipant().setIndividual(new ResourceReference());
         org.openmrs.Encounter openMrsEncounter = encounterService.getEncounter(36);
 
-        List<EmrResource> complaintResources = chiefComplaintMapper.map(openMrsEncounter.getObsAtTopLevel(false).iterator().next(), encounter, getSystemProperties("1"));
+        List<FHIRResource> complaintResources = chiefComplaintMapper.map(openMrsEncounter.getObsAtTopLevel(false).iterator().next(), encounter, getSystemProperties("1"));
         Assert.assertFalse(complaintResources.isEmpty());
         Assert.assertEquals(1, complaintResources.size());
     }

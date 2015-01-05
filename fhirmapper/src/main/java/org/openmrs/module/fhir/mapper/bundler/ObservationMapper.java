@@ -43,22 +43,22 @@ public class ObservationMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<EmrResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
-        List<EmrResource> result = new ArrayList<>();
+    public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+        List<FHIRResource> result = new ArrayList<>();
         if (null != obs) {
             result  = mapToFhirObservation(obs, fhirEncounter, systemProperties);
         }
         return result;
     }
 
-    private EmrResource buildResource(Observation observation, Obs obs) {
-        return new EmrResource(obs.getConcept().getName().getName(), asList(observation.getIdentifier()), observation);
+    private FHIRResource buildResource(Observation observation, Obs obs) {
+        return new FHIRResource(obs.getConcept().getName().getName(), asList(observation.getIdentifier()), observation);
     }
 
-    public List<EmrResource> mapToFhirObservation(Obs observation, Encounter fhirEncounter, SystemProperties systemProperties) {
-        List<EmrResource> result = new ArrayList<>();
+    public List<FHIRResource> mapToFhirObservation(Obs observation, Encounter fhirEncounter, SystemProperties systemProperties) {
+        List<FHIRResource> result = new ArrayList<>();
         Observation fhirObservation = createObservation(observation, fhirEncounter, systemProperties);
-        EmrResource entry = buildResource(fhirObservation, observation);
+        FHIRResource entry = buildResource(fhirObservation, observation);
         for (Obs member : observation.getGroupMembers()) {
             mapGroupMember(member, fhirEncounter, fhirObservation, result, systemProperties);
         }
@@ -66,9 +66,9 @@ public class ObservationMapper implements EmrObsResourceHandler {
         return result;
     }
 
-    private void mapGroupMember(Obs obs, Encounter fhirEncounter, Observation parentObservation, List<EmrResource> result, SystemProperties systemProperties) {
+    private void mapGroupMember(Obs obs, Encounter fhirEncounter, Observation parentObservation, List<FHIRResource> result, SystemProperties systemProperties) {
         Observation observation = createObservation(obs, fhirEncounter, systemProperties);
-        EmrResource entry = buildResource(observation, obs);
+        FHIRResource entry = buildResource(observation, obs);
         mapRelatedObservation(observation).mergeWith(parentObservation);
         for (Obs member : obs.getGroupMembers()) {
             mapGroupMember(member, fhirEncounter, observation, result, systemProperties);

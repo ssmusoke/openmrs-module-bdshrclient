@@ -9,5 +9,5 @@ import java.util.List;
 
 public interface EmrOrderResourceHandler {
     boolean canHandle(Order order);
-    List<EmrResource> map(Order order, Encounter fhirEncounter, AtomFeed feed, SystemProperties systemProperties);
+    List<FHIRResource> map(Order order, Encounter fhirEncounter, AtomFeed feed, SystemProperties systemProperties);
 }

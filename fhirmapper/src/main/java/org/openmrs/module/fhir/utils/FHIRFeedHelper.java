@@ -2,10 +2,8 @@ package org.openmrs.module.fhir.utils;
 
 import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.*;
-import org.openmrs.Concept;
-import org.openmrs.ConceptMapType;
-import org.openmrs.ConceptName;
-import org.openmrs.ConceptReferenceTerm;
+import org.hl7.fhir.instance.model.Encounter;
+import org.openmrs.*;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 
@@ -32,18 +30,25 @@ public class FHIRFeedHelper {
         CodeableConcept codeableConcept = new CodeableConcept();
         Collection<org.openmrs.ConceptMap> conceptMappings = concept.getConceptMappings();
         for (org.openmrs.ConceptMap mapping : conceptMappings) {
-            ConceptReferenceTerm conceptReferenceTerm = mapping.getConceptReferenceTerm();
-            final IdMapping idMapping = idMappingsRepository.findByInternalId(conceptReferenceTerm.getUuid());
-            if(idMapping == null) {
-                continue;
-            }
-            addFHIRCoding(codeableConcept, conceptReferenceTerm.getCode(), idMapping.getUri(), concept.getName().getName());
+            addCodingsForReferenceTerms(concept, idMappingsRepository, codeableConcept, mapping);
         }
+        addCodingForConcept(concept, idMappingsRepository, codeableConcept);
+        return codeableConcept;
+    }
+
+    private static void addCodingForConcept(Concept concept, IdMappingsRepository idMappingsRepository, CodeableConcept codeableConcept) {
         IdMapping idMapping = idMappingsRepository.findByInternalId(concept.getUuid());
         if(idMapping != null) {
             addFHIRCoding(codeableConcept, idMapping.getExternalId(), idMapping.getUri(), concept.getName().getName());
         }
-        return codeableConcept;
+    }
+
+    private static void addCodingsForReferenceTerms(Concept concept, IdMappingsRepository idMappingsRepository, CodeableConcept codeableConcept, org.openmrs.ConceptMap mapping) {
+        ConceptReferenceTerm conceptReferenceTerm = mapping.getConceptReferenceTerm();
+        IdMapping idMapping = idMappingsRepository.findByInternalId(conceptReferenceTerm.getUuid());
+        if(idMapping != null) {
+            addFHIRCoding(codeableConcept, conceptReferenceTerm.getCode(), idMapping.getUri(), concept.getName().getName());
+        }
     }
 
     public static String getValueSetCode(Concept concept) {

@@ -35,14 +35,14 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
         ResourceReference patientHid = new ResourceReference();
         patientHid.setReferenceSimple("patientHid");
         fhirEncounter.setSubject(patientHid);
-        List<EmrResource> emrResources = testResultMapper.map(obsService.getObs(1), fhirEncounter, getSystemProperties("1"));
-        assertNotNull(emrResources);
-        assertEquals(2, emrResources.size());
-        EmrResource diagnosticReportResource = getResource(ResourceType.DiagnosticReport, emrResources);
+        List<FHIRResource> FHIRResources = testResultMapper.map(obsService.getObs(1), fhirEncounter, getSystemProperties("1"));
+        assertNotNull(FHIRResources);
+        assertEquals(2, FHIRResources.size());
+        FHIRResource diagnosticReportResource = getResource(ResourceType.DiagnosticReport, FHIRResources);
         DiagnosticReport report = (DiagnosticReport) diagnosticReportResource.getResource();
         assertEquals(fhirEncounter.getSubject(), report.getSubject());
         assertEquals(fhirEncounter.getParticipant().get(0).getIndividual(), report.getPerformer());
-        assertDiagnosticReport(report, emrResources);
+        assertDiagnosticReport(report, FHIRResources);
         assertEquals(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(obsService.getObs(2).getObsDatetime()), report.getIssuedSimple().toString());
         assertEquals(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(orderService.getOrder(17).getDateActivated()), ((DateTime) report.getDiagnostic()).getValue().toString());
         assertEquals(conceptService.getConcept(107).getName().getName(), report.getName().getCoding().get(0).getDisplaySimple());
@@ -55,21 +55,21 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
         ResourceReference patientHid = new ResourceReference();
         patientHid.setReferenceSimple("patientHid");
         fhirEncounter.setSubject(patientHid);
-        List<EmrResource> emrResources = testResultMapper.map(obsService.getObs(11), fhirEncounter, getSystemProperties("1"));
-        assertNotNull(emrResources);
-        assertEquals(6, emrResources.size());
-        for (EmrResource emrResource : emrResources) {
-            if(emrResource.getResource() instanceof DiagnosticReport) {
-                DiagnosticReport report = (DiagnosticReport) emrResource.getResource();
+        List<FHIRResource> FHIRResources = testResultMapper.map(obsService.getObs(11), fhirEncounter, getSystemProperties("1"));
+        assertNotNull(FHIRResources);
+        assertEquals(6, FHIRResources.size());
+        for (FHIRResource FHIRResource : FHIRResources) {
+            if(FHIRResource.getResource() instanceof DiagnosticReport) {
+                DiagnosticReport report = (DiagnosticReport) FHIRResource.getResource();
                 assertEquals(fhirEncounter.getSubject(), report.getSubject());
                 assertEquals(fhirEncounter.getParticipant().get(0).getIndividual(), report.getPerformer());
-                assertDiagnosticReport(report, emrResources);
+                assertDiagnosticReport(report, FHIRResources);
             }
         }
     }
 
-    private void assertDiagnosticReport(DiagnosticReport report, List<EmrResource> emrResources) {
-        EmrResource observationResource = getResource(report.getResult().get(0), emrResources);
+    private void assertDiagnosticReport(DiagnosticReport report, List<FHIRResource> FHIRResources) {
+        FHIRResource observationResource = getResource(report.getResult().get(0), FHIRResources);
         assertNotNull(observationResource);
         assertFalse(report.getResult().isEmpty());
         assertNotNull(report.getIdentifier());
@@ -86,19 +86,19 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(obsService.getObs(4).getValueText(), report.getConclusionSimple());
     }
 
-    private EmrResource getResource(ResourceType type, List<EmrResource> emrResources) {
-        for (EmrResource emrResource : emrResources) {
-            if(type.equals(emrResource.getResource().getResourceType())) {
-                return emrResource;
+    private FHIRResource getResource(ResourceType type, List<FHIRResource> FHIRResources) {
+        for (FHIRResource FHIRResource : FHIRResources) {
+            if(type.equals(FHIRResource.getResource().getResourceType())) {
+                return FHIRResource;
             }
         }
         return null;
     }
 
-    private EmrResource getResource(ResourceReference reference, List<EmrResource> emrResources) {
-        for (EmrResource emrResource : emrResources) {
-            if(emrResource.getIdentifier().getValueSimple().equals(reference.getReferenceSimple())) {
-                return emrResource;
+    private FHIRResource getResource(ResourceReference reference, List<FHIRResource> FHIRResources) {
+        for (FHIRResource FHIRResource : FHIRResources) {
+            if(FHIRResource.getIdentifier().getValueSimple().equals(reference.getReferenceSimple())) {
+                return FHIRResource;
             }
         }
         return null;

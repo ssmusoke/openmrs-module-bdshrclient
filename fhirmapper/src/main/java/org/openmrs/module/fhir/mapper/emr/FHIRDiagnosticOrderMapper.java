@@ -20,7 +20,7 @@ import java.util.Map;
 
 
 @Component
-public class FHIRDiagnosticOrderMapper implements FHIRResource {
+public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
 

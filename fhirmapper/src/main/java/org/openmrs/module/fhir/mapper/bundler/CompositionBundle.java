@@ -39,16 +39,16 @@ public class CompositionBundle {
         atomFeed.setTitle("Encounter");
         atomFeed.setUpdated(composition.getDateSimple());
         atomFeed.setId(new FHIRIdentifier(UUID.randomUUID().toString()).getExternalForm());
-        final EmrResource encounterResource = new EmrResource("Encounter", fhirEncounter.getIdentifier(), fhirEncounter);
+        final FHIRResource encounterResource = new FHIRResource("Encounter", fhirEncounter.getIdentifier(), fhirEncounter);
         addResourceSectionToComposition(composition, encounterResource);
-        addAtomEntry(atomFeed, new EmrResource("Composition", asList(composition.getIdentifier()), composition));
+        addAtomEntry(atomFeed, new FHIRResource("Composition", asList(composition.getIdentifier()), composition));
         addAtomEntry(atomFeed, encounterResource);
 
         final Set<Obs> observations = emrEncounter.getObsAtTopLevel(false);
         for (Obs obs : observations) {
             for (EmrObsResourceHandler handler : obsResourceHandlers) {
                 if (handler.canHandle(obs)) {
-                    List<EmrResource> mappedResources = handler.map(obs, fhirEncounter, systemProperties);
+                    List<FHIRResource> mappedResources = handler.map(obs, fhirEncounter, systemProperties);
                     if (CollectionUtils.isNotEmpty(mappedResources)) {
                         addResourcesToBundle(mappedResources, composition, atomFeed);
                     }
@@ -60,7 +60,7 @@ public class CompositionBundle {
         for (org.openmrs.Order order : orders) {
             for (EmrOrderResourceHandler handler : orderResourceHandlers) {
                 if (handler.canHandle(order)) {
-                    List<EmrResource> mappedResources = handler.map(order, fhirEncounter, atomFeed, systemProperties);
+                    List<FHIRResource> mappedResources = handler.map(order, fhirEncounter, atomFeed, systemProperties);
                     if (CollectionUtils.isNotEmpty(mappedResources)) {
                         addResourcesToBundle(mappedResources, composition, atomFeed);
                     }
@@ -71,15 +71,15 @@ public class CompositionBundle {
         return atomFeed;
     }
 
-    private void addResourcesToBundle(List<EmrResource> mappedResources, Composition composition, AtomFeed atomFeed) {
-        for (EmrResource mappedResource : mappedResources) {
+    private void addResourcesToBundle(List<FHIRResource> mappedResources, Composition composition, AtomFeed atomFeed) {
+        for (FHIRResource mappedResource : mappedResources) {
             addResourceSectionToComposition(composition, mappedResource);
             addAtomEntry(atomFeed, mappedResource);
         }
     }
 
     //TODO: reference should be a relative URL
-    private void addResourceSectionToComposition(Composition composition, EmrResource resource) {
+    private void addResourceSectionToComposition(Composition composition, FHIRResource resource) {
         String resourceId = resource.getIdentifier().getValueSimple();
         ResourceReference conditionRef = new ResourceReference();
         conditionRef.setReferenceSimple(resourceId);
@@ -88,7 +88,7 @@ public class CompositionBundle {
     }
 
     @SuppressWarnings("unchecked")
-    private void addAtomEntry(AtomFeed atomFeed, EmrResource resource) {
+    private void addAtomEntry(AtomFeed atomFeed, FHIRResource resource) {
         AtomEntry resourceEntry = new AtomEntry();
         resourceEntry.setId(new FHIRIdentifier(resource.getIdentifier().getValueSimple()
         ).getExternalForm());

@@ -36,7 +36,7 @@ import static org.openmrs.module.fhir.utils.DateUtil.parseDate;
 import static org.openmrs.module.fhir.utils.UnitsHelpers.UnitToDaysConverter;
 
 @Component
-public class FHIRMedicationPrescriptionMapper implements FHIRResource {
+public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
     private static final int DEFAULT_NUM_REFILLS = 0;
     private static final String URL_SEPERATOR = "/";
 

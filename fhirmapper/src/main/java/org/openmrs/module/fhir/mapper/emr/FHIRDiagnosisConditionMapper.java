@@ -20,7 +20,7 @@ import java.util.*;
 
 
 @Component
-public class FHIRDiagnosisConditionMapper implements FHIRResource {
+public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
 
     private final Map<Condition.ConditionStatus, String> diaConditionStatus = new HashMap<Condition.ConditionStatus, String>();
     @Autowired

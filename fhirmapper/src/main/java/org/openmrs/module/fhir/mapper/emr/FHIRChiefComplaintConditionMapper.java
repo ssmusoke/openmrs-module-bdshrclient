@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.Date;
 
 @Component
-public class FHIRChiefComplaintConditionMapper implements FHIRResource {
+public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
 
     @Autowired
     private ConceptService conceptService;

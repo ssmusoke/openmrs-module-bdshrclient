@@ -52,17 +52,17 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<EmrResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
-        List<EmrResource> diagnoses = new ArrayList<>();
+    public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+        List<FHIRResource> diagnoses = new ArrayList<>();
 
-        EmrResource fhirCondition = createFHIRCondition(fhirEncounter, obs, systemProperties);
+        FHIRResource fhirCondition = createFHIRCondition(fhirEncounter, obs, systemProperties);
         if (fhirCondition != null) {
             diagnoses.add(fhirCondition);
         }
         return diagnoses;
     }
 
-    private EmrResource createFHIRCondition(Encounter encounter, Obs obs, SystemProperties systemProperties) {
+    private FHIRResource createFHIRCondition(Encounter encounter, Obs obs, SystemProperties systemProperties) {
         Condition condition = new Condition();
         condition.setEncounter(encounter.getIndication());
         condition.setSubject(encounter.getSubject());
@@ -96,7 +96,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         if (CollectionUtils.isEmpty(condition.getCode().getCoding())) {
             return null;
         }
-        return new EmrResource("Diagnosis", condition.getIdentifier(), condition);
+        return new FHIRResource("Diagnosis", condition.getIdentifier(), condition);
     }
 
     private boolean isDiagnosisCertaintyObservation(Concept concept) {

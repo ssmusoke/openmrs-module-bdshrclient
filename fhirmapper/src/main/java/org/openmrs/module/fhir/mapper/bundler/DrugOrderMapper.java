@@ -38,8 +38,8 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
     }
 
     @Override
-    public List<EmrResource> map(Order order, Encounter fhirEncounter, AtomFeed feed, SystemProperties systemProperties) {
-        ArrayList<EmrResource> emrResources = new ArrayList<>();
+    public List<FHIRResource> map(Order order, Encounter fhirEncounter, AtomFeed feed, SystemProperties systemProperties) {
+        ArrayList<FHIRResource> FHIRResources = new ArrayList<>();
         DrugOrder drugOrder = (DrugOrder) order;
         MedicationPrescription prescription = new MedicationPrescription();
         prescription.setEncounter(fhirEncounter.getIndication());
@@ -50,8 +50,8 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         setDoseInstructions(drugOrder, prescription, systemProperties);
         Identifier identifier = prescription.addIdentifier();
         identifier.setValueSimple(new EntityReference().build(Order.class, systemProperties, order.getUuid()));
-        emrResources.add(new EmrResource("Medication Prescription", prescription.getIdentifier(), prescription));
-        return emrResources;
+        FHIRResources.add(new FHIRResource("Medication Prescription", prescription.getIdentifier(), prescription));
+        return FHIRResources;
     }
 
     protected ResourceReference getParticipant(Encounter encounter) {

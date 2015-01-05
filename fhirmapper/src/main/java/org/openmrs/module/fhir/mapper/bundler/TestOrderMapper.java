@@ -33,7 +33,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
     @Autowired
     private IdMappingsRepository idMappingsRepository;
 
-    private List<EmrResource> resources;
+    private List<FHIRResource> resources;
 
     @Override
     public boolean canHandle(Order order) {
@@ -41,7 +41,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
     }
 
     @Override
-    public List<EmrResource> map(Order order, Encounter fhirEncounter, AtomFeed feed, SystemProperties systemProperties) {
+    public List<FHIRResource> map(Order order, Encounter fhirEncounter, AtomFeed feed, SystemProperties systemProperties) {
         resources = new ArrayList<>();
         DiagnosticOrder diagnosticOrder;
         Resource resource = identifyResource(feed.getEntryList(), ResourceType.DiagnosticOrder);
@@ -49,7 +49,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
             diagnosticOrder = (DiagnosticOrder) resource;
         } else {
             diagnosticOrder = createDiagnosticOrder(order, fhirEncounter, systemProperties);
-            resources.add(new EmrResource("Diagnostic Order", diagnosticOrder.getIdentifier(), diagnosticOrder));
+            resources.add(new FHIRResource("Diagnostic Order", diagnosticOrder.getIdentifier(), diagnosticOrder));
         }
         addItemsToDiagnosticOrder(order, diagnosticOrder, feed, systemProperties);
         if (CollectionUtils.isEmpty(diagnosticOrder.getItem())) {
@@ -75,7 +75,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
             if (specimen == null) {
                 return;
             }
-            resources.add(new EmrResource("Specimen", specimen.getIdentifier(), specimen));
+            resources.add(new FHIRResource("Specimen", specimen.getIdentifier(), specimen));
         }
         String specimenIdentifier = specimen.getIdentifier().get(0).getValueSimple();
         ResourceReference orderItemSpecimenReference = orderItem.addSpecimen();

@@ -34,35 +34,35 @@ public class TestResultMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<EmrResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
-        List<EmrResource> emrResourceList = new ArrayList<>();
+    public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+        List<FHIRResource> FHIRResourceList = new ArrayList<>();
         if (obs != null) {
             if (!isPanel(obs)) {
-                buildTestResult(obs, fhirEncounter, emrResourceList, systemProperties);
+                buildTestResult(obs, fhirEncounter, FHIRResourceList, systemProperties);
             } else {
                 for (Obs observation : obs.getGroupMembers()) {
-                    buildTestResult(observation, fhirEncounter, emrResourceList, systemProperties);
+                    buildTestResult(observation, fhirEncounter, FHIRResourceList, systemProperties);
                 }
             }
         }
-        return emrResourceList;
+        return FHIRResourceList;
     }
 
     private Boolean isPanel(Obs obs) {
         return obs.getConcept().getConceptClass().getName().equals(MRS_CONCEPT_CLASS_LAB_SET);
     }
 
-    private void buildTestResult(Obs obs, Encounter fhirEncounter, List<EmrResource> emrResourceList, SystemProperties systemProperties) {
+    private void buildTestResult(Obs obs, Encounter fhirEncounter, List<FHIRResource> FHIRResourceList, SystemProperties systemProperties) {
         for (Obs observation : obs.getGroupMembers()) {
-            DiagnosticReport diagnosticReport = build(observation, fhirEncounter, emrResourceList, systemProperties);
+            DiagnosticReport diagnosticReport = build(observation, fhirEncounter, FHIRResourceList, systemProperties);
             if (diagnosticReport != null) {
-                EmrResource emrResource = new EmrResource("Diagnostic Report", Arrays.asList(diagnosticReport.getIdentifier()), diagnosticReport);
-                emrResourceList.add(emrResource);
+                FHIRResource FHIRResource = new FHIRResource("Diagnostic Report", Arrays.asList(diagnosticReport.getIdentifier()), diagnosticReport);
+                FHIRResourceList.add(FHIRResource);
             }
         }
     }
 
-    private DiagnosticReport build(Obs obs, Encounter fhirEncounter, List<EmrResource> emrResourceList, SystemProperties systemProperties) {
+    private DiagnosticReport build(Obs obs, Encounter fhirEncounter, List<FHIRResource> FHIRResourceList, SystemProperties systemProperties) {
         DiagnosticReport report = new DiagnosticReport();
         CodeableConcept name = FHIRFeedHelper.addReferenceCodes(obs.getConcept(), idMappingsRepository);
         if (name.getCoding().isEmpty()) {
@@ -95,11 +95,11 @@ public class TestResultMapper implements EmrObsResourceHandler {
 
         for (Obs member : obs.getGroupMembers()) {
             if (member.getConcept().equals(obs.getConcept())) {
-                List<EmrResource> observationResources = observationMapper.map(member, fhirEncounter, systemProperties);
+                List<FHIRResource> observationResources = observationMapper.map(member, fhirEncounter, systemProperties);
                 ResourceReference resourceReference = report.addResult();
                 // TODO: how do we identify this observation?
                 resourceReference.setReferenceSimple(observationResources.get(0).getIdentifier().getValueSimple());
-                emrResourceList.addAll(observationResources);
+                FHIRResourceList.addAll(observationResources);
             } else if (MRS_CONCEPT_NAME_LAB_NOTES.equals(member.getConcept().getName().getName())) {
                 report.setConclusionSimple(member.getValueText());
             }

@@ -50,7 +50,7 @@ public class FHIREncounterMapper {
     private VisitService visitService;
 
     @Autowired
-    private List<FHIRResource> fhirResources;
+    private List<FHIRResourceMapper> fhirResourceMappers;
 
     @Autowired
     private IdMappingsRepository idMappingsRepository;
@@ -68,9 +68,9 @@ public class FHIREncounterMapper {
         emrEncounter.setPatient(emrPatient);
         for (AtomEntry<? extends Resource> atomEntry : feed.getEntryList()) {
             final Resource resource = atomEntry.getResource();
-            for (FHIRResource fhirResource : fhirResources) {
-                if (fhirResource.canHandle(resource)) {
-                    fhirResource.map(feed, resource, emrPatient, emrEncounter, processedList);
+            for (FHIRResourceMapper fhirResourceMapper : fhirResourceMappers) {
+                if (fhirResourceMapper.canHandle(resource)) {
+                    fhirResourceMapper.map(feed, resource, emrPatient, emrEncounter, processedList);
                 }
             }
         }

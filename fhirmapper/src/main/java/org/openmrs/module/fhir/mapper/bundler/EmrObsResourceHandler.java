@@ -9,6 +9,6 @@ import java.util.List;
 
 public interface EmrObsResourceHandler {
     boolean canHandle(Obs observation);
-    List<EmrResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties);
+    List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties);
 
 }

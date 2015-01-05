@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public interface FHIRResource {
+public interface FHIRResourceMapper {
     public boolean canHandle(Resource resource);
 
     public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList);

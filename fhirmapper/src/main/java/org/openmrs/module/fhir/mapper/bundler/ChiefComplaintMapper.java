@@ -40,8 +40,8 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<EmrResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
-        List<EmrResource> chiefComplaints = new ArrayList<>();
+    public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+        List<FHIRResource> chiefComplaints = new ArrayList<>();
         for (Obs member : obs.getGroupMembers()) {
             if (member.getConcept().getName().getName().equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA)) {
                 chiefComplaints.add(createFHIRCondition(fhirEncounter, member, systemProperties));
@@ -50,7 +50,7 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
         return chiefComplaints;
     }
 
-    private EmrResource createFHIRCondition(Encounter encounter, Obs obs, SystemProperties systemProperties) {
+    private FHIRResource createFHIRCondition(Encounter encounter, Obs obs, SystemProperties systemProperties) {
         Condition condition = new Condition();
         condition.setEncounter(encounter.getIndication());
         condition.setSubject(encounter.getSubject());
@@ -86,7 +86,7 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
         Identifier identifier = condition.addIdentifier();
         identifier.setValueSimple(new EntityReference().build(Obs.class, systemProperties, obs.getUuid()));
 
-        return new EmrResource(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT, condition.getIdentifier(), condition);
+        return new FHIRResource(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT, condition.getIdentifier(), condition);
     }
 
     private org.hl7.fhir.instance.model.DateTime getOnsetDate(Obs member) {

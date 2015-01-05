@@ -20,7 +20,7 @@ import java.util.Map;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
 
 @Component
-public class FHIRObservationsMapper implements FHIRResource {
+public class FHIRObservationsMapper implements FHIRResourceMapper {
 
     @Autowired
     ConceptService conceptService;

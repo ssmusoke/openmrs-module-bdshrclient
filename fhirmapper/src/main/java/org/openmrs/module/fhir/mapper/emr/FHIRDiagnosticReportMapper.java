@@ -31,7 +31,7 @@ import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_LAB_
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
 
 @Component
-public class FHIRDiagnosticReportMapper implements FHIRResource {
+public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
     @Autowired
