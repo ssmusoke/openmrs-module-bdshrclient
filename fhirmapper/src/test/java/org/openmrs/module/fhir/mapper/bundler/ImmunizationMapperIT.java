@@ -1,5 +1,6 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.hl7.fhir.instance.model.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +36,7 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    public void shouldMapSubjectToImmunization() throws Exception {
+    public void shouldMapSubjectToImmunizationAndSetIdentifier() throws Exception {
         Obs obs = obsService.getObs(11);
         Encounter fhirEncounter = new Encounter();
         ResourceReference subject = new ResourceReference();
@@ -43,7 +44,9 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
         fhirEncounter.setSubject(subject);
         List<FHIRResource> fhirResources = mapper.map(obs, fhirEncounter, getSystemProperties("1"));
         Immunization immunization = getImmunization(fhirResources);
+
         assertEquals(subject, immunization.getSubject());
+        assertTrue(CollectionUtils.isNotEmpty(immunization.getIdentifier()));
     }
 
 
@@ -76,6 +79,7 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
         List<FHIRResource> fhirResources = mapper.map(obs, new Encounter(), getSystemProperties("1"));
         return getImmunization(fhirResources);
     }
+
     private Immunization getImmunization(List<FHIRResource> fhirResources) {
         assertEquals(1, fhirResources.size());
         assertTrue(fhirResources.get(0).getResource() instanceof Immunization);

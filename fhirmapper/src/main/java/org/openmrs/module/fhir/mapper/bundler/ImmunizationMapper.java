@@ -8,6 +8,7 @@ import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -42,7 +43,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> resources = new ArrayList<>();
 
-        Resource resource = mapObservation(obs, fhirEncounter);
+        Resource resource = mapObservation(obs, fhirEncounter, systemProperties);
 
         FHIRResource immunizationResource = new FHIRResource(null, null, resource);
         resources.add(immunizationResource);
@@ -50,7 +51,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         return resources;
     }
 
-    private Resource mapObservation(Obs obs, Encounter fhirEncounter) {
+    private Resource mapObservation(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
         Immunization immunization = new Immunization();
         immunization.setSubject(fhirEncounter.getSubject());
         Set<Obs> groupMembers = obs.getGroupMembers();
@@ -61,10 +62,16 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
             return null;
         }
         immunization.setVaccineType(getVaccineType(drugs));
+        setIdentifier(obs, systemProperties, immunization);
         immunization.setDate(getVaccinationDate(groupMembers));
         immunization.setRefusedIndicator(getRefusedIndicator(groupMembers));
 
         return immunization;
+    }
+
+    private void setIdentifier(Obs obs, SystemProperties systemProperties, Immunization immunization) {
+        Identifier identifier = immunization.addIdentifier();
+        identifier.setValueSimple(new EntityReference().build(Obs.class, systemProperties, obs.getUuid()));
     }
 
     private DateTime getVaccinationDate(Set<Obs> groupMembers) {
@@ -87,7 +94,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     }
 
     private Boolean getRefusedIndicator(Set<Obs> groupMembers) {
-        return (Boolean)obsValueMapper.map(getObsForConcept(MRS_CONCEPT_VACCINATION_REFUSED, groupMembers));
+        return (Boolean) obsValueMapper.map(getObsForConcept(MRS_CONCEPT_VACCINATION_REFUSED, groupMembers));
     }
 
     private Obs getObsForConcept(String conceptName, Set<Obs> groupMembers) {
