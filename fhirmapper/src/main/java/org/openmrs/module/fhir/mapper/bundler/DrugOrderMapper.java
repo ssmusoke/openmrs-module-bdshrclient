@@ -3,11 +3,10 @@ package org.openmrs.module.fhir.mapper.bundler;
 import org.hl7.fhir.instance.model.*;
 import org.hl7.fhir.instance.model.Integer;
 import org.hl7.fhir.instance.model.Schedule.ScheduleRepeatComponent;
-import org.openmrs.Concept;
 import org.openmrs.DrugOrder;
 import org.openmrs.Order;
-import org.openmrs.module.fhir.mapper.TrValueSetKeys;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.utils.CodableConceptService;
 import org.openmrs.module.fhir.utils.UnitsHelpers;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -22,7 +21,6 @@ import java.util.List;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_DRUG_ORDER_TYPE;
 import static org.openmrs.module.fhir.mapper.TrValueSetKeys.QUANTITY_UNITS;
 import static org.openmrs.module.fhir.mapper.TrValueSetKeys.ROUTE;
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.getValueSetCode;
 
 @Component
 public class DrugOrderMapper implements EmrOrderResourceHandler {
@@ -30,6 +28,9 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
     private IdMappingsRepository idMappingsRepository;
     @Autowired
     private UnitsHelpers unitsHelpers;
+
+    @Autowired
+    private CodableConceptService codableConceptService;
     private final int DEFAULT_DURATION = 1;
 
     @Override
@@ -64,7 +65,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 
     private void setDoseInstructions(DrugOrder drugOrder, MedicationPrescription prescription, SystemProperties systemProperties) {
         MedicationPrescription.MedicationPrescriptionDosageInstructionComponent dosageInstruction = prescription.addDosageInstruction();
-        dosageInstruction.setRoute(getValueSetCodeableConcept(drugOrder.getRoute(), systemProperties.getTrValuesetUrl(ROUTE)));
+        dosageInstruction.setRoute(codableConceptService.getTRValueSetCodeableConcept(drugOrder.getRoute(), systemProperties.getTrValuesetUrl(ROUTE)));
         setDoseQuantity(drugOrder, dosageInstruction, systemProperties);
         dosageInstruction.setTiming(getSchedule(drugOrder));
     }
@@ -124,22 +125,12 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         return (int) Math.round(frequencyPerUnit);
     }
 
-    private CodeableConcept getValueSetCodeableConcept(Concept concept, String system) {
-        CodeableConcept codeableConcept = new CodeableConcept();
-        Coding coding = codeableConcept.addCoding();
-        if (null != idMappingsRepository.findByInternalId(concept.getUuid())) {
-            coding.setCodeSimple(getValueSetCode(concept));
-            coding.setSystemSimple(system);
-        }
-        coding.setDisplaySimple(concept.getName().getName());
-        return codeableConcept;
-    }
 
     private void setDoseQuantity(DrugOrder drugOrder, MedicationPrescription.MedicationPrescriptionDosageInstructionComponent dosageInstruction, SystemProperties systemProperties) {
         Quantity doseQuantity = new Quantity();
         Decimal dose = new Decimal();
         dose.setValue(new BigDecimal(drugOrder.getDose()));
-        String code = getValueSetCode(drugOrder.getDoseUnits());
+        String code = codableConceptService.getTRValueSetCode(drugOrder.getDoseUnits());
         doseQuantity.setCodeSimple(code);
         if (null != idMappingsRepository.findByInternalId(drugOrder.getDoseUnits().getUuid())) {
             doseQuantity.setSystemSimple(systemProperties.getTrValuesetUrl(QUANTITY_UNITS));

@@ -10,6 +10,7 @@ import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
+import org.openmrs.module.fhir.utils.CodableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.SystemProperties;
@@ -22,8 +23,6 @@ import java.util.Set;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 import static org.openmrs.module.fhir.mapper.TrValueSetKeys.QUANTITY_UNITS;
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addFHIRCoding;
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.getValueSetCode;
 
 @Component
 public class ImmunizationMapper implements EmrObsResourceHandler {
@@ -34,6 +33,8 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     private ConceptService conceptService;
     @Autowired
     private ObservationValueMapper obsValueMapper;
+    @Autowired
+    private CodableConceptService codableConceptService;
 
     @Override
     public boolean canHandle(Obs observation) {
@@ -76,9 +77,9 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
 
     private Quantity getDosage(Set<Obs> groupMembers, SystemProperties systemProperties) {
         Quantity dose = new Quantity();
-        dose.setValue((Decimal)obsValueMapper.map(getObsForConcept(MRS_CONCEPT_DOSAGE, groupMembers)));
+        dose.setValue((Decimal) obsValueMapper.map(getObsForConcept(MRS_CONCEPT_DOSAGE, groupMembers)));
         Obs quantityUnitsObs = getObsForConcept(VALUESET_QUANTITY_UNITS, groupMembers);
-        dose.setCodeSimple(getValueSetCode(quantityUnitsObs.getValueCoded()));
+        dose.setCodeSimple(codableConceptService.getTRValueSetCode(quantityUnitsObs.getValueCoded()));
         dose.setSystemSimple(systemProperties.getTrValuesetUrl(QUANTITY_UNITS));
         return dose;
     }
@@ -104,7 +105,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         IdMapping idMapping = idMappingsRepository.findByInternalId(drugsByConcept.getUuid());
         CodeableConcept codeableConcept = new CodeableConcept();
         if (idMapping != null) {
-            addFHIRCoding(codeableConcept, idMapping.getExternalId(), idMapping.getUri(), drugsByConcept.getDisplayName());
+            codableConceptService.addFHIRCoding(codeableConcept, idMapping.getExternalId(), idMapping.getUri(), drugsByConcept.getDisplayName());
         } else {
             Coding coding = codeableConcept.addCoding();
             coding.setDisplaySimple(drugsByConcept.getDisplayName());

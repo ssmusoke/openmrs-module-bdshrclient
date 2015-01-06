@@ -1,10 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler.condition;
 
-import org.hl7.fhir.instance.model.CodeableConcept;
-import org.hl7.fhir.instance.model.DateAndTime;
-import org.hl7.fhir.instance.model.Decimal;
-import org.hl7.fhir.instance.model.String_;
-import org.hl7.fhir.instance.model.Type;
+import org.hl7.fhir.instance.model.*;
+import org.hl7.fhir.instance.model.Boolean;
 import org.junit.Test;
 import org.openmrs.Concept;
 import org.openmrs.ConceptName;
@@ -17,7 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import static java.lang.Boolean.FALSE;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -84,5 +83,17 @@ public class ObservationValueMapperTest extends BaseModuleWebContextSensitiveTes
         Type value = observationValueMapper.map(obs);
         assertTrue(value instanceof CodeableConcept);
         assertEquals(conceptName, ((CodeableConcept) value).getCoding().get(0).getDisplaySimple());
+    }
+
+    @Test
+    public void shouldMapBooleanValues() throws Exception {
+        Obs obs = new Obs();
+        Concept concept = new Concept();
+        concept.setDatatype(conceptService.getConceptDatatypeByName("Boolean"));
+        obs.setConcept(concept);
+        obs.setValueBoolean(FALSE);
+        Type value = observationValueMapper.map(obs);
+        assertTrue(value instanceof org.hl7.fhir.instance.model.Boolean);
+        assertFalse(((Boolean) value).getValue());
     }
 }

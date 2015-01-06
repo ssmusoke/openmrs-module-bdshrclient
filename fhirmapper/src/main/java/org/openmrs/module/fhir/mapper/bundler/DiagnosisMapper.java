@@ -15,7 +15,7 @@ import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.utils.CodableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +28,14 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.openmrs.module.fhir.mapper.model.ObservationType.VISIT_DIAGNOSES;
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addReferenceCodes;
 
 @Component("fhirDiagnosisMapper")
 public class DiagnosisMapper implements EmrObsResourceHandler {
 
     @Autowired
     private IdMappingsRepository idMappingsRepository;
+    @Autowired
+    private CodableConceptService codableConceptService;
 
     private final Map<String, Condition.ConditionStatus> diaConditionStatus = new HashMap<String, Condition.ConditionStatus>();
     private final FHIRProperties fhirProperties;
@@ -76,7 +77,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         for (Obs member : obsMembers) {
             Concept memberConcept = member.getConcept();
             if (isCodedDiagnosisObservation(memberConcept)) {
-                CodeableConcept diagnosisCode = addReferenceCodes(member.getValueCoded(), idMappingsRepository);
+                CodeableConcept diagnosisCode = codableConceptService.addTRCoding(member.getValueCoded(), idMappingsRepository);
                 if (CollectionUtils.isEmpty(diagnosisCode.getCoding())) {
                     return null;
                 }
@@ -121,7 +122,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
     }
 
     private CodeableConcept getDiagnosisCategory() {
-        return FHIRFeedHelper.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS,
+        return codableConceptService.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS,
                 FHIRProperties.FHIR_CONDITION_CATEGORY_URL, FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS_DISPLAY);
     }
 

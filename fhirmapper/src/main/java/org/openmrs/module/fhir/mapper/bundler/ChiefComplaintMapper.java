@@ -8,7 +8,7 @@ import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.utils.CodableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +20,14 @@ import java.util.Set;
 
 import static org.openmrs.module.fhir.mapper.model.ObservationType.CHIEF_COMPLAINT_DATA;
 import static org.openmrs.module.fhir.mapper.model.ObservationType.HISTORY_AND_EXAMINATION;
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addReferenceCodes;
 
 @Component
 public class ChiefComplaintMapper implements EmrObsResourceHandler {
 
     @Autowired
     private IdMappingsRepository idMappingsRepository;
+    @Autowired
+    private CodableConceptService codableConceptService;
 
     @Override
     public boolean canHandle(Obs observation) {
@@ -66,7 +67,7 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
         for (Obs member : obsMembers) {
             final String memberConceptName = member.getConcept().getName().getName();
             if (memberConceptName.equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT)) {
-                final CodeableConcept complaintCode = addReferenceCodes(member.getValueCoded(), idMappingsRepository);
+                final CodeableConcept complaintCode = codableConceptService.addTRCoding(member.getValueCoded(), idMappingsRepository);
                 if (CollectionUtils.isEmpty(complaintCode.getCoding())) {
                     Coding coding = complaintCode.addCoding();
                     coding.setDisplaySimple(member.getValueCoded().getName().getName());
@@ -100,7 +101,7 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
     }
 
     private CodeableConcept getChiefComplaintCategory() {
-        return FHIRFeedHelper.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT,
+        return codableConceptService.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT,
                 FHIRProperties.FHIR_CONDITION_CATEGORY_URL, FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT_DISPLAY);
     }
 

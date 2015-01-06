@@ -7,6 +7,7 @@ import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.RelatedObservation;
+import org.openmrs.module.fhir.utils.CodableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,18 +19,19 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_ENC_TYPE_LAB_RESULT;
 import static org.openmrs.module.fhir.mapper.model.ObservationType.*;
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addReferenceCodes;
 
 @Component("FHIRObservationMapper")
 public class ObservationMapper implements EmrObsResourceHandler {
 
     private ObservationValueMapper observationValueMapper;
     private IdMappingsRepository idMappingsRepository;
+    private final CodableConceptService codableConceptService;
 
     @Autowired
-    public ObservationMapper(ObservationValueMapper observationValueMapper, IdMappingsRepository idMappingsRepository) {
+    public ObservationMapper(ObservationValueMapper observationValueMapper, IdMappingsRepository idMappingsRepository, CodableConceptService codableConceptService) {
         this.observationValueMapper = observationValueMapper;
         this.idMappingsRepository = idMappingsRepository;
+        this.codableConceptService = codableConceptService;
     }
 
     @Override
@@ -105,7 +107,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
         if (null == observation.getConcept()) {
             return null;
         }
-        CodeableConcept observationName = addReferenceCodes(observation.getConcept(), idMappingsRepository);
+        CodeableConcept observationName = codableConceptService.addTRCoding(observation.getConcept(), idMappingsRepository);
         if (CollectionUtils.isEmpty(observationName.getCoding())) {
             Coding coding = observationName.addCoding();
             coding.setDisplaySimple(observation.getConcept().getName().getName());

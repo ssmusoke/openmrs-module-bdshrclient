@@ -10,7 +10,7 @@ import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.utils.CodableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +29,6 @@ import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELA
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_NOTES;
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addReferenceCodes;
 
 @Component
 public class FamilyHistoryMapper implements EmrObsResourceHandler {
@@ -39,6 +38,9 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
 
     @Autowired
     ObservationValueMapper observationValueMapper;
+
+    @Autowired
+    private CodableConceptService codableConceptService;
 
     @Override
     public boolean canHandle(Obs observation) {
@@ -113,7 +115,7 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
     private void mapRelationship(FamilyHistory.FamilyHistoryRelationComponent relationComponent, Obs relationship) {
         CodeableConcept codeableConcept = new CodeableConcept();
         Concept relationshipConcept = relationship.getValueCoded();
-        FHIRFeedHelper.addFHIRCoding(
+        codableConceptService.addFHIRCoding(
                 codeableConcept,
                 getConceptCode(relationshipConcept),
                 FHIRProperties.FHIR_SYSTEM_RELATIONSHIP_ROLE,
@@ -124,7 +126,7 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
     private CodeableConcept readValue(Obs obs) {
         Concept valueCoded = obs.getValueCoded();
         if (null != valueCoded) {
-            CodeableConcept concept = addReferenceCodes(valueCoded, idMappingsRepository);
+            CodeableConcept concept = codableConceptService.addTRCoding(valueCoded, idMappingsRepository);
             if (CollectionUtils.isEmpty(concept.getCoding())) {
                 Coding coding = concept.addCoding();
                 coding.setDisplaySimple(valueCoded.getName().getName());

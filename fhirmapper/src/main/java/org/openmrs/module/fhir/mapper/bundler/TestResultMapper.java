@@ -4,7 +4,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.hl7.fhir.instance.model.*;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.utils.CodableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.SystemProperties;
@@ -27,6 +27,9 @@ public class TestResultMapper implements EmrObsResourceHandler {
 
     @Autowired
     private IdMappingsRepository idMappingsRepository;
+
+    @Autowired
+    private CodableConceptService codableConceptService;
 
     @Override
     public boolean canHandle(Obs observation) {
@@ -64,7 +67,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
 
     private DiagnosticReport build(Obs obs, Encounter fhirEncounter, List<FHIRResource> FHIRResourceList, SystemProperties systemProperties) {
         DiagnosticReport report = new DiagnosticReport();
-        CodeableConcept name = FHIRFeedHelper.addReferenceCodes(obs.getConcept(), idMappingsRepository);
+        CodeableConcept name = codableConceptService.addTRCoding(obs.getConcept(), idMappingsRepository);
         if (name.getCoding().isEmpty()) {
             return null;
         }
