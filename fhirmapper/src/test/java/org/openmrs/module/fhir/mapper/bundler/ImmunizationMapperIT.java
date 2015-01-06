@@ -1,9 +1,6 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.Immunization;
-import org.hl7.fhir.instance.model.ResourceReference;
+import org.hl7.fhir.instance.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Obs;
@@ -52,25 +49,33 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapRefusedIndicator() throws Exception {
-        Obs obs = obsService.getObs(11);
-        List<FHIRResource> fhirResources = mapper.map(obs, new Encounter(), getSystemProperties("1"));
-        Immunization immunization = getImmunization(fhirResources);
+        Immunization immunization = mapImmunization(11);
         assertTrue(immunization.getRefusedIndicator().getValue());
     }
 
     @Test
     public void shouldMapVaccine() throws Exception {
-        Obs obs = obsService.getObs(11);
-        List<FHIRResource> fhirResources = mapper.map(obs, new Encounter(), getSystemProperties("1"));
-        Immunization immunization = getImmunization(fhirResources);
+        Immunization immunization = mapImmunization(11);
 
         Coding vaccineTypeCoding = immunization.getVaccineType().getCoding().get(0);
         assertEquals("Paracetamol 500", vaccineTypeCoding.getDisplaySimple());
         assertEquals("ABC", vaccineTypeCoding.getCodeSimple());
         assertEquals("http://tr.com/ABC", vaccineTypeCoding.getSystemSimple());
-
     }
 
+
+    @Test
+    public void shouldMapVaccinationDate() throws Exception {
+        Immunization immunization = mapImmunization(11);
+        DateTime vaccinationDate = immunization.getDate();
+        assertEquals("2014-01-02T00:00:00+05:30", vaccinationDate.getValue().toString());
+    }
+
+    private Immunization mapImmunization(int observationId) {
+        Obs obs = obsService.getObs(observationId);
+        List<FHIRResource> fhirResources = mapper.map(obs, new Encounter(), getSystemProperties("1"));
+        return getImmunization(fhirResources);
+    }
     private Immunization getImmunization(List<FHIRResource> fhirResources) {
         assertEquals(1, fhirResources.size());
         assertTrue(fhirResources.get(0).getResource() instanceof Immunization);

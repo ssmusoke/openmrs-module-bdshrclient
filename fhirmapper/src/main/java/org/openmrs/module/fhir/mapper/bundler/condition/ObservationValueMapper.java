@@ -1,12 +1,8 @@
 package org.openmrs.module.fhir.mapper.bundler.condition;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.CodeableConcept;
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.DateAndTime;
-import org.hl7.fhir.instance.model.Decimal;
-import org.hl7.fhir.instance.model.String_;
-import org.hl7.fhir.instance.model.Type;
+import org.hl7.fhir.instance.model.*;
+import org.hl7.fhir.instance.model.Boolean;
 import org.openmrs.Concept;
 import org.openmrs.Obs;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -43,6 +39,18 @@ public class ObservationValueMapper {
                     String_ text = new String_();
                     text.setValue(obs.getValueText());
                     return text;
+                }
+                return null;
+            }
+        },
+
+        Boolean {
+            @Override
+            public Type readValue(Obs obs, IdMappingsRepository idMappingsRepository) {
+                if (obs.getConcept().getDatatype().isBoolean() && obs.getValueAsBoolean() != null) {
+                    org.hl7.fhir.instance.model.Boolean bool = new Boolean();
+                    bool.setValue(obs.getValueAsBoolean());
+                    return bool;
                 }
                 return null;
             }

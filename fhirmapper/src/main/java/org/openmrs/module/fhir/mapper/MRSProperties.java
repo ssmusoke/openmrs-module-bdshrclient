@@ -44,4 +44,5 @@ public class MRSProperties {
     public static final String MRS_CONCEPT_IMMUNIZATION_INCIDENT = "Immunization Incident";
     public static final String MRS_CONCEPT_VACCINATION_REFUSED = "Vaccination Refused";
     public static final String MRS_CONCEPT_VACCINE = "Vaccine";
+    public static final String MRS_CONCEPT_VACCINATION_DATE = "Vaccination Date";
 }

@@ -6,6 +6,7 @@ import org.hl7.fhir.instance.model.*;
 import org.openmrs.Drug;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
+import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -18,8 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_VACCINATION_REFUSED;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_VACCINE;
+import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addFHIRCoding;
 
 @Component
@@ -29,6 +29,8 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     private IdMappingsRepository idMappingsRepository;
     @Autowired
     private ConceptService conceptService;
+    @Autowired
+    private ObservationValueMapper obsValueMapper;
 
     @Override
     public boolean canHandle(Obs observation) {
@@ -59,9 +61,16 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
             return null;
         }
         immunization.setVaccineType(getVaccineType(drugs));
+        immunization.setDate(getVaccinationDate(groupMembers));
         immunization.setRefusedIndicator(getRefusedIndicator(groupMembers));
 
         return immunization;
+    }
+
+    private DateTime getVaccinationDate(Set<Obs> groupMembers) {
+        DateTime vaccinationDate = new DateTime();
+        vaccinationDate.setValue(((Date) obsValueMapper.map(getObsForConcept(MRS_CONCEPT_VACCINATION_DATE, groupMembers))).getValue());
+        return vaccinationDate;
     }
 
     private CodeableConcept getVaccineType(List<Drug> drugs) {
@@ -78,10 +87,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     }
 
     private Boolean getRefusedIndicator(Set<Obs> groupMembers) {
-        Obs vaccinationRefused = getObsForConcept(MRS_CONCEPT_VACCINATION_REFUSED, groupMembers);
-        Boolean refusedIndicator = new Boolean();
-        refusedIndicator.setValue(vaccinationRefused.getValueAsBoolean());
-        return refusedIndicator;
+        return (Boolean)obsValueMapper.map(getObsForConcept(MRS_CONCEPT_VACCINATION_REFUSED, groupMembers));
     }
 
     private Obs getObsForConcept(String conceptName, Set<Obs> groupMembers) {
