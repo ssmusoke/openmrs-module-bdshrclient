@@ -65,8 +65,15 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         setIdentifier(obs, systemProperties, immunization);
         immunization.setDate(getVaccinationDate(groupMembers));
         immunization.setRefusedIndicator(getRefusedIndicator(groupMembers));
+        immunization.setRequester(getRequester(fhirEncounter));
+        immunization.setReported((Boolean) obsValueMapper.map(getObsForConcept(MRS_CONCEPT_VACCINATION_REPORTED, groupMembers)));
 
         return immunization;
+    }
+
+    private ResourceReference getRequester(Encounter fhirEncounter) {
+        List<Encounter.EncounterParticipantComponent> participants = fhirEncounter.getParticipant();
+        return CollectionUtils.isNotEmpty(participants) ? participants.get(0).getIndividual() : null;
     }
 
     private void setIdentifier(Obs obs, SystemProperties systemProperties, Immunization immunization) {

@@ -37,13 +37,12 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapSubjectToImmunizationAndSetIdentifier() throws Exception {
-        Obs obs = obsService.getObs(11);
         Encounter fhirEncounter = new Encounter();
         ResourceReference subject = new ResourceReference();
         subject.setReferenceSimple("Hid");
         fhirEncounter.setSubject(subject);
-        List<FHIRResource> fhirResources = mapper.map(obs, fhirEncounter, getSystemProperties("1"));
-        Immunization immunization = getImmunization(fhirResources);
+
+        Immunization immunization = mapImmunization(11, fhirEncounter);
 
         assertEquals(subject, immunization.getSubject());
         assertTrue(CollectionUtils.isNotEmpty(immunization.getIdentifier()));
@@ -52,13 +51,13 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapRefusedIndicator() throws Exception {
-        Immunization immunization = mapImmunization(11);
+        Immunization immunization = mapImmunization(11, new Encounter());
         assertTrue(immunization.getRefusedIndicator().getValue());
     }
 
     @Test
     public void shouldMapVaccine() throws Exception {
-        Immunization immunization = mapImmunization(11);
+        Immunization immunization = mapImmunization(11, new Encounter());
 
         Coding vaccineTypeCoding = immunization.getVaccineType().getCoding().get(0);
         assertEquals("Paracetamol 500", vaccineTypeCoding.getDisplaySimple());
@@ -69,20 +68,39 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapVaccinationDate() throws Exception {
-        Immunization immunization = mapImmunization(11);
+        Immunization immunization = mapImmunization(11, new Encounter());
         DateTime vaccinationDate = immunization.getDate();
         assertEquals("2014-01-02T00:00:00+05:30", vaccinationDate.getValue().toString());
     }
 
-    private Immunization mapImmunization(int observationId) {
-        Obs obs = obsService.getObs(observationId);
-        List<FHIRResource> fhirResources = mapper.map(obs, new Encounter(), getSystemProperties("1"));
-        return getImmunization(fhirResources);
+    @Test
+    public void shouldMapReported() throws Exception {
+        Immunization immunization = mapImmunization(11, new Encounter());
+        assertTrue(immunization.getReported().getValue());
     }
 
-    private Immunization getImmunization(List<FHIRResource> fhirResources) {
+    @Test
+    public void shouldSetTheRequesterOfTheImmunization() throws Exception {
+        Encounter fhirEncounter = new Encounter();
+        Encounter.EncounterParticipantComponent requester = fhirEncounter.addParticipant();
+        ResourceReference doctor = new ResourceReference().setReferenceSimple("Life Saver");
+        requester.setIndividual(doctor);
+
+        Immunization immunization = mapImmunization(11, fhirEncounter);
+
+        assertEquals(doctor, immunization.getRequester());
+
+    }
+
+
+
+    private Immunization mapImmunization(int observationId, Encounter fhirEncounter) {
+        Obs obs = obsService.getObs(observationId);
+        List<FHIRResource> fhirResources = mapper.map(obs, fhirEncounter, getSystemProperties("1"));
+
         assertEquals(1, fhirResources.size());
         assertTrue(fhirResources.get(0).getResource() instanceof Immunization);
+
         return (Immunization) fhirResources.get(0).getResource();
     }
 }
