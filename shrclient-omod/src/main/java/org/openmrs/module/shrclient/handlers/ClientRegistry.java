@@ -32,7 +32,6 @@ public class ClientRegistry {
 
     public SHRClient getSHRClient() {
         IdentityToken token = getOrCreateToken();
-        Properties properties = propertiesReader.getShrProperties();
         return new SHRClient(propertiesReader.getShrBaseUrl(),
                 Headers.getIdentityHeader(token));
     }
@@ -62,7 +61,6 @@ public class ClientRegistry {
     }
 
     public RestClient getIdentityServiceClient() {
-        Properties properties = propertiesReader.getIdentityProperties();
         HashMap<String, String> headers = new HashMap<>();
         return new RestClient(propertiesReader.getIdentityServerBaseUrl(), headers);
     }

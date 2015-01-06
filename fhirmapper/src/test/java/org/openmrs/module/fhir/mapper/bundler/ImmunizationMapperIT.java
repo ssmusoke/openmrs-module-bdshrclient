@@ -136,6 +136,8 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
 
         assertEquals(1, fhirResources.size());
         assertTrue(fhirResources.get(0).getResource() instanceof Immunization);
+        assertTrue(CollectionUtils.isNotEmpty(fhirResources.get(0).getIdentifierList()));
+        assertEquals("Immunization", fhirResources.get(0).getResourceName());
 
         return (Immunization) fhirResources.get(0).getResource();
     }
