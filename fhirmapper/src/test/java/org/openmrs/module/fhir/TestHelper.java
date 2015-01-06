@@ -24,7 +24,7 @@ public class TestHelper {
         frProperties.setProperty(SystemProperties.FACILITY_URL_FORMAT, "%s.json");
 
         Properties trProperties = new Properties();
-        trProperties.setProperty("tr.base.valuset.url", "openmrs/ws/rest/v1/tr/vs");
+        trProperties.setProperty("tr.base.valueset.url", "openmrs/ws/rest/v1/tr/vs");
         trProperties.setProperty("tr.valueset.route", "sample-route");
         trProperties.setProperty("tr.valueset.quantityunits", "sample-units");
 

@@ -7,7 +7,6 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class SystemPropertiesTest {
     @Test
@@ -42,7 +41,7 @@ public class SystemPropertiesTest {
     @Test
     public void shouldReadValueSetUrls() throws Exception {
         Properties trProperties = new Properties();
-        trProperties.setProperty("tr.base.valuset.url", "openmrs/ws/rest/v1/tr/vs");
+        trProperties.setProperty("tr.base.valueset.url", "openmrs/ws/rest/v1/tr/vs");
         trProperties.setProperty("tr.valueset.route", "sample-route");
         trProperties.setProperty("tr.valueset.quantityunits", "sample-units");
         HashMap<String, String> baseUrls = new HashMap<>();

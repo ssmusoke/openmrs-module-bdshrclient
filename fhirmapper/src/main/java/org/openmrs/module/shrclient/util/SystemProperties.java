@@ -6,7 +6,7 @@ import java.util.Properties;
 public class SystemProperties {
     public static final String FACILITY_ID = "shr.facilityId";
     public static final String FACILITY_URL_FORMAT = "fr.facilityUrlFormat";
-    public static final String TR_VALUESET_URL = "tr.base.valuset.url";
+    public static final String TR_VALUESET_URL = "tr.base.valueset.url";
     private Map<String, String> baseUrls;
     private Properties shrProperties;
     private Properties frProperties;
