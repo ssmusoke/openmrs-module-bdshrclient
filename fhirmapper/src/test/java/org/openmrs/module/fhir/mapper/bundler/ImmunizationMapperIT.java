@@ -100,6 +100,26 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals("http://tr/openmrs/ws/rest/v1/tr/vs/sample-units", immunization.getDoseQuantity().getSystemSimple());
     }
 
+    @Test
+    public void shouldMapImmunizationReason() throws Exception {
+        Immunization immunization = mapImmunization(11, new Encounter());
+        CodeableConcept immunizationReason = immunization.getExplanation().getReason().get(0);
+
+        assertEquals("http://tr/openmrs/ws/rest/v1/tr/vs/sample-reason",immunizationReason.getCoding().get(0).getSystemSimple());
+        assertEquals("Travel vaccinations",immunizationReason.getCoding().get(0).getCodeSimple());
+        assertEquals("Travel vaccinations",immunizationReason.getCoding().get(0).getDisplaySimple());
+    }
+
+    @Test
+    public void shouldMapImmunizationRefusalReason() throws Exception {
+        Immunization immunization = mapImmunization(11, new Encounter());
+        CodeableConcept immunizationRefusalReason = immunization.getExplanation().getRefusalReason().get(0);
+
+        assertEquals("http://tr/openmrs/ws/rest/v1/tr/vs/refusal-reason", immunizationRefusalReason.getCoding().get(0).getSystemSimple());
+        assertEquals("patient objection", immunizationRefusalReason.getCoding().get(0).getCodeSimple());
+        assertEquals("patient objection",immunizationRefusalReason.getCoding().get(0).getDisplaySimple());
+    }
+
     private Immunization mapImmunization(int observationId, Encounter fhirEncounter) {
         Obs obs = obsService.getObs(observationId);
         List<FHIRResource> fhirResources = mapper.map(obs, fhirEncounter, getSystemProperties("1"));

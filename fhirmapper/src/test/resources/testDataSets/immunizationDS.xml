@@ -92,6 +92,24 @@
     <concept_set concept_set_id="816" concept_id="50" concept_set="307" creator="1"
                  date_created="2004-08-12 00:00:00.0" sort_weight="2"></concept_set>
 
+    <concept concept_id="308" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
+             date_created="2004-08-12 00:00:00.0"
+             version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4xv3-bz86-8z2261dx1zt"/>
+    <concept_name concept_name_id="308" concept_id="308" name="Immunization Reason" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazhyu-e1y4-5zz0-z9z6-bc6365851j1i"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <concept_set concept_set_id="817" concept_id="308" concept_set="301" creator="1"
+                 date_created="2004-08-12 00:00:00.0" sort_weight="2"></concept_set>
+
+    <concept concept_id="309" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
+             date_created="2004-08-12 00:00:00.0"
+             version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4xv3-bz8s-sz226sdx1zt"/>
+    <concept_name concept_name_id="309" concept_id="309" name="No Immunization Reason" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3sazsyu-se1y4-5zz0-z9z6-bc6365851j1i"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <concept_set concept_set_id="818" concept_id="309" concept_set="301" creator="1"
+                 date_created="2004-08-12 00:00:00.0" sort_weight="2"></concept_set>
+
     <concept concept_id="500" retired="false" datatype_id="2" class_id="3" is_set="false" creator="1"
     date_created="2004-08-12 00:00:00.0"
     version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4za3-bz88-8122abdfjkt"/>
@@ -102,6 +120,26 @@
           date_created="2005-02-24 00:00:00.0" retired="false" uuid="42f00b94-26fe-102b-80cb-0016a47871b5"/>
     <shr_id_mapping id="3" internal_id="42f00b94-26fe-102b-80cb-0016a47871b5" external_id="ABC" type="medication"
                     uri="http://tr.com/ABC"></shr_id_mapping>
+
+    <concept concept_id="501" retired="false" datatype_id="4" class_id="3" is_set="false" creator="1"
+             date_created="2004-08-12 00:00:00.0"
+             version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydz80f-zyz9-4za3-bz88-8122abdfjkt"/>
+    <concept_name concept_name_id="501" concept_id="501" name="Travel vaccinations" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="w3wazzvw-e1v4-5000-6zd6-bc4335835eaa"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <concept_answer concept_answer_id="501" concept_id="308" answer_concept="501" sort_weight="1" date_created="2004-08-12 00:00:00.0" creator="1" uuid="qkiay80e-1fz9-fda3-2b68-qa2aalza687h" />
+    <shr_id_mapping id="4" internal_id="juydz80f-zyz9-4za3-bz88-8122abdfjkt" external_id="ABC1" type="concept"
+                    uri="http://tr.com/ABC1"></shr_id_mapping>
+
+    <concept concept_id="502" retired="false" datatype_id="4" class_id="3" is_set="false" creator="1"
+             date_created="2004-08-12 00:00:00.0"
+             version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydz80f-zyz9-4za3-bz88-816zabzfjkt"/>
+    <concept_name concept_name_id="502" concept_id="502" name="patient objection" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="wtwatzvw-e1v4-5000-6zd6-bc4335835eaa"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <concept_answer concept_answer_id="501" concept_id="309" answer_concept="502" sort_weight="1" date_created="2004-08-12 00:00:00.0" creator="1" uuid="qkiay80e-1fz9-fda3-2b68-qa2a2lz2687h" />
+    <shr_id_mapping id="5" internal_id="juydz80f-zyz9-4za3-bz88-816zabzfjkt" external_id="ABC2" type="concept"
+                    uri="http://tr.com/ABC2"></shr_id_mapping>
 
     <!--Immunization concepts -->
 
@@ -140,5 +178,13 @@
          date_created="2008-08-18 15:09:05.0"
          uuid="ezes54cb-2afa-4000-9cd2-qq3zz52c556c2" creator="1" obs_group_id="11" concept_id="307" voided="0"
          value_coded="50"/>
+    <obs obs_id="18" encounter_id="36" person_id="1" obs_datetime="2008-08-18 15:09:05.0"
+         date_created="2008-08-18 15:09:05.0"
+         uuid="ezes54cb-2afa-4000-9cy2-yq3yz52c556c2" creator="1" obs_group_id="11" concept_id="308" voided="0"
+         value_coded="501"/>
+    <obs obs_id="19" encounter_id="36" person_id="1" obs_datetime="2008-08-18 15:09:05.0"
+         date_created="2008-08-18 15:09:05.0"
+         uuid="ezes54cb-2afa-4000-9zyz-yq3yz52c556c2" creator="1" obs_group_id="11" concept_id="309" voided="0"
+         value_coded="502"/>
 
 </dataset>

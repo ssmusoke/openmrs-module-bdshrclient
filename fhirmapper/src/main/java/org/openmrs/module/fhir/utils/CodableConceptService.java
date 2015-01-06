@@ -41,7 +41,7 @@ public class CodableConceptService {
 
     private void addTRCodingForConcept(Concept concept, IdMappingsRepository idMappingsRepository, CodeableConcept codeableConcept) {
         IdMapping idMapping = idMappingsRepository.findByInternalId(concept.getUuid());
-        if(idMapping != null) {
+        if (idMapping != null) {
             addFHIRCoding(codeableConcept, idMapping.getExternalId(), idMapping.getUri(), concept.getName().getName());
         }
     }
@@ -49,7 +49,7 @@ public class CodableConceptService {
     private void addTRCodingsForReferenceTerms(Concept concept, IdMappingsRepository idMappingsRepository, CodeableConcept codeableConcept, ConceptMap mapping) {
         ConceptReferenceTerm conceptReferenceTerm = mapping.getConceptReferenceTerm();
         IdMapping idMapping = idMappingsRepository.findByInternalId(conceptReferenceTerm.getUuid());
-        if(idMapping != null) {
+        if (idMapping != null) {
             addFHIRCoding(codeableConcept, conceptReferenceTerm.getCode(), idMapping.getUri(), concept.getName().getName());
         }
     }
@@ -67,7 +67,10 @@ public class CodableConceptService {
     }
 
     public CodeableConcept getTRValueSetCodeableConcept(Concept concept, String valueSetURL) {
-        CodeableConcept codeableConcept = new CodeableConcept();
+        return getTRValueSetCodeableConcept(concept, valueSetURL, new CodeableConcept());
+    }
+
+    public CodeableConcept getTRValueSetCodeableConcept(Concept concept, String valueSetURL, CodeableConcept codeableConcept) {
         Coding coding = codeableConcept.addCoding();
         if (null != idMappingsRepository.findByInternalId(concept.getUuid())) {
             coding.setCodeSimple(getTRValueSetCode(concept));

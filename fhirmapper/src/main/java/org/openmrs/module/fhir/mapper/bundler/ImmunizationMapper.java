@@ -6,6 +6,7 @@ import org.hl7.fhir.instance.model.*;
 import org.openmrs.Drug;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
+import org.openmrs.module.fhir.mapper.TrValueSetKeys;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
@@ -71,8 +72,32 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         immunization.setRequester(getRequester(fhirEncounter));
         immunization.setReported((Boolean) obsValueMapper.map(getObsForConcept(MRS_CONCEPT_VACCINATION_REPORTED, groupMembers)));
         immunization.setDoseQuantity(getDosage(groupMembers, systemProperties));
+        immunization.setExplanation(getExplation(groupMembers, systemProperties));
 
         return immunization;
+    }
+
+    private Immunization.ImmunizationExplanationComponent getExplation(Set<Obs> groupMembers, SystemProperties systemProperties) {
+        Immunization.ImmunizationExplanationComponent explanationComponent = new Immunization.ImmunizationExplanationComponent();
+        populateReason(groupMembers, systemProperties, explanationComponent, VALUESET_IMMUNIZATION_REASON, TrValueSetKeys.IMMUNIZATION_REASON);
+        populateReason(groupMembers, systemProperties, explanationComponent, VALUESET_REFUSAL_REASON, TrValueSetKeys.REFUSAL_REASON);
+        return explanationComponent;
+    }
+
+    private void populateReason(Set<Obs> groupMembers, SystemProperties systemProperties,
+                                Immunization.ImmunizationExplanationComponent explanationComponent,
+                                String reasonConceptName, String trVSKey) {
+        Obs immunizationReasonObs = getObsForConcept(reasonConceptName, groupMembers);
+        if(immunizationReasonObs != null) {
+            CodeableConcept reason = getReason(reasonConceptName, explanationComponent);
+            codableConceptService.getTRValueSetCodeableConcept(immunizationReasonObs.getValueCoded(),
+                    systemProperties.getTrValuesetUrl(trVSKey),
+                    reason);
+        }
+    }
+
+    private CodeableConcept getReason(String reasonConceptName, Immunization.ImmunizationExplanationComponent explanationComponent){
+        return VALUESET_REFUSAL_REASON.equals(reasonConceptName) ? explanationComponent.addRefusalReason() : explanationComponent.addReason();
     }
 
     private Quantity getDosage(Set<Obs> groupMembers, SystemProperties systemProperties) {

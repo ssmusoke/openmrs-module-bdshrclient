@@ -27,6 +27,8 @@ public class TestHelper {
         trProperties.setProperty("tr.base.valueset.url", "openmrs/ws/rest/v1/tr/vs");
         trProperties.setProperty("tr.valueset.route", "sample-route");
         trProperties.setProperty("tr.valueset.quantityunits", "sample-units");
+        trProperties.setProperty("tr.valueset.immunizationReason", "sample-reason");
+        trProperties.setProperty("tr.valueset.refusalReason", "refusal-reason");
 
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("mci", "http://mci");
