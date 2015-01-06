@@ -6,6 +6,7 @@ import org.hl7.fhir.instance.model.Schedule.ScheduleRepeatComponent;
 import org.openmrs.Concept;
 import org.openmrs.DrugOrder;
 import org.openmrs.Order;
+import org.openmrs.module.fhir.mapper.TrValueSetKeys;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.UnitsHelpers;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -19,13 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_DRUG_ORDER_TYPE;
+import static org.openmrs.module.fhir.mapper.TrValueSetKeys.QUANTITY_UNITS;
+import static org.openmrs.module.fhir.mapper.TrValueSetKeys.ROUTE;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.getValueSetCode;
 
 @Component
 public class DrugOrderMapper implements EmrOrderResourceHandler {
-    private final static String ROUTE = "route";
-    private final static String QUANTITY_UNITS = "quantityunits";
-
     @Autowired
     private IdMappingsRepository idMappingsRepository;
     @Autowired

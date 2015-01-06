@@ -92,7 +92,13 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
 
     }
 
-
+    @Test
+    public void shouldSetDosageUnits() throws Exception {
+        Immunization immunization = mapImmunization(11, new Encounter());
+        assertTrue(immunization.getDoseQuantity().getValue().getValue().doubleValue() == 10);
+        assertEquals("mg", immunization.getDoseQuantity().getCodeSimple());
+        assertEquals("http://tr/openmrs/ws/rest/v1/tr/vs/sample-units", immunization.getDoseQuantity().getSystemSimple());
+    }
 
     private Immunization mapImmunization(int observationId, Encounter fhirEncounter) {
         Obs obs = obsService.getObs(observationId);

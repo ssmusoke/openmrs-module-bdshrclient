@@ -72,6 +72,26 @@
     <concept_set concept_set_id="813" concept_id="305" concept_set="301" creator="1"
                  date_created="2004-08-12 00:00:00.0" sort_weight="2"></concept_set>
 
+    <concept concept_id="306" retired="false" datatype_id="1" class_id="11" is_set="false" creator="1"
+             date_created="2004-08-12 00:00:00.0"
+             version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4xv3-bz88-8z22abdxyzt"/>
+    <concept_name concept_name_id="306" concept_id="306" name="Dosage" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazhju-e1v4-5zz0-z9z6-bc433585qjki"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <concept_set concept_set_id="814" concept_id="306" concept_set="301" creator="1"
+                 date_created="2004-08-12 00:00:00.0" sort_weight="2"></concept_set>
+
+    <concept concept_id="307" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
+             date_created="2004-08-12 00:00:00.0"
+             version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4xv3-bz88-8z22a1dx1zt"/>
+    <concept_name concept_name_id="307" concept_id="307" name="Quantity Units" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazhyu-e1y4-5zz0-z9z6-bc4335851j1i"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <concept_set concept_set_id="815" concept_id="306" concept_set="301" creator="1"
+                 date_created="2004-08-12 00:00:00.0" sort_weight="2"></concept_set>
+    <concept_set concept_set_id="816" concept_id="50" concept_set="307" creator="1"
+                 date_created="2004-08-12 00:00:00.0" sort_weight="2"></concept_set>
+
     <concept concept_id="500" retired="false" datatype_id="2" class_id="3" is_set="false" creator="1"
     date_created="2004-08-12 00:00:00.0"
     version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4za3-bz88-8122abdfjkt"/>
@@ -112,5 +132,13 @@
          date_created="2008-08-18 15:09:05.0"
          uuid="ezes54cb-2afa-4000-9cd2-1234252c556c2" creator="1" obs_group_id="11" concept_id="305" voided="0"
          value_coded="7"/>
+    <obs obs_id="16" encounter_id="36" person_id="1" obs_datetime="2008-08-18 15:09:05.0"
+         date_created="2008-08-18 15:09:05.0"
+         uuid="ezes54cb-2afa-4000-9cd2-3334252c556c2" creator="1" obs_group_id="11" concept_id="306" voided="0"
+         value_numeric="10"/>
+    <obs obs_id="17" encounter_id="36" person_id="1" obs_datetime="2008-08-18 15:09:05.0"
+         date_created="2008-08-18 15:09:05.0"
+         uuid="ezes54cb-2afa-4000-9cd2-qq3zz52c556c2" creator="1" obs_group_id="11" concept_id="307" voided="0"
+         value_coded="50"/>
 
 </dataset>

@@ -21,7 +21,9 @@ import java.util.List;
 import java.util.Set;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
+import static org.openmrs.module.fhir.mapper.TrValueSetKeys.QUANTITY_UNITS;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.addFHIRCoding;
+import static org.openmrs.module.fhir.utils.FHIRFeedHelper.getValueSetCode;
 
 @Component
 public class ImmunizationMapper implements EmrObsResourceHandler {
@@ -67,8 +69,18 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         immunization.setRefusedIndicator(getRefusedIndicator(groupMembers));
         immunization.setRequester(getRequester(fhirEncounter));
         immunization.setReported((Boolean) obsValueMapper.map(getObsForConcept(MRS_CONCEPT_VACCINATION_REPORTED, groupMembers)));
+        immunization.setDoseQuantity(getDosage(groupMembers, systemProperties));
 
         return immunization;
+    }
+
+    private Quantity getDosage(Set<Obs> groupMembers, SystemProperties systemProperties) {
+        Quantity dose = new Quantity();
+        dose.setValue((Decimal)obsValueMapper.map(getObsForConcept(MRS_CONCEPT_DOSAGE, groupMembers)));
+        Obs quantityUnitsObs = getObsForConcept(VALUESET_QUANTITY_UNITS, groupMembers);
+        dose.setCodeSimple(getValueSetCode(quantityUnitsObs.getValueCoded()));
+        dose.setSystemSimple(systemProperties.getTrValuesetUrl(QUANTITY_UNITS));
+        return dose;
     }
 
     private ResourceReference getRequester(Encounter fhirEncounter) {
