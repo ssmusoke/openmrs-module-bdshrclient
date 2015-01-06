@@ -73,8 +73,18 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         immunization.setReported((Boolean) obsValueMapper.map(getObsForConcept(MRS_CONCEPT_VACCINATION_REPORTED, groupMembers)));
         immunization.setDoseQuantity(getDosage(groupMembers, systemProperties));
         immunization.setExplanation(getExplation(groupMembers, systemProperties));
+        immunization.setRoute(getRoute(groupMembers, systemProperties));
 
         return immunization;
+    }
+
+    private CodeableConcept getRoute(Set<Obs> groupMembers, SystemProperties systemProperties) {
+        Obs routeObs = getObsForConcept(VALUESET_ROUTE, groupMembers);
+        if(routeObs != null) {
+            return codableConceptService.getTRValueSetCodeableConcept(routeObs.getValueCoded(),
+                    systemProperties.getTrValuesetUrl(TrValueSetKeys.ROUTE));
+        }
+        return null;
     }
 
     private Immunization.ImmunizationExplanationComponent getExplation(Set<Obs> groupMembers, SystemProperties systemProperties) {

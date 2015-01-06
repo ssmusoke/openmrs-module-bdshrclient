@@ -120,6 +120,16 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals("patient objection",immunizationRefusalReason.getCoding().get(0).getDisplaySimple());
     }
 
+    @Test
+    public void shouldMapRouteOfAdministration() throws Exception {
+        Immunization immunization = mapImmunization(11, new Encounter());
+        CodeableConcept route = immunization.getRoute();
+
+        assertEquals("http://tr/openmrs/ws/rest/v1/tr/vs/sample-route", route.getCoding().get(0).getSystemSimple());
+        assertEquals("Oral", route.getCoding().get(0).getCodeSimple());
+        assertEquals("Oral",route.getCoding().get(0).getDisplaySimple());
+    }
+
     private Immunization mapImmunization(int observationId, Encounter fhirEncounter) {
         Obs obs = obsService.getObs(observationId);
         List<FHIRResource> fhirResources = mapper.map(obs, fhirEncounter, getSystemProperties("1"));

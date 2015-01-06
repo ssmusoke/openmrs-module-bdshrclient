@@ -41,13 +41,16 @@ public class MRSProperties {
     public static final String MRS_LAB_ORDER_TYPE = "Lab Order";
 
     public static final String DRUG_ORDER_QUANTITY_UNITS_CONCEPT_NAME = "Unit(s)";
+
     public static final String MRS_CONCEPT_IMMUNIZATION_INCIDENT = "Immunization Incident";
     public static final String MRS_CONCEPT_VACCINATION_REFUSED = "Vaccination Refused";
     public static final String MRS_CONCEPT_VACCINE = "Vaccine";
     public static final String MRS_CONCEPT_VACCINATION_DATE = "Vaccination Date";
     public static final String MRS_CONCEPT_VACCINATION_REPORTED = "Vaccination Reported";
     public static final String MRS_CONCEPT_DOSAGE = "Dosage";
+
     public static final String VALUESET_QUANTITY_UNITS = "Quantity Units";
     public static final String VALUESET_IMMUNIZATION_REASON = "Immunization Reason";
     public static final String VALUESET_REFUSAL_REASON = "No Immunization Reason";
+    public static final String VALUESET_ROUTE = "Route of Administration";
 }
