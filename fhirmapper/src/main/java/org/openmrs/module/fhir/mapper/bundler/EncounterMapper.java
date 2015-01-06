@@ -9,12 +9,16 @@ import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.stereotype.Component;
+import org.apache.log4j.Logger;
 
 import java.lang.reflect.Type;
 import java.util.Set;
 
 @Component
 public class EncounterMapper {
+
+    private Logger logger = Logger.getLogger(EncounterMapper.class);
+
     public Encounter map(org.openmrs.Encounter openMrsEncounter, SystemProperties systemProperties) {
         Encounter encounter = new Encounter();
         setEncounterReference(openMrsEncounter, encounter, systemProperties);
@@ -56,12 +60,26 @@ public class EncounterMapper {
     }
 
     private void setClass(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {
-        VisitType visitType = openMrsEncounter.getVisit().getVisitType();
-        if ("IPD".equals(visitType.getName())) {
+        String visitType = openMrsEncounter.getVisit().getVisitType().getName().toLowerCase();
+        Encounter.EncounterClass encClass = identifyEncounterClass(visitType);
+        if (encClass != null) {
+            encounter.setClass_(new Enumeration<>(encClass));
+        } else if (visitType.contains("ipd")) {
             encounter.setClass_(new Enumeration<>(Encounter.EncounterClass.inpatient));
+        } else if (visitType.contains("emergency")) {
+            encounter.setClass_(new Enumeration<>(Encounter.EncounterClass.emergency));
         } else {
             encounter.setClass_(new Enumeration<>(Encounter.EncounterClass.outpatient));
         }
+    }
+
+    private Encounter.EncounterClass identifyEncounterClass(final String visitType) {
+        try {
+            return Encounter.EncounterClass.fromCode(visitType);
+        } catch (Exception e) {
+            logger.warn("Could not identify FHIR Encounter.class for MRS visitType:" + visitType);
+        }
+        return null;
     }
 
     private void setSubject(org.openmrs.Encounter openMrsEncounter, Encounter encounter, SystemProperties systemProperties) {

@@ -3,10 +3,7 @@ package org.openmrs.module.fhir.mapper.emr;
 
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.log4j.Logger;
-import org.hl7.fhir.instance.model.AtomEntry;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.Resource;
+import org.hl7.fhir.instance.model.*;
 import org.joda.time.DateTime;
 import org.openmrs.EncounterType;
 import org.openmrs.Location;
@@ -84,7 +81,7 @@ public class FHIREncounterMapper {
 
         setInternalFacilityId(emrEncounter, new EntityReference().parse(Location.class, fhirEncounter.getServiceProvider().getReferenceSimple()));
 
-        String visitType = getVisitType(fhirEncounter);
+        VisitType visitType = getVisitType(fhirEncounter.getClass_());
         Visit visit = findOrInitializeVisit(emrPatient, encounterDate, visitType);
         emrEncounter.setVisit(visit);
         visit.addEncounter(emrEncounter);
@@ -98,19 +95,42 @@ public class FHIREncounterMapper {
         emrEncounter.setLocation(location);
     }
 
-    private String getVisitType(Encounter fhirEncounter) {
-        org.hl7.fhir.instance.model.Enumeration<Encounter.EncounterClass> fhirEncounterClass = fhirEncounter.getClass_();
-        return fhirEncounterClass.getValue().equals(Encounter.EncounterClass.inpatient) ? MRS_IN_PATIENT_VISIT_TYPE : MRS_OUT_PATIENT_VISIT_TYPE;
+    private VisitType getVisitType(Enumeration<Encounter.EncounterClass> cls) {
+        List<VisitType> allVisitTypes = visitService.getAllVisitTypes();
+        Encounter.EncounterClass encounterClass = cls.getValue();
+        VisitType encVisitType = identifyVisitTypeByName(allVisitTypes, encounterClass.toString());
+        if (encVisitType != null) {
+            return encVisitType;
+        }
+
+        if (encounterClass.equals(Encounter.EncounterClass.inpatient)) {
+            return identifyVisitTypeByName(allVisitTypes, MRS_IN_PATIENT_VISIT_TYPE);
+        } else if (encounterClass.equals(Encounter.EncounterClass.outpatient)) {
+            return identifyVisitTypeByName(allVisitTypes, MRS_OUT_PATIENT_VISIT_TYPE);
+        }
+
+        return null;
     }
 
-    public Visit findOrInitializeVisit(Patient patient, Date visitDate, String visitType) {
+    private VisitType identifyVisitTypeByName(List<VisitType> allVisitTypes, String visitTypeName) {
+        VisitType encVisitType = null;
+        for (VisitType visitType : allVisitTypes) {
+            if (visitType.getName().toLowerCase().equals(visitTypeName)) {
+                encVisitType = visitType;
+                break;
+            }
+        }
+        return encVisitType;
+    }
+
+    public Visit findOrInitializeVisit(Patient patient, Date visitDate, VisitType visitType) {
         Visit applicableVisit = getVisitForPatientWithinDates(patient, visitDate);
         if (applicableVisit != null) {
             return applicableVisit;
         }
         Visit visit = new Visit();
         visit.setPatient(patient);
-        visit.setVisitType(getVisitTypeByName(visitType));
+        visit.setVisitType(visitType);
         visit.setStartDatetime(visitDate);
         visit.setEncounters(new HashSet<org.openmrs.Encounter>());
         visit.setUuid(UUID.randomUUID().toString());

@@ -50,7 +50,7 @@
                     <value value="urn:26504add-2d96-44d0-a2f6-d849dc090254"/>
                 </identifier>
                 <status value="finished"/>
-                <class value="outpatient"/>
+                <class value="ambulatory"/>
                 <type>
                     <text value="OPD"/>
                 </type>
