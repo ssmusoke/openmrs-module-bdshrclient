@@ -54,6 +54,7 @@ public class PatientMapperTest {
         final String familyName = "Tendulkar";
         final String gender = "M";
         final Date dateOfBirth = new SimpleDateFormat(Constants.ISO_DATE_FORMAT).parse("2000-12-31");
+        final Date dateOfDeath = new SimpleDateFormat(Constants.ISO_DATE_FORMAT).parse("2010-12-31");
 
         final String addressLine = "house10";
         final String divisionId = "10";
@@ -74,6 +75,7 @@ public class PatientMapperTest {
         person.addName(personName);
         person.setGender(gender);
         person.setBirthdate(dateOfBirth);
+        person.setDeathDate(dateOfDeath);
 
         PersonAddress address = new PersonAddress();
         address.setAddress1(addressLine);
@@ -112,6 +114,7 @@ public class PatientMapperTest {
         p.setSurName(familyName);
         p.setGender(gender);
         p.setDateOfBirth(new SimpleDateFormat(Constants.ISO_DATE_FORMAT).format(dateOfBirth));
+        p.setDateOfDeath(new SimpleDateFormat(Constants.ISO_DATE_FORMAT).format(dateOfDeath));
         p.setOccupation(bbsCodeService.getOccupationCode(occupation));
         p.setEducationLevel(bbsCodeService.getEducationCode(educationLevel));
         p.setPrimaryContact(primaryContact);

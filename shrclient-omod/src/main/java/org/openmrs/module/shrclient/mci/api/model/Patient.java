@@ -51,6 +51,12 @@ public class Patient {
     @JsonInclude(NON_NULL)
     private Relation[] relations;
 
+    @JsonProperty("status")
+    private Character status;
+
+    @JsonProperty("date_of_death")
+    private String dateOfDeath;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -70,7 +76,8 @@ public class Patient {
         if (occupation != null ? !occupation.equals(patient.occupation) : patient.occupation != null) return false;
         if (primaryContact != null ? !primaryContact.equals(patient.primaryContact) : patient.primaryContact != null)
             return false;
-        if (birthRegNumber != null ? !birthRegNumber.equals(patient.birthRegNumber) : patient.birthRegNumber != null) return false;
+        if (birthRegNumber != null ? !birthRegNumber.equals(patient.birthRegNumber) : patient.birthRegNumber != null)
+            return false;
 
         return true;
     }
@@ -203,6 +210,22 @@ public class Patient {
 
     public void setRelations(Relation[] relations) {
         this.relations = relations;
+    }
+
+    public String getDateOfDeath() {
+        return dateOfDeath;
+    }
+
+    public void setDateOfDeath(String dateOfDeath) {
+        this.dateOfDeath = dateOfDeath;
+    }
+
+    public Character getStatus() {
+        return status;
+    }
+
+    public void setStatus(char status) {
+        this.status = status;
     }
 }
 

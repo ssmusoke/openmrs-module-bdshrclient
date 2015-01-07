@@ -47,6 +47,7 @@ public class RestClientTest {
         final Address address = new Address();
         address.setDivisionId("div-100");
         patient.setAddress(address);
+        patient.setStatus('1');
 
         stubFor(get(urlEqualTo(url))
                 .withHeader(acceptHeader, equalTo(contentTypeJson))

@@ -1,7 +1,6 @@
 package org.openmrs.module.shrclient.mapper;
 
 import org.openmrs.PersonAttribute;
-import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.mci.api.model.Patient;
 import org.openmrs.module.shrclient.service.BbsCodeService;
@@ -56,6 +55,15 @@ public class PatientMapper {
             patient.setPrimaryContact(primaryContact);
         }
         patient.setAddress(addressHelper.getMciAddress(openMrsPatient));
+        Boolean isDead = openMrsPatient.isDead();
+        if (isDead){
+            patient.setStatus('2');
+        } else {
+            patient.setStatus('1');
+        }
+        if (openMrsPatient.getDeathDate() != null) {
+            patient.setDateOfDeath(new SimpleDateFormat(Constants.ISO_DATE_FORMAT).format(openMrsPatient.getDeathDate()));
+        }
         return patient;
     }
 
