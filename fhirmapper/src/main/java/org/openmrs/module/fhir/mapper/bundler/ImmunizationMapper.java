@@ -35,7 +35,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     private ObservationValueMapper obsValueMapper;
     @Autowired
     private CodableConceptService codableConceptService;
-    
+
     @Override
     public boolean canHandle(Obs observation) {
         CompoundObservation obs = new CompoundObservation(observation);
@@ -44,20 +44,18 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
 
     @Override
     public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
-        
         List<FHIRResource> resources = new ArrayList<>();
         Immunization immunization = mapObservation(new CompoundObservation(obs), fhirEncounter, systemProperties);
-
-        FHIRResource immunizationResource = new FHIRResource("Immunization", immunization.getIdentifier(), immunization);
-        resources.add(immunizationResource);
-
+        if(immunization != null) {
+            FHIRResource immunizationResource = new FHIRResource("Immunization", immunization.getIdentifier(), immunization);
+            resources.add(immunizationResource);
+        }
         return resources;
     }
 
     private Immunization mapObservation(CompoundObservation immunizationIncidentObs, Encounter fhirEncounter, SystemProperties systemProperties) {
         Immunization immunization = new Immunization();
         immunization.setSubject(fhirEncounter.getSubject());
-        
 
         Obs vaccineObs = immunizationIncidentObs.getMemberObsForConceptName(MRS_CONCEPT_VACCINE);
         List<Drug> drugs = conceptService.getDrugsByConcept(vaccineObs.getValueCoded());
@@ -67,9 +65,9 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         immunization.setVaccineType(getVaccineType(drugs));
         setIdentifier(immunizationIncidentObs, systemProperties, immunization);
         immunization.setDate(getVaccinationDate(immunizationIncidentObs));
-        immunization.setRefusedIndicator(getRefusedIndicator(immunizationIncidentObs));
+        immunization.setRefusedIndicator(getIndicator(immunizationIncidentObs, MRS_CONCEPT_VACCINATION_REFUSED));
         immunization.setRequester(getRequester(fhirEncounter));
-        immunization.setReported((Boolean) obsValueMapper.map(immunizationIncidentObs.getMemberObsForConceptName(MRS_CONCEPT_VACCINATION_REPORTED)));
+        immunization.setReported(getIndicator(immunizationIncidentObs, MRS_CONCEPT_VACCINATION_REPORTED));
         immunization.setDoseQuantity(getDosage(immunizationIncidentObs, systemProperties));
         immunization.setExplanation(getExplation(immunizationIncidentObs, systemProperties));
         immunization.setRoute(getRoute(immunizationIncidentObs, systemProperties));
@@ -79,7 +77,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
 
     private CodeableConcept getRoute(CompoundObservation immunizationIncidentObs, SystemProperties systemProperties) {
         Obs routeObs = immunizationIncidentObs.getMemberObsForConceptName(VALUESET_ROUTE);
-        if(routeObs != null) {
+        if (routeObs != null) {
             return codableConceptService.getTRValueSetCodeableConcept(routeObs.getValueCoded(),
                     systemProperties.getTrValuesetUrl(TrValueSetKeys.ROUTE));
         }
@@ -97,7 +95,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
                                 Immunization.ImmunizationExplanationComponent explanationComponent,
                                 String reasonConceptName, String trVSKey) {
         Obs immunizationReasonObs = immunizationIncidentObs.getMemberObsForConceptName(reasonConceptName);
-        if(immunizationReasonObs != null) {
+        if (immunizationReasonObs != null && idMappingsRepository.findByInternalId(immunizationReasonObs.getValueCoded().getUuid()) != null) {
             CodeableConcept reason = getReason(reasonConceptName, explanationComponent);
             codableConceptService.getTRValueSetCodeableConcept(immunizationReasonObs.getValueCoded(),
                     systemProperties.getTrValuesetUrl(trVSKey),
@@ -105,17 +103,26 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         }
     }
 
-    private CodeableConcept getReason(String reasonConceptName, Immunization.ImmunizationExplanationComponent explanationComponent){
+    private CodeableConcept getReason(String reasonConceptName, Immunization.ImmunizationExplanationComponent explanationComponent) {
         return VALUESET_REFUSAL_REASON.equals(reasonConceptName) ? explanationComponent.addRefusalReason() : explanationComponent.addReason();
     }
 
     private Quantity getDosage(CompoundObservation immunizationIncidentObs, SystemProperties systemProperties) {
+        Obs doseObs = immunizationIncidentObs.getMemberObsForConceptName(MRS_CONCEPT_DOSAGE);
+        if (doseObs == null) return null;
         Quantity dose = new Quantity();
-        dose.setValue((Decimal) obsValueMapper.map(immunizationIncidentObs.getMemberObsForConceptName(MRS_CONCEPT_DOSAGE)));
-        Obs quantityUnitsObs = immunizationIncidentObs.getMemberObsForConceptName(VALUESET_QUANTITY_UNITS);
-        dose.setCodeSimple(codableConceptService.getTRValueSetCode(quantityUnitsObs.getValueCoded()));
-        dose.setSystemSimple(systemProperties.getTrValuesetUrl(QUANTITY_UNITS));
+        dose.setValue((Decimal) obsValueMapper.map(doseObs));
+        populateQuantityUnits(immunizationIncidentObs, systemProperties, dose);
         return dose;
+    }
+
+    private void populateQuantityUnits(CompoundObservation immunizationIncidentObs, SystemProperties systemProperties, Quantity dose) {
+        Obs quantityUnitsObs = immunizationIncidentObs.getMemberObsForConceptName(VALUESET_QUANTITY_UNITS);
+        if (quantityUnitsObs != null) {
+            dose.setCodeSimple(codableConceptService.getTRValueSetCode(quantityUnitsObs.getValueCoded()));
+            if (idMappingsRepository.findByInternalId(quantityUnitsObs.getValueCoded().getUuid()) != null)
+                dose.setSystemSimple(systemProperties.getTrValuesetUrl(QUANTITY_UNITS));
+        }
     }
 
     private ResourceReference getRequester(Encounter fhirEncounter) {
@@ -129,8 +136,10 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     }
 
     private DateTime getVaccinationDate(CompoundObservation immunizationIncidentObs) {
+        Obs vaccinationDateObs = immunizationIncidentObs.getMemberObsForConceptName(MRS_CONCEPT_VACCINATION_DATE);
+        if (vaccinationDateObs == null) return null;
         DateTime vaccinationDate = new DateTime();
-        vaccinationDate.setValue(((Date) obsValueMapper.map(immunizationIncidentObs.getMemberObsForConceptName(MRS_CONCEPT_VACCINATION_DATE))).getValue());
+        vaccinationDate.setValue(((Date) obsValueMapper.map(vaccinationDateObs)).getValue());
         return vaccinationDate;
     }
 
@@ -147,8 +156,12 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         return codeableConcept;
     }
 
-    private Boolean getRefusedIndicator(CompoundObservation immunizationIncidentObs) {
-        return (Boolean) obsValueMapper.map(immunizationIncidentObs.getMemberObsForConceptName(MRS_CONCEPT_VACCINATION_REFUSED));
+    private Boolean getIndicator(CompoundObservation immunizationIncidentObs, String conceptName) {
+        Obs indicatorObs = immunizationIncidentObs.getMemberObsForConceptName(conceptName);
+        if(indicatorObs != null) {
+            return (Boolean) obsValueMapper.map(indicatorObs);
+        }
+        return null;
     }
 
 }
