@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.openmrs.module.shrclient.feeds.shr.DefaultEncounterFeedWorker;
 import org.openmrs.module.shrclient.feeds.shr.ShrEncounterFeedProcessor;
 import org.openmrs.module.shrclient.identity.IdentityStore;
+import org.openmrs.module.shrclient.identity.IdentityToken;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.Headers;
 import org.openmrs.module.shrclient.util.PlatformUtil;
@@ -51,6 +52,7 @@ public class EncounterPull {
         //read from headers or application
         headers.put("facilityId", getFacilityId());
         headers.putAll(Headers.getBasicAuthHeader(user, password));
+        headers.putAll(Headers.getIdentityHeader(PlatformUtil.getIdentityStore().getToken()));
         return headers;
     }
 

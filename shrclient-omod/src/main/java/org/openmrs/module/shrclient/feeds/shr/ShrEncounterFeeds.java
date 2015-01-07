@@ -13,6 +13,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.ict4h.atomfeed.client.repository.AllFeeds;
+import org.openmrs.module.shrclient.util.Headers;
 import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
@@ -32,6 +33,7 @@ public class ShrEncounterFeeds extends AllFeeds {
         HttpGet request = new HttpGet(uri);
         request.setHeader("Accept", getAcceptHeader());
         request.setHeader("facilityId", getFacilityId());
+        request.setHeader(Headers.AUTH_TOKEN_KEY, getIdentityHeader());
         try {
             String response = execute(request);
             //works only for application/atom+xml
@@ -73,5 +75,9 @@ public class ShrEncounterFeeds extends AllFeeds {
 
     private String getFacilityId() {
         return feedHeaders.get("facilityId");
+    }
+
+    public String getIdentityHeader() {
+        return feedHeaders.get(Headers.AUTH_TOKEN_KEY);
     }
 }
