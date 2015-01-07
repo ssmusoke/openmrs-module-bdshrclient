@@ -13,6 +13,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.log4j.Logger;
+import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
+import org.springframework.http.HttpStatus;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -36,20 +38,23 @@ public class WebClient {
     }
 
 
-    public String get(String path) {
+    public String get(String path) throws IdentityUnauthorizedException {
         String url = getUrl(path);
         log.debug("HTTP getEncounters url: " + url);
         try {
             HttpGet request = new HttpGet(URI.create(url));
 
             return execute(request);
+        } catch (IdentityUnauthorizedException e) {
+            log.error("Unauthorized identity. URL: " + url, e);
+            throw e;
         } catch (IOException e) {
             log.error("Error during http getEncounters. URL: " + url, e);
             throw new RuntimeException(e);
         }
     }
 
-    public String post(String path, String data, String contentType) {
+    public String post(String path, String data, String contentType) throws IdentityUnauthorizedException {
         String url = getUrl(path);
         log.debug("HTTP post url: " + url);
         try {
@@ -58,13 +63,16 @@ public class WebClient {
             entity.setContentType(contentType);
             request.setEntity(entity);
             return execute(request);
+        } catch (IdentityUnauthorizedException e) {
+            log.error("Unauthorized identity. URL: " + url, e);
+            throw e;
         } catch (IOException e) {
             log.error("Error during http post. URL: " + url, e);
             throw new RuntimeException(e);
         }
     }
 
-    public String put(String path, String data, String contentType) {
+    public String put(String path, String data, String contentType) throws IdentityUnauthorizedException {
         String url = getUrl(path);
         log.debug("HTTP post url: " + url);
         try {
@@ -73,6 +81,9 @@ public class WebClient {
             entity.setContentType(contentType);
             request.setEntity(entity);
             return execute(request);
+        } catch (IdentityUnauthorizedException e) {
+            log.error("Unauthorized identity. URL: " + url, e);
+            throw e;
         } catch (IOException e) {
             log.error("Error during http post. URL: " + url, e);
             throw new RuntimeException(e);
@@ -80,8 +91,7 @@ public class WebClient {
     }
 
     private String execute(final HttpRequestBase request) throws IOException {
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        try {
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             addHeaders(request);
 
             ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
@@ -90,25 +100,23 @@ public class WebClient {
                     if (status >= 200 && status < 300) {
                         HttpEntity entity = response.getEntity();
                         return entity != null ? parseContentInputAsString(entity) : null;
-                    } else if (status == 404) {
+                    } else if (status == HttpStatus.NOT_FOUND.value()) {
                         return null;
+                    } else if (status == HttpStatus.UNAUTHORIZED.value()) {
+                        throw new IdentityUnauthorizedException("Identity not authorized");
                     } else {
                         throw new ClientProtocolException("Unexpected response status: " + status);
                     }
                 }
             };
-
             return httpClient.execute(request, responseHandler);
-
-        } finally {
-            httpClient.close();
         }
     }
 
     private String parseContentInputAsString(HttpEntity entity) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent()));
         String inputLine;
-        StringBuffer responseString = new StringBuffer();
+        StringBuilder responseString = new StringBuilder();
         while ((inputLine = reader.readLine()) != null) {
             responseString.append(inputLine);
         }
@@ -118,7 +126,7 @@ public class WebClient {
 
     private void addHeaders(HttpRequestBase request) {
         Map<String, String> requestHeaders = getCommonHeaders();
-        if(headers != null) {
+        if (headers != null) {
             requestHeaders.putAll(headers);
         }
 

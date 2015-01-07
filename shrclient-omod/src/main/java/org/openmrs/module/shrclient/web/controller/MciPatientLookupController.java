@@ -2,12 +2,14 @@ package org.openmrs.module.shrclient.web.controller;
 
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.identity.IdentityStore;
+import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.mci.api.MciPatientSearchResponse;
 import org.openmrs.module.shrclient.mci.api.model.Address;
 import org.openmrs.module.shrclient.mci.api.model.Patient;
@@ -26,7 +28,7 @@ import java.util.*;
 @Controller
 @RequestMapping(value = "/mci")
 public class MciPatientLookupController {
-
+    private static final Logger log = Logger.getLogger(MciPatientLookupController.class);
     @Autowired
     private MciPatientService mciPatientService;
     @Autowired
@@ -90,7 +92,13 @@ public class MciPatientLookupController {
 
     private void createOrUpdateEncounters(String healthId, org.openmrs.Patient emrPatient) {
         final String url = String.format("/patients/%s/encounters", healthId);
-        List<EncounterBundle> bundles = new ClientRegistry(propertiesReader, identityStore).getSHRClient().getEncounters(url);
+        List<EncounterBundle> bundles = null;
+        try {
+            bundles = new ClientRegistry(propertiesReader, identityStore).getSHRClient().getEncounters(url);
+        } catch (IdentityUnauthorizedException e) {
+            log.error("Clearing unauthorized identity token.");
+            identityStore.clearToken();
+        }
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
     }
 
@@ -111,12 +119,12 @@ public class MciPatientLookupController {
         addressModel.put("upazilla", getAddressEntryText(address.createUserGeneratedUpazillaId()));
 
         /*TODO: find any alternative to fix through hibernate Restriction*/
-        if(address.getCityCorporationId()!= null){
+        if (address.getCityCorporationId() != null) {
             addressModel.put("cityCorporation", getAddressEntryText(address.createUserGeneratedCityCorporationId()));
-            if(address.getUnionOrUrbanWardId()!= null)
-                addressModel.put("unionOrUrbanWard", getAddressEntryText(address.createUserGeneratedUnionOrUrbanWardId()));
+            if (address.getUnionOrUrbanWardId() != null)
+                addressModel.put("unionOrUrbanWard", getAddressEntryText(address
+                        .createUserGeneratedUnionOrUrbanWardId()));
         }
-
 
 
         patientModel.put("address", addressModel);
@@ -125,7 +133,14 @@ public class MciPatientLookupController {
 
     private Patient[] searchPatientByNationalId(String nid) {
         String url = String.format("%s?nid=%s", Constants.MCI_PATIENT_URL, nid);
-        MciPatientSearchResponse mciPatientSearchResponse = getMciRestClient().get(url, MciPatientSearchResponse.class);
+        MciPatientSearchResponse mciPatientSearchResponse = null;
+        try {
+            mciPatientSearchResponse = getMciRestClient().get(url, MciPatientSearchResponse.class);
+        } catch (IdentityUnauthorizedException e) {
+            log.error("Clearing unauthorized identity token.");
+            identityStore.clearToken();
+            throw new RuntimeException(e);
+        }
         return mciPatientSearchResponse.getResults();
     }
 
@@ -133,10 +148,16 @@ public class MciPatientLookupController {
         if (StringUtils.isBlank(hid)) {
             return null;
         }
-        return getMciRestClient().get(Constants.MCI_PATIENT_URL + "/" + hid, Patient.class);
+        try {
+            return getMciRestClient().get(Constants.MCI_PATIENT_URL + "/" + hid, Patient.class);
+        } catch (IdentityUnauthorizedException e) {
+            log.error("Clearing unauthorized identity token.");
+            identityStore.clearToken();
+            throw new RuntimeException(e);
+        }
     }
 
-    private RestClient getMciRestClient() {
+    private RestClient getMciRestClient() throws IdentityUnauthorizedException {
         return new ClientRegistry(propertiesReader, identityStore).getMCIClient();
     }
 

@@ -17,7 +17,6 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -246,29 +245,7 @@ public class ClientRegistryTest {
         verify(1, getRequestedFor(urlEqualTo("/lr")).withHeader(xAuthTokenKey, matching(xAuthToken)));
     }
 
-    @Test
-    public void testCreateIdentityServiceClient() throws Exception {
-        when(propertiesReader.getIdentityServerBaseUrl()).thenReturn("http://localhost:8089");
 
-        UUID token = UUID.randomUUID();
-        String authRequest = "{\"user\" : \"foo\",\"password\" : \"bar\"}";
-        String response = "{\"token\" : \"" + token.toString() + "\"}";
-
-        stubFor(post(urlMatching("/login"))
-                .withRequestBody(containing("foo"))
-                .withHeader("Content-Type", equalTo("application/json"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader(Headers.AUTH_TOKEN_KEY, token.toString())
-                        .withBody(response)));
-
-        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader, null);
-
-        RestClient isWebClient = clientRegistry.getIdentityServiceClient();
-        assertNotNull(isWebClient);
-        IdentityToken responseToken = isWebClient.post("/login", authRequest, IdentityToken.class );
-        assertEquals(responseToken.toString(), token.toString());
-    }
 
     private java.util.Map<String, String> getAuthHeader() {
         return Headers.getBasicAuthHeader("champoo", "*****");

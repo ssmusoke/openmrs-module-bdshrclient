@@ -13,4 +13,8 @@ public class IdentityStore {
     public void setToken(IdentityToken token) {
         this.token = token;
     }
+
+    public void clearToken() {
+        this.token = null;
+    }
 }

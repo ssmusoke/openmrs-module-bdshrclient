@@ -1,7 +1,9 @@
 package org.openmrs.module.shrclient.handlers;
 
+import org.openmrs.module.shrclient.identity.IdentityServiceClient;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityToken;
+import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.util.Headers;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
@@ -20,8 +22,8 @@ public class ClientRegistry {
         this.identityStore = identityStore;
     }
 
-    public RestClient getMCIClient() {
-        IdentityToken token = getOrCreateToken();
+    public RestClient getMCIClient() throws IdentityUnauthorizedException {
+        IdentityToken token = getOrCreateIdentityToken();
         Properties properties = propertiesReader.getMciProperties();
         String user = properties.getProperty("mci.user");
         String password = properties.getProperty("mci.password");
@@ -30,20 +32,18 @@ public class ClientRegistry {
                 Headers.getBasicAuthAndIdentityHeader(user, password, token));
     }
 
-    public SHRClient getSHRClient() {
-        IdentityToken token = getOrCreateToken();
+    public SHRClient getSHRClient() throws IdentityUnauthorizedException {
+        IdentityToken token = getOrCreateIdentityToken();
         return new SHRClient(propertiesReader.getShrBaseUrl(),
                 Headers.getIdentityHeader(token));
     }
 
-    private IdentityToken getOrCreateToken() {
-        IdentityToken token = identityStore.getToken();
-        if(token == null) {
-            token = getIdentityServiceClient().post("/login", propertiesReader.getIdentity(),
-                    IdentityToken.class);
-            identityStore.setToken(token);
-        }
-        return token;
+    public IdentityToken getOrCreateIdentityToken() throws IdentityUnauthorizedException {
+        return new IdentityServiceClient(propertiesReader, identityStore).getOrCreateToken();
+    }
+
+    public void clearIdentityToken() {
+        identityStore.clearToken();
     }
 
     public RestClient getLRClient() {

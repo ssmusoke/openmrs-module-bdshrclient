@@ -4,10 +4,11 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.hl7.fhir.instance.model.AtomFeed;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.exceptions.AtomFeedClientException;
 import org.ict4h.atomfeed.client.service.EventWorker;
+import org.openmrs.Encounter;
+import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
 import org.openmrs.User;
 import org.openmrs.api.EncounterService;
@@ -15,6 +16,7 @@ import org.openmrs.api.UserService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.mci.api.model.EncounterResponse;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.PropertiesReader;
@@ -33,14 +35,16 @@ public class EncounterPush implements EventWorker {
 
     private EncounterService encounterService;
     private PropertiesReader propertiesReader;
+    private ClientRegistry clientRegistry;
     private SHRClient shrClient;
     private UserService userService;
 
     public EncounterPush(EncounterService encounterService, UserService userService, PropertiesReader propertiesReader,
                          CompositionBundle compositionBundle, IdMappingsRepository idMappingsRepository,
-                         ClientRegistry clientRegistry) {
+                         ClientRegistry clientRegistry) throws IdentityUnauthorizedException {
         this.encounterService = encounterService;
         this.propertiesReader = propertiesReader;
+        this.clientRegistry = clientRegistry;
         this.shrClient = clientRegistry.getSHRClient();
         this.userService = userService;
         this.compositionBundle = compositionBundle;
@@ -60,32 +64,53 @@ public class EncounterPush implements EventWorker {
             if (!shouldSyncEncounter(openMrsEncounter)) {
                 return;
             }
-            org.openmrs.Patient emrPatient = openMrsEncounter.getPatient();
-            PersonAttribute healthIdAttribute = emrPatient.getAttribute(org.openmrs.module.fhir.utils.Constants.HEALTH_ID_ATTRIBUTE);
-            if ((healthIdAttribute == null) || (StringUtils.isBlank(healthIdAttribute.getValue()))) {
-                throw new AtomFeedClientException(String.format("Patient [%s] is not yet synced to MCI.", emrPatient.getUuid()));
-            }
-
-            String healthId = healthIdAttribute.getValue();
-
+            String healthId = getHealthIdAttribute(openMrsEncounter.getPatient());
             log.debug("Uploading patient encounter to SHR : [ " + openMrsEncounter.getUuid() + "]");
-
-            AtomFeed atomFeed = compositionBundle.create(openMrsEncounter, new SystemProperties(propertiesReader.getBaseUrls(),
-                    propertiesReader.getShrProperties(), propertiesReader.getFrProperties(), propertiesReader.getTrProperties()));
-            String shrEncounterUuid = shrClient.post(String.format("/patients/%s/encounters", healthId), atomFeed);
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            EncounterResponse encounterResponse = objectMapper.readValue(shrEncounterUuid, EncounterResponse.class);
+            String shrEncounterUuid = pushEncounter(openMrsEncounter, healthId);
+            EncounterResponse encounterResponse = configureObjectMapper().readValue(shrEncounterUuid,
+                    EncounterResponse.class);
             //TODO : set the right url
             String externalUuid = encounterResponse.getEncounterId();
-
-            String url = propertiesReader.getShrBaseUrl() +
-                    "/patients/" + healthId + "/encounters/" + externalUuid;
-            idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), externalUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE, url));
+            idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), externalUuid,
+                    Constants.ID_MAPPING_ENCOUNTER_TYPE, formatEncounterUrl(healthId, externalUuid)));
         } catch (Exception e) {
             log.error("Error while processing encounter sync event.", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private String formatEncounterUrl(String healthId, String externalUuid) {
+        return propertiesReader.getShrBaseUrl() +
+                "/patients/" + healthId + "/encounters/" + externalUuid;
+    }
+
+    private String pushEncounter(Encounter openMrsEncounter, String healthId) throws IdentityUnauthorizedException {
+        try {
+            return shrClient.post(String.format("/patients/%s/encounters", healthId),
+                    compositionBundle.create(openMrsEncounter, new SystemProperties(propertiesReader.getBaseUrls(),
+                            propertiesReader.getShrProperties(), propertiesReader.getFrProperties(),
+                            propertiesReader.getTrProperties())));
+        } catch (IdentityUnauthorizedException e) {
+            log.error("Clearing unauthorized identity token.");
+            clientRegistry.clearIdentityToken();
+            throw e;
+        }
+    }
+
+    private ObjectMapper configureObjectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        return objectMapper;
+    }
+
+    private String getHealthIdAttribute(Patient emrPatient) {
+        PersonAttribute healthIdAttribute = emrPatient.getAttribute(Constants.HEALTH_ID_ATTRIBUTE);
+        if ((healthIdAttribute == null) || (StringUtils.isBlank(healthIdAttribute.getValue()))) {
+            throw new AtomFeedClientException(String.format("Patient [%s] is not yet synced to MCI.",
+                    emrPatient.getUuid()));
+        }
+
+        return healthIdAttribute.getValue();
     }
 
     private boolean shouldSyncEncounter(org.openmrs.Encounter openMrsEncounter) {
@@ -94,7 +119,8 @@ public class EncounterPush implements EventWorker {
             if (changedByUser == null) {
                 changedByUser = openMrsEncounter.getCreator();
             }
-            User shrClientSystemUser = userService.getUserByUsername(org.openmrs.module.fhir.utils.Constants.SHR_CLIENT_SYSTEM_NAME);
+            User shrClientSystemUser = userService.getUserByUsername(org.openmrs.module.fhir.utils.Constants
+                    .SHR_CLIENT_SYSTEM_NAME);
             return !shrClientSystemUser.getId().equals(changedByUser.getId());
         }
         return false;

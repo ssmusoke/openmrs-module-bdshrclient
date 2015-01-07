@@ -5,7 +5,7 @@ import org.apache.log4j.Logger;
 import org.openmrs.module.shrclient.feeds.shr.DefaultEncounterFeedWorker;
 import org.openmrs.module.shrclient.feeds.shr.ShrEncounterFeedProcessor;
 import org.openmrs.module.shrclient.identity.IdentityStore;
-import org.openmrs.module.shrclient.identity.IdentityToken;
+import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.Headers;
 import org.openmrs.module.shrclient.util.PlatformUtil;
@@ -19,15 +19,21 @@ import java.util.Properties;
 
 public class EncounterPull {
     private final Logger logger = Logger.getLogger(EncounterPull.class);
+    private ClientRegistry clientRegistry;
 
-    public void download() {
+    public EncounterPull(ClientRegistry clientRegistry) {
+        this.clientRegistry = clientRegistry;
+    }
+
+    public void download() throws IdentityUnauthorizedException {
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
         ArrayList<String> encounterFeedUrls = getEncounterFeedUrls(propertiesReader);
         Map<String, String> requestHeaders = getRequestHeaders(propertiesReader);
         DefaultEncounterFeedWorker defaultEncounterFeedWorker = getEncounterFeedWorker();
         for (String encounterFeedUrl : encounterFeedUrls) {
             ShrEncounterFeedProcessor feedProcessor =
-               new ShrEncounterFeedProcessor(encounterFeedUrl, requestHeaders, defaultEncounterFeedWorker);
+                    new ShrEncounterFeedProcessor(encounterFeedUrl, requestHeaders, defaultEncounterFeedWorker,
+                            clientRegistry);
             try {
                 feedProcessor.process();
             } catch (URISyntaxException e) {
@@ -43,7 +49,7 @@ public class EncounterPull {
         return new DefaultEncounterFeedWorker(mciPatientService, propertiesReader, identityStore);
     }
 
-    private HashMap<String, String> getRequestHeaders(PropertiesReader propertiesReader) {
+    private HashMap<String, String> getRequestHeaders(PropertiesReader propertiesReader) throws IdentityUnauthorizedException {
         HashMap<String, String> headers = new HashMap<>();
         Properties properties = propertiesReader.getShrProperties();
         String user = properties.getProperty("shr.user");
@@ -52,7 +58,7 @@ public class EncounterPull {
         //read from headers or application
         headers.put("facilityId", getFacilityId());
         headers.putAll(Headers.getBasicAuthHeader(user, password));
-        headers.putAll(Headers.getIdentityHeader(PlatformUtil.getIdentityStore().getToken()));
+        headers.putAll(Headers.getIdentityHeader(clientRegistry.getOrCreateIdentityToken()));
         return headers;
     }
 
@@ -78,7 +84,7 @@ public class EncounterPull {
         return catchmentsUrls;
     }
 
-    public void retry() {
+    public void retry() throws IdentityUnauthorizedException {
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
         ArrayList<String> encounterFeedUrls = getEncounterFeedUrls(propertiesReader);
 
@@ -86,7 +92,8 @@ public class EncounterPull {
         DefaultEncounterFeedWorker defaultEncounterFeedWorker = getEncounterFeedWorker();
         for (String encounterFeedUrl : encounterFeedUrls) {
             ShrEncounterFeedProcessor feedProcessor =
-                    new ShrEncounterFeedProcessor(encounterFeedUrl, requestProperties, defaultEncounterFeedWorker);
+                    new ShrEncounterFeedProcessor(encounterFeedUrl, requestProperties, defaultEncounterFeedWorker,
+                            clientRegistry);
             try {
                 feedProcessor.processFailedEvents();
             } catch (URISyntaxException e) {

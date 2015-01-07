@@ -12,6 +12,7 @@ import org.openmrs.api.UserService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SHRClient;
@@ -57,7 +58,7 @@ public class EncounterPushTest {
     private EncounterPush encounterPush;
 
     @Before
-    public void setup() {
+    public void setup() throws IdentityUnauthorizedException {
         initMocks(this);
         when(clientRegistry.getSHRClient()).thenReturn(shrClient);
         encounterPush = new EncounterPush(

@@ -10,6 +10,7 @@ import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.formats.XmlComposer;
 import org.hl7.fhir.instance.formats.XmlParser;
 import org.hl7.fhir.instance.model.AtomFeed;
+import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 
 import java.io.ByteArrayInputStream;
@@ -33,7 +34,7 @@ public class SHRClient {
     }
 
     @SuppressWarnings("unchecked")
-    public List<EncounterBundle> getEncounters(final String url) {
+    public List<EncounterBundle> getEncounters(final String url) throws IdentityUnauthorizedException {
         try {
             Map<String, String> requestHeaders = new HashMap<>(headers);
             requestHeaders.put("accept", "application/atom+xml");
@@ -77,7 +78,7 @@ public class SHRClient {
         return value.replaceFirst("^<!\\[CDATA\\[", "").replaceFirst("\\]\\]>$", "");
     }
 
-    public String post(final String url, AtomFeed bundle) {
+    public String post(final String url, AtomFeed bundle) throws IdentityUnauthorizedException {
         try {
             XmlComposer composer = new XmlComposer();
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -85,7 +86,12 @@ public class SHRClient {
             log.debug(String.format("Posting data %s to url %s", bundle, url));
             WebClient webClient = new WebClient(baseUrl, headers);
             return webClient.post(url, byteArrayOutputStream.toString(), "application/xml;charset=UTF-8");
-        } catch (Exception e) {
+        }
+        catch(IdentityUnauthorizedException e){
+            log.error("Unauthorized identity. URL: " + url, e);
+            throw e;
+        }
+        catch (Exception e) {
             log.error("Error during http post. URL: " + url, e);
             throw new RuntimeException(e);
         }

@@ -16,6 +16,7 @@ import org.ict4h.atomfeed.jdbc.JdbcConnectionProvider;
 import org.ict4h.atomfeed.transaction.AFTransactionManager;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.atomfeed.transaction.support.AtomFeedSpringTransactionManager;
+import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -30,12 +31,15 @@ public class ShrEncounterFeedProcessor {
     private EncounterEventWorker shrEventWorker;
     private String feedUrl;
     private Map<String, String> feedProperties;
+    private ClientRegistry clientRegistry;
 
     public ShrEncounterFeedProcessor(String feedUrl,
-          Map<String, String> feedProperties, EncounterEventWorker shrEventWorker) {
+                                     Map<String, String> feedProperties, EncounterEventWorker shrEventWorker,
+                                     ClientRegistry clientRegistry) {
         this.shrEventWorker = shrEventWorker;
         this.feedUrl = feedUrl;
         this.feedProperties = feedProperties;
+        this.clientRegistry = clientRegistry;
     }
 
     public void process() throws URISyntaxException {
@@ -53,12 +57,12 @@ public class ShrEncounterFeedProcessor {
         return atomProperties;
     }
 
-    private AtomFeedClient atomFeedClient(URI feedUri, EventWorker worker)  {
+    private AtomFeedClient atomFeedClient(URI feedUri, EventWorker worker) {
         AFTransactionManager txManager = getAtomFeedTransactionManager();
         JdbcConnectionProvider connectionProvider = getConnectionProvider(txManager);
         AtomFeedProperties atomProperties = getAtomFeedProperties();
         return new AtomFeedClient(
-                getAllFeeds(feedUri),
+                getAllFeeds(clientRegistry),
                 getAllMarkers(connectionProvider),
                 getAllFailedEvent(connectionProvider),
                 atomProperties,
@@ -75,12 +79,13 @@ public class ShrEncounterFeedProcessor {
         return new AllMarkersJdbcImpl(connectionProvider);
     }
 
-    private AllFeeds getAllFeeds(URI feedUri) {
-        return new ShrEncounterFeeds(feedProperties);
+    private AllFeeds getAllFeeds(ClientRegistry clientRegistry) {
+        return new ShrEncounterFeeds(feedProperties, clientRegistry);
     }
 
     private class FeedEventWorker implements EventWorker {
         private EncounterEventWorker shrEventWorker;
+
         FeedEventWorker(EncounterEventWorker shrEventWorker) {
             this.shrEventWorker = shrEventWorker;
         }
@@ -118,7 +123,8 @@ public class ShrEncounterFeedProcessor {
     }
 
     private PlatformTransactionManager getSpringPlatformTransactionManager() {
-        List<PlatformTransactionManager> platformTransactionManagers = Context.getRegisteredComponents(PlatformTransactionManager.class);
+        List<PlatformTransactionManager> platformTransactionManagers = Context.getRegisteredComponents
+                (PlatformTransactionManager.class);
         return platformTransactionManagers.get(0);
     }
 }

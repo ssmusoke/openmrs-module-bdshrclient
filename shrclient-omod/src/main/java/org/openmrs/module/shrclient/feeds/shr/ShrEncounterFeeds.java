@@ -3,7 +3,6 @@ package org.openmrs.module.shrclient.feeds.shr;
 import com.sun.syndication.feed.atom.Feed;
 import com.sun.syndication.io.FeedException;
 import com.sun.syndication.io.WireFeedInput;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
@@ -13,6 +12,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.ict4h.atomfeed.client.repository.AllFeeds;
+import org.openmrs.module.shrclient.handlers.ClientRegistry;
+import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.util.Headers;
 import org.springframework.http.HttpStatus;
 
@@ -23,9 +24,11 @@ import java.util.Map;
 
 public class ShrEncounterFeeds extends AllFeeds {
     private Map<String, String> feedHeaders;
+    private ClientRegistry clientRegistry;
 
-    public ShrEncounterFeeds(Map<String, String> feedHeaders) {
+    public ShrEncounterFeeds(Map<String, String> feedHeaders, ClientRegistry clientRegistry) {
         this.feedHeaders = feedHeaders;
+        this.clientRegistry = clientRegistry;
     }
 
     @Override
@@ -39,9 +42,11 @@ public class ShrEncounterFeeds extends AllFeeds {
             //works only for application/atom+xml
             WireFeedInput input = new WireFeedInput();
             return (Feed) input.build(new StringReader(response));
-        } catch (IOException e) {
+        } catch(IdentityUnauthorizedException e){
+            clientRegistry.clearIdentityToken();
             e.printStackTrace();
-        } catch (FeedException e) {
+        }
+        catch (IOException | FeedException e) {
             e.printStackTrace();
         }
         return null;
@@ -57,6 +62,8 @@ public class ShrEncounterFeeds extends AllFeeds {
                         return response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : null;
                     } else if (status == HttpStatus.NOT_FOUND.value()) {
                         return null;
+                    } else if (status == HttpStatus.UNAUTHORIZED.value()) {
+                        throw new IdentityUnauthorizedException("Identity not authorized");
                     } else {
                         throw new ClientProtocolException("Unexpected response status: " + status);
                     }
