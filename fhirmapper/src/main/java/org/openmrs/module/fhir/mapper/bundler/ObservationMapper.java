@@ -37,11 +37,18 @@ public class ObservationMapper implements EmrObsResourceHandler {
     @Override
     public boolean canHandle(Obs observation) {
         CompoundObservation obs = new CompoundObservation(observation);
-        if (obs.isOfType(HISTORY_AND_EXAMINATION) || obs.isOfType(VISIT_DIAGNOSES) || obs.isOfType(FAMILY_HISTORY)) {
+        if (isNotOfKnownTypes(obs)) {
             return false;
         }
         String encounterType = observation.getEncounter().getEncounterType().getName();
         return !MRS_ENC_TYPE_LAB_RESULT.equals(encounterType);
+    }
+
+    private boolean isNotOfKnownTypes(CompoundObservation obs) {
+        return obs.isOfType(HISTORY_AND_EXAMINATION)
+                || obs.isOfType(VISIT_DIAGNOSES)
+                || obs.isOfType(FAMILY_HISTORY)
+                || obs.isOfType(IMMUNIZATION);
     }
 
     @Override
