@@ -23,4 +23,16 @@ public class CompoundObservation {
         return null;
     }
 
+    public Obs getMemberObsForConceptName(String conceptName) {
+        for (Obs groupMember : this.observation.getGroupMembers()) {
+            if (conceptName.equals(groupMember.getConcept().getName().getName())) {
+                return groupMember;
+            }
+        }
+        return null;
+    }
+
+    public String getUuid(){
+        return observation.getUuid();
+    }
 }
