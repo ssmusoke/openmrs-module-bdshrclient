@@ -63,7 +63,7 @@ public class UnitsHelpers {
         durationUnitToUnitMapper.put("Hour(s)", UnitToDaysConverter.Hour);
         durationUnitToUnitMapper.put("Day(s)", UnitToDaysConverter.Day);
         durationUnitToUnitMapper.put("Week(s)", UnitToDaysConverter.Week);
-        durationUnitToUnitMapper.put("Months(s)", UnitToDaysConverter.Month);
+        durationUnitToUnitMapper.put("Month(s)", UnitToDaysConverter.Month);
     }
 
     private void buildConceptNameMapper() {
