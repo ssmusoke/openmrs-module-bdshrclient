@@ -5,7 +5,6 @@ import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.Composition;
 import org.hl7.fhir.instance.model.Condition;
 import org.hl7.fhir.instance.model.Encounter;
-import org.junit.Assert;
 import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
@@ -20,6 +19,9 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.List;
 import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSensitiveTest {
@@ -50,30 +52,30 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
     public void shouldMapFhirEncounter() throws Exception {
         executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
         final AtomFeed encounterBundle = loadSampleFHIREncounter().getFeed();
-        Assert.assertEquals("urn:dc1f5f99-fb2f-4ba8-bf24-14ccdee498f9", encounterBundle.getId());
+        assertEquals("urn:dc1f5f99-fb2f-4ba8-bf24-14ccdee498f9", encounterBundle.getId());
 
         FHIRFeedHelper.getComposition(encounterBundle);
         final Composition composition = FHIRFeedHelper.getComposition(encounterBundle);
-        Assert.assertNotNull(composition);
+        assertNotNull(composition);
 
-        Assert.assertEquals("2014-07-10T16:05:09+05:30", composition.getDateSimple().toString());
+        assertEquals("2014-07-10T16:05:09+05:30", composition.getDateSimple().toString());
         final Encounter encounter = FHIRFeedHelper.getEncounter(encounterBundle);
-        Assert.assertNotNull(encounter);
-        Assert.assertEquals("urn:26504add-2d96-44d0-a2f6-d849dc090254", encounter.getIndication().getReferenceSimple());
+        assertNotNull(encounter);
+        assertEquals("urn:26504add-2d96-44d0-a2f6-d849dc090254", encounter.getIndication().getReferenceSimple());
 
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
         org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map(encounter, composition.getDateSimple().toString(), emrPatient, encounterBundle);
 
-        Assert.assertNotNull(emrEncounter);
-        Assert.assertEquals(emrPatient, emrEncounter.getPatient());
-        Assert.assertEquals(DateUtil.parseDate("2014-07-10T16:05:09+05:30"), emrEncounter.getEncounterDatetime());
-        Assert.assertEquals(encounter.getType().get(0).getTextSimple(), emrEncounter.getEncounterType().getName());
-        Assert.assertNotNull(emrEncounter.getEncounterProviders());
-        Assert.assertEquals("Bahmni", emrEncounter.getLocation().getName());
+        assertNotNull(emrEncounter);
+        assertEquals(emrPatient, emrEncounter.getPatient());
+        assertEquals(DateUtil.parseDate("2014-07-10T16:05:09+05:30"), emrEncounter.getEncounterDatetime());
+        assertEquals(encounter.getType().get(0).getTextSimple(), emrEncounter.getEncounterType().getName());
+        assertNotNull(emrEncounter.getEncounterProviders());
+        assertEquals("Bahmni", emrEncounter.getLocation().getName());
 
-        Assert.assertNotNull(emrEncounter.getVisit());
-        Assert.assertEquals("ad41fb41-a41a-4ad6-8835-2f59099acf5a", emrEncounter.getVisit().getUuid());
-        Assert.assertEquals("50ab30be-98af-4dfd-bd04-5455937c443f", emrEncounter.getLocation().getUuid());
+        assertNotNull(emrEncounter.getVisit());
+        assertEquals("ad41fb41-a41a-4ad6-8835-2f59099acf5a", emrEncounter.getVisit().getUuid());
+        assertEquals("50ab30be-98af-4dfd-bd04-5455937c443f", emrEncounter.getLocation().getUuid());
     }
 
     @Test
@@ -82,18 +84,18 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         final AtomFeed encounterBundle = loadSampleFHIREncounter().getFeed();
 
         List<Condition> conditions = FHIRFeedHelper.getConditions(encounterBundle);
-        Assert.assertEquals(2, conditions.size());
-        Assert.assertEquals("http://mci.com//api/v1/patients/HIDA764177", conditions.get(0).getSubject().getReferenceSimple());
+        assertEquals(2, conditions.size());
+        assertEquals("http://mci.com//api/v1/patients/HIDA764177", conditions.get(0).getSubject().getReferenceSimple());
 
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
 
         final org.openmrs.Encounter emrEncounter = fhirMapper.map(emrPatient, encounterBundle);
 
         final Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);
-        Assert.assertEquals(2, visitObs.size());
+        assertEquals(2, visitObs.size());
         Obs firstObs = visitObs.iterator().next();
-        Assert.assertNotNull(firstObs.getGroupMembers());
-        Assert.assertNotNull(firstObs.getPerson());
-        Assert.assertNotNull(firstObs.getEncounter());
+        assertNotNull(firstObs.getGroupMembers());
+        assertNotNull(firstObs.getPerson());
+        assertNotNull(firstObs.getEncounter());
     }
 }
