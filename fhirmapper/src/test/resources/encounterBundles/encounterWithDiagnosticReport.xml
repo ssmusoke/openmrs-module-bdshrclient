@@ -56,7 +56,7 @@
         <content type="text/xml">
             <Encounter xmlns="http://hl7.org/fhir">
                 <identifier>
-                    <value value="a810bc20-d0b8-44f0-bc62-ab370daec38b"/>
+                    <value value="urn:a810bc20-d0b8-44f0-bc62-ab370daec38b"/>
                 </identifier>
                 <status value="finished"/>
                 <class value="outpatient"/>
@@ -72,7 +72,7 @@
                     </individual>
                 </participant>
                 <indication>
-                    <reference value="a810bc20-d0b8-44f0-bc62-ab370daec38b"/>
+                    <reference value="urn:a810bc20-d0b8-44f0-bc62-ab370daec38b"/>
                     <display value="encounter"/>
                 </indication>
                 <serviceProvider>
@@ -101,7 +101,7 @@
                 <status value="final"/>
                 <reliability value="ok"/>
                 <identifier>
-                    <value value="ef3e6895-8757-4c7b-b0c3-00de57f739e3"/>
+                    <value value="urn:ef3e6895-8757-4c7b-b0c3-00de57f739e3"/>
                 </identifier>
                 <subject>
                     <reference value="http://mci.com//api/v1/patients/5922200542104256513"/>
@@ -139,14 +139,14 @@
                     <reference value="456e6c79-35be-11e4-9d09-08002773bf1c"/>
                 </performer>
                 <identifier>
-                    <value value="c790c0d3-8a0c-40df-8d90-8f6100648dac"/>
+                    <value value="urn:c790c0d3-8a0c-40df-8d90-8f6100648dac"/>
                 </identifier>
                 <requestDetail>
                     <reference value="http://172.18.46.57:8081/patients/hid/encounters/shrEncounterId3"/>
                 </requestDetail>
                 <diagnosticDateTime value="2014-10-14T17:30:53+05:30"/>
                 <result>
-                    <reference value="ef3e6895-8757-4c7b-b0c3-00de57f739e3"/>
+                    <reference value="urn:ef3e6895-8757-4c7b-b0c3-00de57f739e3"/>
                 </result>
                 <conclusion value="notes: hello world"/>
             </DiagnosticReport>

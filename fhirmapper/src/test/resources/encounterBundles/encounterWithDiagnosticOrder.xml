@@ -68,7 +68,7 @@
                 </subject>
                 <participant>
                     <individual>
-                        <reference value="990e362e-3721-11e4-962c-005056826e54"/>
+                        <reference value="urn:990e362e-3721-11e4-962c-005056826e54"/>
                     </individual>
                 </participant>
                 <indication>
@@ -94,7 +94,7 @@
                     <reference value="http://mci.com//api/v1/patients/5915668841731457025"/>
                 </subject>
                 <orderer>
-                    <reference value="990e362e-3721-11e4-962c-005056826e54"/>
+                    <reference value="urn:990e362e-3721-11e4-962c-005056826e54"/>
                 </orderer>
                 <identifier>
                     <value value="urn:8585a294-aaae-4e1e-a488-aa28b4d66ec1"/>
