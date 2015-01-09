@@ -10,7 +10,7 @@ import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
-import org.openmrs.module.fhir.TestHelper;
+import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +35,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
     private FHIRChiefComplaintConditionMapper fhirChiefComplaintConditionMapper;
 
     public ParserBase.ResourceOrFeed loadSampleFHIREncounter() throws Exception {
-        return new TestHelper().loadSampleFHIREncounter("classpath:encounterBundles/testFHIREncounter.xml", springContext);
+        return new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/testFHIREncounter.xml", springContext);
     }
 
     @Before

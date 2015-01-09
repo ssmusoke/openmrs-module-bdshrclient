@@ -34,7 +34,7 @@ public class SystemPropertiesTest {
         baseUrls.put("mci", "https://boogiewoogie:8080");
         baseUrls.put("fr", "https://furrr:8080");
         SystemProperties systemProperties = new SystemProperties(baseUrls, shrProperties, new Properties(), new Properties());
-        assertThat(systemProperties.getMciPatientUrl(), is("https://boogiewoogie:8080/patients/"));
+        assertThat(systemProperties.getMciPatientUrl(), is("https://boogiewoogie:8080/api/v1/patients"));
         assertThat(systemProperties.getFrBaseUrl(), is("https://furrr:8080/"));
     }
 

@@ -1,5 +1,7 @@
 package org.openmrs.module.shrclient.service.impl;
 
+import org.hl7.fhir.instance.formats.ParserBase;
+import org.hl7.fhir.instance.formats.XmlParser;
 import org.hl7.fhir.instance.model.Date;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,7 +14,6 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
-import org.openmrs.module.shrclient.TestHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.service.MciPatientService;
@@ -51,11 +52,10 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Autowired
     private IdMappingsRepository idMappingsRepository;
 
-    private TestHelper testHelper;
 
     @Before
     public void setUp() throws Exception {
-        testHelper = new TestHelper();
+
     }
 
     @Test
@@ -118,9 +118,16 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         bundle.setEncounterId(shrEncounterId);
         bundle.setPublishedDate(new Date().toString());
         bundle.setHealthId(healthId);
-        bundle.addContent(testHelper.loadSampleFHIREncounter(encounterBundleFilePath, springContext));
+        bundle.addContent(loadSampleFHIREncounter(encounterBundleFilePath, springContext));
         bundles.add(bundle);
         return bundles;
+    }
+
+    private ParserBase.ResourceOrFeed loadSampleFHIREncounter(String filePath, ApplicationContext springContext) throws Exception {
+        org.springframework.core.io.Resource resource = springContext.getResource(filePath);
+        ParserBase.ResourceOrFeed parsedResource =
+                new XmlParser().parseGeneral(resource.getInputStream());
+        return parsedResource;
     }
 
 }

@@ -11,7 +11,7 @@ import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
-import org.openmrs.module.fhir.TestHelper;
+import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -43,7 +43,7 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
     public void setUp() throws Exception {
         executeDataSet("testDataSets/drugOrderDS.xml");
 
-        ParserBase.ResourceOrFeed resourceOrFeed = new TestHelper().loadSampleFHIREncounter("encounterBundles/encounterWithMedicationPrescription.xml", springContext);
+        ParserBase.ResourceOrFeed resourceOrFeed = new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/encounterWithMedicationPrescription.xml", springContext);
         feed = resourceOrFeed.getFeed();
         resource = FHIRFeedHelper.identifyResource(feed.getEntryList(), ResourceType.MedicationPrescription);
     }

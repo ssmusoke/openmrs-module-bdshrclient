@@ -3,7 +3,7 @@ package org.openmrs.module.fhir.mapper.bundler;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.junit.Test;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.fhir.TestHelper;
+import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -40,7 +40,7 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
     public void shouldCreateFhirBundle() throws Exception {
         executeDataSet("testDataSets/shrClientBundleCreatorTestDS.xml");
         String facilityId = "10000036";
-        AtomFeed bundle = compositionBundle.create(Context.getEncounterService().getEncounter(36), TestHelper.getSystemProperties(facilityId));
+        AtomFeed bundle = compositionBundle.create(Context.getEncounterService().getEncounter(36), MapperTestHelper.getSystemProperties(facilityId));
         assertNotNull(bundle);
     }
 

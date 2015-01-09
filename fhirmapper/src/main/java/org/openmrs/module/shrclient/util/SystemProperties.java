@@ -1,5 +1,7 @@
 package org.openmrs.module.shrclient.util;
 
+import org.openmrs.module.fhir.utils.Constants;
+
 import java.util.Map;
 import java.util.Properties;
 
@@ -24,7 +26,12 @@ public class SystemProperties {
     }
 
     public String getMciPatientUrl() {
-        return baseUrls.get("mci") + "/patients/";
+        String mciBaseUrl = baseUrls.get("mci");
+        if (mciBaseUrl.endsWith("/")) {
+            return mciBaseUrl +  Constants.MCI_PATIENT_URL.substring(1);
+        } else {
+            return mciBaseUrl + Constants.MCI_PATIENT_URL;
+        }
     }
 
     public String getFrBaseUrl() {

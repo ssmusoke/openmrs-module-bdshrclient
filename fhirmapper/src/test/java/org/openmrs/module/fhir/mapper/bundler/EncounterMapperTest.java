@@ -12,7 +12,7 @@ import org.openmrs.VisitType;
 import org.openmrs.module.fhir.utils.Constants;
 
 import static org.junit.Assert.assertEquals;
-import static org.openmrs.module.fhir.TestHelper.getSystemProperties;
+import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 public class EncounterMapperTest {
     @Test
@@ -28,7 +28,7 @@ public class EncounterMapperTest {
         org.hl7.fhir.instance.model.Encounter fhirEncounter = encounterMapper.map(encounter, getSystemProperties("1"));
         ResourceReference subject = fhirEncounter.getSubject();
         assertEquals("1234", subject.getDisplaySimple());
-        assertEquals("http://mci/patients/1234", subject.getReferenceSimple());
+        assertEquals("http://mci/api/v1/patients/1234", subject.getReferenceSimple());
         assertEquals("Encounter", fhirEncounter.getIndication().getDisplaySimple());
         assertEquals("urn:" + encounterId, fhirEncounter.getIndication().getReferenceSimple());
 

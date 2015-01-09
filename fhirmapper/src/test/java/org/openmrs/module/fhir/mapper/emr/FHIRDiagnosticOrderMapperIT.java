@@ -12,7 +12,7 @@ import org.openmrs.api.EncounterService;
 import org.openmrs.api.OrderService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
-import org.openmrs.module.fhir.TestHelper;
+import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +50,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
     private AtomFeed bundle;
 
     public ParserBase.ResourceOrFeed loadSampleFHIREncounter() throws Exception {
-        ParserBase.ResourceOrFeed parsedResource = new TestHelper().loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticOrder.xml", springContext);
+        ParserBase.ResourceOrFeed parsedResource = new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticOrder.xml", springContext);
         return parsedResource;
     }
 

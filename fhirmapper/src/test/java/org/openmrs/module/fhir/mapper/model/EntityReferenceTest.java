@@ -21,7 +21,7 @@ public class EntityReferenceTest {
     @Test
     public void shouldCreatePatientReference() {
         EntityReference entityReference = new EntityReference();
-        assertEquals("http://mci/patients/1", entityReference.build(Patient.class, getSystemProperties("1234"), "1"));
+        assertEquals("http://mci/api/v1/patients/1", entityReference.build(Patient.class, getSystemProperties("1234"), "1"));
     }
 
     @Test

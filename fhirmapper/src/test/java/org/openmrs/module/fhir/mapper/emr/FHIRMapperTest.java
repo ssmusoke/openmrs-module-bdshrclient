@@ -7,7 +7,7 @@ import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.PatientService;
-import org.openmrs.module.fhir.TestHelper;
+import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -34,7 +34,7 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldMapObservations() throws Exception {
         executeDataSet("testDataSets/shrClientObservationsTestDs.xml");
-        AtomFeed encounterBundle = new TestHelper().loadSampleFHIREncounter("classpath:encounterBundles/testFHIRObservation.xml", springContext).getFeed();
+        AtomFeed encounterBundle = new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/testFHIRObservation.xml", springContext).getFeed();
 
         Patient patient = patientService.getPatient(1);
 

@@ -14,7 +14,7 @@ import java.util.List;
 import static org.hl7.fhir.instance.model.DiagnosticReport.DiagnosticReportStatus.final_;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
-import static org.openmrs.module.fhir.TestHelper.getSystemProperties;
+import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {

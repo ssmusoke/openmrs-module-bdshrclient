@@ -13,7 +13,7 @@ import org.openmrs.Order;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.OrderService;
 import org.openmrs.api.PatientService;
-import org.openmrs.module.fhir.TestHelper;
+import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +52,7 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
 
     @Test
     public void shouldMapDiagnosticReportForTestResult() throws Exception {
-        AtomFeed bundle = new TestHelper()
+        AtomFeed bundle = new MapperTestHelper()
                 .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticReport.xml", springContext)
                 .getFeed();
         DiagnosticReport report = (org.hl7.fhir.instance.model.DiagnosticReport) FHIRFeedHelper.identifyResource(bundle.getEntryList(), DiagnosticReport);
@@ -89,7 +89,7 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
 
     @Test
     public void shouldAddAlreadyProcessedObservationResultToTestResults() throws Exception {
-        AtomFeed bundle = new TestHelper()
+        AtomFeed bundle = new MapperTestHelper()
                 .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticReport.xml", springContext)
                 .getFeed();
         DiagnosticReport report = (org.hl7.fhir.instance.model.DiagnosticReport) FHIRFeedHelper.identifyResource(bundle.getEntryList(), DiagnosticReport);
@@ -112,7 +112,7 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
 
     @Test
     public void shouldAddAlreadyProcessedObservationResultToPanelResults() throws Exception {
-        AtomFeed bundle = new TestHelper()
+        AtomFeed bundle = new MapperTestHelper()
                 .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithPanelReport.xml", springContext)
                 .getFeed();
         List<Resource> resources = FHIRFeedHelper.identifyResources(bundle.getEntryList(), DiagnosticReport);

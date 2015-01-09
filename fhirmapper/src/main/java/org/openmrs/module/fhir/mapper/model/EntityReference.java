@@ -41,7 +41,7 @@ public class EntityReference {
 
         @Override
         public String create(String id, SystemProperties systemProperties) {
-            return systemProperties.getMciPatientUrl() + id;
+            return systemProperties.getMciPatientUrl() + "/" + id;
         }
 
         @Override

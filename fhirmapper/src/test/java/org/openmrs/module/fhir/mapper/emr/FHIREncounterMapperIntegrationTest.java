@@ -10,7 +10,7 @@ import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
-import org.openmrs.module.fhir.TestHelper;
+import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -44,7 +44,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
     ConceptService conceptService;
 
     public ParserBase.ResourceOrFeed loadSampleFHIREncounter() throws Exception {
-        ParserBase.ResourceOrFeed parsedResource = new TestHelper().loadSampleFHIREncounter("classpath:encounterBundles/testFHIREncounter.xml", springContext);
+        ParserBase.ResourceOrFeed parsedResource = new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/testFHIREncounter.xml", springContext);
         return parsedResource;
     }
 
