@@ -70,7 +70,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
         MedicationPrescriptionDosageInstructionComponent dosageInstruction = prescription.getDosageInstruction().get(0);
         mapDosageAndRoute(drugOrder, dosageInstruction);
         mapFrequencyAndDurationAndScheduledDate(drugOrder, dosageInstruction);
-        drugOrder.setOrderer(getOrderer(prescription));
+        drugOrder.setOrderer(getOrderer());
         drugOrder.setNumRefills(DEFAULT_NUM_REFILLS);
         drugOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(feed));
 
@@ -84,7 +84,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
         drugOrder.setQuantityUnits(conceptService.getConceptByName(DRUG_ORDER_QUANTITY_UNITS_CONCEPT_NAME));
     }
 
-    private Provider getOrderer(MedicationPrescription prescription) {
+    private Provider getOrderer() {
         //TODO : Lookup from medication prescription prescriber field.
         return providerLookupService.shrClientSystemProvider();
     }

@@ -51,6 +51,6 @@ public class MRSProperties {
 
     public static final String VALUESET_QUANTITY_UNITS = "Quantity Units";
     public static final String VALUESET_IMMUNIZATION_REASON = "Immunization Reason";
-    public static final String VALUESET_REFUSAL_REASON = "No Immunization Reason";
+    public static final String VALUESET_IMMUNIZATION_REFUSAL_REASON = "No Immunization Reason";
     public static final String VALUESET_ROUTE = "Route of Administration";
 }

@@ -139,8 +139,8 @@
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="w3wazzvw-e1v4-5000-6zd6-bc4335835eaa"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <concept_answer concept_answer_id="501" concept_id="308" answer_concept="501" sort_weight="1" date_created="2004-08-12 00:00:00.0" creator="1" uuid="qkiay80e-1fz9-fda3-2b68-qa2aalza687h" />
-    <shr_id_mapping id="4" internal_id="juydz80f-zyz9-4za3-bz88-8122abdfjkt" external_id="ABC1" type="concept"
-                    uri="http://tr.com/ABC1"></shr_id_mapping>
+    <shr_id_mapping id="4" internal_id="juydz80f-zyz9-4za3-bz88-8122abdfjkt" external_id="Travel vaccinations-X" type="concept"
+                    uri="http://tr.com/Travel vaccinations-X"></shr_id_mapping>
 
     <concept concept_id="502" retired="false" datatype_id="4" class_id="3" is_set="false" creator="1"
              date_created="2004-08-12 00:00:00.0"
@@ -149,8 +149,8 @@
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="wtwatzvw-e1v4-5000-6zd6-bc4335835eaa"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <concept_answer concept_answer_id="501" concept_id="309" answer_concept="502" sort_weight="1" date_created="2004-08-12 00:00:00.0" creator="1" uuid="qkiay80e-1fz9-fda3-2b68-qa2a2lz2687h" />
-    <shr_id_mapping id="5" internal_id="juydz80f-zyz9-4za3-bz88-816zabzfjkt" external_id="ABC2" type="concept"
-                    uri="http://tr.com/ABC2"></shr_id_mapping>
+    <shr_id_mapping id="5" internal_id="juydz80f-zyz9-4za3-bz88-816zabzfjkt" external_id="PAT-OBJ-X" type="concept"
+                    uri="http://tr.com/PAT-OBJ-X"></shr_id_mapping>
 
     <concept concept_id="503" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1"
              date_created="2005-01-01 00:00:00.0" uuid="7f7379ba-3ca8-z1e3-bf2b-a8az2a1cab75"/>
@@ -158,8 +158,8 @@
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a37ae9a9-e1a4-41d4-b2d6-bc4335835ea9"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <concept_answer concept_answer_id="503" concept_id="310" answer_concept="503" sort_weight="1" date_created="2004-08-12 00:00:00.0" creator="1" uuid="qkiay80e-1fz9-fda3-2b68-qa3a3lz3687h" />
-    <shr_id_mapping id="6" internal_id="7f7379ba-3ca8-z1e3-bf2b-a8az2a1cab75" external_id="ABC3" type="concept"
-                    uri="http://tr.com/ABC3"></shr_id_mapping>
+    <shr_id_mapping id="6" internal_id="7f7379ba-3ca8-z1e3-bf2b-a8az2a1cab75" external_id="ORAL-X" type="concept"
+                    uri="http://tr.com/ORAL-X"></shr_id_mapping>
     <!--Immunization concepts -->
 
     <!--Immunization observations-->

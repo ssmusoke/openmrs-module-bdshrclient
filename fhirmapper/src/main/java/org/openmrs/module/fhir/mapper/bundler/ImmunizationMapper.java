@@ -87,7 +87,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     private Immunization.ImmunizationExplanationComponent getExplation(CompoundObservation immunizationIncidentObs, SystemProperties systemProperties) {
         Immunization.ImmunizationExplanationComponent explanationComponent = new Immunization.ImmunizationExplanationComponent();
         populateReason(immunizationIncidentObs, systemProperties, explanationComponent, VALUESET_IMMUNIZATION_REASON, TrValueSetKeys.IMMUNIZATION_REASON);
-        populateReason(immunizationIncidentObs, systemProperties, explanationComponent, VALUESET_REFUSAL_REASON, TrValueSetKeys.REFUSAL_REASON);
+        populateReason(immunizationIncidentObs, systemProperties, explanationComponent, VALUESET_IMMUNIZATION_REFUSAL_REASON, TrValueSetKeys.REFUSAL_REASON);
         return explanationComponent;
     }
 
@@ -104,7 +104,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     }
 
     private CodeableConcept getReason(String reasonConceptName, Immunization.ImmunizationExplanationComponent explanationComponent) {
-        return VALUESET_REFUSAL_REASON.equals(reasonConceptName) ? explanationComponent.addRefusalReason() : explanationComponent.addReason();
+        return VALUESET_IMMUNIZATION_REFUSAL_REASON.equals(reasonConceptName) ? explanationComponent.addRefusalReason() : explanationComponent.addReason();
     }
 
     private Quantity getDosage(CompoundObservation immunizationIncidentObs, SystemProperties systemProperties) {
