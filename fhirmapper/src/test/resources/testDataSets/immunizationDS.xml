@@ -91,6 +91,8 @@
                  date_created="2004-08-12 00:00:00.0" sort_weight="2"></concept_set>
     <concept_set concept_set_id="816" concept_id="50" concept_set="307" creator="1"
                  date_created="2004-08-12 00:00:00.0" sort_weight="2"></concept_set>
+    <shr_id_mapping id="50" internal_id="557b9699-68a3-11e3-bd76-0800271c1b75" external_id="50" type="concept"
+                    uri="/concepts/50"></shr_id_mapping>
 
     <concept concept_id="308" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
              date_created="2004-08-12 00:00:00.0"
