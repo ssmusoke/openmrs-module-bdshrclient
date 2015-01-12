@@ -94,7 +94,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         Identifier identifier = condition.addIdentifier();
         identifier.setValueSimple(new EntityReference().build(Obs.class, systemProperties, obs.getUuid()));
 
-        if (CollectionUtils.isEmpty(condition.getCode().getCoding())) {
+        if (condition.getCode() == null || CollectionUtils.isEmpty(condition.getCode().getCoding())) {
             return null;
         }
         return new FHIRResource("Diagnosis", condition.getIdentifier(), condition);
