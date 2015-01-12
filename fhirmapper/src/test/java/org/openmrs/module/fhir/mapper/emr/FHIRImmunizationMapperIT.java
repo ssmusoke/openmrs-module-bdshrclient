@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.*;
@@ -140,7 +142,7 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
 
     private Obs mapImmunizationIncidentObs() {
         Encounter mrsEncounter = new Encounter();
-        mapper.map(feed, resource, null, mrsEncounter,null);
+        mapper.map(feed, resource, null, mrsEncounter,new HashMap<String, List<String>>());
 
         Set<Obs> allObs = mrsEncounter.getAllObs();
         assertEquals(1,allObs.size());
