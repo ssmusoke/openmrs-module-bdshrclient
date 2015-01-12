@@ -25,6 +25,7 @@ import java.util.Set;
 import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
+@org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
