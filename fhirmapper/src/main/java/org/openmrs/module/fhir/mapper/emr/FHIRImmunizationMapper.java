@@ -36,6 +36,9 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
     public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
         Immunization immunization = (Immunization) resource;
 
+        if (isAlreadyProcessed(immunization, processedList))
+            return;
+
         Obs immunizationIncidentObs = new Obs();
         immunizationIncidentObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_IMMUNIZATION_INCIDENT));
 
@@ -53,6 +56,10 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
         newEmrEncounter.addObs(immunizationIncidentObs);
         processedList.put(immunization.getIdentifier().get(0).getValueSimple(), asList(immunizationIncidentObs.getUuid()));
 
+    }
+
+    private boolean isAlreadyProcessed(Immunization immunization, Map<String, List<String>> processedList) {
+        return processedList.containsKey(immunization.getIdentifier().get(0).getValueSimple());
     }
 
     private Obs getImmunizationReason(Immunization immunization) {

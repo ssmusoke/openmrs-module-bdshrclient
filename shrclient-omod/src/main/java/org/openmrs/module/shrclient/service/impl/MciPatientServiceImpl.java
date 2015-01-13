@@ -3,13 +3,7 @@ package org.openmrs.module.shrclient.service.impl;
 import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.openmrs.*;
-import org.openmrs.api.AdministrationService;
-import org.openmrs.api.EncounterService;
-import org.openmrs.api.OrderService;
-import org.openmrs.api.PatientService;
-import org.openmrs.api.PersonService;
-import org.openmrs.api.UserService;
-import org.openmrs.api.VisitService;
+import org.openmrs.api.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
@@ -138,14 +132,14 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     @Override
-    public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles, String healthId) {
+public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles, String healthId) {
         for (EncounterBundle bundle : bundles) {
             try {
                 updateEncounter(emrPatient, bundle, healthId);
             } catch (Exception e) {
                 //TODO do proper handling, write to log API?
-                System.out.println(e);
                 logger.error("error Occurred while trying to process Encounter from SHR.", e);
+                throw new RuntimeException(e);
             }
         }
     }

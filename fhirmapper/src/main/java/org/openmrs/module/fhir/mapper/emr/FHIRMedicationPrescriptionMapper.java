@@ -62,6 +62,9 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
     public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
         MedicationPrescription prescription = (MedicationPrescription) resource;
 
+        if (isAlreadyProcessed(prescription, processedList))
+            return;
+
         DrugOrder drugOrder = new DrugOrder();
         drugOrder.setPatient(emrPatient);
         Drug drug = mapDrug(prescription);
@@ -76,6 +79,10 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
 
         processedList.put(((MedicationPrescription) resource).getIdentifier().get(0).getValueSimple(), asList(drugOrder.getUuid()));
         newEmrEncounter.addOrder(drugOrder);
+    }
+
+    private boolean isAlreadyProcessed(MedicationPrescription prescription, Map<String, List<String>> processedList) {
+        return processedList.containsKey(prescription.getIdentifier().get(0).getValueSimple());
     }
 
     private void mapQuantity(DrugOrder drugOrder, UnitToDaysConverter unit) {
