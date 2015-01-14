@@ -1,8 +1,9 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.model.*;
 import org.hl7.fhir.instance.model.Boolean;
+import org.hl7.fhir.instance.model.*;
 import org.openmrs.Concept;
+import org.openmrs.Drug;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.utils.DateUtil;
@@ -42,11 +43,11 @@ public class FHIRResourceValueMapper {
                 } else if (value instanceof CodeableConcept) {
                     List<Coding> codings = ((CodeableConcept) value).getCoding();
                 /* TODO: The last element of codings is the concept. Make this more explicit*/
-                    Concept concept = omrsConceptLookup.findConcept(codings);
-                    if (concept != null) {
-                        obs.setValueCoded(concept);
-                    } else {
-                        obs.setValueCoded(conceptService.getConceptByName(codings.get(codings.size() - 1).getDisplaySimple()));
+                    Drug drug = omrsConceptLookup.findDrug(codings);
+                    if(drug != null){
+                        obs.setValueCoded(drug.getConcept());
+                    }else{
+                        obs.setValueCoded(findConcept(codings));
                     }
                 }
                 return obs;
@@ -55,6 +56,12 @@ public class FHIRResourceValueMapper {
             }
         }
         return null;
+    }
+
+    private Concept findConcept(List<Coding> codings) {
+        Concept concept = omrsConceptLookup.findConcept(codings);
+        if (concept != null) return concept;
+        return conceptService.getConceptByName(codings.get(codings.size() - 1).getDisplaySimple());
     }
 
     public Obs mapObservationForConcept(Type value, String conceptName) {

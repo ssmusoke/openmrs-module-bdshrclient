@@ -167,7 +167,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
 
     private Drug mapDrug(MedicationPrescription prescription) {
         String drugExternalId = substringAfterLast(prescription.getMedication().getReferenceSimple(), URL_SEPERATOR);
-        Drug drug = omrsConceptLookup.findDrugOrder(drugExternalId);
+        Drug drug = omrsConceptLookup.findDrug(drugExternalId);
         if(drug == null) {
             drug = conceptService.getDrugByNameOrId(prescription.getMedication().getDisplaySimple());
         }

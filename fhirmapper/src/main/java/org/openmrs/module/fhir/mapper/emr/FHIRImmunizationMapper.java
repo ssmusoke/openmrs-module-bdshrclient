@@ -75,7 +75,7 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
 
     private Obs getImmunizationRefusalReason(Immunization immunization) {
         Immunization.ImmunizationExplanationComponent explanation = immunization.getExplanation();
-        if(explanation != null){
+        if (explanation != null) {
             List<CodeableConcept> reason = explanation.getRefusalReason();
             if (!reason.isEmpty()) {
                 return resourceValueMapper.mapObservationForConcept(reason.get(0), VALUESET_IMMUNIZATION_REFUSAL_REASON);
@@ -94,15 +94,23 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
 
     private Obs getQuantityUnits(Immunization immunization) {
         Quantity doseQuantity = immunization.getDoseQuantity();
-        Obs quantityUnitsObs = new Obs();
-        quantityUnitsObs.setConcept(conceptService.getConceptByName(VALUESET_QUANTITY_UNITS));
-        quantityUnitsObs.setValueCoded(omrsConceptLookup.findConceptFromValueSetCode(doseQuantity.getSystemSimple(), doseQuantity.getCodeSimple()));
+        Obs quantityUnitsObs = null;
+        if (doseQuantity != null) {
+            quantityUnitsObs = new Obs();
+            quantityUnitsObs.setConcept(conceptService.getConceptByName(VALUESET_QUANTITY_UNITS));
+            quantityUnitsObs.setValueCoded(omrsConceptLookup.findConceptFromValueSetCode(doseQuantity.getSystemSimple(), doseQuantity.getCodeSimple()));
 
+        }
         return quantityUnitsObs;
+
     }
 
     private Obs getDosage(Immunization immunization) {
-        return resourceValueMapper.mapObservationForConcept(immunization.getDoseQuantity().getValue(), MRS_CONCEPT_DOSAGE);
+        Quantity doseQuantity = immunization.getDoseQuantity();
+        if (doseQuantity != null) {
+            return resourceValueMapper.mapObservationForConcept(doseQuantity.getValue(), MRS_CONCEPT_DOSAGE);
+        }
+        return null;
     }
 
     private Obs getVaccineReported(Immunization immunization) {

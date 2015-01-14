@@ -3,12 +3,7 @@ package org.openmrs.module.fhir.utils;
 import org.apache.commons.collections4.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.Coding;
-import org.openmrs.Concept;
-import org.openmrs.ConceptAnswer;
-import org.openmrs.ConceptMap;
-import org.openmrs.ConceptName;
-import org.openmrs.ConceptReferenceTerm;
-import org.openmrs.Drug;
+import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -60,11 +55,26 @@ public class OMRSConceptLookup {
         return findConceptByReferenceTermMapping(referenceTermMap);
     }
 
+    public Drug findDrug(List<Coding> codings){
+        Drug drug = null;
+        for (Coding coding : codings) {
+            if(isDrugSet(coding.getSystemSimple())){
+                drug = findDrug(coding.getCodeSimple());
+                if(drug != null) return drug;
+            }
+        }
+        return drug;
+    }
+
     private boolean isValueSetUrl(String systemSimple) {
         return StringUtils.contains(systemSimple, "tr/vs/");
     }
 
-    public Drug findDrugOrder(String drugExternalId) {
+    private boolean isDrugSet(String systemSimple){
+        return StringUtils.contains(systemSimple, "tr/drugs/");
+    }
+
+    public Drug findDrug(String drugExternalId) {
         IdMapping idMapping = idMappingsRepository.findByExternalId(drugExternalId);
         if (idMapping != null) {
             return conceptService.getDrugByUuid(idMapping.getInternalId());
