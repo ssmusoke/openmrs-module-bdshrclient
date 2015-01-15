@@ -88,7 +88,11 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         Immunization.ImmunizationExplanationComponent explanationComponent = new Immunization.ImmunizationExplanationComponent();
         populateReason(immunizationIncidentObs, systemProperties, explanationComponent, VALUESET_IMMUNIZATION_REASON, TrValueSetKeys.IMMUNIZATION_REASON);
         populateReason(immunizationIncidentObs, systemProperties, explanationComponent, VALUESET_IMMUNIZATION_REFUSAL_REASON, TrValueSetKeys.REFUSAL_REASON);
-        return explanationComponent;
+        return hasNoReasons(explanationComponent) ? null : explanationComponent;
+    }
+
+    private boolean hasNoReasons(Immunization.ImmunizationExplanationComponent explanationComponent){
+        return CollectionUtils.isEmpty(explanationComponent.getReason()) && CollectionUtils.isEmpty(explanationComponent.getRefusalReason());
     }
 
     private void populateReason(CompoundObservation immunizationIncidentObs, SystemProperties systemProperties,
