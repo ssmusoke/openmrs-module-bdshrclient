@@ -72,7 +72,9 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
         Obs chiefComplaintDurationObs = new Obs();
         chiefComplaintDurationObs.setConcept(chiefComplaintDurationConcept);
 
-        chiefComplaintDurationObs.setValueNumeric(getComplaintDuration(condition));
+        if (hasDuration(condition)) {
+            chiefComplaintDurationObs.setValueNumeric(getComplaintDuration(condition));
+        }
 
         Obs chiefComplaintDataObs = new Obs();
         chiefComplaintDataObs.setConcept(chiefComplaintDataConcept);
@@ -86,6 +88,10 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
         newEmrEncounter.addObs(historyExaminationObs);
 
         processedList.put(condition.getIdentifier().get(0).getValueSimple(), Arrays.asList(chiefComplaintDataObs.getUuid()));
+    }
+
+    private boolean hasDuration(Condition condition) {
+        return condition.getOnset() != null;
     }
 
     private boolean isAlreadyProcessed(Condition condition, Map<String, List<String>> processedList) {
