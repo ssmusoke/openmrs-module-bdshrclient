@@ -60,7 +60,18 @@ public class EntityReference {
     private static class FacilityReference extends EntityReference {
         @Override
         protected String create(String id, SystemProperties systemProperties) {
-            return systemProperties.getFrBaseUrl() + String.format(systemProperties.getFacilityUrlFormat(), id);
+            String frBaseUrl = systemProperties.getFrBaseUrl();
+            String facilityCtxUrl = String.format(systemProperties.getFacilityUrlFormat(), id);
+
+            if (frBaseUrl.endsWith("/")) {
+                frBaseUrl = frBaseUrl.substring(0, frBaseUrl.length() - 1);
+            }
+
+            if (facilityCtxUrl.startsWith("/")) {
+                return frBaseUrl + facilityCtxUrl;
+            } else {
+                return frBaseUrl + "/" + facilityCtxUrl;
+            }
         }
 
         @Override
