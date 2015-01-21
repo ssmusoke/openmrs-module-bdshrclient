@@ -35,4 +35,8 @@ public class CompoundObservation {
     public String getUuid(){
         return observation.getUuid();
     }
+
+    public Obs getRawObservation(){
+        return observation;
+    }
 }

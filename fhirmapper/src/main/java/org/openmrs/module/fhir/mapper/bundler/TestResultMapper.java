@@ -1,9 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.hl7.fhir.instance.model.*;
 import org.openmrs.Obs;
-import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -16,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.hl7.fhir.instance.model.DiagnosticReport.DiagnosticReportStatus;
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
 @Component("testResultMapper")
@@ -27,6 +24,9 @@ public class TestResultMapper implements EmrObsResourceHandler {
 
     @Autowired
     private IdMappingsRepository idMappingsRepository;
+
+    @Autowired
+    private DiagnosticReportBuilder diagnosticReportBuilder;
 
     @Autowired
     private CodableConceptService codableConceptService;
@@ -65,27 +65,15 @@ public class TestResultMapper implements EmrObsResourceHandler {
         }
     }
 
-    private DiagnosticReport build(Obs obs, Encounter fhirEncounter, List<FHIRResource> FHIRResourceList, SystemProperties systemProperties) {
-        DiagnosticReport report = new DiagnosticReport();
+    private DiagnosticReport build(Obs obs, Encounter fhirEncounter, List<FHIRResource> fHIRResourceList, SystemProperties systemProperties) {
+        DiagnosticReport report = diagnosticReportBuilder.build(obs, fhirEncounter, systemProperties);
         CodeableConcept name = codableConceptService.addTRCoding(obs.getConcept(), idMappingsRepository);
         if (name.getCoding().isEmpty()) {
             return null;
         }
         report.setName(name);
-        report.setStatus(new Enumeration<DiagnosticReportStatus>(DiagnosticReportStatus.final_));
-        report.setIssuedSimple(new DateAndTime(obs.getObsDatetime()));
-        report.setSubject(fhirEncounter.getSubject());
-        Identifier identifier = new Identifier();
-        identifier.setValueSimple(new EntityReference().build(Obs.class, systemProperties, obs.getUuid()));
-        report.setIdentifier(identifier);
-        List<Encounter.EncounterParticipantComponent> participants = fhirEncounter.getParticipant();
-        if (CollectionUtils.isNotEmpty(participants)) {
-            report.setPerformer(participants.get(0).getIndividual());
-        }
-        DateTime diagnostic = new DateTime();
         org.openmrs.Order obsOrder = obs.getOrder();
-        diagnostic.setValue(new DateAndTime(obsOrder.getDateActivated()));
-        report.setDiagnostic(diagnostic);
+        report.setDiagnostic(getOrderTime(obsOrder));
 
         String uuid = obsOrder.getEncounter().getUuid();
         IdMapping encounterIdMapping = idMappingsRepository.findByInternalId(uuid);
@@ -102,7 +90,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
                 ResourceReference resourceReference = report.addResult();
                 // TODO: how do we identify this observation?
                 resourceReference.setReferenceSimple(observationResources.get(0).getIdentifier().getValueSimple());
-                FHIRResourceList.addAll(observationResources);
+                fHIRResourceList.addAll(observationResources);
             } else if (MRS_CONCEPT_NAME_LAB_NOTES.equals(member.getConcept().getName().getName())) {
                 report.setConclusionSimple(member.getValueText());
             }
@@ -110,12 +98,9 @@ public class TestResultMapper implements EmrObsResourceHandler {
         return report;
     }
 
-    //TODO : how do we identify this individual?
-    protected ResourceReference getParticipant(Encounter encounter) {
-        List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
-        if ((participants != null) && !participants.isEmpty()) {
-            return participants.get(0).getIndividual();
-        }
-        return null;
+    private DateTime getOrderTime(org.openmrs.Order obsOrder) {
+        DateTime diagnostic = new DateTime();
+        diagnostic.setValue(new DateAndTime(obsOrder.getDateActivated()));
+        return diagnostic;
     }
 }

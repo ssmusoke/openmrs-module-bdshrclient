@@ -48,7 +48,8 @@ public class ObservationMapper implements EmrObsResourceHandler {
         return obs.isOfType(HISTORY_AND_EXAMINATION)
                 || obs.isOfType(VISIT_DIAGNOSES)
                 || obs.isOfType(FAMILY_HISTORY)
-                || obs.isOfType(IMMUNIZATION);
+                || obs.isOfType(IMMUNIZATION)
+                || obs.isOfType(PROCEDURES);
     }
 
     @Override

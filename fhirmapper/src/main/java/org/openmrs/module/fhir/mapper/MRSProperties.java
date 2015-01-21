@@ -49,6 +49,20 @@ public class MRSProperties {
     public static final String MRS_CONCEPT_VACCINATION_REPORTED = "Vaccination Reported";
     public static final String MRS_CONCEPT_DOSAGE = "Dosage";
 
+    public static final String MRS_DIAGNOSIS_REPORT_RESOURCE_NAME= "Diagnostic Report";
+    public static final String MRS_CONCEPT_PROCEDURES = "Procedures";
+    public static final String MRS_CONCEPT_PROCEDURE_TYPE = "Procedure";
+    public static final String MRS_CONCEPT_PROCEDURE_OUTCOME = "Outcome";
+    public static final String MRS_CONCEPT_PROCEDURE_FOLLOW_UP = "Follow up";
+    public static final String MRS_CONCEPT_PROCEDURE_START_DATE = "Procedure Start Date";
+    public static final String MRS_CONCEPT_PROCEDURE_END_DATE = "Procedure End Date";
+    public static final String MRS_CONCEPT_PROCEDURE_DIAGNOSIS = "Diagnosis";
+    public static final String MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_STUDY = "Diagnostic Study";
+    public static final String MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_TEST = "Diagnostic Test";
+    public static final String MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_RESULT = "Result";
+
+
+
     public static final String VALUESET_QUANTITY_UNITS = "Quantity Units";
     public static final String VALUESET_IMMUNIZATION_REASON = "Immunization Reason";
     public static final String VALUESET_IMMUNIZATION_REFUSAL_REASON = "No Immunization Reason";
