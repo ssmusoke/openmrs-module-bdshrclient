@@ -36,13 +36,14 @@ public class PatientPushTest {
     private PersonService personService;
     @Mock
     private PatientMapper patientMapper;
-    @Mock
-    private RestClient restClient;
+
     @Mock
     private PropertiesReader propertiesReader;
     @Mock
     private IdMappingsRepository idMappingsRepository;
 
+    @Mock
+    private ClientRegistry clientRegistry;
     private PatientPush patientPush;
 
     private String healthId = "hid-200";
@@ -50,7 +51,7 @@ public class PatientPushTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        patientPush = new PatientPush(patientService, userService, personService, patientMapper, propertiesReader, restClient, idMappingsRepository);
+        patientPush = new PatientPush(patientService, userService, personService, patientMapper, propertiesReader, clientRegistry, idMappingsRepository);
     }
 
     @Test

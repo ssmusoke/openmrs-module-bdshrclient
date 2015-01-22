@@ -64,7 +64,7 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
                     Context.getPersonService(),
                     new PatientMapper(new BbsCodeServiceImpl()),
                     propertiesReader,
-                    clientRegistry.getMCIClient(),
+                    clientRegistry,
                     PlatformUtil.getRegisteredComponent(IdMappingsRepository.class));
         } catch (IdentityUnauthorizedException e) {
             throw handleInvalidIdentity(clientRegistry, e);
