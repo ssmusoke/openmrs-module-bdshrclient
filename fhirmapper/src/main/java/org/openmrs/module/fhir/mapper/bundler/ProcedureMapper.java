@@ -122,27 +122,32 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     private Period getProcedurePeriod(CompoundObservation compoundObservationProcedure) {
         Obs startDateObs = compoundObservationProcedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_START_DATE);
         Obs endDateObs = compoundObservationProcedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_END_DATE);
-        DateTime startDate = new DateTime();
-        DateTime endDate = new DateTime();
-        setDate(startDateObs, startDate);
-        setDate(endDateObs, endDate);
+
+        DateTime startDate= getDate(startDateObs);
+        DateTime endDate= getDate(endDateObs);
 
         return getPeriod(startDate, endDate);
 
     }
 
     private Period getPeriod(DateTime startDate, DateTime endDate) {
-        Period period = new Period();
+        if(startDate== null && endDate== null){
+            return null;
+        }
+        Period period= new Period();
         period.setStart(startDate);
         period.setEnd(endDate);
 
         return period;
     }
 
-    private void setDate(Obs dateObs, DateTime date) {
+    private DateTime getDate(Obs dateObs) {
         if (dateObs != null) {
+            DateTime date= new DateTime();
             date.setValue(((Date) obsValueMapper.map(dateObs)).getValue());
+            return date;
         }
+        return  null;
     }
 
     private DiagnosticReport buildDiagnosticReport(CompoundObservation compoundObservationProcedure, Encounter fhirEncounter, SystemProperties systemProperties) {
