@@ -1,6 +1,7 @@
 package org.openmrs.module.fhir.mapper.emr;
 
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.hl7.fhir.instance.model.*;
 import org.openmrs.*;
 import org.openmrs.Encounter;
@@ -66,8 +67,19 @@ public class FHIRProcedureMapper implements FHIRResourceMapper{
         diagnosisStudyObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_STUDY));
 
         Obs diagnosticTest= fhirResourceValueMapper.mapObservationForConcept(diagnosticReport.getName(), MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_TEST);
-        Obs result= fhirResourceValueMapper.mapObservationForConcept(diagnosticReport.getResult().get(0).getDisplay(), MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_RESULT);
-        Obs diagnosisObs= fhirResourceValueMapper.mapObservationForConcept(diagnosticReport.getCodedDiagnosis().get(0), MRS_CONCEPT_PROCEDURE_DIAGNOSIS);
+
+        List<ResourceReference> diagnosisResult = diagnosticReport.getResult();
+        Obs result= null;
+        if(CollectionUtils.isNotEmpty(diagnosisResult)) {
+            result= fhirResourceValueMapper.mapObservationForConcept(diagnosisResult.get(0).getDisplay(), MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_RESULT);
+        }
+
+        List<CodeableConcept> codedDiagnosis = diagnosticReport.getCodedDiagnosis();
+        Obs diagnosisObs= null;
+        if(CollectionUtils.isNotEmpty(codedDiagnosis)){
+            diagnosisObs= fhirResourceValueMapper.mapObservationForConcept(codedDiagnosis.get(0), MRS_CONCEPT_PROCEDURE_DIAGNOSIS);
+        }
+
 
         diagnosisStudyObs.addGroupMember(diagnosticTest);
         diagnosisStudyObs.addGroupMember(result);

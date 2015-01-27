@@ -169,9 +169,9 @@ public class ProcedureMapper implements EmrObsResourceHandler {
 
     private void setDiagnosisToDiagnosticReport(DiagnosticReport diagnosticReport, CompoundObservation compoundDiagnosticStudyObs) {
         Obs diagnosisObs = compoundDiagnosticStudyObs.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSIS);
-        CodeableConcept codedDiagnosis = diagnosticReport.addCodedDiagnosis();
         Type codeableType = diagnosisObs != null ?obsValueMapper.map(diagnosisObs) : null;
         if (codeableType != null && codeableType instanceof CodeableConcept) {
+            CodeableConcept codedDiagnosis = diagnosticReport.addCodedDiagnosis();
             CodeableConcept codeableConcept = (CodeableConcept) codeableType;
             codedDiagnosis.getCoding().addAll(codeableConcept.getCoding());
         }
