@@ -2,6 +2,7 @@ package org.openmrs.module.shrclient.util;
 
 
 import org.openmrs.api.context.Context;
+import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 
 import java.util.List;
@@ -17,6 +18,10 @@ public class PlatformUtil {
 
     public static PropertiesReader getPropertiesReader() {
         return getRegisteredComponent(PropertiesReader.class);
+    }
+
+    public static IdMappingsRepository getIdMappingsRepository() {
+        return getRegisteredComponent(IdMappingsRepository.class);
     }
 
     public static IdentityStore getIdentityStore() {

@@ -6,7 +6,6 @@ import org.ict4h.atomfeed.client.service.FeedClient;
 import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.feeds.openmrs.OpenMRSFeedClientFactory;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.handlers.EncounterPush;
@@ -47,7 +46,7 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
             return new EncounterPush(Context.getEncounterService(), userService,
                     propertiesReader,
                     PlatformUtil.getRegisteredComponent(CompositionBundle.class),
-                    PlatformUtil.getRegisteredComponent(IdMappingsRepository.class),
+                    PlatformUtil.getIdMappingsRepository(),
                     clientRegistry);
         } catch (IdentityUnauthorizedException e) {
             throw handleInvalidIdentity(clientRegistry, e);
@@ -65,7 +64,7 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
                     new PatientMapper(new BbsCodeServiceImpl()),
                     propertiesReader,
                     clientRegistry,
-                    PlatformUtil.getRegisteredComponent(IdMappingsRepository.class));
+                    PlatformUtil.getIdMappingsRepository());
         } catch (IdentityUnauthorizedException e) {
             throw handleInvalidIdentity(clientRegistry, e);
         }

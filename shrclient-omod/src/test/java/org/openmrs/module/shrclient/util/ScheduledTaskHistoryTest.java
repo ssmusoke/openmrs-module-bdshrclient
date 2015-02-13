@@ -50,16 +50,11 @@ public class ScheduledTaskHistoryTest {
 
     @Test
     public void shouldSetTheOffsetInDatabase() {
-
         String taskName = "FR Sync Task";
         String query = String.format(QUERY_FORMAT_TO_SET_LAST_READ_ENTRY_ID, OFF_SET, LR_DIVISIONS_LEVEL, taskName);
 
-        when(database.save(query)).thenReturn(true);
-
-        Boolean isExecuted = new ScheduledTaskHistory(database).setLastReadEntryId(OFF_SET, LR_DIVISIONS_LEVEL);
+        new ScheduledTaskHistory(database).setLastReadEntryId(OFF_SET, LR_DIVISIONS_LEVEL);
 
         verify(database).save(query);
-
-        assertEquals(true, isExecuted);
     }
 }

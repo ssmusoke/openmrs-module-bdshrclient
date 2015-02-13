@@ -8,7 +8,6 @@ import org.openmrs.module.shrclient.util.AddressHelper;
 
 public class AddressHierarchyEntryMapper {
 
-
     public static final int SHORT_LOCATION_ID_LENGTH = 2;
     public static final int BEGIN_INDEX = 0;
     private final AddressHelper addressHelper;

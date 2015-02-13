@@ -38,7 +38,6 @@ public class LocationPullTest {
     private String fileContainingUnionLevelResponse = "UnionLevelResponseFromLocationRegistry";
     private String fileContainingWardLevelResponse = "WardLevelResponseFromLocationRegistry";
 
-
     @Mock
     PropertiesReader propertiesReader;
 
@@ -122,13 +121,6 @@ public class LocationPullTest {
         String lastReadEntryIdForPaurasava = "10066987";
         String lastReadEntryIdForUnion = "1004099913";
         String lastReadEntryIdForWard = "100409991501";
-
-        when(scheduledTaskHistory.setLastReadEntryId(LR_DIVISIONS_LEVEL_FEED_URI, lastReadEntryIdForDivision)).thenReturn(true);
-        when(scheduledTaskHistory.setLastReadEntryId(LR_DISTRICTS_LEVEL_FEED_URI, lastReadEntryIdForDistrict)).thenReturn(true);
-        when(scheduledTaskHistory.setLastReadEntryId(LR_UPAZILAS_LEVEL_FEED_URI, lastReadEntryIdForUpazila)).thenReturn(true);
-        when(scheduledTaskHistory.setLastReadEntryId(LR_PAURASAVAS_LEVEL_FEED_URI, lastReadEntryIdForPaurasava)).thenReturn(true);
-        when(scheduledTaskHistory.setLastReadEntryId(LR_UNIONS_LEVEL_FEED_URI, lastReadEntryIdForUnion)).thenReturn(true);
-        when(scheduledTaskHistory.setLastReadEntryId(LR_WARDS_LEVEL_FEED_URI, lastReadEntryIdForWard)).thenReturn(true);
 
         LocationPull locationPull = new LocationPull(propertiesReader, lrWebClient, addressHierarchyService, scheduledTaskHistory, addressHierarchyEntryMapper);
         locationPull.synchronize();

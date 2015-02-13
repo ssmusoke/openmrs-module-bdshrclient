@@ -2,67 +2,27 @@ package org.openmrs.module.shrclient.dao;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.hibernate.SessionFactory;
-import org.openmrs.api.context.Context;
-import org.openmrs.api.context.ServiceContext;
 import org.openmrs.module.shrclient.model.IdMapping;
-import org.springframework.context.ApplicationContext;
+import org.openmrs.module.shrclient.util.Database;
+import org.openmrs.module.shrclient.util.Database.TxWork;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 
-import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 
 @Component("bdShrClientIdMappingRepository")
 public class IdMappingsRepository {
 
     private Logger logger = Logger.getLogger(IdMappingsRepository.class);
 
-
-    private PlatformTransactionManager getTransactionManager() {
-        final List<PlatformTransactionManager> registeredComponents = Context.getRegisteredComponents(PlatformTransactionManager.class);
-        return registeredComponents.get(0);
-    }
-
-
-    private interface TxWork<T> {
-        T execute(Connection connection);
-    }
-    private <T> T executeInTransaction(final TxWork<T> work) {
-        TransactionTemplate transactionTemplate = new TransactionTemplate(getTransactionManager());
-        transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
-        return transactionTemplate.execute(new TransactionCallback<T>() {
-            @Override
-            public T doInTransaction(TransactionStatus transactionStatus) {
-                return work.execute(getConnection());
-            }
-        });
-    }
-
-    private Connection getConnection() {
-        ServiceContext serviceContext = ServiceContext.getInstance();
-        Class klass = serviceContext.getClass();
-        try {
-            Field field = klass.getDeclaredField("applicationContext");
-            field.setAccessible(true);
-            ApplicationContext applicationContext = (ApplicationContext) field.get(serviceContext);
-            SessionFactory factory = (SessionFactory) applicationContext.getBean("sessionFactory");
-            return factory.getCurrentSession().connection();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+    @Autowired
+    private Database database;
 
     public void saveMapping(final IdMapping idMapping) {
-        executeInTransaction(new TxWork<Object>() {
+        database.executeInTransaction(new TxWork<Object>() {
             @Override
             public Object execute(Connection connection) {
                 if (!mappingExists(idMapping)) {
@@ -92,7 +52,7 @@ public class IdMappingsRepository {
 
 
     private boolean mappingExists(final IdMapping idMapping) {
-        return executeInTransaction(new TxWork<Boolean>() {
+        return database.executeInTransaction(new TxWork<Boolean>() {
             @Override
             public Boolean execute(Connection connection) {
                 String query = "select distinct map.internal_id from shr_id_mapping map where map.internal_id=? and map.external_id=?";
@@ -126,7 +86,7 @@ public class IdMappingsRepository {
     }
 
     public IdMapping findByExternalId(final String uuid) {
-        return executeInTransaction(new TxWork<IdMapping>() {
+        return database.executeInTransaction(new TxWork<IdMapping>() {
             @Override
             public IdMapping execute(Connection connection) {
                 String query = "select distinct map.internal_id, map.type, map.uri from shr_id_mapping map where map.external_id=?";
@@ -159,7 +119,7 @@ public class IdMappingsRepository {
     }
 
     public IdMapping findByInternalId(final String uuid) {
-        return executeInTransaction(new TxWork<IdMapping>() {
+        return database.executeInTransaction(new TxWork<IdMapping>() {
             @Override
             public IdMapping execute(Connection connection) {
                 String query = "select distinct map.external_id, map.type, map.uri from shr_id_mapping map where map.internal_id=?";

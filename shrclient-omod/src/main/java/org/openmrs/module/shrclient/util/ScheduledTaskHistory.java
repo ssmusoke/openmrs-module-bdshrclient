@@ -3,14 +3,14 @@ package org.openmrs.module.shrclient.util;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
-//purpose: represents run history of scheduled tasks
+@Component
 public class ScheduledTaskHistory {
     private final Logger logger = Logger.getLogger(ScheduledTaskHistory.class);
 
@@ -19,7 +19,7 @@ public class ScheduledTaskHistory {
     public static final String QUERY_FORMAT_TO_SET_LAST_READ_ENTRY_ID = "update markers set last_read_entry_id = %s where feed_uri = '%s'";
     private Database database;
 
-
+    @Autowired
     public ScheduledTaskHistory(Database database) {
         this.database = database;
     }
@@ -46,13 +46,13 @@ public class ScheduledTaskHistory {
         return feedUriForLastReadEntry;
     }
 
-    public boolean setLastReadEntryId(String id, String feedUri) {
+    public void setLastReadEntryId(String id, String feedUri) {
         String query = String.format(QUERY_FORMAT_TO_SET_LAST_READ_ENTRY_ID, id, feedUri);
-        return database.save(query);
+        database.save(query);
     }
 
-    public boolean setFeedUriForLastReadEntryByFeedUri(String feedUriForLastReadEntry, String feedUri) {
+    public void setFeedUriForLastReadEntryByFeedUri(String feedUriForLastReadEntry, String feedUri) {
         String query = String.format(QUERY_FORMAT_TO_SET_FEED_URI_FOR_LAST_READ_ENTRY, feedUriForLastReadEntry, feedUri);
-        return database.save(query);
+        database.save(query);
     }
 }

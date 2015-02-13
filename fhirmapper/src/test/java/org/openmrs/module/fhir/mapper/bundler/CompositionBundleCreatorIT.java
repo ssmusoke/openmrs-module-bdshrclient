@@ -43,5 +43,4 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
         AtomFeed bundle = compositionBundle.create(Context.getEncounterService().getEncounter(36), MapperTestHelper.getSystemProperties(facilityId));
         assertNotNull(bundle);
     }
-
 }
