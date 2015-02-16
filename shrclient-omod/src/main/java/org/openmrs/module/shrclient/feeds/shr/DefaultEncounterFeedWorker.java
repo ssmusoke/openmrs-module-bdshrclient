@@ -6,7 +6,7 @@ import org.ict4h.atomfeed.client.exceptions.AtomFeedClientException;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.identity.IdentityStore;
-import org.openmrs.module.shrclient.mci.api.model.Patient;
+import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;

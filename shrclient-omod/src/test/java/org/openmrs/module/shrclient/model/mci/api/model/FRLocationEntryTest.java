@@ -1,7 +1,8 @@
-package org.openmrs.module.shrclient.mci.api.model;
+package org.openmrs.module.shrclient.model.mci.api.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
+import org.openmrs.module.shrclient.model.FRLocationEntry;
 
 import static org.junit.Assert.assertEquals;
 

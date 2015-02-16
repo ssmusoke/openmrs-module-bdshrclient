@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openmrs.module.shrclient.mci.api.MciPatientUpdateResponse;
-import org.openmrs.module.shrclient.mci.api.model.Address;
-import org.openmrs.module.shrclient.mci.api.model.Patient;
+import org.openmrs.module.shrclient.model.mci.api.MciPatientUpdateResponse;
+import org.openmrs.module.shrclient.model.Address;
+import org.openmrs.module.shrclient.model.Patient;
 
 import java.util.Map;
 

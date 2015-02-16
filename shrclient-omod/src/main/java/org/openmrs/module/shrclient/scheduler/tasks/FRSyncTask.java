@@ -23,7 +23,8 @@ public class FRSyncTask extends AbstractTask {
             frClient = new ClientRegistry(propertiesReader, identityStore).getFRClient();
 
             new FacilityPull(propertiesReader, frClient,
-                    Context.getService(LocationService.class), PlatformUtil.getRegisteredComponent(ScheduledTaskHistory.class),
+                    Context.getService(LocationService.class),
+                    PlatformUtil.getRegisteredComponent(ScheduledTaskHistory.class),
                     PlatformUtil.getIdMappingsRepository(),
                     new LocationMapper()).synchronize();
         } catch (Exception e) {

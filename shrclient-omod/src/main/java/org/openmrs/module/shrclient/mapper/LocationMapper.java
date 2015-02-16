@@ -1,7 +1,7 @@
 package org.openmrs.module.shrclient.mapper;
 
 import org.openmrs.Location;
-import org.openmrs.module.shrclient.mci.api.model.FRLocationEntry;
+import org.openmrs.module.shrclient.model.FRLocationEntry;
 
 public class LocationMapper {
 

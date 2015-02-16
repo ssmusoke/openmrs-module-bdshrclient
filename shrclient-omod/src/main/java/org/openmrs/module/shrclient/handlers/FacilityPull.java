@@ -7,7 +7,7 @@ import org.openmrs.LocationTag;
 import org.openmrs.api.LocationService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.LocationMapper;
-import org.openmrs.module.shrclient.mci.api.model.FRLocationEntry;
+import org.openmrs.module.shrclient.model.FRLocationEntry;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
@@ -37,7 +37,6 @@ public class FacilityPull {
     public static final String INDIVIDUAL_FACILITY_CONTEXT = "fr.facilityUrlFormat";
     private static final int MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED = 1000;
     private static final String INITIAL_DATETIME = "0000-00-00 00:00:00";
-
 
     private LocationService locationService;
     private IdMappingsRepository idMappingsRepository;

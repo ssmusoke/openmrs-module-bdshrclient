@@ -2,7 +2,7 @@ package org.openmrs.module.shrclient.mapper;
 
 import org.openmrs.PersonAttribute;
 import org.openmrs.module.fhir.utils.Constants;
-import org.openmrs.module.shrclient.mci.api.model.Patient;
+import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.util.AddressHelper;
 

@@ -1,8 +1,11 @@
-package org.openmrs.module.shrclient.mci.api.model;
+package org.openmrs.module.shrclient.model.mci.api.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
+import org.openmrs.module.shrclient.model.Address;
+import org.openmrs.module.shrclient.model.Patient;
+import org.openmrs.module.shrclient.model.Relation;
 
 import static org.junit.Assert.assertEquals;
 

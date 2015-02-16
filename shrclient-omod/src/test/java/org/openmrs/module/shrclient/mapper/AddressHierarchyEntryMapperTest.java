@@ -4,11 +4,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.openmrs.module.addresshierarchy.AddressField;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
-import org.openmrs.module.shrclient.mci.api.model.LRAddressHierarchyEntry;
+import org.openmrs.module.shrclient.model.LRAddressHierarchyEntry;
 import org.openmrs.module.shrclient.util.AddressHelper;
 
 import static org.junit.Assert.assertEquals;

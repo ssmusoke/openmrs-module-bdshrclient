@@ -2,7 +2,7 @@ package org.openmrs.module.shrclient.mapper;
 
 import org.junit.Test;
 import org.openmrs.Location;
-import org.openmrs.module.shrclient.mci.api.model.FRLocationEntry;
+import org.openmrs.module.shrclient.model.FRLocationEntry;
 
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;

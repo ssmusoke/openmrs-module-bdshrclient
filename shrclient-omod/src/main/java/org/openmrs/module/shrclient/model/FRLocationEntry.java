@@ -1,4 +1,4 @@
-package org.openmrs.module.shrclient.mci.api.model;
+package org.openmrs.module.shrclient.model;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -114,7 +114,7 @@ public class FRLocationEntry {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    static class Identifiers {
+    public class Identifiers {
         @JsonProperty("agency")
         private String agency;
 
@@ -150,7 +150,7 @@ public class FRLocationEntry {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    static class Properties {
+    public class Properties {
         @JsonProperty("ownership")
         private String ownership;
 
@@ -240,7 +240,7 @@ public class FRLocationEntry {
         }
 
         @JsonIgnoreProperties(ignoreUnknown = true)
-        static class Locations {
+        public class Locations {
             @JsonProperty("division_code")
             private String divisionCode;
 
@@ -309,7 +309,7 @@ public class FRLocationEntry {
         }
 
         @JsonIgnoreProperties(ignoreUnknown = true)
-        static class Contacts {
+        public class Contacts {
             @JsonProperty("name")
             private String name;
 

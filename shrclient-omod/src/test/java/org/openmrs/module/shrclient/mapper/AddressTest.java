@@ -1,7 +1,7 @@
 package org.openmrs.module.shrclient.mapper;
 
 import org.junit.Test;
-import org.openmrs.module.shrclient.mci.api.model.Address;
+import org.openmrs.module.shrclient.model.Address;
 
 import static org.junit.Assert.assertEquals;
 

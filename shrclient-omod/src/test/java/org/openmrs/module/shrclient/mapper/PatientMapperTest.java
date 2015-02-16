@@ -1,8 +1,8 @@
 package org.openmrs.module.shrclient.mapper;
 
 import org.openmrs.module.addresshierarchy.AddressField;
-import org.openmrs.module.shrclient.mci.api.model.Address;
-import org.openmrs.module.shrclient.mci.api.model.Patient;
+import org.openmrs.module.shrclient.model.Address;
+import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;
 import org.openmrs.module.fhir.utils.Constants;

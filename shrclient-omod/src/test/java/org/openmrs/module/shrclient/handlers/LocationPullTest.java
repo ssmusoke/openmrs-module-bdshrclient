@@ -7,7 +7,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.shrclient.mapper.AddressHierarchyEntryMapper;
-import org.openmrs.module.shrclient.mci.api.model.LRAddressHierarchyEntry;
+import org.openmrs.module.shrclient.model.LRAddressHierarchyEntry;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.util.ScheduledTaskHistory;

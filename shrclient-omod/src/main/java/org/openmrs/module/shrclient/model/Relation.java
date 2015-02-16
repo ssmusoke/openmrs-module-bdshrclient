@@ -1,4 +1,4 @@
-package org.openmrs.module.shrclient.mci.api.model;
+package org.openmrs.module.shrclient.model;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
