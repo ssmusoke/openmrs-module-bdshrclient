@@ -33,6 +33,8 @@ import java.util.List;
 @Component
 public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPatientService {
 
+    public static final String CAUSE_OF_DEATH_NOT_SPECIFIED = "Not Specified";
+
     @Autowired
     private BbsCodeService bbsCodeService;
 
@@ -66,16 +68,22 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private ConceptService conceptService;
+
     private static final Logger logger = Logger.getLogger(MciPatientServiceImpl.class);
 
     @Override
     public org.openmrs.Patient createOrUpdatePatient(Patient mciPatient) {
         AddressHelper addressHelper = new AddressHelper();
         org.openmrs.Patient emrPatient = identifyEmrPatient(mciPatient.getHealthId());
-        if (emrPatient == null) emrPatient = new org.openmrs.Patient();
+        if (emrPatient == null) {
+            emrPatient = new org.openmrs.Patient();
+        }
         emrPatient.setGender(mciPatient.getGender());
         setIdentifier(emrPatient);
         setPersonName(emrPatient, mciPatient);
+        setDeathInfo(emrPatient, mciPatient);
         emrPatient.addAddress(addressHelper.setPersonAddress(emrPatient.getPersonAddress(), mciPatient.getAddress()));
 
         addPersonAttribute(personService, emrPatient, Constants.NATIONAL_ID_ATTRIBUTE, mciPatient.getNationalId());
@@ -117,6 +125,28 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         return emrPatient;
     }
 
+    private void setDeathInfo(org.openmrs.Patient emrPatient, Patient mciPatient) {
+        Character status = mciPatient.getStatus();
+        if (status == '1') {
+            return;
+        }
+        if (status == '2') {
+            emrPatient.setDead(true);
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Constants.ISO_DATE_FORMAT);
+            String dateOfDeath = mciPatient.getDateOfDeath();
+            if (dateOfDeath != null) {
+                try {
+                    Date dob = simpleDateFormat.parse(dateOfDeath);
+                    emrPatient.setDeathDate(dob);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+            Concept causeOfDeath = conceptService.getConcept(CAUSE_OF_DEATH_NOT_SPECIFIED);
+            emrPatient.setCauseOfDeath(causeOfDeath);
+        }
+    }
+
     @Override
     public PatientIdentifier generateIdentifier() {
         IdentifierSourceService identifierSourceService = Context.getService(IdentifierSourceService.class);
@@ -132,7 +162,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     @Override
-public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles, String healthId) {
+    public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles, String healthId) {
         for (EncounterBundle bundle : bundles) {
             try {
                 updateEncounter(emrPatient, bundle, healthId);
