@@ -11,7 +11,7 @@ public class BahmniSyncRetryTask extends AbstractBahmniSyncTask {
 
     @Override
     protected void executeBahmniTask(PatientPush patientPush, EncounterPush encounterPush) {
-        log.debug("SCHEDULED JOB:SHR Patient retry Sync Task");
+        log.debug("SCHEDULED JOB : SHR Patient retry Sync Task");
         try {
 
             getFeedClient(OPENMRS_PATIENT_FEED_URI, patientPush).processFailedEvents();
