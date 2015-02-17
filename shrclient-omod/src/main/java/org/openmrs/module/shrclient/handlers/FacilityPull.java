@@ -138,7 +138,7 @@ public class FacilityPull {
         try {
             downloadedData = Arrays.asList(frWebClient.get(completeContextPath, FRLocationEntry[].class));
         } catch (Exception e) {
-            logger.error("Error while downloading chunk of Updates from LR : " + e);
+            logger.error("Error while downloading chunk of Updates from FR : " + e);
         }
         return downloadedData;
     }

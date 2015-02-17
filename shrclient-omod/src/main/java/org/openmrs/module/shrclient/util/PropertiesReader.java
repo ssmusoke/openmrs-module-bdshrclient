@@ -35,6 +35,10 @@ public class PropertiesReader {
         return getProperties("fr.properties");
     }
 
+    public Properties getPrProperties() {
+        return getProperties("pr.properties");
+    }
+
     public Properties getTrProperties() {
         return getProperties("tr_atomfeed_properties.properties");
     }
@@ -91,6 +95,13 @@ public class PropertiesReader {
         return getBaseUrl(properties.getProperty("fr.scheme"),
                 properties.getProperty("fr.host"),
                 properties.getProperty("fr.context"));
+    }
+
+    public String getPrBaseUrl() {
+        Properties properties = getPrProperties();
+        return getBaseUrl(properties.getProperty("pr.scheme"),
+                properties.getProperty("pr.host"),
+                properties.getProperty("pr.context"));
     }
 
     public String getIdentityServerBaseUrl() {

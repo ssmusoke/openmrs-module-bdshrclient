@@ -60,6 +60,13 @@ public class ClientRegistry {
         return new RestClient(propertiesReader.getFrBaseUrl(), headers);
     }
 
+    public RestClient getPRClient() {
+        Properties properties = propertiesReader.getPrProperties();
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put(properties.getProperty("pr.tokenName"), properties.getProperty("pr.tokenValue"));
+        return new RestClient(propertiesReader.getPrBaseUrl(), headers);
+    }
+
     public RestClient getIdentityServiceClient() {
         HashMap<String, String> headers = new HashMap<>();
         return new RestClient(propertiesReader.getIdentityServerBaseUrl(), headers);
