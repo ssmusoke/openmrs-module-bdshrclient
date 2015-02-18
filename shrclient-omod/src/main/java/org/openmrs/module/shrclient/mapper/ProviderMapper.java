@@ -1,9 +1,11 @@
 package org.openmrs.module.shrclient.mapper;
 
+import org.openmrs.Location;
 import org.openmrs.Provider;
 import org.openmrs.ProviderAttribute;
 import org.openmrs.ProviderAttributeType;
 import org.openmrs.api.ProviderService;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.shrclient.model.ProviderEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -48,7 +50,9 @@ public class ProviderMapper {
             ProviderAttribute providerAttribute = new ProviderAttribute();
             providerAttribute.setProvider(provider);
             providerAttribute.setAttributeType(organizationAttributeType);
-            providerAttribute.setValue(providerEntry.getOrganization().getDisplay());
+            String facilityUrl = providerEntry.getOrganization().getReference();
+            String facilityId = new EntityReference().parse(Location.class, facilityUrl);
+            providerAttribute.setValue(facilityId);
             provider.setAttribute(providerAttribute);
         }
     }

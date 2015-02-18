@@ -14,7 +14,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.List;
 
 @Component
@@ -51,20 +50,6 @@ public class Database {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public ResultSet get(final String query) {
-        return executeInTransaction(new TxWork<ResultSet>() {
-            @Override
-            public ResultSet execute(Connection connection) {
-                try {
-                    PreparedStatement statement = connection.prepareStatement(query);
-                    return statement.executeQuery();
-                } catch (Exception e) {
-                    throw new RuntimeException("Error occurred while executing " + query + " : ", e);
-                }
-            }
-        });
     }
 
     public void save(final String query) {

@@ -22,9 +22,6 @@ import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 public class ProcedureMapper implements EmrObsResourceHandler {
 
     @Autowired
-    private ConceptService conceptService;
-
-    @Autowired
     private ObservationValueMapper obsValueMapper;
 
     @Autowired

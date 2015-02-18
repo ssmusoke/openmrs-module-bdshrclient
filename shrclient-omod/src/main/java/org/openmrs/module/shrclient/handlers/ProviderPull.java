@@ -104,9 +104,8 @@ public class ProviderPull {
         for (ProviderEntry providerEntry : providerEntries) {
             try {
                 providerMapper.createOrUpdate(providerEntry);
-            }catch (Exception e) {
+            } catch (Exception e) {
                 logger.error(String.format("Unable to save or update provider with id[%s]",providerEntry.getId()), e);
-                throw new RuntimeException(e);
             }
         }
     }
