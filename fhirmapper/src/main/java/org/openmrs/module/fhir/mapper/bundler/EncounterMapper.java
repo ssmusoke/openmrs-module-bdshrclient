@@ -1,15 +1,18 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 
+import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Enumeration;
 import org.hl7.fhir.instance.model.ResourceReference;
-import org.openmrs.*;
+import org.openmrs.EncounterProvider;
+import org.openmrs.Location;
+import org.openmrs.Patient;
+import org.openmrs.PersonAttribute;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.stereotype.Component;
-import org.apache.log4j.Logger;
 
 import java.lang.reflect.Type;
 import java.util.Set;
@@ -25,7 +28,7 @@ public class EncounterMapper {
         setStatus(encounter);
         setClass(openMrsEncounter, encounter);
         setSubject(openMrsEncounter, encounter, systemProperties);
-        setParticipant(openMrsEncounter, encounter);
+        setParticipant(openMrsEncounter, encounter, systemProperties);
         setServiceProvider(encounter, systemProperties);
         setIdentifiers(encounter, openMrsEncounter, systemProperties);
         setType(encounter, openMrsEncounter);
@@ -88,7 +91,6 @@ public class EncounterMapper {
             ResourceReference subject = new ResourceReference()
                     .setDisplaySimple(healthId.getValue())
                     .setReferenceSimple(getReference(Patient.class, systemProperties, healthId.getValue()));
-
             encounter.setSubject(subject);
         } else {
             throw new RuntimeException("The patient has not been synced yet");
@@ -99,13 +101,20 @@ public class EncounterMapper {
         return new EntityReference().build(type, systemProperties, id);
     }
 
-    private void setParticipant(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {
+    private void setParticipant(org.openmrs.Encounter openMrsEncounter, Encounter encounter, SystemProperties systemProperties) {
         final Set<EncounterProvider> encounterProviders = openMrsEncounter.getEncounterProviders();
         if (!encounterProviders.isEmpty()) {
             Encounter.EncounterParticipantComponent encounterParticipantComponent = encounter.addParticipant();
             EncounterProvider encounterProvider = encounterProviders.iterator().next();
+            String providerUrl = createProviderUrl(systemProperties, encounterProvider);
             encounterParticipantComponent.setIndividual(
-                    new ResourceReference().setReferenceSimple(encounterProvider.getProvider().getUuid()));
+                    new ResourceReference().setReferenceSimple(providerUrl));
         }
+    }
+
+    private String createProviderUrl(SystemProperties systemProperties, EncounterProvider encounterProvider) {
+        String identifier = encounterProvider.getProvider().getIdentifier();
+        String providerUrl = String.format(systemProperties.getProviderUrlFormat(), identifier);
+        return providerUrl;
     }
 }

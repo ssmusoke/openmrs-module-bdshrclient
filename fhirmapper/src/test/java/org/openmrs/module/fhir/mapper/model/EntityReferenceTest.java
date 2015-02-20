@@ -58,10 +58,12 @@ public class EntityReferenceTest {
         Properties frProperties = new Properties();
         frProperties.setProperty(SystemProperties.FACILITY_URL_FORMAT, "foo-bar/%s.json");
 
+        Properties prPoperties = new Properties();
+
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("mci", "http://mci");
         baseUrls.put("fr", "http://fr");
 
-        return new SystemProperties(baseUrls, shrProperties, frProperties, trProperties);
+        return new SystemProperties(baseUrls, shrProperties, frProperties, trProperties, prPoperties);
     }
 }

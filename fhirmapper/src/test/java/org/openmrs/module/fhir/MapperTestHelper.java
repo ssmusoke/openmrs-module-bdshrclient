@@ -30,9 +30,11 @@ public class MapperTestHelper {
         trProperties.setProperty("tr.valueset.immunizationReason", "sample-reason");
         trProperties.setProperty("tr.valueset.refusalReason", "refusal-reason");
 
+        Properties prPoperties = new Properties();
+
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("mci", "http://mci");
         baseUrls.put("tr", "http://tr");
-        return new SystemProperties(baseUrls, shrProperties, frProperties, trProperties);
+        return new SystemProperties(baseUrls, shrProperties, frProperties, trProperties, prPoperties);
     }
 }

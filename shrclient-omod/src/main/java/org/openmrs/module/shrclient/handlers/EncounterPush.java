@@ -89,7 +89,7 @@ public class EncounterPush implements EventWorker {
             return shrClient.post(String.format("/patients/%s/encounters", healthId),
                     compositionBundle.create(openMrsEncounter, new SystemProperties(propertiesReader.getBaseUrls(),
                             propertiesReader.getShrProperties(), propertiesReader.getFrProperties(),
-                            propertiesReader.getTrProperties())));
+                            propertiesReader.getTrProperties(), propertiesReader.getPrProperties())));
         } catch (IdentityUnauthorizedException e) {
             log.error("Clearing unauthorized identity token.");
             clientRegistry.clearIdentityToken();

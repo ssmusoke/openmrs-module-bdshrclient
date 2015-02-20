@@ -117,8 +117,9 @@ public class EncounterPushTest {
         Properties shrProperties = getShrProperties(facilityId);
         Properties frProperties = getFrProperties();
         Properties trProperties = new Properties();
+        Properties prPoperties = new Properties();
         HashMap<String, String> baseUrls = getBaseUrls();
-        return new SystemProperties(baseUrls, shrProperties, frProperties, trProperties);
+        return new SystemProperties(baseUrls, shrProperties, frProperties, trProperties, prPoperties);
     }
 
     private Properties getFrProperties() {

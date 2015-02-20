@@ -61,6 +61,7 @@ public class PropertiesReader {
         baseUrls.put("shr", getShrBaseUrl()) ;
         baseUrls.put("lr", getLrBaseUrl()) ;
         baseUrls.put("tr",getTrBaseUrl());
+        baseUrls.put("pr", getPrBaseUrl());
         return baseUrls;
     }
 

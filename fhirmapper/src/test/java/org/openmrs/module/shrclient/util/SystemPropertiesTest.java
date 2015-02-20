@@ -13,7 +13,7 @@ public class SystemPropertiesTest {
     public void shouldReadFacilityId() throws Exception {
         Properties shrProperties = new Properties();
         shrProperties.setProperty(SystemProperties.FACILITY_ID, "foo");
-        SystemProperties systemProperties = new SystemProperties(new HashMap<String, String>(), shrProperties, new Properties(), new Properties());
+        SystemProperties systemProperties = new SystemProperties(new HashMap<String, String>(), shrProperties, new Properties(), new Properties(), new Properties());
         assertThat(systemProperties.getFacilityId(), is("foo"));
     }
 
@@ -23,7 +23,7 @@ public class SystemPropertiesTest {
         Properties frProperties = new Properties();
         frProperties.setProperty(SystemProperties.FACILITY_URL_FORMAT, "bar");
         SystemProperties systemProperties = new SystemProperties(new HashMap<String, String>(),
-                new Properties(), frProperties, new Properties());
+                new Properties(), frProperties, new Properties(), new Properties());
         assertThat(systemProperties.getFacilityUrlFormat(), is("bar"));
     }
 
@@ -33,7 +33,7 @@ public class SystemPropertiesTest {
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("mci", "https://boogiewoogie:8080");
         baseUrls.put("fr", "https://furrr:8080");
-        SystemProperties systemProperties = new SystemProperties(baseUrls, shrProperties, new Properties(), new Properties());
+        SystemProperties systemProperties = new SystemProperties(baseUrls, shrProperties, new Properties(), new Properties(), new Properties());
         assertThat(systemProperties.getMciPatientUrl(), is("https://boogiewoogie:8080/api/v1/patients"));
         assertThat(systemProperties.getFrBaseUrl(), is("https://furrr:8080/"));
     }
@@ -46,7 +46,7 @@ public class SystemPropertiesTest {
         trProperties.setProperty("tr.valueset.quantityunits", "sample-units");
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("tr", "http://172.18.46.56:9080");
-        SystemProperties systemProperties = new SystemProperties(baseUrls, new Properties(), new Properties(), trProperties);
+        SystemProperties systemProperties = new SystemProperties(baseUrls, new Properties(), new Properties(), trProperties, new Properties());
         assertThat(systemProperties.getTrValuesetUrl("route"), is("http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/vs/sample-route"));
         assertThat(systemProperties.getTrValuesetUrl("quantityunits"), is("http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/vs/sample-units"));
     }
