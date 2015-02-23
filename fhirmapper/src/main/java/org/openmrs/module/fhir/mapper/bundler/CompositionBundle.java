@@ -36,6 +36,7 @@ public class CompositionBundle {
         Encounter fhirEncounter = encounterMapper.map(emrEncounter, systemProperties);
         Composition composition = createComposition(emrEncounter.getEncounterDatetime(), fhirEncounter, systemProperties);
         atomFeed.setTitle("Encounter");
+        atomFeed.setAuthorUri(getReference(Location.class, systemProperties));
         atomFeed.setUpdated(composition.getDateSimple());
         atomFeed.setId(new FHIRIdentifier(UUID.randomUUID().toString()).getExternalForm());
         final FHIRResource encounterResource = new FHIRResource("Encounter", fhirEncounter.getIdentifier(), fhirEncounter);
@@ -91,7 +92,6 @@ public class CompositionBundle {
         AtomEntry resourceEntry = new AtomEntry();
         resourceEntry.setId(new FHIRIdentifier(resource.getIdentifier().getValueSimple()
         ).getExternalForm());
-        resourceEntry.setAuthorName(getReference(Location.class, systemProperties));
         resourceEntry.setUpdated(new DateAndTime(new Date()));
         resourceEntry.setTitle(resource.getResourceName());
         resourceEntry.setResource(resource.getResource());
@@ -105,6 +105,8 @@ public class CompositionBundle {
         composition.setStatus(new Enumeration<>(Composition.CompositionStatus.final_));
         composition.setIdentifier(new Identifier().setValueSimple(new EntityReference().build(Composition.class, systemProperties, UUID.randomUUID().toString())));
         composition.setSubject(encounter.getSubject());
+        ResourceReference resourceReferenceAuthor = composition.addAuthor();
+        resourceReferenceAuthor.setReferenceSimple(getReference(Location.class, systemProperties));
         return composition;
     }
 
