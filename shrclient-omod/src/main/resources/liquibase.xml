@@ -375,7 +375,7 @@
             <column name="uuid" valueComputed=" uuid() "/>
         </insert>
     </changeSet>
-    <changeSet id="bdshrclient-20150213-1509" author="tw" context="setup">
+    <changeSet id="bdshrclient-20150224-1550" author="tw" context="setup">
         <update tableName="scheduler_task_config">
             <column name="repeat_interval" value="86400" />
             <where>name = 'PR Sync Task'</where>
