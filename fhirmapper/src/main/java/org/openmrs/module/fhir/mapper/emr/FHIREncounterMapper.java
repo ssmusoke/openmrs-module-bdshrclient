@@ -54,7 +54,6 @@ public class FHIREncounterMapper {
     public org.openmrs.Encounter map(Encounter fhirEncounter, String date, Patient emrPatient, AtomFeed feed) throws ParseException {
         Map<String, List<String>> processedList = new HashMap<>();
         org.openmrs.Encounter emrEncounter = new org.openmrs.Encounter();
-
         Date encounterDate = parseDate(date.toString());
         emrEncounter.setEncounterDatetime(encounterDate);
 

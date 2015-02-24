@@ -14,7 +14,7 @@ public class ProviderLookupService {
     @Autowired
     private ProviderService providerService;
 
-    public Provider shrClientSystemProvider() {
+    public Provider getShrClientSystemProvider() {
         User systemUser = getShrClientSystemUser();
         return providerService.getProvidersByPerson(systemUser.getPerson()).iterator().next();
     }

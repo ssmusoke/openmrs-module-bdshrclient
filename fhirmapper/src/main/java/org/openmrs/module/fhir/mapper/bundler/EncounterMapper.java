@@ -104,9 +104,11 @@ public class EncounterMapper {
     private void setParticipant(org.openmrs.Encounter openMrsEncounter, Encounter encounter, SystemProperties systemProperties) {
         final Set<EncounterProvider> encounterProviders = openMrsEncounter.getEncounterProviders();
         if (!encounterProviders.isEmpty()) {
-            Encounter.EncounterParticipantComponent encounterParticipantComponent = encounter.addParticipant();
             EncounterProvider encounterProvider = encounterProviders.iterator().next();
             String providerUrl = createProviderUrl(systemProperties, encounterProvider);
+            if (providerUrl == null)
+                return;
+            Encounter.EncounterParticipantComponent encounterParticipantComponent = encounter.addParticipant();
             encounterParticipantComponent.setIndividual(
                     new ResourceReference().setReferenceSimple(providerUrl));
         }
@@ -114,7 +116,10 @@ public class EncounterMapper {
 
     private String createProviderUrl(SystemProperties systemProperties, EncounterProvider encounterProvider) {
         String identifier = encounterProvider.getProvider().getIdentifier();
-        String providerUrl = String.format(systemProperties.getProviderUrlFormat(), identifier);
+        String providerUrl= null;
+        if (identifier != null) {
+            providerUrl = String.format(systemProperties.getProviderUrlFormat(), identifier);
+        }
         return providerUrl;
     }
 }

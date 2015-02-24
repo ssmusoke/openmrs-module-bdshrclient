@@ -19,6 +19,7 @@ import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.AddressHelper;
+import org.openmrs.module.shrclient.util.ParticipantHelper;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
@@ -119,7 +120,8 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
             e.printStackTrace();
         }
 
-        setCreator(emrPatient);
+        ParticipantHelper.setCreator(emrPatient,userService);
+//        setCreator(emrPatient);
         org.openmrs.Patient patient = patientService.savePatient(emrPatient);
         addPatientToIdMapping(patient, mciPatient.getHealthId());
         return emrPatient;
@@ -211,11 +213,14 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     private void setEncounterProviderAndCreator(org.openmrs.Encounter newEmrEncounter) {
-        User systemUser = getOpenMRSDeamonUser();
-        setCreator(newEmrEncounter, systemUser);
-        setCreator(newEmrEncounter.getVisit(), systemUser);
+//        User systemUser = getOpenMRSDeamonUser();
+        User systemUser = ParticipantHelper.getOpenMRSDeamonUser(userService);
+        ParticipantHelper.setCreator(newEmrEncounter, systemUser);
+        ParticipantHelper.setCreator(newEmrEncounter.getVisit(), systemUser);
+//        setCreator(newEmrEncounter, systemUser);
+//        setCreator(newEmrEncounter.getVisit(), systemUser);
 
-        newEmrEncounter.addProvider(encounterService.getEncounterRoleByUuid(EncounterRole.UNKNOWN_ENCOUNTER_ROLE_UUID), providerLookupService.shrClientSystemProvider());
+        newEmrEncounter.addProvider(encounterService.getEncounterRoleByUuid(EncounterRole.UNKNOWN_ENCOUNTER_ROLE_UUID), providerLookupService.getShrClientSystemProvider());
     }
 
     private boolean shouldSyncEncounter(String encounterId) {
@@ -223,13 +228,13 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
 
-    private void setCreator(Visit visit, User systemUser) {
-        if (visit.getCreator() == null) {
-            visit.setCreator(systemUser);
-        } else {
-            visit.setChangedBy(systemUser);
-        }
-    }
+//    private void setCreator(Visit visit, User systemUser) {
+//        if (visit.getCreator() == null) {
+//            visit.setCreator(systemUser);
+//        } else {
+//            visit.setChangedBy(systemUser);
+//        }
+//    }
 
     private String getConceptId(String conceptName) {
         if (conceptName == null) {
@@ -239,23 +244,23 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         return concept != null ? String.valueOf(concept.getConceptId()) : null;
     }
 
-    private void setCreator(org.openmrs.Patient emrPatient) {
-        User systemUser = getOpenMRSDeamonUser();
-        if (emrPatient.getCreator() == null) {
-            emrPatient.setCreator(systemUser);
-        } else {
-            emrPatient.setChangedBy(systemUser);
-        }
+//    private void setCreator(org.openmrs.Patient emrPatient) {
+//        User systemUser = getOpenMRSDeamonUser();
+//        if (emrPatient.getCreator() == null) {
+//            emrPatient.setCreator(systemUser);
+//        } else {
+//            emrPatient.setChangedBy(systemUser);
+//        }
+//
+//    }
 
-    }
-
-    private void setCreator(org.openmrs.Encounter encounter, User systemUser) {
-        if (encounter.getCreator() == null) {
-            encounter.setCreator(systemUser);
-        } else {
-            encounter.setChangedBy(systemUser);
-        }
-    }
+//    private void setCreator(org.openmrs.Encounter encounter, User systemUser) {
+//        if (encounter.getCreator() == null) {
+//            encounter.setCreator(systemUser);
+//        } else {
+//            encounter.setChangedBy(systemUser);
+//        }
+//    }
 
     private void setIdentifier(org.openmrs.Patient emrPatient) {
         PatientIdentifier patientIdentifier = emrPatient.getPatientIdentifier();

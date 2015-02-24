@@ -93,7 +93,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
 
     private Provider getOrderer() {
         //TODO : Lookup from medication prescription prescriber field.
-        return providerLookupService.shrClientSystemProvider();
+        return providerLookupService.getShrClientSystemProvider();
     }
 
     private void mapFrequencyAndDurationAndScheduledDate(DrugOrder drugOrder, MedicationPrescriptionDosageInstructionComponent dosageInstruction) {
