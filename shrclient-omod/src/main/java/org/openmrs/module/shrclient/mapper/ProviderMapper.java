@@ -10,13 +10,14 @@ import org.openmrs.module.shrclient.model.ProviderEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class ProviderMapper {
-    private final static String ORGANIZATION_ATTRIBUTE_TYPE_NAME = "Organization";
-    private final static String RETIRE_REASON = "Upstream Deletion";
+    public final static String ORGANIZATION_ATTRIBUTE_TYPE_NAME = "Organization";
+    public final static String RETIRE_REASON = "Upstream Deletion";
     private final static String NOT_ACTIVE = "0";
     private ProviderService providerService;
-    private ProviderAttributeType organizationAttributeType;
 
     @Autowired
     public ProviderMapper(ProviderService providerService) {
@@ -44,12 +45,7 @@ public class ProviderMapper {
 
     private void mapOrganization(ProviderEntry providerEntry, Provider provider) {
         if(providerEntry.getOrganization() != null) {
-            if (organizationAttributeType == null) {
-                findOrganizationProviderAttributeType();
-            }
-            ProviderAttribute providerAttribute = new ProviderAttribute();
-            providerAttribute.setProvider(provider);
-            providerAttribute.setAttributeType(organizationAttributeType);
+            ProviderAttribute providerAttribute = getProviderAttribute(provider);
             String facilityUrl = providerEntry.getOrganization().getReference();
             String facilityId = new EntityReference().parse(Location.class, facilityUrl);
             providerAttribute.setValue(facilityId);
@@ -57,12 +53,35 @@ public class ProviderMapper {
         }
     }
 
-    private void findOrganizationProviderAttributeType() {
+    private ProviderAttribute getProviderAttribute(Provider provider) {
+        ProviderAttributeType organizationAttributeType = findOrganizationProviderAttributeType();
+        ProviderAttribute providerAttribute = findInExistingAttributes(provider, organizationAttributeType);
+        if(providerAttribute == null) {
+            providerAttribute = createNewProviderAttribute(provider, organizationAttributeType);
+        }
+        return providerAttribute;
+    }
+
+    private ProviderAttribute findInExistingAttributes(Provider provider, ProviderAttributeType organizationAttributeType) {
+        List<ProviderAttribute> providerAttributes = provider.getActiveAttributes(organizationAttributeType);
+        if(!providerAttributes.isEmpty()) return providerAttributes.get(0);
+        return null;
+    }
+
+    private ProviderAttribute createNewProviderAttribute(Provider provider, ProviderAttributeType organizationAttributeType) {
+        ProviderAttribute providerAttribute;
+        providerAttribute = new ProviderAttribute();
+        providerAttribute.setProvider(provider);
+        providerAttribute.setAttributeType(organizationAttributeType);
+        return providerAttribute;
+    }
+
+    private ProviderAttributeType findOrganizationProviderAttributeType() {
         for (ProviderAttributeType providerAttributeType : providerService.getAllProviderAttributeTypes(false)) {
             if (providerAttributeType.getName().equals(ORGANIZATION_ATTRIBUTE_TYPE_NAME)) {
-                organizationAttributeType = providerAttributeType;
-                break;
+                return providerAttributeType;
             }
         }
+        return null;
     }
 }
