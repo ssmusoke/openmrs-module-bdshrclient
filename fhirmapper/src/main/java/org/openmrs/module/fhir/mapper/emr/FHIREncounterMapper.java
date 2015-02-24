@@ -12,7 +12,6 @@ import org.openmrs.Patient;
 import org.openmrs.Visit;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.LocationService;
-import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.VisitLookupService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -35,9 +34,6 @@ public class FHIREncounterMapper {
 
     @Autowired
     private EncounterService encounterService;
-
-    @Autowired
-    private VisitService visitService;
 
     @Autowired
     private List<FHIRResourceMapper> fhirResourceMappers;

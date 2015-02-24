@@ -28,6 +28,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
 
     @Autowired
     private ApplicationContext springContext;
+
     @Autowired
     private FHIREncounterMapper fhirEncounterMapper;
 
@@ -84,12 +85,14 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         final AtomFeed encounterBundle = loadSampleFHIREncounter().getFeed();
 
         List<Condition> conditions = FHIRFeedHelper.getConditions(encounterBundle);
+        final Composition composition = FHIRFeedHelper.getComposition(encounterBundle);
         assertEquals(2, conditions.size());
         assertEquals("http://mci.com//api/v1/patients/HIDA764177", conditions.get(0).getSubject().getReferenceSimple());
 
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
+        final Encounter encounter = FHIRFeedHelper.getEncounter(encounterBundle);
 
-        final org.openmrs.Encounter emrEncounter = fhirMapper.map(emrPatient, encounterBundle);
+        final org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map(encounter, composition.getDateSimple().toString(), emrPatient, encounterBundle);
 
         final Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);
         assertEquals(2, visitObs.size());

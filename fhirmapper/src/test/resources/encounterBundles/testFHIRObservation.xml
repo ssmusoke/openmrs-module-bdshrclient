@@ -86,7 +86,7 @@
                 </subject>
                 <participant>
                     <individual>
-                        <reference value="2e602470-a4c6-492c-be80-37a6e54d2d43"/>
+                        <reference value="http://hrm.dghs.gov.bd/api/1.0/providers/18.json"/>
                     </individual>
                 </participant>
                 <indication>

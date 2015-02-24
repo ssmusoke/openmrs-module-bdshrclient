@@ -174,19 +174,19 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         DiagnosticOrder diagnosticOrder;
         diagnosticOrder = new DiagnosticOrder();
         diagnosticOrder.setSubject(fhirEncounter.getSubject());
-        diagnosticOrder.setOrderer(getOrdererReference(order));
+        diagnosticOrder.setOrderer(getOrdererReference(fhirEncounter));
         Identifier identifier = diagnosticOrder.addIdentifier();
         identifier.setValueSimple(new EntityReference().build(Order.class, systemProperties, UUID.randomUUID().toString()));
         diagnosticOrder.setEncounter(fhirEncounter.getIndication());
         diagnosticOrder.setStatusSimple(requested);
         return diagnosticOrder;
     }
-
-    //TODO : how do we identify this individual?
-    private ResourceReference getOrdererReference(Order order) {
-        ResourceReference orderer = new ResourceReference();
-        orderer.setReferenceSimple(order.getOrderer().getUuid());
-        return orderer;
+    
+    private ResourceReference getOrdererReference(Encounter encounter) {
+        List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
+        if ((participants != null) && !participants.isEmpty()) {
+            return participants.get(0).getIndividual();
+        }
+        return null;
     }
-
 }

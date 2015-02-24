@@ -1,20 +1,10 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.MedicationPrescription;
-import org.hl7.fhir.instance.model.Period;
-import org.hl7.fhir.instance.model.Quantity;
-import org.hl7.fhir.instance.model.Resource;
-import org.hl7.fhir.instance.model.ResourceType;
-import org.hl7.fhir.instance.model.Schedule;
-import org.openmrs.Concept;
-import org.openmrs.Drug;
-import org.openmrs.DrugOrder;
+import org.hl7.fhir.instance.model.*;
+import org.openmrs.*;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
-import org.openmrs.OrderFrequency;
 import org.openmrs.Patient;
-import org.openmrs.Provider;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
@@ -33,6 +23,7 @@ import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hl7.fhir.instance.model.MedicationPrescription.MedicationPrescriptionDosageInstructionComponent;
 import static org.openmrs.module.fhir.mapper.MRSProperties.DRUG_ORDER_QUANTITY_UNITS_CONCEPT_NAME;
 import static org.openmrs.module.fhir.utils.DateUtil.parseDate;
+import static org.openmrs.module.fhir.utils.ParticipantHelper.extractProviderId;
 import static org.openmrs.module.fhir.utils.UnitsHelpers.UnitToDaysConverter;
 
 @Component
@@ -73,7 +64,8 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
         MedicationPrescriptionDosageInstructionComponent dosageInstruction = prescription.getDosageInstruction().get(0);
         mapDosageAndRoute(drugOrder, dosageInstruction);
         mapFrequencyAndDurationAndScheduledDate(drugOrder, dosageInstruction);
-        drugOrder.setOrderer(getOrderer());
+        Provider orderer = getOrderer(prescription, drugOrder);
+        drugOrder.setOrderer(orderer);
         drugOrder.setNumRefills(DEFAULT_NUM_REFILLS);
         drugOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(feed));
 
@@ -91,9 +83,15 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
         drugOrder.setQuantityUnits(conceptService.getConceptByName(DRUG_ORDER_QUANTITY_UNITS_CONCEPT_NAME));
     }
 
-    private Provider getOrderer() {
-        //TODO : Lookup from medication prescription prescriber field.
-        return providerLookupService.getShrClientSystemProvider();
+    private Provider getOrderer(MedicationPrescription prescription, DrugOrder drugOrder) {
+        ResourceReference prescriber = prescription.getPrescriber();
+        Provider provider = null;
+        if (prescriber != null) {
+            String presciberReferenceUrl = prescriber.getReferenceSimple();
+            String prescriberId = extractProviderId(presciberReferenceUrl);
+            provider = providerLookupService.getShrClientSystemProvider(prescriberId);
+        }
+        return provider;
     }
 
     private void mapFrequencyAndDurationAndScheduledDate(DrugOrder drugOrder, MedicationPrescriptionDosageInstructionComponent dosageInstruction) {
@@ -111,7 +109,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
         drugOrder.setUrgency(Order.Urgency.ROUTINE);
         if (!schedule.getEvent().isEmpty()) {
             Period period = schedule.getEvent().get(0);
-            if(period.getStartSimple() != null) {
+            if (period.getStartSimple() != null) {
                 drugOrder.setScheduledDate(parseDate(period.getStartSimple().toString()));
                 drugOrder.setUrgency(Order.Urgency.ON_SCHEDULED_DATE);
             }
@@ -168,7 +166,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
     private Drug mapDrug(MedicationPrescription prescription) {
         String drugExternalId = substringAfterLast(prescription.getMedication().getReferenceSimple(), URL_SEPERATOR);
         Drug drug = omrsConceptLookup.findDrug(drugExternalId);
-        if(drug == null) {
+        if (drug == null) {
             drug = conceptService.getDrugByNameOrId(prescription.getMedication().getDisplaySimple());
         }
         return drug;

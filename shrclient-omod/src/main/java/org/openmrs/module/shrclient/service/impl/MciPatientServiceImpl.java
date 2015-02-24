@@ -9,17 +9,16 @@ import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.Constants;
-import org.openmrs.module.fhir.utils.ProviderLookupService;
+import org.openmrs.module.fhir.utils.ParticipantHelper;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.AddressHelper;
-import org.openmrs.module.shrclient.util.ParticipantHelper;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
@@ -38,9 +37,6 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     @Autowired
     private BbsCodeService bbsCodeService;
-
-    @Autowired
-    private EncounterService encounterService;
 
     @Autowired
     private VisitService visitService;
@@ -62,9 +58,6 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     @Autowired
     private PropertiesReader propertiesReader;
-
-    @Autowired
-    private ProviderLookupService providerLookupService;
 
     @Autowired
     private UserService userService;
@@ -120,8 +113,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
             e.printStackTrace();
         }
 
-        ParticipantHelper.setCreator(emrPatient,userService);
-//        setCreator(emrPatient);
+        ParticipantHelper.setCreator(emrPatient, userService);
         org.openmrs.Patient patient = patientService.savePatient(emrPatient);
         addPatientToIdMapping(patient, mciPatient.getHealthId());
         return emrPatient;
@@ -184,8 +176,6 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
         if (!shouldSyncEncounter(fhirEncounterId)) return;
         org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, feed);
-
-        setEncounterProviderAndCreator(newEmrEncounter);
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
         addEncounterToIdMapping(newEmrEncounter, fhirEncounterId, healthId);
@@ -212,29 +202,9 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         idMappingsRepository.saveMapping(new IdMapping(internalUuid, externalUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE, url));
     }
 
-    private void setEncounterProviderAndCreator(org.openmrs.Encounter newEmrEncounter) {
-//        User systemUser = getOpenMRSDeamonUser();
-        User systemUser = ParticipantHelper.getOpenMRSDeamonUser(userService);
-        ParticipantHelper.setCreator(newEmrEncounter, systemUser);
-        ParticipantHelper.setCreator(newEmrEncounter.getVisit(), systemUser);
-//        setCreator(newEmrEncounter, systemUser);
-//        setCreator(newEmrEncounter.getVisit(), systemUser);
-
-        newEmrEncounter.addProvider(encounterService.getEncounterRoleByUuid(EncounterRole.UNKNOWN_ENCOUNTER_ROLE_UUID), providerLookupService.getShrClientSystemProvider());
-    }
-
     private boolean shouldSyncEncounter(String encounterId) {
         return (idMappingsRepository.findByExternalId(encounterId) == null) ? true : false;
     }
-
-
-//    private void setCreator(Visit visit, User systemUser) {
-//        if (visit.getCreator() == null) {
-//            visit.setCreator(systemUser);
-//        } else {
-//            visit.setChangedBy(systemUser);
-//        }
-//    }
 
     private String getConceptId(String conceptName) {
         if (conceptName == null) {
@@ -243,24 +213,6 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         Concept concept = Context.getConceptService().getConceptByName(conceptName);
         return concept != null ? String.valueOf(concept.getConceptId()) : null;
     }
-
-//    private void setCreator(org.openmrs.Patient emrPatient) {
-//        User systemUser = getOpenMRSDeamonUser();
-//        if (emrPatient.getCreator() == null) {
-//            emrPatient.setCreator(systemUser);
-//        } else {
-//            emrPatient.setChangedBy(systemUser);
-//        }
-//
-//    }
-
-//    private void setCreator(org.openmrs.Encounter encounter, User systemUser) {
-//        if (encounter.getCreator() == null) {
-//            encounter.setCreator(systemUser);
-//        } else {
-//            encounter.setChangedBy(systemUser);
-//        }
-//    }
 
     private void setIdentifier(org.openmrs.Patient emrPatient) {
         PatientIdentifier patientIdentifier = emrPatient.getPatientIdentifier();
@@ -281,11 +233,6 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         emrPersonName.setGivenName(mciPatient.getGivenName());
         emrPersonName.setFamilyName(mciPatient.getSurName());
     }
-
-    private User getOpenMRSDeamonUser() {
-        return userService.getUserByUuid(Constants.OPENMRS_DAEMON_USER);
-    }
-
 
     private void addPersonAttribute(PersonService personService, org.openmrs.Patient emrPatient, String attributeName, String attributeValue) {
         PersonAttribute attribute = new PersonAttribute();
@@ -312,6 +259,5 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
                 propertiesReader.getFrProperties(), propertiesReader.getTrProperties(), propertiesReader.getPrProperties());
         String url = new EntityReference().build(org.openmrs.Patient.class, systemProperties, healthId);
         idMappingsRepository.saveMapping(new IdMapping(patientUuid, healthId, Constants.ID_MAPPING_PATIENT_TYPE, url));
-
     }
 }

@@ -1,9 +1,8 @@
-package org.openmrs.module.shrclient.util;
+package org.openmrs.module.fhir.utils;
 
 import org.openmrs.User;
 import org.openmrs.Visit;
 import org.openmrs.api.UserService;
-import org.openmrs.module.fhir.utils.Constants;
 
 public class ParticipantHelper {
 
@@ -35,5 +34,16 @@ public class ParticipantHelper {
             emrPatient.setChangedBy(systemUser);
         }
 
+    }
+
+    public static String extractProviderId(String providerUrl) {
+        if (providerUrl == null) {
+            return null;
+        }
+        try {
+            return providerUrl.substring(providerUrl.lastIndexOf('/') + 1, providerUrl.lastIndexOf('.'));
+        } catch (StringIndexOutOfBoundsException ex) {
+            return null;
+        }
     }
 }

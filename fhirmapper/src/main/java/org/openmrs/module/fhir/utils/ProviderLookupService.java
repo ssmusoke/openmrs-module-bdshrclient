@@ -23,4 +23,17 @@ public class ProviderLookupService {
         UserService userService = Context.getUserService();
         return userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME);
     }
+
+    public Provider getShrClientSystemProvider(String providerId) {
+        Provider provider;
+        if (providerId == null || !providerId.matches("[0-9]+")) {
+            provider = getShrClientSystemProvider();
+        } else {
+            provider = providerService.getProviderByIdentifier(providerId);
+        }
+        if (provider == null) {
+            provider = getShrClientSystemProvider();
+        }
+        return provider;
+    }
 }

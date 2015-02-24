@@ -55,11 +55,9 @@ public class MciPatientLookupController {
                 patientList.add(mciPatient);
             }
         }
-
         if (!patientList.isEmpty()) {
             return mapSearchResults(patientList);
         }
-
         return null;
     }
 
@@ -125,8 +123,6 @@ public class MciPatientLookupController {
                 addressModel.put("unionOrUrbanWard", getAddressEntryText(address
                         .createUserGeneratedUnionOrUrbanWardId()));
         }
-
-
         patientModel.put("address", addressModel);
         return patientModel;
     }
@@ -163,9 +159,7 @@ public class MciPatientLookupController {
 
     private String getAddressEntryText(String code) {
         AddressHierarchyService addressHierarchyService = Context.getService(AddressHierarchyService.class);
-
         AddressHierarchyEntry entry = addressHierarchyService.getAddressHierarchyEntryByUserGenId(code);
         return entry.getName();
-
     }
 }

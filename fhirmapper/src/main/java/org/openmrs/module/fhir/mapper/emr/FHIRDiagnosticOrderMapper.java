@@ -3,6 +3,7 @@ package org.openmrs.module.fhir.mapper.emr;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.DiagnosticOrder;
 import org.hl7.fhir.instance.model.Resource;
+import org.hl7.fhir.instance.model.ResourceReference;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static org.openmrs.module.fhir.utils.ParticipantHelper.extractProviderId;
 
 
 @Component
@@ -68,9 +71,18 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         testOrder.setConcept(testOrderConcept);
         testOrder.setPatient(patient);
         testOrder.setEncounter(encounter);
-        testOrder.setOrderer(providerLookupService.getShrClientSystemProvider());
+        setPractitioner(testOrder, diagnosticOrder);
         testOrder.setDateActivated(encounter.getEncounterDatetime());
         testOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(feed));
         return testOrder;
+    }
+
+    private void setPractitioner(TestOrder testOrder, DiagnosticOrder diagnosticOrder) {
+        ResourceReference orderer = diagnosticOrder.getOrderer();
+        if (orderer != null) {
+            String practitionerReferenceUrl = orderer.getReferenceSimple();
+            String practitionerId = extractProviderId(practitionerReferenceUrl);
+            testOrder.setOrderer(providerLookupService.getShrClientSystemProvider(practitionerId));
+        }
     }
 }
