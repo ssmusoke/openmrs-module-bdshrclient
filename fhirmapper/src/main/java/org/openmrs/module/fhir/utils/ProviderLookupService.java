@@ -1,5 +1,6 @@
 package org.openmrs.module.fhir.utils;
 
+import org.apache.commons.lang.StringUtils;
 import org.openmrs.Provider;
 import org.openmrs.User;
 import org.openmrs.api.ProviderService;
@@ -26,7 +27,7 @@ public class ProviderLookupService {
 
     public Provider getShrClientSystemProvider(String providerId) {
         Provider provider;
-        if (providerId == null || !providerId.matches("[0-9]+")) {
+        if (StringUtils.isEmpty(providerId) || !providerId.matches("[0-9]+")) {
             provider = getShrClientSystemProvider();
         } else {
             provider = providerService.getProviderByIdentifier(providerId);

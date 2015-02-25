@@ -1,5 +1,6 @@
 package org.openmrs.module.fhir.mapper.emr;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.Composition;
 import org.openmrs.Encounter;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.List;
 
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.getComposition;
@@ -50,7 +52,7 @@ public class FHIRMapper {
         setCreator(newEmrEncounter.getVisit(), systemUser);
         List<org.hl7.fhir.instance.model.Encounter.EncounterParticipantComponent> participants = fhirEncounter.getParticipant();
         String providerUrl = null;
-        if (participants != null || !participants.isEmpty()) {
+        if (!CollectionUtils.isEmpty(participants)) {
             providerUrl = participants.get(0).getIndividual().getReferenceSimple();
         }
         String providerId = extractProviderId(providerUrl);

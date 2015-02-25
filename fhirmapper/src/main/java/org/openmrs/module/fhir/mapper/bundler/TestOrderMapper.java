@@ -184,7 +184,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
     
     private ResourceReference getOrdererReference(Encounter encounter) {
         List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
-        if ((participants != null) && !participants.isEmpty()) {
+        if(!CollectionUtils.isEmpty(participants)) {
             return participants.get(0).getIndividual();
         }
         return null;
