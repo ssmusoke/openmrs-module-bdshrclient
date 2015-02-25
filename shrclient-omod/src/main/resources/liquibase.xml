@@ -367,18 +367,12 @@
             <column name="schedulable_class" value="org.openmrs.module.shrclient.scheduler.tasks.PRSyncTask"/>
             <column name="start_time" valueDate=" now() "/>
             <column name="start_time_pattern" value="MM/dd/yyyy HH:mm:ss"/>
-            <column name="repeat_interval" value="15"/>
+            <column name="repeat_interval" value="86400"/>
             <column name="start_on_startup" value="0"/>
             <column name="started" value="0"/>
             <column name="created_by" value="1"/>
             <column name="date_created" valueDate=" now() "/>
             <column name="uuid" valueComputed=" uuid() "/>
         </insert>
-    </changeSet>
-    <changeSet id="bdshrclient-20150224-1550" author="tw" context="setup">
-        <update tableName="scheduler_task_config">
-            <column name="repeat_interval" value="86400" />
-            <where>name = 'PR Sync Task'</where>
-        </update>
     </changeSet>
 </databaseChangeLog>
