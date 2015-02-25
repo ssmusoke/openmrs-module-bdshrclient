@@ -1,12 +1,13 @@
 package org.openmrs.module.shrclient.mapper;
 
 import org.openmrs.PersonAttribute;
-import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.util.AddressHelper;
 
 import java.text.SimpleDateFormat;
+
+import static org.openmrs.module.fhir.utils.Constants.*;
 
 public class PatientMapper {
     private final AddressHelper addressHelper;
@@ -25,44 +26,54 @@ public class PatientMapper {
     public Patient map(org.openmrs.Patient openMrsPatient) {
         Patient patient = new Patient();
 
-        String nationalId = getAttributeValue(openMrsPatient, Constants.NATIONAL_ID_ATTRIBUTE);
+        String nationalId = getAttributeValue(openMrsPatient, NATIONAL_ID_ATTRIBUTE);
         if (nationalId != null) {
             patient.setNationalId(nationalId);
         }
 
-        String healthId = getAttributeValue(openMrsPatient, Constants.HEALTH_ID_ATTRIBUTE);
+        String healthId = getAttributeValue(openMrsPatient, HEALTH_ID_ATTRIBUTE);
         if (healthId != null) {
             patient.setHealthId(healthId);
+        }
+
+        String birthRegNo = getAttributeValue(openMrsPatient, BIRTH_REG_NO_ATTRIBUTE);
+        if (birthRegNo != null) {
+            patient.setBirthRegNumber(birthRegNo);
+        }
+
+        String uniqueId = getAttributeValue(openMrsPatient, UNIQUE_ID_ATTRIBUTE);
+        if (uniqueId != null) {
+            patient.setUniqueId(uniqueId);
         }
 
         patient.setGivenName(openMrsPatient.getGivenName());
         patient.setSurName(openMrsPatient.getFamilyName());
         patient.setGender(openMrsPatient.getGender());
-        patient.setDateOfBirth(new SimpleDateFormat(Constants.ISO_DATE_FORMAT).format(openMrsPatient.getBirthdate()));
+        patient.setDateOfBirth(new SimpleDateFormat(ISO_DATE_FORMAT).format(openMrsPatient.getBirthdate()));
 
-        PersonAttribute occupation = getAttribute(openMrsPatient, Constants.OCCUPATION_ATTRIBUTE);
+        PersonAttribute occupation = getAttribute(openMrsPatient, OCCUPATION_ATTRIBUTE);
         if (occupation != null) {
             patient.setOccupation(bbsCodeService.getOccupationCode(occupation.toString()));
         }
 
-        PersonAttribute education = getAttribute(openMrsPatient, Constants.EDUCATION_ATTRIBUTE);
+        PersonAttribute education = getAttribute(openMrsPatient, EDUCATION_ATTRIBUTE);
         if (education != null) {
             patient.setEducationLevel(bbsCodeService.getEducationCode(education.toString()));
         }
 
-        String primaryContact = getAttributeValue(openMrsPatient, Constants.PRIMARY_CONTACT_ATTRIBUTE);
+        String primaryContact = getAttributeValue(openMrsPatient, PRIMARY_CONTACT_ATTRIBUTE);
         if (primaryContact != null) {
             patient.setPrimaryContact(primaryContact);
         }
         patient.setAddress(addressHelper.getMciAddress(openMrsPatient));
         Boolean isDead = openMrsPatient.isDead();
-        if (isDead){
+        if (isDead) {
             patient.setStatus('2');
         } else {
             patient.setStatus('1');
         }
         if (openMrsPatient.getDeathDate() != null) {
-            patient.setDateOfDeath(new SimpleDateFormat(Constants.ISO_DATE_FORMAT).format(openMrsPatient.getDeathDate()));
+            patient.setDateOfDeath(new SimpleDateFormat(ISO_DATE_FORMAT).format(openMrsPatient.getDeathDate()));
         }
         return patient;
     }

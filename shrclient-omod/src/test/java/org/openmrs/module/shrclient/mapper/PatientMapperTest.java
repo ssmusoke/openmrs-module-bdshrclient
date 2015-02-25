@@ -1,28 +1,36 @@
 package org.openmrs.module.shrclient.mapper;
 
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.openmrs.Person;
+import org.openmrs.PersonAddress;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
+import org.openmrs.PersonName;
 import org.openmrs.module.addresshierarchy.AddressField;
+import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
+import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
+import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.shrclient.model.Address;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;
-import org.openmrs.module.fhir.utils.Constants;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.openmrs.*;
-import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
-import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
-import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.shrclient.util.AddressHelper;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.openmrs.module.fhir.utils.Constants.*;
 
 public class PatientMapperTest {
 
@@ -35,6 +43,8 @@ public class PatientMapperTest {
 
     private String nationalId = "nid-100";
     private String healthId = "hid-200";
+    private String brnId = "brn-200";
+    private String uniqueId = "uid-200";
     private String occupation = "agriculture";
     private String educationLevel = "6th to 9th";
     private String primaryContact = "some contact";
@@ -48,13 +58,13 @@ public class PatientMapperTest {
     }
 
     @Test
-    public void shouldOpenMrsPatientToMciPatient() throws Exception {
+    public void shouldMapOpenMrsPatientToMciPatient() throws Exception {
         final String givenName = "Sachin";
         final String middleName = "Ramesh";
         final String familyName = "Tendulkar";
         final String gender = "M";
-        final Date dateOfBirth = new SimpleDateFormat(Constants.ISO_DATE_FORMAT).parse("2000-12-31");
-        final Date dateOfDeath = new SimpleDateFormat(Constants.ISO_DATE_FORMAT).parse("2010-12-31");
+        final Date dateOfBirth = new SimpleDateFormat(ISO_DATE_FORMAT).parse("2000-12-31");
+        final Date dateOfDeath = new SimpleDateFormat(ISO_DATE_FORMAT).parse("2010-12-31");
 
         final String addressLine = "house10";
         final String divisionId = "10";
@@ -110,11 +120,13 @@ public class PatientMapperTest {
         Patient p = new Patient();
         p.setNationalId(nationalId);
         p.setHealthId(healthId);
+        p.setBirthRegNumber(brnId);
+        p.setUniqueId(uniqueId);
         p.setGivenName(givenName);
         p.setSurName(familyName);
         p.setGender(gender);
-        p.setDateOfBirth(new SimpleDateFormat(Constants.ISO_DATE_FORMAT).format(dateOfBirth));
-        p.setDateOfDeath(new SimpleDateFormat(Constants.ISO_DATE_FORMAT).format(dateOfDeath));
+        p.setDateOfBirth(new SimpleDateFormat(ISO_DATE_FORMAT).format(dateOfBirth));
+        p.setDateOfDeath(new SimpleDateFormat(ISO_DATE_FORMAT).format(dateOfDeath));
         p.setOccupation(bbsCodeService.getOccupationCode(occupation));
         p.setEducationLevel(bbsCodeService.getEducationCode(educationLevel));
         p.setPrimaryContact(primaryContact);
@@ -133,61 +145,42 @@ public class PatientMapperTest {
     }
 
     private Set<PersonAttribute> createOpenMrsPersonAttributes() {
-        Set<PersonAttribute> attributes = new HashSet<PersonAttribute>();
+        Set<PersonAttribute> attributes = new HashSet<>();
         final PersonAttributeType nationalIdAttrType = new PersonAttributeType();
-        nationalIdAttrType.setName(Constants.NATIONAL_ID_ATTRIBUTE);
+        nationalIdAttrType.setName(NATIONAL_ID_ATTRIBUTE);
         attributes.add(new PersonAttribute(nationalIdAttrType, nationalId));
 
         final PersonAttributeType healthIdAttrType = new PersonAttributeType();
-        healthIdAttrType.setName(Constants.HEALTH_ID_ATTRIBUTE);
+        healthIdAttrType.setName(HEALTH_ID_ATTRIBUTE);
         attributes.add(new PersonAttribute(healthIdAttrType, healthId));
 
+        final PersonAttributeType brnIdAttrType = new PersonAttributeType();
+        brnIdAttrType.setName(BIRTH_REG_NO_ATTRIBUTE);
+        attributes.add(new PersonAttribute(brnIdAttrType, brnId));
+
+        final PersonAttributeType uniqueIdAttrType = new PersonAttributeType();
+        uniqueIdAttrType.setName(UNIQUE_ID_ATTRIBUTE);
+        attributes.add(new PersonAttribute(uniqueIdAttrType, uniqueId));
+
         final PersonAttributeType occupationAttrType = new PersonAttributeType();
-        occupationAttrType.setName(Constants.OCCUPATION_ATTRIBUTE);
+        occupationAttrType.setName(OCCUPATION_ATTRIBUTE);
         attributes.add(new PersonAttribute(occupationAttrType, occupation));
 
         final PersonAttributeType educationAttrType = new PersonAttributeType();
-        educationAttrType.setName(Constants.EDUCATION_ATTRIBUTE);
+        educationAttrType.setName(EDUCATION_ATTRIBUTE);
         attributes.add(new PersonAttribute(educationAttrType, educationLevel));
 
         final PersonAttributeType primaryContactAttrType = new PersonAttributeType();
-        primaryContactAttrType.setName(Constants.PRIMARY_CONTACT_ATTRIBUTE);
+        primaryContactAttrType.setName(PRIMARY_CONTACT_ATTRIBUTE);
         attributes.add(new PersonAttribute(primaryContactAttrType, primaryContact));
         return attributes;
     }
 
     private List<AddressHierarchyEntry> createAddressHierarchyEntries(String id) {
-        List<AddressHierarchyEntry> entries1 = new ArrayList<AddressHierarchyEntry>();
+        List<AddressHierarchyEntry> entries1 = new ArrayList<>();
         AddressHierarchyEntry entry1 = new AddressHierarchyEntry();
         entry1.setUserGeneratedId(id);
         entries1.add(entry1);
         return entries1;
-    }
-
-    @Test
-    public void dummy () {
-        Date now = new Date();
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(now);
-
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-
-        Date beginTime = new Date(cal.getTimeInMillis());
-
-        cal.set(Calendar.HOUR_OF_DAY, 23);
-        cal.set(Calendar.MINUTE, 59);
-        cal.set(Calendar.SECOND, 59);
-        cal.set(Calendar.MILLISECOND, 0);
-
-        Date endTime = new Date(cal.getTimeInMillis());
-
-        System.out.println("current:" + now);
-        System.out.println("begin:" + beginTime);
-        System.out.println("end:" + endTime);
-
-
     }
 }

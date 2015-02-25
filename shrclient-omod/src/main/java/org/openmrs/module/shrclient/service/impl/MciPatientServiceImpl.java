@@ -2,13 +2,25 @@ package org.openmrs.module.shrclient.service.impl;
 
 import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.model.AtomFeed;
-import org.openmrs.*;
-import org.openmrs.api.*;
+import org.openmrs.Concept;
+import org.openmrs.Encounter;
+import org.openmrs.Order;
+import org.openmrs.PatientIdentifier;
+import org.openmrs.PatientIdentifierType;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
+import org.openmrs.PersonName;
+import org.openmrs.api.AdministrationService;
+import org.openmrs.api.ConceptService;
+import org.openmrs.api.OrderService;
+import org.openmrs.api.PatientService;
+import org.openmrs.api.PersonService;
+import org.openmrs.api.UserService;
+import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.fhir.utils.ParticipantHelper;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
@@ -29,6 +41,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+
+import static org.openmrs.module.fhir.utils.Constants.*;
 
 @Component
 public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPatientService {
@@ -80,14 +94,16 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         setDeathInfo(emrPatient, mciPatient);
         emrPatient.addAddress(addressHelper.setPersonAddress(emrPatient.getPersonAddress(), mciPatient.getAddress()));
 
-        addPersonAttribute(personService, emrPatient, Constants.NATIONAL_ID_ATTRIBUTE, mciPatient.getNationalId());
-        addPersonAttribute(personService, emrPatient, Constants.HEALTH_ID_ATTRIBUTE, mciPatient.getHealthId());
-        addPersonAttribute(personService, emrPatient, Constants.PRIMARY_CONTACT_ATTRIBUTE, mciPatient.getPrimaryContact());
+        addPersonAttribute(personService, emrPatient, NATIONAL_ID_ATTRIBUTE, mciPatient.getNationalId());
+        addPersonAttribute(personService, emrPatient, HEALTH_ID_ATTRIBUTE, mciPatient.getHealthId());
+        addPersonAttribute(personService, emrPatient, BIRTH_REG_NO_ATTRIBUTE, mciPatient.getBirthRegNumber());
+        addPersonAttribute(personService, emrPatient, UNIQUE_ID_ATTRIBUTE, mciPatient.getUniqueId());
+        addPersonAttribute(personService, emrPatient, PRIMARY_CONTACT_ATTRIBUTE, mciPatient.getPrimaryContact());
 
         String occupationConceptName = bbsCodeService.getOccupationConceptName(mciPatient.getOccupation());
         String occupationConceptId = getConceptId(occupationConceptName);
         if (occupationConceptId != null) {
-            addPersonAttribute(personService, emrPatient, Constants.OCCUPATION_ATTRIBUTE, occupationConceptId);
+            addPersonAttribute(personService, emrPatient, OCCUPATION_ATTRIBUTE, occupationConceptId);
         } else {
             logger.warn(String.format("Can't update occupation for patient. " +
                             "Can't identify relevant concept for patient hid:%s, occupation:%s, code:%s",
@@ -98,14 +114,14 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         String educationConceptName = bbsCodeService.getEducationConceptName(mciPatient.getEducationLevel());
         String educationConceptId = getConceptId(educationConceptName);
         if (educationConceptId != null) {
-            addPersonAttribute(personService, emrPatient, Constants.EDUCATION_ATTRIBUTE, educationConceptId);
+            addPersonAttribute(personService, emrPatient, EDUCATION_ATTRIBUTE, educationConceptId);
         } else {
             logger.warn(String.format("Can't update education for patient. " +
                             "Can't identify relevant concept for patient hid:%s, education:%s, code:%s",
                     mciPatient.getHealthId(), educationConceptName, mciPatient.getEducationLevel()));
         }
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Constants.ISO_DATE_FORMAT);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(ISO_DATE_FORMAT);
         try {
             Date dob = simpleDateFormat.parse(mciPatient.getDateOfBirth());
             emrPatient.setBirthdate(dob);
@@ -126,7 +142,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         }
         if (status == '2') {
             emrPatient.setDead(true);
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Constants.ISO_DATE_FORMAT);
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(ISO_DATE_FORMAT);
             String dateOfDeath = mciPatient.getDateOfDeath();
             if (dateOfDeath != null) {
                 try {
@@ -146,7 +162,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         IdentifierSourceService identifierSourceService = Context.getService(IdentifierSourceService.class);
         List<IdentifierSource> allIdentifierSources = identifierSourceService.getAllIdentifierSources(false);
         for (IdentifierSource identifierSource : allIdentifierSources) {
-            if (((SequentialIdentifierGenerator) identifierSource).getPrefix().equals(Constants.IDENTIFIER_SOURCE_NAME)) {
+            if (((SequentialIdentifierGenerator) identifierSource).getPrefix().equals(IDENTIFIER_SOURCE_NAME)) {
                 String identifier = identifierSourceService.generateIdentifier(identifierSource, "MCI Patient");
                 PatientIdentifierType identifierType = getPatientIdentifierType();
                 return new PatientIdentifier(identifier, identifierType, null);
@@ -199,7 +215,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         //TODO : put the right url
         String url = propertiesReader.getShrBaseUrl() +
                 "/patients/" + healthId + "/encounters/" + externalUuid;
-        idMappingsRepository.saveMapping(new IdMapping(internalUuid, externalUuid, Constants.ID_MAPPING_ENCOUNTER_TYPE, url));
+        idMappingsRepository.saveMapping(new IdMapping(internalUuid, externalUuid, ID_MAPPING_ENCOUNTER_TYPE, url));
     }
 
     private boolean shouldSyncEncounter(String encounterId) {
@@ -248,7 +264,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     private PatientIdentifierType getPatientIdentifierType() {
         AdministrationService administrationService = Context.getAdministrationService();
-        String globalProperty = administrationService.getGlobalProperty(Constants.EMR_PRIMARY_IDENTIFIER_TYPE);
+        String globalProperty = administrationService.getGlobalProperty(EMR_PRIMARY_IDENTIFIER_TYPE);
         PatientIdentifierType patientIdentifierByUuid = Context.getPatientService().getPatientIdentifierTypeByUuid(globalProperty);
         return patientIdentifierByUuid;
     }
@@ -258,6 +274,6 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         SystemProperties systemProperties = new SystemProperties(propertiesReader.getBaseUrls(), propertiesReader.getShrProperties(),
                 propertiesReader.getFrProperties(), propertiesReader.getTrProperties(), propertiesReader.getPrProperties());
         String url = new EntityReference().build(org.openmrs.Patient.class, systemProperties, healthId);
-        idMappingsRepository.saveMapping(new IdMapping(patientUuid, healthId, Constants.ID_MAPPING_PATIENT_TYPE, url));
+        idMappingsRepository.saveMapping(new IdMapping(patientUuid, healthId, ID_MAPPING_PATIENT_TYPE, url));
     }
 }
