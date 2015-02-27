@@ -47,6 +47,10 @@ public class PropertiesReader {
         return getProperties("identity.properties");
     }
 
+    public Properties getFacilityInstanceProperties() {
+        return getProperties("facility_instance.properties");
+    }
+
     public Identity getIdentity() {
         Properties properties = getProperties("identity.properties");
         return new Identity(properties.getProperty("identity.user"),

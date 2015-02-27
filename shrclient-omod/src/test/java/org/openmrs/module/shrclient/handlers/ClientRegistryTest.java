@@ -85,7 +85,6 @@ public class ClientRegistryTest {
                         .withBody(response)));
 
 
-
         stubFor(get(urlEqualTo("http://localhost:8089/mci"))
                 .withHeader(Headers.AUTH_TOKEN_KEY, equalTo(token.toString()))
                 .withHeader(Headers.AUTH_HEADER_KEY, equalTo(getAuthHeader().get(Headers.AUTH_HEADER_KEY)))
@@ -165,7 +164,6 @@ public class ClientRegistryTest {
                         .withBody(response)));
 
 
-
         stubFor(get(urlEqualTo("/patients/hid01/encounters"))
                 .withHeader(Headers.AUTH_TOKEN_KEY, equalTo(token.toString()))
                 .willReturn(aResponse()
@@ -196,17 +194,22 @@ public class ClientRegistryTest {
 
     @Test
     public void testCreateFRClient() throws Exception {
-        Properties frProperties = new Properties();
-        when(propertiesReader.getFrProperties()).thenReturn(frProperties);
-        when(propertiesReader.getFrBaseUrl()).thenReturn("http://localhost:8089");
-
         String xAuthTokenKey = "X-Auth-Token";
         String xAuthToken = "foobarbazboom";
+        String clientId = "client_id";
+        String clientIdValue = "18549";
 
-        frProperties.setProperty("fr.tokenName", xAuthTokenKey);
-        frProperties.setProperty("fr.tokenValue", xAuthToken);
+        Properties idpProperties = getIdpProperties(xAuthTokenKey, clientId);
+        Properties facilityInstanceProperties = getFacilityInstanceProperties(xAuthToken, clientIdValue);
+
+        when(propertiesReader.getIdentityProperties()).thenReturn(idpProperties);
+        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(facilityInstanceProperties);
+
+        when(propertiesReader.getFrBaseUrl()).thenReturn("http://localhost:8089");
 
         stubFor(get(urlEqualTo("http://localhost:8089/fr"))
+                .withHeader(xAuthTokenKey, equalTo(xAuthToken))
+                .withHeader(clientId, equalTo(clientIdValue))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withBody("")));
@@ -216,23 +219,28 @@ public class ClientRegistryTest {
         RestClient frWebClient = clientRegistry.getFRClient();
         assertNotNull(frWebClient);
         frWebClient.get("/fr", String.class);
-        verify(1, getRequestedFor(urlEqualTo("/fr")).withHeader(xAuthTokenKey, matching(xAuthToken)));
+        verify(1, getRequestedFor(urlMatching("/fr"))
+                .withHeader(xAuthTokenKey, matching(xAuthToken))
+                .withHeader(clientId, matching(clientIdValue)));
     }
 
     @Test
     public void testCreateLRClient() throws Exception {
-        Properties lrProperties = new Properties();
         String xAuthTokenKey = "X-Auth-Token";
         String xAuthToken = "foobarbazboom";
+        String clientId = "client_id";
+        String clientIdValue = "18549";
 
-        lrProperties.setProperty("lr.tokenName", xAuthTokenKey);
-        lrProperties.setProperty("lr.tokenValue", xAuthToken);
+        Properties idpProperties = getIdpProperties(xAuthTokenKey, clientId);
+        Properties facilityInstanceProperties = getFacilityInstanceProperties(xAuthToken, clientIdValue);
 
-        when(propertiesReader.getLrProperties()).thenReturn(lrProperties);
+        when(propertiesReader.getIdentityProperties()).thenReturn(idpProperties);
+        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(facilityInstanceProperties);
         when(propertiesReader.getLrBaseUrl()).thenReturn("http://localhost:8089");
 
         stubFor(get(urlEqualTo("http://localhost:8089/lr"))
                 .withHeader(xAuthTokenKey, equalTo(xAuthToken))
+                .withHeader(clientId, equalTo(clientIdValue))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withBody("")));
@@ -242,10 +250,55 @@ public class ClientRegistryTest {
         RestClient lrWebClient = clientRegistry.getLRClient();
         assertNotNull(lrWebClient);
         lrWebClient.get("/lr", String.class);
-        verify(1, getRequestedFor(urlEqualTo("/lr")).withHeader(xAuthTokenKey, matching(xAuthToken)));
+        verify(1, getRequestedFor(urlMatching("/lr"))
+                .withHeader(xAuthTokenKey, matching(xAuthToken))
+                .withHeader(clientId, matching(clientIdValue)));
     }
 
+    @Test
+    public void testCreatePRClient() throws Exception {
+        String xAuthTokenKey = "X_Auth_Token";
+        String xAuthToken = "xyz";
+        String clientId = "client_id";
+        String clientIdValue = "18549";
 
+        Properties idpProperties = getIdpProperties(xAuthTokenKey, clientId);
+        Properties facilityInstanceProperties = getFacilityInstanceProperties(xAuthToken, clientIdValue);
+
+        when(propertiesReader.getIdentityProperties()).thenReturn(idpProperties);
+        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(facilityInstanceProperties);
+        when(propertiesReader.getPrBaseUrl()).thenReturn("http://localhost:8089");
+
+        stubFor(get(urlMatching("/pr"))
+                .withHeader(xAuthTokenKey, equalTo(xAuthToken))
+                .withHeader(clientId, equalTo(clientIdValue))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody("")));
+
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader, null);
+
+        RestClient prWebClient = clientRegistry.getPRClient();
+        assertNotNull(prWebClient);
+        prWebClient.get("/pr", String.class);
+        verify(1, getRequestedFor(urlMatching("/pr"))
+                .withHeader(xAuthTokenKey, matching(xAuthToken))
+                .withHeader(clientId, matching(clientIdValue)));
+    }
+
+    private Properties getFacilityInstanceProperties(String xAuthToken, String clientIdValue) {
+        Properties facilityInstanceProperties = new Properties();
+        facilityInstanceProperties.setProperty("facility.apiToken", xAuthToken);
+        facilityInstanceProperties.setProperty("facility.clientId", clientIdValue);
+        return facilityInstanceProperties;
+    }
+
+    private Properties getIdpProperties(String xAuthTokenKey, String clientId) {
+        Properties idpProperties = new Properties();
+        idpProperties.setProperty("idP.tokenName", xAuthTokenKey);
+        idpProperties.setProperty("idP.clientIdName", clientId);
+        return idpProperties;
+    }
 
     private java.util.Map<String, String> getAuthHeader() {
         return Headers.getBasicAuthHeader("champoo", "*****");

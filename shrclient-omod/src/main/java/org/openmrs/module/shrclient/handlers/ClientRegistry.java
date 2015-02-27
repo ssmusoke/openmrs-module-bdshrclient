@@ -47,24 +47,29 @@ public class ClientRegistry {
     }
 
     public RestClient getLRClient() {
-        Properties properties = propertiesReader.getLrProperties();
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put(properties.getProperty("lr.tokenName"), properties.getProperty("lr.tokenValue"));
-        return new RestClient(propertiesReader.getLrBaseUrl(), headers);
+        return getRestClient(propertiesReader.getLrBaseUrl());
     }
 
     public RestClient getFRClient() {
-        Properties properties = propertiesReader.getFrProperties();
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put(properties.getProperty("fr.tokenName"), properties.getProperty("fr.tokenValue"));
-        return new RestClient(propertiesReader.getFrBaseUrl(), headers);
+        return getRestClient(propertiesReader.getFrBaseUrl());
     }
 
     public RestClient getPRClient() {
-        Properties properties = propertiesReader.getPrProperties();
+        return getRestClient(propertiesReader.getPrBaseUrl());
+    }
+
+    private RestClient getRestClient(String baseUrl) {
+        HashMap<String, String> headers = getHrmIdentityProperties();
+        return new RestClient(baseUrl, headers);
+    }
+
+    private HashMap<String, String> getHrmIdentityProperties() {
+        Properties facilityInstanceProperties = propertiesReader.getFacilityInstanceProperties();
+        Properties identityProperties = propertiesReader.getIdentityProperties();
         HashMap<String, String> headers = new HashMap<>();
-        headers.put(properties.getProperty("pr.tokenName"), properties.getProperty("pr.tokenValue"));
-        return new RestClient(propertiesReader.getPrBaseUrl(), headers);
+        headers.put(identityProperties.getProperty("idP.tokenName"), facilityInstanceProperties.getProperty("facility.apiToken"));
+        headers.put(identityProperties.getProperty("idP.clientIdName"), facilityInstanceProperties.getProperty("facility.clientId"));
+        return headers;
     }
 
     public RestClient getIdentityServiceClient() {

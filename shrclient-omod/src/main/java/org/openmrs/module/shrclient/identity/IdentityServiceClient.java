@@ -4,7 +4,6 @@ import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 
 import java.util.HashMap;
-import java.util.Properties;
 
 public class IdentityServiceClient {
     PropertiesReader propertiesReader;
