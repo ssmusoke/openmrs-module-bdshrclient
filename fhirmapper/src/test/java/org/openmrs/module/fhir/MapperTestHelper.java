@@ -31,10 +31,11 @@ public class MapperTestHelper {
         trProperties.setProperty("tr.valueset.refusalReason", "refusal-reason");
 
         Properties prPoperties = new Properties();
+        Properties facilityInstanceProperties = new Properties();
 
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("mci", "http://mci");
         baseUrls.put("tr", "http://tr");
-        return new SystemProperties(baseUrls, shrProperties, frProperties, trProperties, prPoperties);
+        return new SystemProperties(baseUrls, frProperties, trProperties, prPoperties, facilityInstanceProperties);
     }
 }

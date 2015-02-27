@@ -112,23 +112,6 @@ public class EncounterPushTest {
         assertEquals(uuid, encounterPush.getUuid(content));
     }
 
-
-    private SystemProperties getSystemProperties(String facilityId) {
-        Properties shrProperties = getShrProperties(facilityId);
-        Properties frProperties = getFrProperties();
-        Properties trProperties = new Properties();
-        Properties prPoperties = new Properties();
-        HashMap<String, String> baseUrls = getBaseUrls();
-        return new SystemProperties(baseUrls, shrProperties, frProperties, trProperties, prPoperties);
-    }
-
-    private Properties getFrProperties() {
-        Properties frProperties = new Properties();
-        frProperties.setProperty(SystemProperties.FACILITY_URL_FORMAT, "foo-bar-%s.json");
-        return frProperties;
-    }
-
-
     private Properties getShrProperties(String facilityId) {
         Properties shrProperties = new Properties();
         shrProperties.setProperty(SystemProperties.FACILITY_ID, facilityId);

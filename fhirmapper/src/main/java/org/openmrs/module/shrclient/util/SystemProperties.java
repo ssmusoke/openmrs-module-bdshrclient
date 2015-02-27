@@ -6,27 +6,27 @@ import java.util.Map;
 import java.util.Properties;
 
 public class SystemProperties {
-    public static final String FACILITY_ID = "shr.facilityId";
+    public static final String FACILITY_ID = "facility.facilityId";
     public static final String FACILITY_URL_FORMAT = "fr.facilityUrlFormat";
     public static final String TR_VALUESET_URL = "tr.base.valueset.url";
     public static final String PROVIDER_URL_FORMAT = "pr.providerUrlFormat";
     private Map<String, String> baseUrls;
-    private Properties shrProperties;
     private Properties frProperties;
     private Properties trProperties;
     private Properties prProperties;
+    private Properties facilityInstanceProperties;
 
-    public SystemProperties(Map<String, String> baseUrls, Properties shrProperties, Properties frProperties,
-                            Properties trProperties, Properties prProperties) {
+    public SystemProperties(Map<String, String> baseUrls, Properties frProperties,
+                            Properties trProperties, Properties prProperties, Properties facilityInstanceProperties) {
         this.baseUrls = baseUrls;
-        this.shrProperties = shrProperties;
         this.frProperties = frProperties;
         this.trProperties = trProperties;
         this.prProperties = prProperties;
+        this.facilityInstanceProperties = facilityInstanceProperties;
     }
 
     public String getFacilityId() {
-        return shrProperties.getProperty(FACILITY_ID);
+        return facilityInstanceProperties.getProperty(FACILITY_ID);
     }
 
     public String getMciPatientUrl() {

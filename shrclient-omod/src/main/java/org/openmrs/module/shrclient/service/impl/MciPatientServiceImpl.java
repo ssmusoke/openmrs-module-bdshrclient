@@ -271,8 +271,11 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     private void addPatientToIdMapping(org.openmrs.Patient emrPatient, String healthId) {
         String patientUuid = emrPatient.getUuid();
-        SystemProperties systemProperties = new SystemProperties(propertiesReader.getBaseUrls(), propertiesReader.getShrProperties(),
-                propertiesReader.getFrProperties(), propertiesReader.getTrProperties(), propertiesReader.getPrProperties());
+        SystemProperties systemProperties = new SystemProperties(propertiesReader.getBaseUrls(),
+                propertiesReader.getFrProperties(),
+                propertiesReader.getTrProperties(),
+                propertiesReader.getPrProperties(),
+                propertiesReader.getFacilityInstanceProperties());
         String url = new EntityReference().build(org.openmrs.Patient.class, systemProperties, healthId);
         idMappingsRepository.saveMapping(new IdMapping(patientUuid, healthId, ID_MAPPING_PATIENT_TYPE, url));
     }

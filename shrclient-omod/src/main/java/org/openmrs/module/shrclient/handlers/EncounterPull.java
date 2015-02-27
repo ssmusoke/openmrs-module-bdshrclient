@@ -64,7 +64,7 @@ public class EncounterPull {
 
     private String getFacilityId() {
         PropertiesReader propertiesReader = PlatformUtil.getRegisteredComponent(PropertiesReader.class);
-        Object facilityId = propertiesReader.getShrProperties().get("shr.facilityId");
+        Object facilityId = propertiesReader.getFacilityInstanceProperties().get("facility.facilityId");
         logger.info("Identified Facility:" + facilityId);
         if (facilityId == null) {
             throw new RuntimeException("Facility Id not defined.");
@@ -73,9 +73,9 @@ public class EncounterPull {
     }
 
     public ArrayList<String> getEncounterFeedUrls(PropertiesReader propertiesReader) {
-        Properties shrProperties = propertiesReader.getShrProperties();
+        Properties facilityInstanceProperties = propertiesReader.getFacilityInstanceProperties();
         String shrBaseUrl = propertiesReader.getShrBaseUrl();
-        String catchments = shrProperties.get("shr.catchments").toString();
+        String catchments = facilityInstanceProperties.get("facility.catchments").toString();
         String[] facilityCatchments = catchments.split(",");
         ArrayList<String> catchmentsUrls = new ArrayList<>();
         for (String facilityCatchment : facilityCatchments) {
