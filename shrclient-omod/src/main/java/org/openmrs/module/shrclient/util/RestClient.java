@@ -4,6 +4,7 @@ package org.openmrs.module.shrclient.util;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.entity.StringEntity;
 import org.apache.log4j.Logger;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 
@@ -46,8 +47,10 @@ public class RestClient {
     public <T> T post(String url, Object data, Class<T> returnType) throws IdentityUnauthorizedException {
         try {
             String requestBody = mapper.writeValueAsString(data);
-            String response = webClient.post(url, requestBody, "application/json");
-            if (StringUtils.isNotBlank(requestBody)) {
+            StringEntity entity = new StringEntity(requestBody);
+            entity.setContentType("application/json");
+            String response = webClient.post(url, entity);
+            if (StringUtils.isNotBlank(response)) {
                 return mapper.readValue(response, returnType);
             }
             return null;

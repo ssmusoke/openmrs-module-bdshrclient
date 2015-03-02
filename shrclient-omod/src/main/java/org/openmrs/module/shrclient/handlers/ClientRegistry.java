@@ -1,6 +1,6 @@
 package org.openmrs.module.shrclient.handlers;
 
-import org.openmrs.module.shrclient.identity.IdentityServiceClient;
+import org.openmrs.module.shrclient.identity.IdentityProviderService;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityToken;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
@@ -23,7 +23,7 @@ public class ClientRegistry {
     }
 
     public RestClient getMCIClient() throws IdentityUnauthorizedException {
-        IdentityToken token = getOrCreateIdentityToken();
+        IdentityToken token = oldGetOrCreateIdentityToken();
         Properties properties = propertiesReader.getMciProperties();
         String user = properties.getProperty("mci.user");
         String password = properties.getProperty("mci.password");
@@ -33,13 +33,14 @@ public class ClientRegistry {
     }
 
     public SHRClient getSHRClient() throws IdentityUnauthorizedException {
-        IdentityToken token = getOrCreateIdentityToken();
+        IdentityToken token = oldGetOrCreateIdentityToken();
         return new SHRClient(propertiesReader.getShrBaseUrl(),
                 Headers.getIdentityHeader(token));
     }
 
-    public IdentityToken getOrCreateIdentityToken() throws IdentityUnauthorizedException {
-        return new IdentityServiceClient(propertiesReader, identityStore).getOrCreateToken();
+    @Deprecated
+    public IdentityToken oldGetOrCreateIdentityToken() throws IdentityUnauthorizedException {
+        return new IdentityProviderService(propertiesReader, identityStore).oldGetOrCreateToken();
     }
 
     public void clearIdentityToken() {
@@ -70,10 +71,5 @@ public class ClientRegistry {
         headers.put(identityProperties.getProperty("idP.tokenName"), facilityInstanceProperties.getProperty("facility.apiToken"));
         headers.put(identityProperties.getProperty("idP.clientIdName"), facilityInstanceProperties.getProperty("facility.clientId"));
         return headers;
-    }
-
-    public RestClient getIdentityServiceClient() {
-        HashMap<String, String> headers = new HashMap<>();
-        return new RestClient(propertiesReader.getIdentityServerBaseUrl(), headers);
     }
 }

@@ -54,13 +54,11 @@ public class WebClient {
         }
     }
 
-    public String post(String path, String data, String contentType) throws IdentityUnauthorizedException {
+    public String post(String path, HttpEntity entity) throws IdentityUnauthorizedException {
         String url = getUrl(path);
         log.debug("HTTP post url: " + url);
         try {
             HttpPost request = new HttpPost(URI.create(url));
-            StringEntity entity = new StringEntity(data);
-            entity.setContentType(contentType);
             request.setEntity(entity);
             return execute(request);
         } catch (IdentityUnauthorizedException e) {

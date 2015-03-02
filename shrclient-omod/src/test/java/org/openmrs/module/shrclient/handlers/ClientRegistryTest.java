@@ -74,7 +74,7 @@ public class ClientRegistryTest {
         when(identityStore.getToken()).thenReturn(null);
 
         UUID token = UUID.randomUUID();
-        String response = "{\"token\" : \"" + token.toString() + "\"}";
+        String response = "\"" + token.toString() + "\"";
 
         stubFor(post(urlMatching("/login"))
                 .withRequestBody(containing("foo"))
@@ -152,8 +152,6 @@ public class ClientRegistryTest {
         when(identityStore.getToken()).thenReturn(null);
 
         UUID token = UUID.randomUUID();
-        String authRequest = "{\"user\" : \"foo\",\"password\" : \"bar\"}";
-        String response = "{\"token\" : \"" + token.toString() + "\"}";
 
         stubFor(post(urlMatching("/login"))
                 .withRequestBody(containing("foo"))
@@ -161,7 +159,7 @@ public class ClientRegistryTest {
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader(Headers.AUTH_TOKEN_KEY, token.toString())
-                        .withBody(response)));
+                        .withBody("\"" + token.toString() + "\"")));
 
 
         stubFor(get(urlEqualTo("/patients/hid01/encounters"))

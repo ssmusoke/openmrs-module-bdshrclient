@@ -5,6 +5,7 @@ import com.sun.syndication.feed.atom.Entry;
 import com.sun.syndication.feed.atom.Feed;
 import com.sun.syndication.io.FeedException;
 import com.sun.syndication.io.WireFeedInput;
+import org.apache.http.entity.StringEntity;
 import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.formats.XmlComposer;
@@ -85,13 +86,13 @@ public class SHRClient {
             composer.compose(byteArrayOutputStream, bundle, true);
             log.debug(String.format("Posting data %s to url %s", bundle, url));
             WebClient webClient = new WebClient(baseUrl, headers);
-            return webClient.post(url, byteArrayOutputStream.toString(), "application/xml;charset=UTF-8");
-        }
-        catch(IdentityUnauthorizedException e){
+            StringEntity entity = new StringEntity(byteArrayOutputStream.toString());
+            entity.setContentType("application/xml;charset=UTF-8");
+            return webClient.post(url, entity);
+        } catch (IdentityUnauthorizedException e) {
             log.error("Unauthorized identity. URL: " + url, e);
             throw e;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error during http post. URL: " + url, e);
             throw new RuntimeException(e);
         }
