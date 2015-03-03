@@ -181,6 +181,9 @@ public class Address {
 
 
     public static String getAddressCodeForLevel(String code, int level) {
+        if (code == null)
+            return null;
+
         if (code.length() < (level * 2)) {
             return ""; //fail instead?
         }

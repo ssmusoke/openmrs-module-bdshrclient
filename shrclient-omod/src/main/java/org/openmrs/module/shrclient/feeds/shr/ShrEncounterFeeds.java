@@ -11,6 +11,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.client.repository.AllFeeds;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
@@ -25,6 +26,7 @@ import java.util.Map;
 public class ShrEncounterFeeds extends AllFeeds {
     private Map<String, String> feedHeaders;
     private ClientRegistry clientRegistry;
+    private static final Logger logger = Logger.getLogger(ShrEncounterFeeds.class);
 
     public ShrEncounterFeeds(Map<String, String> feedHeaders, ClientRegistry clientRegistry) {
         this.feedHeaders = feedHeaders;
@@ -43,11 +45,11 @@ public class ShrEncounterFeeds extends AllFeeds {
             WireFeedInput input = new WireFeedInput();
             return (Feed) input.build(new StringReader(response));
         } catch(IdentityUnauthorizedException e){
+            logger.error(e);
             clientRegistry.clearIdentityToken();
-            e.printStackTrace();
         }
         catch (IOException | FeedException e) {
-            e.printStackTrace();
+            logger.error(e);
         }
         return null;
     }
