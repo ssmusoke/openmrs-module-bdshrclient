@@ -137,10 +137,15 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     private void setDeathInfo(org.openmrs.Patient emrPatient, Patient mciPatient) {
         Character status = mciPatient.getStatus();
-        if (status == '1') {
+        boolean isAliveMciPatient = status == '1' ? true : false;
+        boolean isAliveEmrPatient = !emrPatient.isDead();
+        if (isAliveMciPatient && isAliveEmrPatient) {
             return;
-        }
-        if (status == '2') {
+        } else if (isAliveMciPatient) {
+            emrPatient.setDead(false);
+            emrPatient.setCauseOfDeath(null);
+            emrPatient.setDeathDate(null);
+        } else {
             emrPatient.setDead(true);
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(ISO_DATE_FORMAT);
             String dateOfDeath = mciPatient.getDateOfDeath();
