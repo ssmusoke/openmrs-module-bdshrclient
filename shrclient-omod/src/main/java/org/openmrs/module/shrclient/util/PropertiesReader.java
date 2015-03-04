@@ -111,9 +111,9 @@ public class PropertiesReader {
 
     public String getIdentityServerBaseUrl() {
         Properties properties = getIdentityProperties();
-        return getBaseUrl(properties.getProperty("identity.scheme"),
-                properties.getProperty("identity.host"),
-                properties.getProperty("identity.port"));
+        return getBaseUrl(properties.getProperty("idP.scheme"),
+                properties.getProperty("idP.host"),
+                properties.getProperty("idP.port"));
     }
 
     private String getBaseUrl(String scheme, String host, String portNoOrContextPath) {

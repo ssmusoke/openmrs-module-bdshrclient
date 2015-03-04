@@ -33,9 +33,8 @@ public class ClientRegistry {
     }
 
     public SHRClient getSHRClient() throws IdentityUnauthorizedException {
-        IdentityToken token = oldGetOrCreateIdentityToken();
-        return new SHRClient(propertiesReader.getShrBaseUrl(),
-                Headers.getIdentityHeader(token));
+        HashMap<String, String> headers = Headers.getHrmAccessTokenHeaders(getOrCreateIdentityToken(), propertiesReader.getFacilityInstanceProperties());
+        return new SHRClient(propertiesReader.getShrBaseUrl(), headers);
     }
 
     @Deprecated
@@ -43,33 +42,28 @@ public class ClientRegistry {
         return new IdentityProviderService(propertiesReader, identityStore).oldGetOrCreateToken();
     }
 
+    public IdentityToken getOrCreateIdentityToken() throws IdentityUnauthorizedException {
+        return new IdentityProviderService(propertiesReader, identityStore).getOrCreateToken();
+    }
+
     public void clearIdentityToken() {
         identityStore.clearToken();
     }
 
-    public RestClient getLRClient() {
+    public RestClient getLRClient() throws IdentityUnauthorizedException {
         return getRestClient(propertiesReader.getLrBaseUrl());
     }
 
-    public RestClient getFRClient() {
+    public RestClient getFRClient() throws IdentityUnauthorizedException {
         return getRestClient(propertiesReader.getFrBaseUrl());
     }
 
-    public RestClient getPRClient() {
+    public RestClient getPRClient() throws IdentityUnauthorizedException {
         return getRestClient(propertiesReader.getPrBaseUrl());
     }
 
-    private RestClient getRestClient(String baseUrl) {
-        HashMap<String, String> headers = getHrmIdentityProperties();
+    private RestClient getRestClient(String baseUrl) throws IdentityUnauthorizedException {
+        HashMap<String, String> headers = Headers.getHrmIdentityHeaders(propertiesReader.getFacilityInstanceProperties());
         return new RestClient(baseUrl, headers);
-    }
-
-    private HashMap<String, String> getHrmIdentityProperties() {
-        Properties facilityInstanceProperties = propertiesReader.getFacilityInstanceProperties();
-        Properties identityProperties = propertiesReader.getIdentityProperties();
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put(identityProperties.getProperty("idP.tokenName"), facilityInstanceProperties.getProperty("facility.apiToken"));
-        headers.put(identityProperties.getProperty("idP.clientIdName"), facilityInstanceProperties.getProperty("facility.clientId"));
-        return headers;
     }
 }

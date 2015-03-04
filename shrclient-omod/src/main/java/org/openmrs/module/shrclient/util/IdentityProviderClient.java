@@ -22,7 +22,6 @@ public class IdentityProviderClient {
     public <T> T post(String url, Map<String, String> data, Class<T> returnType) throws IdentityUnauthorizedException {
         try {
             UrlEncodedFormEntity entity = new UrlEncodedFormEntity(getNameValuePairs(data));
-//            entity.setContentType(MediaType.MULTIPART_FORM_DATA.toString());
             String response = webClient.post(url, entity);
             if (StringUtils.isNotBlank(response)) {
                 return new ObjectMapper().readValue(response, returnType);

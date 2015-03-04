@@ -1,5 +1,6 @@
 package org.openmrs.module.shrclient.identity;
 
+import org.openmrs.module.shrclient.util.Headers;
 import org.openmrs.module.shrclient.util.IdentityProviderClient;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
@@ -8,7 +9,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.openmrs.module.shrclient.util.PropertiesReader.URL_SEPARATOR_FOR_CONTEXT_PATH;
+
 public class IdentityProviderService {
+    private static final String EMAIL_KEY = "email";
+    private static final String PASSWORD_KEY = "password";
+    private static final String SIGNIN_PATH_KEY = "idP.signinPath";
+    private static final String FACILITY_EMAIL_KEY = "facility.email";
+    private static final String FACILITY_PASSWORD_KEY = "facility.password";
     PropertiesReader propertiesReader;
     private IdentityStore identityStore;
 
@@ -33,28 +41,29 @@ public class IdentityProviderService {
         return new RestClient(propertiesReader.getIdentityServerBaseUrl(), headers);
     }
 
-    private IdentityProviderClient getIdentityServiceClient(Properties facilityInstanceProperties, Properties identityProperties) {
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put(identityProperties.getProperty("idP.clientIdName"), facilityInstanceProperties.getProperty("facility.clientId"));
-        headers.put(identityProperties.getProperty("idP.tokenName"), facilityInstanceProperties.getProperty("facility.apiToken"));
+    private IdentityProviderClient getIdentityServiceClient(Properties facilityInstanceProperties) {
+        HashMap<String, String> headers = Headers.getHrmIdentityHeaders(facilityInstanceProperties);
         return new IdentityProviderClient(propertiesReader.getIdentityServerBaseUrl(), headers);
     }
 
     public IdentityToken getOrCreateToken() throws IdentityUnauthorizedException {
         IdentityToken identityToken = identityStore.getToken();
-
-        Properties facilityInstanceProperties = propertiesReader.getFacilityInstanceProperties();
-        Properties identityProperties = propertiesReader.getIdentityProperties();
-        Map<String, String> clientCredentials = new HashMap<>();
-        clientCredentials.put("email", facilityInstanceProperties.getProperty("facility.email"));
-        clientCredentials.put("password", facilityInstanceProperties.getProperty("facility.password"));
-
         if (identityToken == null) {
-            String url = "/" + identityProperties.getProperty("idP.signinPath");
-            identityToken = getIdentityServiceClient(facilityInstanceProperties, identityProperties)
+            Properties facilityInstanceProperties = propertiesReader.getFacilityInstanceProperties();
+            Properties identityProperties = propertiesReader.getIdentityProperties();
+            Map<String, String> clientCredentials = getClientCredentials(facilityInstanceProperties);
+            String url = URL_SEPARATOR_FOR_CONTEXT_PATH + identityProperties.getProperty(SIGNIN_PATH_KEY);
+            identityToken = getIdentityServiceClient(facilityInstanceProperties)
                     .post(url, clientCredentials, IdentityToken.class);
             identityStore.setToken(identityToken);
         }
         return identityToken;
+    }
+
+    private Map<String, String> getClientCredentials(Properties facilityInstanceProperties) {
+        Map<String, String> clientCredentials = new HashMap<>();
+        clientCredentials.put(EMAIL_KEY, facilityInstanceProperties.getProperty(FACILITY_EMAIL_KEY));
+        clientCredentials.put(PASSWORD_KEY, facilityInstanceProperties.getProperty(FACILITY_PASSWORD_KEY));
+        return clientCredentials;
     }
 }
