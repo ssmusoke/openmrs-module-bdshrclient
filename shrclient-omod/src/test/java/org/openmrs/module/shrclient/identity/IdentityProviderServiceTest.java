@@ -45,58 +45,6 @@ public class IdentityProviderServiceTest {
     }
 
     @Test
-    public void testGetToken() throws Exception {
-        UUID token = UUID.randomUUID();
-        setUpIdentityProperties();
-        when(propertiesReader.getIdentityServerBaseUrl()).thenReturn("http://localhost:8089");
-        when(identityStore.getToken()).thenReturn(new IdentityToken(token.toString()));
-
-        IdentityProviderService identityProviderService = new IdentityProviderService(propertiesReader, identityStore);
-        IdentityToken identityToken = identityProviderService.oldGetOrCreateToken();
-        assertEquals(identityToken.toString(), token.toString());
-    }
-
-    @Test
-    public void testCreateToken() throws Exception {
-        UUID token = UUID.randomUUID();
-        setUpIdentityProperties();
-
-        when(propertiesReader.getIdentityServerBaseUrl()).thenReturn("http://localhost:8089");
-        when(identityStore.getToken()).thenReturn(null);
-        when(propertiesReader.getIdentity()).thenReturn(new Identity("foo", "bar"));
-        String response = "\"" + token.toString() + "\"";
-
-        stubFor(post(urlMatching("/login"))
-                .withRequestBody(containing("foo"))
-                .withHeader("Content-Type", equalTo("application/json"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader(Headers.AUTH_TOKEN_KEY, token.toString())
-                        .withBody(response)));
-
-        IdentityProviderService identityProviderService = new IdentityProviderService(propertiesReader, identityStore);
-        IdentityToken identityToken = identityProviderService.oldGetOrCreateToken();
-        assertEquals(identityToken.toString(), token.toString());
-    }
-
-    @Test(expected = IdentityUnauthorizedException.class)
-    public void testInvalidCredentials() throws Exception {
-        setUpIdentityProperties();
-
-        when(propertiesReader.getIdentityServerBaseUrl()).thenReturn("http://localhost:8089");
-        when(identityStore.getToken()).thenReturn(null);
-        when(propertiesReader.getIdentity()).thenReturn(new Identity("foo", "bar"));
-
-        stubFor(post(urlMatching("/login"))
-                .withRequestBody(containing("foo"))
-                .withHeader("Content-Type", equalTo("application/json"))
-                .willReturn(aResponse()
-                        .withStatus(HttpStatus.UNAUTHORIZED.value())));
-
-        new IdentityProviderService(propertiesReader, identityStore).oldGetOrCreateToken();
-    }
-
-    @Test
     public void shouldFetchToken() throws Exception {
         UUID token = UUID.randomUUID();
         setUpIdentityProperties();

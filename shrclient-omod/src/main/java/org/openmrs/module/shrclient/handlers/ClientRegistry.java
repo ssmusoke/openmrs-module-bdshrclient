@@ -23,23 +23,13 @@ public class ClientRegistry {
     }
 
     public RestClient getMCIClient() throws IdentityUnauthorizedException {
-        IdentityToken token = oldGetOrCreateIdentityToken();
-        Properties properties = propertiesReader.getMciProperties();
-        String user = properties.getProperty("mci.user");
-        String password = properties.getProperty("mci.password");
-
         return new RestClient(propertiesReader.getMciBaseUrl(),
-                Headers.getBasicAuthAndIdentityHeader(user, password, token));
+                Headers.getHrmAccessTokenHeaders(getOrCreateIdentityToken(), propertiesReader.getFacilityInstanceProperties()));
     }
 
     public SHRClient getSHRClient() throws IdentityUnauthorizedException {
         HashMap<String, String> headers = Headers.getHrmAccessTokenHeaders(getOrCreateIdentityToken(), propertiesReader.getFacilityInstanceProperties());
         return new SHRClient(propertiesReader.getShrBaseUrl(), headers);
-    }
-
-    @Deprecated
-    public IdentityToken oldGetOrCreateIdentityToken() throws IdentityUnauthorizedException {
-        return new IdentityProviderService(propertiesReader, identityStore).oldGetOrCreateToken();
     }
 
     public IdentityToken getOrCreateIdentityToken() throws IdentityUnauthorizedException {

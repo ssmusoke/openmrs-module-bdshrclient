@@ -25,22 +25,6 @@ public class IdentityProviderService {
         this.identityStore = identityStore;
     }
 
-    @Deprecated
-    public IdentityToken oldGetOrCreateToken() throws IdentityUnauthorizedException {
-        IdentityToken identityToken = identityStore.getToken();
-        if (identityToken == null) {
-            identityToken = oldGetIdentityServiceClient().post("/login", propertiesReader.getIdentity(),
-                    IdentityToken.class);
-            identityStore.setToken(identityToken);
-        }
-        return identityToken;
-    }
-
-    private RestClient oldGetIdentityServiceClient() {
-        HashMap<String, String> headers = new HashMap<>();
-        return new RestClient(propertiesReader.getIdentityServerBaseUrl(), headers);
-    }
-
     private IdentityProviderClient getIdentityServiceClient(Properties facilityInstanceProperties) {
         HashMap<String, String> headers = Headers.getHrmIdentityHeaders(facilityInstanceProperties);
         return new IdentityProviderClient(propertiesReader.getIdentityServerBaseUrl(), headers);

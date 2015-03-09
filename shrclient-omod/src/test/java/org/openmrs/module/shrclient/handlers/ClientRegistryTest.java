@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.openmrs.module.shrclient.util.Headers.AUTH_TOKEN_KEY;
 import static org.openmrs.module.shrclient.util.Headers.CLIENT_ID_KEY;
+import static org.openmrs.module.shrclient.util.Headers.FROM_KEY;
 
 public class ClientRegistryTest {
 
@@ -42,14 +43,21 @@ public class ClientRegistryTest {
 
     @Test
     public void testCreateMCIClient() throws Exception {
-        Properties mciProperties = getSecureServerProperties("mci.user", "mci.password");
-        when(propertiesReader.getMciProperties()).thenReturn(mciProperties);
+        String xAuthToken = "foobarbazboom";
+        String clientIdValue = "18549";
+        String email = "email@gmail.com";
+
         when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:8089");
+        when(propertiesReader.getIdentityProperties()).thenReturn(getIdpProperties(AUTH_TOKEN_KEY, CLIENT_ID_KEY));
+        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
+
         UUID token = UUID.randomUUID();
         when(identityStore.getToken()).thenReturn(new IdentityToken(token.toString()));
+        
         stubFor(get(urlEqualTo("http://localhost:8089/mci"))
                 .withHeader(AUTH_TOKEN_KEY, equalTo(token.toString()))
-                .withHeader(Headers.AUTH_HEADER_KEY, equalTo(getAuthHeader().get(Headers.AUTH_HEADER_KEY)))
+                .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
+                .withHeader(FROM_KEY, equalTo(email))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withBody("")));
@@ -60,14 +68,19 @@ public class ClientRegistryTest {
         assertNotNull(mciClient);
         mciClient.get("/mci", String.class);
         verify(1, getRequestedFor(urlEqualTo("/mci"))
-                .withHeader(Headers.AUTH_HEADER_KEY, matching(getAuthHeader().get(Headers.AUTH_HEADER_KEY)))
-                .withHeader(AUTH_TOKEN_KEY, matching(token.toString())));
+                .withHeader(AUTH_TOKEN_KEY, matching(token.toString()))
+                .withHeader(CLIENT_ID_KEY, matching(clientIdValue))
+                .withHeader(FROM_KEY, matching(email)));
     }
 
     @Test
     public void testCreateMCIClientWhenIdentityTokenAbsent() throws Exception {
-        Properties mciProperties = getSecureServerProperties("mci.user", "mci.password");
-        when(propertiesReader.getMciProperties()).thenReturn(mciProperties);
+        String xAuthToken = "foobarbazboom";
+        String clientIdValue = "18549";
+        String email = "email@gmail.com";
+
+        when(propertiesReader.getIdentityProperties()).thenReturn(getIdpProperties(AUTH_TOKEN_KEY, CLIENT_ID_KEY));
+        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
         when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:8089");
         when(propertiesReader.getIdentityServerBaseUrl()).thenReturn("http://localhost:8089");
 
@@ -77,20 +90,19 @@ public class ClientRegistryTest {
         when(identityStore.getToken()).thenReturn(null);
 
         UUID token = UUID.randomUUID();
-        String response = "\"" + token.toString() + "\"";
-
-        stubFor(post(urlMatching("/login"))
-                .withRequestBody(containing("foo"))
-                .withHeader("Content-Type", equalTo("application/json"))
+        String response = "{\"access_token\" : \"" + token.toString() + "\"}";
+        
+        stubFor(post(urlMatching("/signin"))
+                .withHeader(AUTH_TOKEN_KEY, equalTo(xAuthToken))
+                .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
                 .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader(AUTH_TOKEN_KEY, token.toString())
+                        .withStatus(HttpStatus.OK.value())
                         .withBody(response)));
-
 
         stubFor(get(urlEqualTo("http://localhost:8089/mci"))
                 .withHeader(AUTH_TOKEN_KEY, equalTo(token.toString()))
-                .withHeader(Headers.AUTH_HEADER_KEY, equalTo(getAuthHeader().get(Headers.AUTH_HEADER_KEY)))
+                .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
+                .withHeader(FROM_KEY, equalTo(email))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withBody("")));
@@ -101,25 +113,28 @@ public class ClientRegistryTest {
         assertNotNull(mciClient);
         mciClient.get("/mci", String.class);
         verify(1, getRequestedFor(urlEqualTo("/mci"))
-                .withHeader(Headers.AUTH_HEADER_KEY, matching(getAuthHeader().get(Headers.AUTH_HEADER_KEY)))
-                .withHeader(AUTH_TOKEN_KEY, matching(token.toString())));
+                .withHeader(AUTH_TOKEN_KEY, matching(token.toString()))
+                .withHeader(CLIENT_ID_KEY, matching(clientIdValue))
+                .withHeader(FROM_KEY, matching(email)));
     }
 
     @Test
     public void testCreateSHRClient() throws Exception {
         String xAuthToken = "foobarbazboom";
         String clientIdValue = "18549";
-        Properties shrProperties = getSecureServerProperties("shr.user", "shr.password");
-        when(propertiesReader.getShrProperties()).thenReturn(shrProperties);
+        String email = "email@gmail.com";
+        
         when(propertiesReader.getShrBaseUrl()).thenReturn("http://localhost:8089");
         when(propertiesReader.getIdentityProperties()).thenReturn(getIdpProperties(AUTH_TOKEN_KEY, CLIENT_ID_KEY));
-        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue));
+        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
 
         UUID token = UUID.randomUUID();
         when(identityStore.getToken()).thenReturn(new IdentityToken(token.toString()));
 
         stubFor(get(urlEqualTo("/patients/hid01/encounters"))
                 .withHeader(AUTH_TOKEN_KEY, equalTo(token.toString()))
+                .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
+                .withHeader(FROM_KEY, equalTo(email))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -143,18 +158,19 @@ public class ClientRegistryTest {
         assertNotNull(shrClient);
         shrClient.getEncounters("/patients/hid01/encounters");
         verify(1, getRequestedFor(urlEqualTo("/patients/hid01/encounters"))
-                .withHeader(AUTH_TOKEN_KEY, matching(token.toString())));
+                .withHeader(AUTH_TOKEN_KEY, matching(token.toString()))
+                .withHeader(CLIENT_ID_KEY, matching(clientIdValue))
+                .withHeader(FROM_KEY, matching(email)));
     }
 
     @Test
     public void testCreateSHRClientWhenIdentityTokenAbsent() throws Exception {
         String xAuthToken = "foobarbazboom";
         String clientIdValue = "18549";
+        String email = "email@gmail.com";
 
         when(propertiesReader.getIdentityProperties()).thenReturn(getIdpProperties(AUTH_TOKEN_KEY, CLIENT_ID_KEY));
-        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue));
-        when(propertiesReader.getShrProperties()).thenReturn(getSecureServerProperties("shr.user", "shr.password"));
-
+        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
         when(propertiesReader.getShrBaseUrl()).thenReturn("http://localhost:8089");
         when(propertiesReader.getIdentityServerBaseUrl()).thenReturn("http://localhost:8089");
 
@@ -175,6 +191,8 @@ public class ClientRegistryTest {
 
         stubFor(get(urlEqualTo("/patients/hid01/encounters"))
                 .withHeader(AUTH_TOKEN_KEY, equalTo(token.toString()))
+                .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
+                .withHeader(FROM_KEY, equalTo(email))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -198,7 +216,9 @@ public class ClientRegistryTest {
         assertNotNull(shrClient);
         shrClient.getEncounters("/patients/hid01/encounters");
         verify(1, getRequestedFor(urlEqualTo("/patients/hid01/encounters"))
-                .withHeader(AUTH_TOKEN_KEY, matching(token.toString())));
+                .withHeader(AUTH_TOKEN_KEY, matching(token.toString()))
+                .withHeader(CLIENT_ID_KEY, matching(clientIdValue))
+                .withHeader(FROM_KEY, matching(email)));
     }
 
     @Test
@@ -207,7 +227,7 @@ public class ClientRegistryTest {
         String clientIdValue = "18549";
 
         when(propertiesReader.getIdentityProperties()).thenReturn(getIdpProperties(AUTH_TOKEN_KEY, CLIENT_ID_KEY));
-        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue));
+        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, "email@gmail.com", "password"));
 
         when(propertiesReader.getFrBaseUrl()).thenReturn("http://localhost:8089");
 
@@ -236,7 +256,7 @@ public class ClientRegistryTest {
         String clientIdValue = "18549";
 
         when(propertiesReader.getIdentityProperties()).thenReturn(getIdpProperties(xAuthTokenKey, clientId));
-        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue));
+        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, "email@gmail.com", "password"));
         when(propertiesReader.getLrBaseUrl()).thenReturn("http://localhost:8089");
 
         stubFor(get(urlEqualTo("http://localhost:8089/lr"))
@@ -264,7 +284,7 @@ public class ClientRegistryTest {
         String clientIdValue = "18549";
 
         Properties idpProperties = getIdpProperties(xAuthTokenKey, clientId);
-        Properties facilityInstanceProperties = getFacilityInstanceProperties(xAuthToken, clientIdValue);
+        Properties facilityInstanceProperties = getFacilityInstanceProperties(xAuthToken, clientIdValue, "email@gmail.com", "password");
 
         when(propertiesReader.getIdentityProperties()).thenReturn(idpProperties);
         when(propertiesReader.getFacilityInstanceProperties()).thenReturn(facilityInstanceProperties);
@@ -287,10 +307,12 @@ public class ClientRegistryTest {
                 .withHeader(clientId, matching(clientIdValue)));
     }
 
-    private Properties getFacilityInstanceProperties(String xAuthToken, String clientIdValue) {
+    private Properties getFacilityInstanceProperties(String xAuthToken, String clientIdValue, String email, String password) {
         Properties facilityInstanceProperties = new Properties();
         facilityInstanceProperties.setProperty("facility.apiToken", xAuthToken);
         facilityInstanceProperties.setProperty("facility.clientId", clientIdValue);
+        facilityInstanceProperties.setProperty("facility.email", email);
+        facilityInstanceProperties.setProperty("facility.password", password);
         return facilityInstanceProperties;
     }
 
@@ -301,16 +323,4 @@ public class ClientRegistryTest {
         idpProperties.setProperty("idP.signinPath", "signin");
         return idpProperties;
     }
-
-    private java.util.Map<String, String> getAuthHeader() {
-        return Headers.getBasicAuthHeader("champoo", "*****");
-    }
-
-    private Properties getSecureServerProperties(String userKey, String passwordKey) {
-        Properties properties = new Properties();
-        properties.setProperty(userKey, "champoo");
-        properties.setProperty(passwordKey, "*****");
-        return properties;
-    }
-
 }

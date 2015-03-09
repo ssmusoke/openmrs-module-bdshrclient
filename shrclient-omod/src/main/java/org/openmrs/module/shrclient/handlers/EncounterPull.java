@@ -58,7 +58,7 @@ public class EncounterPull {
         //read from headers or application
         headers.put("facilityId", getFacilityId());
         headers.putAll(Headers.getBasicAuthHeader(user, password));
-        headers.putAll(Headers.getIdentityHeader(clientRegistry.oldGetOrCreateIdentityToken()));
+        headers.putAll(Headers.getIdentityHeader(clientRegistry.getOrCreateIdentityToken()));
         return headers;
     }
 

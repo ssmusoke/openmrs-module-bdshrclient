@@ -45,11 +45,4 @@ public class Headers {
         headers.put(CLIENT_ID_KEY, facilityInstanceProperties.getProperty(FACILITY_CLIENT_ID_KEY));
         return headers;
     }
-
-    public static Map<String, String> getBasicAuthAndIdentityHeader(String user, String password, IdentityToken token) {
-        HashMap<String, String> header = new HashMap<>();
-        header.putAll(getBasicAuthHeader(user, password));
-        header.putAll(getIdentityHeader(token));
-        return header;
-    }
 }
