@@ -7,7 +7,6 @@ import org.openmrs.module.shrclient.feeds.shr.ShrEncounterFeedProcessor;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.service.MciPatientService;
-import org.openmrs.module.shrclient.util.Headers;
 import org.openmrs.module.shrclient.util.PlatformUtil;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 
@@ -17,7 +16,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_ID;
+import static org.openmrs.module.shrclient.util.Headers.ACCEPT_HEADER_KEY;
+import static org.openmrs.module.shrclient.util.Headers.getHrmAccessTokenHeaders;
+import static org.springframework.http.MediaType.APPLICATION_ATOM_XML;
+
 public class EncounterPull {
+    private final static String FACILITY_ID_HEADER_KEY = "facilityId";
+
     private final Logger logger = Logger.getLogger(EncounterPull.class);
     private ClientRegistry clientRegistry;
 
@@ -51,20 +57,15 @@ public class EncounterPull {
 
     private HashMap<String, String> getRequestHeaders(PropertiesReader propertiesReader) throws IdentityUnauthorizedException {
         HashMap<String, String> headers = new HashMap<>();
-        Properties properties = propertiesReader.getShrProperties();
-        String user = properties.getProperty("shr.user");
-        String password = properties.getProperty("shr.password");
-        headers.put("Accept", "application/atom+xml");
-        //read from headers or application
-        headers.put("facilityId", getFacilityId());
-        headers.putAll(Headers.getBasicAuthHeader(user, password));
-        headers.putAll(Headers.getIdentityHeader(clientRegistry.getOrCreateIdentityToken()));
+        Properties facilityInstanceProperties = propertiesReader.getFacilityInstanceProperties();
+        headers.putAll(getHrmAccessTokenHeaders(clientRegistry.getOrCreateIdentityToken(), facilityInstanceProperties));
+        headers.put(ACCEPT_HEADER_KEY, APPLICATION_ATOM_XML.toString());
+        headers.put(FACILITY_ID_HEADER_KEY, getFacilityId(facilityInstanceProperties));
         return headers;
     }
 
-    private String getFacilityId() {
-        PropertiesReader propertiesReader = PlatformUtil.getRegisteredComponent(PropertiesReader.class);
-        Object facilityId = propertiesReader.getFacilityInstanceProperties().get("facility.facilityId");
+    private String getFacilityId(Properties facilityInstanceProperties) {
+        Object facilityId = facilityInstanceProperties.getProperty(FACILITY_ID);
         logger.info("Identified Facility:" + facilityId);
         if (facilityId == null) {
             throw new RuntimeException("Facility Id not defined.");

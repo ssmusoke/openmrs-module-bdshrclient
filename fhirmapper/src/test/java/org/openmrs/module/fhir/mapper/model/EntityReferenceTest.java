@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_ID;
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_URL_FORMAT;
 
 public class EntityReferenceTest {
     @Test
@@ -52,11 +54,11 @@ public class EntityReferenceTest {
 
     private SystemProperties getSystemProperties(String facilityId) {
         Properties shrProperties = new Properties();
-        shrProperties.setProperty(SystemProperties.FACILITY_ID, facilityId);
+        shrProperties.setProperty(FACILITY_ID, facilityId);
         Properties trProperties = new Properties();
 
         Properties frProperties = new Properties();
-        frProperties.setProperty(SystemProperties.FACILITY_URL_FORMAT, "foo-bar/%s.json");
+        frProperties.setProperty(FACILITY_URL_FORMAT, "foo-bar/%s.json");
 
         Properties prPoperties = new Properties();
         Properties facilityInstanceProperties = new Properties();

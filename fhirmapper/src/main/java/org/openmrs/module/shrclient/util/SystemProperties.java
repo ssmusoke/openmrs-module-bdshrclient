@@ -5,11 +5,9 @@ import org.openmrs.module.fhir.utils.Constants;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.*;
+
 public class SystemProperties {
-    public static final String FACILITY_ID = "facility.facilityId";
-    public static final String FACILITY_URL_FORMAT = "fr.facilityUrlFormat";
-    public static final String TR_VALUESET_URL = "tr.base.valueset.url";
-    public static final String PROVIDER_URL_FORMAT = "pr.providerUrlFormat";
     private Map<String, String> baseUrls;
     private Properties frProperties;
     private Properties trProperties;
@@ -32,7 +30,7 @@ public class SystemProperties {
     public String getMciPatientUrl() {
         String mciBaseUrl = baseUrls.get("mci");
         if (mciBaseUrl.endsWith("/")) {
-            return mciBaseUrl +  Constants.MCI_PATIENT_URL.substring(1);
+            return mciBaseUrl + Constants.MCI_PATIENT_URL.substring(1);
         } else {
             return mciBaseUrl + Constants.MCI_PATIENT_URL;
         }
@@ -47,7 +45,7 @@ public class SystemProperties {
     }
 
     public String getTrValuesetUrl(String valueSetName) {
-        return baseUrls.get("tr")+ "/" + trProperties.getProperty(TR_VALUESET_URL) + "/" + trProperties.getProperty("tr.valueset." + valueSetName);
+        return baseUrls.get("tr") + "/" + trProperties.getProperty(TR_VALUESET_URL) + "/" + trProperties.getProperty(TR_VALUESET_KEY + valueSetName);
     }
 
     public String getProviderUrlFormat() {

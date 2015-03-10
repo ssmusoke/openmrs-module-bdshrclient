@@ -15,7 +15,6 @@ import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.client.repository.AllFeeds;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
-import org.openmrs.module.shrclient.util.Headers;
 import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
@@ -36,22 +35,25 @@ public class ShrEncounterFeeds extends AllFeeds {
     @Override
     public Feed getFor(URI uri) {
         HttpGet request = new HttpGet(uri);
-        request.setHeader("Accept", getAcceptHeader());
-        request.setHeader("facilityId", getFacilityId());
-        request.setHeader(Headers.AUTH_TOKEN_KEY, getIdentityHeader());
+        addHeaders(request);
         try {
             String response = execute(request);
             //works only for application/atom+xml
             WireFeedInput input = new WireFeedInput();
             return (Feed) input.build(new StringReader(response));
-        } catch(IdentityUnauthorizedException e){
+        } catch (IdentityUnauthorizedException e) {
             logger.error(e);
             clientRegistry.clearIdentityToken();
-        }
-        catch (IOException | FeedException e) {
+        } catch (IOException | FeedException e) {
             logger.error(e);
         }
         return null;
+    }
+
+    private void addHeaders(HttpGet request) {
+        for (String key : feedHeaders.keySet()) {
+            request.addHeader(key, feedHeaders.get(key));
+        }
     }
 
     private String execute(HttpRequestBase request) throws IOException {
@@ -76,17 +78,5 @@ public class ShrEncounterFeeds extends AllFeeds {
         } finally {
             httpClient.close();
         }
-    }
-
-    private String getAcceptHeader() {
-        return feedHeaders.get("Accept");
-    }
-
-    private String getFacilityId() {
-        return feedHeaders.get("facilityId");
-    }
-
-    public String getIdentityHeader() {
-        return feedHeaders.get(Headers.AUTH_TOKEN_KEY);
     }
 }

@@ -7,12 +7,14 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_ID;
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_URL_FORMAT;
 
 public class SystemPropertiesTest {
     @Test
     public void shouldReadFacilityId() throws Exception {
         Properties instanceProperties = new Properties();
-        instanceProperties.setProperty(SystemProperties.FACILITY_ID, "foo");
+        instanceProperties.setProperty(FACILITY_ID, "foo");
         SystemProperties systemProperties = new SystemProperties(new HashMap<String, String>(), new Properties(), new Properties(), new Properties(), instanceProperties);
         assertThat(systemProperties.getFacilityId(), is("foo"));
     }
@@ -21,7 +23,7 @@ public class SystemPropertiesTest {
     @Test
     public void shouldReadFRProperties() throws Exception {
         Properties frProperties = new Properties();
-        frProperties.setProperty(SystemProperties.FACILITY_URL_FORMAT, "bar");
+        frProperties.setProperty(FACILITY_URL_FORMAT, "bar");
         SystemProperties systemProperties = new SystemProperties(new HashMap<String, String>(),
                 frProperties, new Properties(), new Properties(), new Properties());
         assertThat(systemProperties.getFacilityUrlFormat(), is("bar"));

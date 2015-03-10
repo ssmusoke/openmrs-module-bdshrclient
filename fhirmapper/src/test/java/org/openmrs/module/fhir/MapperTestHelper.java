@@ -8,6 +8,9 @@ import org.springframework.context.ApplicationContext;
 import java.util.HashMap;
 import java.util.Properties;
 
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_ID;
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_URL_FORMAT;
+
 public class MapperTestHelper {
     public ParserBase.ResourceOrFeed loadSampleFHIREncounter(String filePath, ApplicationContext springContext) throws Exception {
         org.springframework.core.io.Resource resource = springContext.getResource(filePath);
@@ -18,10 +21,10 @@ public class MapperTestHelper {
 
     public static SystemProperties getSystemProperties(String facilityId) {
         Properties shrProperties = new Properties();
-        shrProperties.setProperty(SystemProperties.FACILITY_ID, facilityId);
+        shrProperties.setProperty(FACILITY_ID, facilityId);
 
         Properties frProperties = new Properties();
-        frProperties.setProperty(SystemProperties.FACILITY_URL_FORMAT, "%s.json");
+        frProperties.setProperty(FACILITY_URL_FORMAT, "%s.json");
 
         Properties trProperties = new Properties();
         trProperties.setProperty("tr.base.valueset.url", "openmrs/ws/rest/v1/tr/vs");

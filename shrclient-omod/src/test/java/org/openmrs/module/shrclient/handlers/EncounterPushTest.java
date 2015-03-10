@@ -25,12 +25,11 @@ import java.util.HashSet;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_ID;
 
 public class EncounterPushTest {
 
@@ -114,7 +113,7 @@ public class EncounterPushTest {
 
     private Properties getShrProperties(String facilityId) {
         Properties shrProperties = new Properties();
-        shrProperties.setProperty(SystemProperties.FACILITY_ID, facilityId);
+        shrProperties.setProperty(FACILITY_ID, facilityId);
         return shrProperties;
     }
 

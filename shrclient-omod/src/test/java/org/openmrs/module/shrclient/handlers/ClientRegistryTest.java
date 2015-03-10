@@ -8,7 +8,6 @@ import org.mockito.Mock;
 import org.openmrs.module.shrclient.identity.Identity;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityToken;
-import org.openmrs.module.shrclient.util.Headers;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.util.SHRClient;
@@ -21,9 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.openmrs.module.shrclient.util.Headers.AUTH_TOKEN_KEY;
-import static org.openmrs.module.shrclient.util.Headers.CLIENT_ID_KEY;
-import static org.openmrs.module.shrclient.util.Headers.FROM_KEY;
+import static org.openmrs.module.shrclient.util.Headers.*;
 
 public class ClientRegistryTest {
 
@@ -53,7 +50,7 @@ public class ClientRegistryTest {
 
         UUID token = UUID.randomUUID();
         when(identityStore.getToken()).thenReturn(new IdentityToken(token.toString()));
-        
+
         stubFor(get(urlEqualTo("http://localhost:8089/mci"))
                 .withHeader(AUTH_TOKEN_KEY, equalTo(token.toString()))
                 .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
@@ -91,7 +88,7 @@ public class ClientRegistryTest {
 
         UUID token = UUID.randomUUID();
         String response = "{\"access_token\" : \"" + token.toString() + "\"}";
-        
+
         stubFor(post(urlMatching("/signin"))
                 .withHeader(AUTH_TOKEN_KEY, equalTo(xAuthToken))
                 .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
@@ -123,7 +120,7 @@ public class ClientRegistryTest {
         String xAuthToken = "foobarbazboom";
         String clientIdValue = "18549";
         String email = "email@gmail.com";
-        
+
         when(propertiesReader.getShrBaseUrl()).thenReturn("http://localhost:8089");
         when(propertiesReader.getIdentityProperties()).thenReturn(getIdpProperties(AUTH_TOKEN_KEY, CLIENT_ID_KEY));
         when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
