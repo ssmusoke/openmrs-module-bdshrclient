@@ -83,9 +83,9 @@ public class PropertiesReader {
 
     public String getShrBaseUrl() {
         Properties properties = getShrProperties();
-        return getBaseUrl(properties.getProperty("shr.scheme"),
+        return String.format("%s/%s",getBaseUrl(properties.getProperty("shr.scheme"),
                 properties.getProperty("shr.host"),
-                properties.getProperty("shr.port"));
+                properties.getProperty("shr.port")), properties.getProperty("shr.version"));
     }
 
     public String getLrBaseUrl() {
