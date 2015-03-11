@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.openmrs.module.shrclient.identity.Identity;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityToken;
 import org.openmrs.module.shrclient.util.PropertiesReader;
@@ -80,8 +79,6 @@ public class ClientRegistryTest {
         when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
         when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:8089");
         when(propertiesReader.getIdentityServerBaseUrl()).thenReturn("http://localhost:8089");
-
-        when(propertiesReader.getIdentity()).thenReturn(new Identity("foo", "bar"));
 
         //here the token is set to null, so ClientRegistry should get a new token
         when(identityStore.getToken()).thenReturn(null);
@@ -170,8 +167,6 @@ public class ClientRegistryTest {
         when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
         when(propertiesReader.getShrBaseUrl()).thenReturn("http://localhost:8089");
         when(propertiesReader.getIdentityServerBaseUrl()).thenReturn("http://localhost:8089");
-
-        when(propertiesReader.getIdentity()).thenReturn(new Identity("foo", "bar"));
 
         //here the token is set to null, so ClientRegistry should get a new token
         when(identityStore.getToken()).thenReturn(null);

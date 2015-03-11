@@ -1,6 +1,5 @@
 package org.openmrs.module.shrclient.util;
 
-import org.openmrs.module.shrclient.identity.Identity;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -50,13 +49,6 @@ public class PropertiesReader {
     public Properties getFacilityInstanceProperties() {
         return getProperties("facility_instance.properties");
     }
-
-    public Identity getIdentity() {
-        Properties properties = getProperties("identity.properties");
-        return new Identity(properties.getProperty("identity.user"),
-                properties.getProperty("identity.password"));
-    }
-
 
     public HashMap<String, String> getBaseUrls(){
         HashMap<String, String> baseUrls = new HashMap<>();
