@@ -22,6 +22,8 @@ import static java.util.Arrays.asList;
 @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 public class CompositionBundle {
 
+    public static final String FHIR_CONFIDENTIALITY_SYSTEM = "http://hl7.org/fhir/v3/Confidentiality";
+    public static final String CONFIDENTIALITY_NORMAL = "N";
     @Autowired
     private EncounterMapper encounterMapper;
 
@@ -107,7 +109,15 @@ public class CompositionBundle {
         composition.setSubject(encounter.getSubject());
         ResourceReference resourceReferenceAuthor = composition.addAuthor();
         resourceReferenceAuthor.setReferenceSimple(getReference(Location.class, systemProperties));
+        composition.setConfidentiality(getConfidentialityCoding());
         return composition;
+    }
+
+    private Coding getConfidentialityCoding() {
+        Coding coding = new Coding();
+        coding.setCodeSimple(CONFIDENTIALITY_NORMAL);
+        coding.setSystemSimple(FHIR_CONFIDENTIALITY_SYSTEM);
+        return coding;
     }
 
     private String getReference(java.lang.reflect.Type type, SystemProperties systemProperties) {
