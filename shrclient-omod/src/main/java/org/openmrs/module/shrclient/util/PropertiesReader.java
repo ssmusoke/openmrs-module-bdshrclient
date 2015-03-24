@@ -1,5 +1,6 @@
 package org.openmrs.module.shrclient.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -75,9 +76,11 @@ public class PropertiesReader {
 
     public String getShrBaseUrl() {
         Properties properties = getShrProperties();
-        return String.format("%s/%s",getBaseUrl(properties.getProperty("shr.scheme"),
-                properties.getProperty("shr.host"),
-                properties.getProperty("shr.port")), properties.getProperty("shr.version"));
+        String shrUrl = getBaseUrl(properties.getProperty("shr.scheme"), properties.getProperty("shr.host"),
+                properties.getProperty("shr.port"));
+        String shrVersion = properties.getProperty("shr.version");
+
+        return StringUtils.isEmpty(shrVersion)? shrUrl : String.format("%s/%s", shrUrl, shrVersion);
     }
 
     public String getLrBaseUrl() {
