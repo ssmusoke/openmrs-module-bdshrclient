@@ -17,6 +17,7 @@ public class ProviderMapper {
     public final static String ORGANIZATION_ATTRIBUTE_TYPE_NAME = "Organization";
     public final static String RETIRE_REASON = "Upstream Deletion";
     private final static String NOT_ACTIVE = "0";
+    private final static String ACTIVE = "1";
     private ProviderService providerService;
 
     @Autowired
@@ -40,6 +41,10 @@ public class ProviderMapper {
         if (providerEntry.getActive().equals(NOT_ACTIVE)) {
             provider.setRetired(true);
             provider.setRetireReason(RETIRE_REASON);
+        }
+        else if(providerEntry.getActive().equals(ACTIVE)){
+            provider.setRetired(false);
+            provider.setRetireReason(null);
         }
     }
 

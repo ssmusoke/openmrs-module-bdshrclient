@@ -2,6 +2,7 @@ package org.openmrs.module.shrclient.mapper;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.omg.CORBA.PERSIST_STORE;
 import org.openmrs.Provider;
 import org.openmrs.ProviderAttribute;
 import org.openmrs.ProviderAttributeType;
@@ -86,6 +87,21 @@ public class ProviderMapperTest extends BaseModuleWebContextSensitiveTest {
         assertEquals(identifier, provider.getIdentifier());
         assertTrue(provider.isRetired());
         assertEquals(RETIRE_REASON, provider.getRetireReason());
+    }
+
+    @Test
+    public void shouldUnRetireProviderIfRetired() throws Exception {
+        String identifier = "1025";
+        ProviderEntry providerEntry = getProviderEntry(identifier, "1");
+        Provider existingProvider = providerService.getProvider(24);
+        assertEquals(identifier, existingProvider.getIdentifier());
+        assertTrue(existingProvider.isRetired());
+
+        providerMapper.createOrUpdate(providerEntry);
+
+        Provider provider = providerService.getProvider(24);
+        assertEquals(identifier, provider.getIdentifier());
+        assertFalse(provider.isRetired());
     }
 
     private ProviderEntry getProviderEntry(String identifier, String active) {
