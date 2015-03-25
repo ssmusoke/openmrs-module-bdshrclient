@@ -44,6 +44,12 @@
            password="ff6d1655327d385e11a04e1632b4f33ceb8fafd2" salt="5d32c5fd9fde391c755f1f4dfd5e1d6e3debe6"
            secret_question="" creator="1" date_created="2008-08-15 15:46:47.0" uuid="Z9fd3a7b-6482-487d-87eR-c07b123MxF99"/>
 
+    <provider_attribute_type provider_attribute_type_id="1" name="Organization" datatype="org.openmrs.customdatatype.datatype.FreeTextDatatype"
+                             creator="1" date_created="2015-02-17 15:06:06" retired="0" min_occurs="0" uuid="5b19584d-10ab-11e4-b4e1-1e55d8e9e2ae" />
+
+    <provider_attribute provider_attribute_id="23" provider_id="22" attribute_type_id="1" value_reference="10000069"
+                        creator="1" voided="0" date_created="2015-02-17 15:06:06" uuid="b5e44116-778f-46d4-ad73-903c7bb72694" />
+
     <provider provider_id="22" person_id="2" name="shrclientsystem" creator="1" date_created="2005-01-01 00:00:00.0"
               retired="false" uuid="331c6bf8-7846-11e3-a96a-0900271c1b75"/>
 

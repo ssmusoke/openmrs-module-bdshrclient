@@ -33,4 +33,6 @@ public class Constants {
     public static final String ID_MAPPING_PATIENT_TYPE = "patient";
 
     public static final String OPENMRS_DAEMON_USER = "A4F30A1B-5EB9-11DF-A648-37A07F9C90FB";
+
+    public final static String ORGANIZATION_ATTRIBUTE_TYPE_NAME = "Organization";
 }
