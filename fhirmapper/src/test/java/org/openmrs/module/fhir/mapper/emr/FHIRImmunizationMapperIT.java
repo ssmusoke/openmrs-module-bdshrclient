@@ -5,6 +5,7 @@ import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.Resource;
 import org.hl7.fhir.instance.model.ResourceType;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Encounter;
@@ -17,10 +18,8 @@ import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
@@ -61,10 +60,10 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
     @Test
     public void shouldMapDateOfVaccination() throws Exception {
         Obs obs = mapImmunizationIncidentObs();
-        Date expectedDate = new DateTime().withDate(2014,12,3).toDateMidnight().toDate();
+        DateTime dateTime = new DateTime(DateTimeZone.forTimeZone(TimeZone.getTimeZone("IST")));
+        Date expectedDate = dateTime.withDate(2014, 12, 3).toDateMidnight().toDate();
 
         Obs vaccineDateObs = obsHelper.findMemberObsByConceptName(obs, MRS_CONCEPT_VACCINATION_DATE);
-
         assertEquals(expectedDate, vaccineDateObs.getValueDate());
     }
 

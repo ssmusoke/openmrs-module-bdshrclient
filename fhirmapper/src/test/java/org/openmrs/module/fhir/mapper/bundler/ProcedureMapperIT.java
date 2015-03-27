@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.ObsService;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -89,9 +90,12 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldMapPeriod() throws Exception {
         Procedure procedure= getProcedure(mapProcedure(1100, new Encounter()));
         Period period = procedure.getDate();
-
-        assertEquals("2015-01-10T00:00:00+05:30", period.getStart().getValue().toString());
-        assertEquals("2015-01-15T00:00:00+05:30", period.getEnd().getValue().toString());
+        
+        DateAndTime expectedStartDate = convertToDateAndTime("2015-01-10 00:00:00");
+        DateAndTime expectedEndDate = convertToDateAndTime("2015-01-15 00:00:00");
+        
+        assertEquals(expectedStartDate.toString(), period.getStart().getValue().toString());
+        assertEquals(expectedEndDate.toString(), period.getEnd().getValue().toString());
     }
 
     //TODO: Set proper data
@@ -111,12 +115,18 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
         assertEquals("patient",diagnosticReport.getSubject().getReferenceSimple());
         assertEquals("Provider 1",diagnosticReport.getPerformer().getReferenceSimple());
-        assertEquals("2010-08-18T15:09:05+05:30",((DateTime)diagnosticReport.getDiagnostic()).getValue().toString());
+        DateAndTime expectedDate = convertToDateAndTime("2010-08-18 15:09:05");
+        DateAndTime diagnosticDate = ((DateTime) diagnosticReport.getDiagnostic()).getValue();
+        assertEquals(expectedDate.toString(), diagnosticDate.toString());
 
         assertDiagnosticName(diagnosticReport);
         assertCodedDiagnosis(diagnosticReport);
         assertDiagnosisResult(diagnosticReport);
 
+    }
+
+    private DateAndTime convertToDateAndTime(String date) {
+        return new DateAndTime(DateUtil.parseDate(date));
     }
 
     private void assertDiagnosisResult(DiagnosticReport diagnosticReport) {

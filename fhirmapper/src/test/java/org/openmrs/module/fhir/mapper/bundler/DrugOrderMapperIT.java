@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 
 import static org.hl7.fhir.instance.model.Schedule.UnitsOfTime.d;
 import static org.hl7.fhir.instance.model.Schedule.UnitsOfTime.wk;
@@ -44,7 +45,8 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
         assertEquals(1, FHIRResources.size());
         MedicationPrescription prescription = (MedicationPrescription) FHIRResources.get(0).getResource();
-        assertMedicationPrescription(prescription);
+        Date expectedDate = DateUtil.parseDate("2008-08-19 12:20:22");
+        assertMedicationPrescription(prescription, expectedDate);
         assertEquals(1, prescription.getDosageInstruction().size());
         MedicationPrescriptionDosageInstructionComponent dosageInstruction = prescription.getDosageInstruction().get(0);
         assertRoute(dosageInstruction);
@@ -119,11 +121,16 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals("http://tr/openmrs/ws/rest/v1/tr/vs/sample-route", routeCode.getSystemSimple());
     }
 
-    private void assertMedicationPrescription(MedicationPrescription prescription) {
+    private void assertMedicationPrescription(MedicationPrescription prescription, Date expectedDate) {
         assertNotNull(prescription);
         assertEquals("hid", prescription.getPatient().getReferenceSimple());
         assertNotNull(prescription.getIdentifier());
-        assertEquals("2008-08-19T12:20:22+05:30", prescription.getDateWritten().getValue().toString());
+        
+        DateAndTime expected = new DateAndTime(expectedDate);
+        DateAndTime dateWritten = prescription.getDateWritten().getValue();
+        assertEquals(expected.toString(), dateWritten.toString());
+        
+        
         assertEquals("drugs/104", prescription.getMedication().getReferenceSimple());
         assertEquals("Lactic Acid", prescription.getMedication().getDisplaySimple());
         assertEquals("provider", prescription.getPrescriber().getReferenceSimple());

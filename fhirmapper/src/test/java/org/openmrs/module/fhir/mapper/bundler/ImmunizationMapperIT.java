@@ -6,10 +6,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.ObsService;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
+import java.util.*;
+import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -70,7 +72,9 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldMapVaccinationDate() throws Exception {
         Immunization immunization = mapImmunization(11, new Encounter());
         DateTime vaccinationDate = immunization.getDate();
-        assertEquals("2014-01-02T00:00:00+05:30", vaccinationDate.getValue().toString());
+        java.util.Date date = DateUtil.parseDate("2014-01-02 00:00:00");
+        DateAndTime expectedDate = new DateAndTime(date);
+        assertEquals(expectedDate.toString(), vaccinationDate.getValue().toString());
     }
 
     @Test

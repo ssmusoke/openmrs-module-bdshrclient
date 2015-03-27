@@ -5,6 +5,7 @@ import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.Resource;
 import org.hl7.fhir.instance.model.ResourceType;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
@@ -18,10 +19,7 @@ import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
@@ -56,19 +54,19 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapStartDate() throws Exception {
-
         Obs proceduresObs = mapProceduresObs();
         Obs startDate = obsHelper.findMemberObsByConceptName(proceduresObs, MRS_CONCEPT_PROCEDURE_START_DATE);
-        Date expectedDate = new DateTime().withDate(2014, 12, 31).toDateMidnight().toDate();
+        DateTime dateTime = new DateTime(DateTimeZone.forTimeZone(TimeZone.getTimeZone("IST")));
+        Date expectedDate = dateTime.withDate(2014, 12, 31).toDateMidnight().toDate();
         assertEquals(expectedDate, startDate.getValueDatetime());
     }
 
     @Test
     public void shouldMapEndDate() throws Exception {
-
         Obs proceduresObs = mapProceduresObs();
         Obs endDate = obsHelper.findMemberObsByConceptName(proceduresObs, MRS_CONCEPT_PROCEDURE_END_DATE);
-        Date expectedDate = new DateTime().withDate(2015, 1, 13).toDateMidnight().toDate();
+        DateTime dateTime = new DateTime(DateTimeZone.forTimeZone(TimeZone.getTimeZone("IST")));
+        Date expectedDate = dateTime.withDate(2015, 1, 13).toDateMidnight().toDate();
         assertEquals(expectedDate, endDate.getValueDatetime());
 
     }
