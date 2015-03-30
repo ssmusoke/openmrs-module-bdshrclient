@@ -30,11 +30,18 @@ public class ProviderMapper {
         if(provider == null) {
             provider = new Provider();
         }
-        provider.setName(providerEntry.getName());
+        provider.setName(buildProviderName(providerEntry));
         provider.setIdentifier(providerEntry.getId());
         mapActive(providerEntry, provider);
         mapOrganization(providerEntry, provider);
         providerService.saveProvider(provider);
+    }
+
+    private String buildProviderName(ProviderEntry providerEntry) {
+        String name = providerEntry.getName();
+        if(providerEntry.getOrganization() != null)
+            name = String.format("%s(%s)", name, providerEntry.getOrganization().getDisplay());
+        return name;
     }
 
     private void mapActive(ProviderEntry providerEntry, Provider provider) {
