@@ -2,6 +2,7 @@ package org.openmrs.module.shrclient.mapper;
 
 import org.openmrs.PersonAttribute;
 import org.openmrs.module.shrclient.model.Patient;
+import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.util.AddressHelper;
 
@@ -10,8 +11,8 @@ import java.text.SimpleDateFormat;
 import static org.openmrs.module.fhir.utils.Constants.*;
 
 public class PatientMapper {
-    private final AddressHelper addressHelper;
     private BbsCodeService bbsCodeService;
+    private final AddressHelper addressHelper;
 
     public PatientMapper(BbsCodeService bbsCodeService) {
         this.bbsCodeService = bbsCodeService;
@@ -66,15 +67,7 @@ public class PatientMapper {
             patient.setPrimaryContact(primaryContact);
         }
         patient.setAddress(addressHelper.getMciAddress(openMrsPatient));
-        Boolean isDead = openMrsPatient.isDead();
-        if (isDead) {
-            patient.setStatus('2');
-        } else {
-            patient.setStatus('1');
-        }
-        if (openMrsPatient.getDeathDate() != null) {
-            patient.setDateOfDeath(new SimpleDateFormat(ISO_DATE_FORMAT).format(openMrsPatient.getDeathDate()));
-        }
+        patient.setStatus(getMciPatientStatus(openMrsPatient));
         return patient;
     }
 
@@ -85,5 +78,21 @@ public class PatientMapper {
 
     private PersonAttribute getAttribute(org.openmrs.Patient openMrsPatient, String attributeName) {
         return openMrsPatient.getAttribute(attributeName);
+    }
+
+    private Status getMciPatientStatus(org.openmrs.Patient openMrsPatient) {
+        Status status = new Status();
+        Character type = '1';
+        String dateOfDeath = null;
+        Boolean isDead = openMrsPatient.isDead();
+        if (isDead) {
+            type = '2';
+        }
+        if (openMrsPatient.getDeathDate() != null) {
+            dateOfDeath = new SimpleDateFormat(ISO_DATE_FORMAT).format(openMrsPatient.getDeathDate());
+        }
+        status.setType(type);
+        status.setDateOfDeath(dateOfDeath);
+        return status;
     }
 }

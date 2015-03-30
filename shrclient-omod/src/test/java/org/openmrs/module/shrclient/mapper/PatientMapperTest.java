@@ -14,6 +14,7 @@ import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.shrclient.model.Address;
 import org.openmrs.module.shrclient.model.Patient;
+import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;
 import org.openmrs.module.shrclient.util.AddressHelper;
@@ -81,6 +82,7 @@ public class PatientMapperTest {
         final String ruralWard = "some-rural-ward";
 
         Person person = new Person();
+
         PersonName personName = new PersonName(givenName, middleName, familyName);
         person.addName(personName);
         person.setGender(gender);
@@ -126,10 +128,15 @@ public class PatientMapperTest {
         p.setSurName(familyName);
         p.setGender(gender);
         p.setDateOfBirth(new SimpleDateFormat(ISO_DATE_FORMAT).format(dateOfBirth));
-        p.setDateOfDeath(new SimpleDateFormat(ISO_DATE_FORMAT).format(dateOfDeath));
         p.setOccupation(bbsCodeService.getOccupationCode(occupation));
         p.setEducationLevel(bbsCodeService.getEducationCode(educationLevel));
         p.setPrimaryContact(primaryContact);
+
+        Status status = new Status();
+        status.setType('2');
+        status.setDateOfDeath(new SimpleDateFormat(ISO_DATE_FORMAT).format(dateOfDeath));
+        p.setStatus(status);
+
 
         Address a = new Address();
         a.setAddressLine(addressLine);

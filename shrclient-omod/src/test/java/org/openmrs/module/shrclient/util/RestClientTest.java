@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.model.mci.api.MciPatientUpdateResponse;
 import org.openmrs.module.shrclient.model.Address;
 import org.openmrs.module.shrclient.model.Patient;
@@ -47,7 +48,9 @@ public class RestClientTest {
         final Address address = new Address();
         address.setDivisionId("div-100");
         patient.setAddress(address);
-        patient.setStatus('1');
+        Status status = new Status();
+        status.setType('1');
+        patient.setStatus(status);
 
         stubFor(get(urlEqualTo(url))
                 .withHeader(acceptHeader, equalTo(contentTypeJson))

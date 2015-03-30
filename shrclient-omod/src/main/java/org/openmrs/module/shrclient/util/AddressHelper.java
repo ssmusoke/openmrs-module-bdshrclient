@@ -9,13 +9,10 @@ import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.shrclient.model.Address;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.openmrs.module.shrclient.model.Address.getAddressCodeForLevel;
 import static org.openmrs.module.shrclient.util.AddressLevel.*;
-import static org.openmrs.module.shrclient.util.AddressLevel.Division;
-import static org.openmrs.module.shrclient.util.AddressLevel.LOCATION_LEVELS;
 
 public class AddressHelper {
 

@@ -28,6 +28,7 @@ import org.openmrs.module.idgen.service.IdentifierSourceService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.Patient;
+import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.AddressHelper;
@@ -136,8 +137,8 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     private void setDeathInfo(org.openmrs.Patient emrPatient, Patient mciPatient) {
-        Character status = mciPatient.getStatus();
-        boolean isAliveMciPatient = status == '1' ? true : false;
+        Status status = mciPatient.getStatus();
+        boolean isAliveMciPatient = status.getType() == '1' ? true : false;
         boolean isAliveEmrPatient = !emrPatient.isDead();
         if (isAliveMciPatient && isAliveEmrPatient) {
             return;
@@ -148,7 +149,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         } else {
             emrPatient.setDead(true);
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(ISO_DATE_FORMAT);
-            String dateOfDeath = mciPatient.getDateOfDeath();
+            String dateOfDeath = status.getDateOfDeath();
             if (dateOfDeath != null) {
                 try {
                     Date dob = simpleDateFormat.parse(dateOfDeath);
