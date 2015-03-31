@@ -40,7 +40,7 @@ public class ProviderMapper {
     private String buildProviderName(ProviderEntry providerEntry) {
         String name = providerEntry.getName();
         if(providerEntry.getOrganization() != null)
-            name = String.format("%s(%s)", name, providerEntry.getOrganization().getDisplay());
+            name = String.format("%s @ %s", name, providerEntry.getOrganization().getDisplay());
         return name;
     }
 

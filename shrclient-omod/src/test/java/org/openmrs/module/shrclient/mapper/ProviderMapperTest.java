@@ -34,7 +34,7 @@ public class ProviderMapperTest extends BaseModuleWebContextSensitiveTest {
         providerMapper.createOrUpdate(providerEntry);
 
         Provider provider = providerService.getProviderByIdentifier(identifier);
-        assertEquals("Provider Name(facility-name)", provider.getName());
+        assertEquals("Provider Name @ facility-name", provider.getName());
         assertFalse(provider.isRetired());
         assertEquals(1, provider.getAttributes().size());
         ProviderAttributeType providerAttributeType = providerService.getProviderAttributeType(1);
@@ -54,7 +54,7 @@ public class ProviderMapperTest extends BaseModuleWebContextSensitiveTest {
 
         Provider provider = providerService.getProvider(22);
         assertEquals(identifier, provider.getIdentifier());
-        assertEquals("Provider Name(facility-name)", provider.getName());
+        assertEquals("Provider Name @ facility-name", provider.getName());
     }
 
     @Test
