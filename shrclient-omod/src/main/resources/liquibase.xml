@@ -157,8 +157,8 @@
             <column name="schedulable_class" value="org.openmrs.module.shrclient.scheduler.tasks.LRSyncTask"/>
             <column name="start_time" valueDate=" now() "/>
             <column name="start_time_pattern" value="MM/dd/yyyy HH:mm:ss"/>
-            <column name="repeat_interval" value="15"/>
-            <column name="start_on_startup" value="1"/>
+            <column name="repeat_interval" value="86400"/>
+            <column name="start_on_startup" value="0"/>
             <column name="started" value="1"/>
             <column name="created_by" value="1"/>
             <column name="date_created" valueDate=" now() "/>
@@ -180,8 +180,8 @@
             <column name="schedulable_class" value="org.openmrs.module.shrclient.scheduler.tasks.FRSyncTask"/>
             <column name="start_time" valueDate=" now() "/>
             <column name="start_time_pattern" value="MM/dd/yyyy HH:mm:ss"/>
-            <column name="repeat_interval" value="15"/>
-            <column name="start_on_startup" value="1"/>
+            <column name="repeat_interval" value="86400"/>
+            <column name="start_on_startup" value="0"/>
             <column name="started" value="1"/>
             <column name="created_by" value="1"/>
             <column name="date_created" valueDate=" now() "/>
