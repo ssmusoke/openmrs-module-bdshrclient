@@ -12,6 +12,7 @@ import org.openmrs.module.addresshierarchy.AddressField;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.model.Address;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.Status;
@@ -19,7 +20,6 @@ import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;
 import org.openmrs.module.shrclient.util.AddressHelper;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -64,8 +64,8 @@ public class PatientMapperTest {
         final String middleName = "Ramesh";
         final String familyName = "Tendulkar";
         final String gender = "M";
-        final Date dateOfBirth = new SimpleDateFormat(ISO_DATE_FORMAT).parse("2000-12-31");
-        final Date dateOfDeath = new SimpleDateFormat(ISO_DATE_FORMAT).parse("2010-12-31");
+        final Date dateOfBirth = DateUtil.parseDate("2000-12-31", DateUtil.SIMPLE_DATE_FORMAT);
+        final Date dateOfDeath = DateUtil.parseDate("2010-12-31", DateUtil.SIMPLE_DATE_FORMAT);
 
         final String addressLine = "house10";
         final String divisionId = "10";
@@ -127,14 +127,14 @@ public class PatientMapperTest {
         p.setGivenName(givenName);
         p.setSurName(familyName);
         p.setGender(gender);
-        p.setDateOfBirth(new SimpleDateFormat(ISO_DATE_FORMAT).format(dateOfBirth));
+        p.setDateOfBirth(DateUtil.toDateString(dateOfBirth,DateUtil.ISO_DATE_IN_HOUR_MIN_FORMAT));
         p.setOccupation(bbsCodeService.getOccupationCode(occupation));
         p.setEducationLevel(bbsCodeService.getEducationCode(educationLevel));
         p.setPrimaryContact(primaryContact);
 
         Status status = new Status();
         status.setType('2');
-        status.setDateOfDeath(new SimpleDateFormat(ISO_DATE_FORMAT).format(dateOfDeath));
+        status.setDateOfDeath(DateUtil.toDateString(dateOfDeath, DateUtil.ISO_DATE_IN_HOUR_MIN_FORMAT));
         p.setStatus(status);
 
 

@@ -5,8 +5,6 @@ public class Constants {
 
     public static final String SHR_CLIENT_SYSTEM_NAME = "shrclientsystem";
 
-    public static final String ISO_DATE_FORMAT = "yyyy-MM-dd";
-
     public static final String NATIONAL_ID_ATTRIBUTE = "National ID";
 
     public static final String HEALTH_ID_ATTRIBUTE = "Health ID";

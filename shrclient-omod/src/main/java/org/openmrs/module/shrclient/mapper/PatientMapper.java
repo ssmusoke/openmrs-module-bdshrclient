@@ -1,12 +1,12 @@
 package org.openmrs.module.shrclient.mapper;
 
 import org.openmrs.PersonAttribute;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.util.AddressHelper;
 
-import java.text.SimpleDateFormat;
 
 import static org.openmrs.module.fhir.utils.Constants.*;
 
@@ -50,7 +50,7 @@ public class PatientMapper {
         patient.setGivenName(openMrsPatient.getGivenName());
         patient.setSurName(openMrsPatient.getFamilyName());
         patient.setGender(openMrsPatient.getGender());
-        patient.setDateOfBirth(new SimpleDateFormat(ISO_DATE_FORMAT).format(openMrsPatient.getBirthdate()));
+        patient.setDateOfBirth(DateUtil.toDateString(openMrsPatient.getBirthdate(), DateUtil.ISO_DATE_IN_HOUR_MIN_FORMAT));
 
         PersonAttribute occupation = getAttribute(openMrsPatient, OCCUPATION_ATTRIBUTE);
         if (occupation != null) {
@@ -89,7 +89,7 @@ public class PatientMapper {
             type = '2';
         }
         if (openMrsPatient.getDeathDate() != null) {
-            dateOfDeath = new SimpleDateFormat(ISO_DATE_FORMAT).format(openMrsPatient.getDeathDate());
+            dateOfDeath = DateUtil.toDateString(openMrsPatient.getDeathDate(), DateUtil.ISO_DATE_IN_HOUR_MIN_FORMAT);
         }
         status.setType(type);
         status.setDateOfDeath(dateOfDeath);

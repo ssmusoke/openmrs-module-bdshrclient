@@ -21,6 +21,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.ParticipantHelper;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
@@ -38,8 +39,6 @@ import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -122,13 +121,8 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
                     mciPatient.getHealthId(), educationConceptName, mciPatient.getEducationLevel()));
         }
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(ISO_DATE_FORMAT);
-        try {
-            Date dob = simpleDateFormat.parse(mciPatient.getDateOfBirth());
-            emrPatient.setBirthdate(dob);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        Date dob = DateUtil.parseDate(mciPatient.getDateOfBirth());
+        emrPatient.setBirthdate(dob);
 
         ParticipantHelper.setCreator(emrPatient, userService);
         org.openmrs.Patient patient = patientService.savePatient(emrPatient);
@@ -148,15 +142,10 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
             emrPatient.setDeathDate(null);
         } else {
             emrPatient.setDead(true);
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(ISO_DATE_FORMAT);
             String dateOfDeath = status.getDateOfDeath();
             if (dateOfDeath != null) {
-                try {
-                    Date dob = simpleDateFormat.parse(dateOfDeath);
-                    emrPatient.setDeathDate(dob);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+                Date dob = DateUtil.parseDate(dateOfDeath);
+                emrPatient.setDeathDate(dob);
             }
             Concept causeOfDeath = conceptService.getConcept(CAUSE_OF_DEATH_NOT_SPECIFIED);
             emrPatient.setCauseOfDeath(causeOfDeath);

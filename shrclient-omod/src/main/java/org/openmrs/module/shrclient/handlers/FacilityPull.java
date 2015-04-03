@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.openmrs.Location;
 import org.openmrs.LocationTag;
 import org.openmrs.api.LocationService;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.LocationMapper;
 import org.openmrs.module.shrclient.model.FRLocationEntry;
@@ -15,8 +16,12 @@ import org.openmrs.module.shrclient.util.ScheduledTaskHistory;
 
 import java.io.IOException;
 import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 import static org.openmrs.module.shrclient.util.URLParser.parseURL;
 
@@ -205,7 +210,7 @@ public class FacilityPull {
     }
 
     private String getCurrentDateAndTime() {
-        return new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date());
+        return DateUtil.toDateString(new Date(), DateUtil.SIMPLE_DATE_WITH_SECS_FORMAT);
     }
 
 }
