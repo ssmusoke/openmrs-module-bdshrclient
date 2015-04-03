@@ -5,8 +5,6 @@ public class Constants {
 
     public static final String SHR_CLIENT_SYSTEM_NAME = "shrclientsystem";
 
-    public static final String ISO_DATE_FORMAT = "yyyy-MM-dd";
-
     public static final String NATIONAL_ID_ATTRIBUTE = "National ID";
 
     public static final String HEALTH_ID_ATTRIBUTE = "Health ID";
@@ -33,4 +31,6 @@ public class Constants {
     public static final String ID_MAPPING_PATIENT_TYPE = "patient";
 
     public static final String OPENMRS_DAEMON_USER = "A4F30A1B-5EB9-11DF-A648-37A07F9C90FB";
+
+    public final static String ORGANIZATION_ATTRIBUTE_TYPE_NAME = "Organization";
 }

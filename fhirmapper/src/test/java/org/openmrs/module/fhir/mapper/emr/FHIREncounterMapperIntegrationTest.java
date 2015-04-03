@@ -101,4 +101,27 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         assertNotNull(firstObs.getPerson());
         assertNotNull(firstObs.getEncounter());
     }
+
+    @Test
+    public void shouldMapAnEncounterWhichDoesNotHaveServiceProvider() throws Exception {
+        executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
+        ParserBase.ResourceOrFeed resourceOrFeed = new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/testFHIREncounterWithExternalProvider.xml", springContext);
+        AtomFeed encounterBundle = resourceOrFeed.getFeed();
+        Composition composition = FHIRFeedHelper.getComposition(encounterBundle);
+        Encounter encounter = FHIRFeedHelper.getEncounter(encounterBundle);
+        encounter.setServiceProvider(null);
+        org.openmrs.Patient emrPatient = patientService.getPatient(1);
+        org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map(encounter, composition.getDateSimple().toString(), emrPatient, encounterBundle);
+
+        assertNotNull(emrEncounter);
+        assertEquals(emrPatient, emrEncounter.getPatient());
+        assertEquals(DateUtil.parseDate("2014-07-10T16:05:09+05:30"), emrEncounter.getEncounterDatetime());
+        assertEquals(encounter.getType().get(0).getTextSimple(), emrEncounter.getEncounterType().getName());
+        assertNotNull(emrEncounter.getEncounterProviders());
+
+        assertNotNull(emrEncounter.getVisit());
+        assertNotNull(emrEncounter.getLocation());
+        assertEquals("ad41fb41-a41a-4ad6-8835-2f59099acf5a", emrEncounter.getVisit().getUuid());
+        assertEquals("50ab30be-98af-4dfd-bd04-5455937c443f", emrEncounter.getLocation().getUuid());
+    }
 }

@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.mapper.AddressHierarchyEntryMapper;
 import org.openmrs.module.shrclient.model.LRAddressHierarchyEntry;
 import org.openmrs.module.shrclient.util.PropertiesReader;
@@ -187,6 +188,6 @@ public class LocationPull {
     }
 
     private String getCurrentDateAndTime() {
-        return new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date());
+        return DateUtil.toDateString(new Date(), DateUtil.SIMPLE_DATE_WITH_SECS_FORMAT);
     }
 }

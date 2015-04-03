@@ -32,7 +32,7 @@ public class PatientJsonTest {
     public void shouldExcludeEmptyNonMandatoryFields() throws Exception {
         String expected = "{\"given_name\":\"Scott\",\"sur_name\":\"Tiger\",\"date_of_birth\":null,\"gender\":\"M\"" +
                 ",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"04\"" +
-                ",\"upazila_id\":\"09\",\"city_corporation_id\":\"20\",\"union_or_urban_ward_id\":\"01\"},\"status\":null,\"date_of_death\":null}";
+                ",\"upazila_id\":\"09\",\"city_corporation_id\":\"20\",\"union_or_urban_ward_id\":\"01\"},\"status\":null}";
         String actual = new ObjectMapper().writeValueAsString(patient);
         assertEquals(expected, actual);
     }
@@ -42,7 +42,7 @@ public class PatientJsonTest {
         patient.setNationalId("nid-100");
         String expected = "{\"nid\":\"nid-100\",\"given_name\":\"Scott\",\"sur_name\":\"Tiger\",\"date_of_birth\":null," +
                 "\"gender\":\"M\",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"04\"," +
-                "\"upazila_id\":\"09\",\"city_corporation_id\":\"20\",\"union_or_urban_ward_id\":\"01\"},\"status\":null,\"date_of_death\":null}";
+                "\"upazila_id\":\"09\",\"city_corporation_id\":\"20\",\"union_or_urban_ward_id\":\"01\"},\"status\":null}";
         String actual = new ObjectMapper().writeValueAsString(patient);
         assertEquals(expected, actual);
     }
@@ -53,10 +53,10 @@ public class PatientJsonTest {
         patient.setRelations(getRelationsForPatient(patient));
         String expected = "{\"nid\":\"nid-100\",\"given_name\":\"Scott\",\"sur_name\":\"Tiger\",\"date_of_birth\":null," +
                 "\"gender\":\"M\",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"04\"," +
-                "\"upazila_id\":\"09\",\"city_corporation_id\":\"20\",\"union_or_urban_ward_id\":\"01\"}," +
+                "\"upazila_id\":\"09\",\"city_corporation_id\":\"20\",\"union_or_urban_ward_id\":\"01\"},\"status\":null," +
                 "\"relations\":[{"+"\"type\":\"mother\"," +
                 "\"given_name\":\"Mother of Scott\"," +
-                "\"sur_name\":\"Tiger\"}],\"status\":null,\"date_of_death\":null}";
+                "\"sur_name\":\"Tiger\"}]}";
         String actual = new ObjectMapper().writeValueAsString(patient);
         System.out.println(actual);
         assertEquals(expected, actual);
@@ -71,5 +71,4 @@ public class PatientJsonTest {
         relations[0] = aRel;
         return relations;
     }
-
 }

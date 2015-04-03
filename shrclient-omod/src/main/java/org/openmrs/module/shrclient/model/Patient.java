@@ -43,6 +43,9 @@ public class Patient {
     @JsonProperty("present_address")
     private Address address;
 
+    @JsonProperty("status")
+    private Status status;
+
     @JsonProperty("bin_brn")
     @JsonInclude(NON_EMPTY)
     private String birthRegNumber;
@@ -54,12 +57,6 @@ public class Patient {
     @JsonProperty("relations")
     @JsonInclude(NON_NULL)
     private Relation[] relations;
-
-    @JsonProperty("status")
-    private Character status;
-
-    @JsonProperty("date_of_death")
-    private String dateOfDeath;
 
     @Override
     public boolean equals(Object o) {
@@ -170,6 +167,14 @@ public class Patient {
         this.address = address;
     }
 
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
     public String getGender() {
         return gender;
     }
@@ -216,22 +221,6 @@ public class Patient {
 
     public void setRelations(Relation[] relations) {
         this.relations = relations;
-    }
-
-    public String getDateOfDeath() {
-        return dateOfDeath;
-    }
-
-    public void setDateOfDeath(String dateOfDeath) {
-        this.dateOfDeath = dateOfDeath;
-    }
-
-    public Character getStatus() {
-        return status;
-    }
-
-    public void setStatus(char status) {
-        this.status = status;
     }
 
     public String getUniqueId() {

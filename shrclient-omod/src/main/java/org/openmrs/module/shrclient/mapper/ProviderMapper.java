@@ -17,6 +17,7 @@ public class ProviderMapper {
     public final static String ORGANIZATION_ATTRIBUTE_TYPE_NAME = "Organization";
     public final static String RETIRE_REASON = "Upstream Deletion";
     private final static String NOT_ACTIVE = "0";
+    private final static String ACTIVE = "1";
     private ProviderService providerService;
 
     @Autowired
@@ -29,17 +30,28 @@ public class ProviderMapper {
         if(provider == null) {
             provider = new Provider();
         }
-        provider.setName(providerEntry.getName());
+        provider.setName(buildProviderName(providerEntry));
         provider.setIdentifier(providerEntry.getId());
         mapActive(providerEntry, provider);
         mapOrganization(providerEntry, provider);
         providerService.saveProvider(provider);
     }
 
+    private String buildProviderName(ProviderEntry providerEntry) {
+        String name = providerEntry.getName();
+        if(providerEntry.getOrganization() != null)
+            name = String.format("%s @ %s", name, providerEntry.getOrganization().getDisplay());
+        return name;
+    }
+
     private void mapActive(ProviderEntry providerEntry, Provider provider) {
         if (providerEntry.getActive().equals(NOT_ACTIVE)) {
             provider.setRetired(true);
             provider.setRetireReason(RETIRE_REASON);
+        }
+        else if(providerEntry.getActive().equals(ACTIVE)){
+            provider.setRetired(false);
+            provider.setRetireReason(null);
         }
     }
 

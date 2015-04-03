@@ -1,6 +1,7 @@
 package org.openmrs.module.shrclient.handlers;
 
 import org.apache.commons.lang3.StringUtils;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.mapper.ProviderMapper;
 import org.openmrs.module.shrclient.model.ProviderEntry;
 import org.openmrs.module.shrclient.util.PropertiesReader;
@@ -89,7 +90,8 @@ public class ProviderPull {
                 nextCompleteContextPath = buildCompleteContextPath(baseContextPath, offset, INITIAL_DATETIME);
                 scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(baseUrl + nextCompleteContextPath, PR_FEED_URI);
             } else {
-                nextCompleteContextPath = buildCompleteContextPath(baseContextPath, INITIAL_OFFSET, new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date()));
+                nextCompleteContextPath = buildCompleteContextPath(baseContextPath, INITIAL_OFFSET,
+                        DateUtil.toDateString(new Date(), DateUtil.SIMPLE_DATE_WITH_SECS_FORMAT));
                 scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(baseUrl + nextCompleteContextPath, PR_FEED_URI);
             }
 
