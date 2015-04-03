@@ -140,7 +140,7 @@ public class WebClient {
     }
 
     private String getUrl(String path) {
-        return baseUrl + path;
+        return StringUtil.ensureSuffix(baseUrl, "/") + StringUtil.removePrefix(path, "/");
     }
 
 }

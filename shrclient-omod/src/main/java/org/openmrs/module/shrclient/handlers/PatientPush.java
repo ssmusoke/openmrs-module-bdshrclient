@@ -161,7 +161,9 @@ public class PatientPush implements EventWorker {
                 propertiesReader.getFrProperties(),
                 propertiesReader.getTrProperties(),
                 propertiesReader.getPrProperties(),
-                propertiesReader.getFacilityInstanceProperties());
+                propertiesReader.getFacilityInstanceProperties(),
+                propertiesReader.getMciProperties(),
+                propertiesReader.getShrProperties());
         String url = new EntityReference().build(org.openmrs.Patient.class, systemProperties, healthId);
         idMappingsRepository.saveMapping(new IdMapping(patientUuid, healthId, ID_MAPPING_PATIENT_TYPE, url));
 
@@ -170,7 +172,6 @@ public class PatientPush implements EventWorker {
     private User getShrClientSystemUser() {
         //OpenMRS Daemon user. UUID hardcoded in org.openmrs.api.Context.Daemon
         return userService.getUserByUuid(OPENMRS_DAEMON_USER);
-        //return userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME);
     }
 
     String getPatientUuid(Event event) {

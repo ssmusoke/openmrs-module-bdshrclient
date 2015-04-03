@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.openmrs.Location;
 import org.openmrs.LocationTag;
 import org.openmrs.api.LocationService;
+import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.LocationMapper;
 import org.openmrs.module.shrclient.model.FRLocationEntry;
@@ -12,12 +13,14 @@ import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.util.ScheduledTaskHistory;
+import org.openmrs.module.shrclient.util.StringUtil;
 
 import java.io.IOException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_REFERENCE_PATH;
 import static org.openmrs.module.shrclient.util.URLParser.parseURL;
 
 public class FacilityPull {
@@ -31,23 +34,21 @@ public class FacilityPull {
     private static final String ENCODED_SINGLE_SPACE = "%20";
     private static final String SINGLE_SPACE = " ";
     public static final String FR_FACILITY_LEVEL_FEED_URI = "urn://fr/facilities";
-    public static final String FR_FACILITIES = "fr.facilities";
+    public static final String FR_PATH_INFO = "fr.pathInfo";
     public static final String SHR_LOCATION_TAG_NAME = "DGHS Facilities";
     public static final String ID_MAPPING_TYPE = "fr_location";
-    public static final String INDIVIDUAL_FACILITY_CONTEXT = "fr.facilityUrlFormat";
     private static final int MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED = 1000;
     private static final String INITIAL_DATETIME = "0000-00-00 00:00:00";
 
-    private LocationService locationService;
-    private IdMappingsRepository idMappingsRepository;
-    private LocationMapper locationMapper;
-    private ScheduledTaskHistory scheduledTaskHistory;
-    private PropertiesReader propertiesReader;
-    private RestClient frWebClient;
-    private LocationTag shrLocationTag;
-    private String facilityUrlFormat;
-    private List<String> failedDuringSaveOrUpdateOperation;
-    private int noOfEntriesSynchronizedSoFar;
+    private final LocationService locationService;
+    private final IdMappingsRepository idMappingsRepository;
+    private final LocationMapper locationMapper;
+    private final ScheduledTaskHistory scheduledTaskHistory;
+    private final PropertiesReader propertiesReader;
+    private final RestClient frWebClient;
+    private final LocationTag shrLocationTag;
+    private final List<String> failedDuringSaveOrUpdateOperation;
+    private int noOfEntriesSynchronizedSoFar = 0;
 
 
     public FacilityPull(PropertiesReader propertiesReader, RestClient frWebClient, LocationService locationService,
@@ -65,13 +66,12 @@ public class FacilityPull {
 
     public void synchronize() throws IOException {
         noOfEntriesSynchronizedSoFar = 0;
-        facilityUrlFormat = getFacilityUrlFormat();
-        List<FRLocationEntry> frLocationEntries = synchronizeUpdates(FR_FACILITIES, FR_FACILITY_LEVEL_FEED_URI);
+        List<FRLocationEntry> frLocationEntries = synchronizeUpdates();
         logger.info(frLocationEntries.size() + " entries updated");
     }
 
-    private List<FRLocationEntry> synchronizeUpdates(String facilityContext, String feedUri) throws IOException {
-        String baseContextPath = propertiesReader.getFrProperties().getProperty(facilityContext);
+    private List<FRLocationEntry> synchronizeUpdates() throws IOException {
+        String baseContextPath = propertiesReader.getFrProperties().getProperty(FR_PATH_INFO);
         List<FRLocationEntry> synchronizedLocationEntries = new ArrayList<>();
         List<FRLocationEntry> lastRetrievedPartOfList;
 
@@ -79,7 +79,7 @@ public class FacilityPull {
             return synchronizedLocationEntries;
         }
 
-        String feedUriForLastReadEntry = scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(feedUri);
+        String feedUriForLastReadEntry = scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
         int offset;
         String updatedSince;
 
@@ -92,7 +92,7 @@ public class FacilityPull {
             updatedSince = parameters.get(UPDATED_SINCE);
         }
 
-        String baseUrl = getBaseUrl(propertiesReader.getFrProperties());
+        String facilityResourceRefPath = StringUtil.ensureSuffix(propertiesReader.getFrProperties().getProperty(FACILITY_REFERENCE_PATH).trim(), "/");
         String completeContextPath;
         do {
             completeContextPath = buildCompleteContextPath(baseContextPath, offset, updatedSince);
@@ -113,15 +113,15 @@ public class FacilityPull {
         if (lastRetrievedPartOfList != null) {
             if (lastRetrievedPartOfList.size() == DEFAULT_LIMIT) {
                 nextCompleteContextPath = buildCompleteContextPath(baseContextPath, offset, INITIAL_DATETIME);
-                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(baseUrl + nextCompleteContextPath, feedUri);
+                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(facilityResourceRefPath + nextCompleteContextPath, FR_FACILITY_LEVEL_FEED_URI);
             } else {
                 nextCompleteContextPath = buildCompleteContextPath(baseContextPath, INITIAL_OFFSET, getCurrentDateAndTime());
-                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(baseUrl + nextCompleteContextPath, feedUri);
+                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(facilityResourceRefPath + nextCompleteContextPath, FR_FACILITY_LEVEL_FEED_URI);
             }
 
             if (!synchronizedLocationEntries.isEmpty()) {
                 FRLocationEntry frLocationEntry = lastRetrievedPartOfList.get(lastRetrievedPartOfList.size() - 1);
-                scheduledTaskHistory.setLastReadEntryId(frLocationEntry.getId(), feedUri);
+                scheduledTaskHistory.setLastReadEntryId(frLocationEntry.getId(), FR_FACILITY_LEVEL_FEED_URI);
             }
         }
 
@@ -143,22 +143,14 @@ public class FacilityPull {
         return downloadedData;
     }
 
-    private String getFacilityUrlFormat() {
-        return propertiesReader.getFrBaseUrl() + propertiesReader.getFrProperties().getProperty(INDIVIDUAL_FACILITY_CONTEXT);
-    }
-
-    private String getBaseUrl(Properties properties) {
-        return properties.getProperty("fr.scheme") + "://" + properties.getProperty("fr.host") + "/" + properties.getProperty("fr.context");
-    }
-
-    private Location createNewLocation(FRLocationEntry frLocationEntry, LocationTag shrLocationTag, String locationUrlFormat) {
+    private Location createNewLocation(FRLocationEntry frLocationEntry, LocationTag shrLocationTag) {
         logger.info("Creating new location: " + frLocationEntry.getName());
         Location location = null;
         try {
             location = locationMapper.create(frLocationEntry);
             location.addTag(shrLocationTag);
             location = locationService.saveLocation(location);
-            String locationUrl = String.format(locationUrlFormat, frLocationEntry.getId());
+            String locationUrl = StringUtil.ensureSuffix(propertiesReader.getFrBaseUrl(), "/") + frLocationEntry.getId() + ".json";
             idMappingsRepository.saveMapping(new IdMapping(location.getUuid(), frLocationEntry.getId(),
                     ID_MAPPING_TYPE, locationUrl));
         } catch (Exception e) {
@@ -190,7 +182,7 @@ public class FacilityPull {
             if (idMapping != null)
                 updateExistingLocation(frLocationEntry, idMapping);
             else {
-                createNewLocation(frLocationEntry, shrLocationTag, facilityUrlFormat);
+                createNewLocation(frLocationEntry, shrLocationTag);
             }
         }
     }

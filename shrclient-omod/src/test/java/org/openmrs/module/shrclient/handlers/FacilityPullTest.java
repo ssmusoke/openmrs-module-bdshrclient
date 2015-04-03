@@ -12,6 +12,7 @@ import org.mockito.stubbing.Answer;
 import org.openmrs.Location;
 import org.openmrs.LocationTag;
 import org.openmrs.api.LocationService;
+import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.LocationMapper;
 import org.openmrs.module.shrclient.model.FRLocationEntry;
@@ -32,6 +33,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_REFERENCE_PATH;
 import static org.openmrs.module.shrclient.handlers.FacilityPull.*;
 
 public class FacilityPullTest {
@@ -50,18 +52,15 @@ public class FacilityPullTest {
     private LocationMapper locationMapper = new LocationMapper();
 
     FRLocationEntry[] locationEntries;
-    Properties properties;
+    Properties frProperties;
 
     @Before
     public void setUp() throws Exception {
         initMocks(this);
         locationEntries = getFacilityEntries();
-        properties = new Properties();
-        properties.put("fr.scheme", "http");
-        properties.put("fr.host", "hrmtest.dghs.gov.bd");
-        properties.put("fr.context", "api/1.0");
-        properties.put(FR_FACILITIES, "/facilities/list");
-        properties.put("fr.facilityUrlFormat", "facilities/%s.json");
+        frProperties = new Properties();
+        frProperties.put(FR_PATH_INFO, "list");
+        frProperties.put(PropertyKeyConstants.FACILITY_REFERENCE_PATH, "http://hrmtest.dghs.gov.bd/api/1.0/facilities");
     }
 
     @Test
@@ -70,8 +69,9 @@ public class FacilityPullTest {
 
         String feedUri = "http://hrmtest.dghs.gov.bd/api/1.0/facilities/list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00";
 
-        when(propertiesReader.getFrProperties()).thenReturn(properties);
-        when(frWebClient.get("/facilities/list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", FRLocationEntry[].class)).thenReturn(locationEntries);
+        when(propertiesReader.getFrProperties()).thenReturn(frProperties);
+        when(propertiesReader.getFrBaseUrl()).thenReturn(frProperties.getProperty(FACILITY_REFERENCE_PATH));
+        when(frWebClient.get("list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", FRLocationEntry[].class)).thenReturn(locationEntries);
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
         when(idMappingsRepository.findByExternalId(any(String.class))).then(new Answer<Object>() {
             @Override
@@ -89,9 +89,9 @@ public class FacilityPullTest {
                 locationService, scheduledTaskHistory, idMappingsRepository, locationMapper);
         facilityPull.synchronize();
 
-        verify(propertiesReader, times(3)).getFrProperties();
-        verify(frWebClient).get("/facilities/list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", FRLocationEntry[].class);
+        verify(frWebClient).get("list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
+        //TODO: verify what
 
     }
 
@@ -100,8 +100,8 @@ public class FacilityPullTest {
         final String existingLocationUuid = UUID.randomUUID().toString();
         String feedUri = "http://hrmtest.dghs.gov.bd/api/1.0/facilities/list?offset=0&limit=100&updatedSince=2000-12-31 23:55:55";
 
-        when(propertiesReader.getFrProperties()).thenReturn(properties);
-        when(frWebClient.get("/facilities/list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(locationEntries);
+        when(propertiesReader.getFrProperties()).thenReturn(frProperties);
+        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(locationEntries);
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
         when(idMappingsRepository.findByExternalId(any(String.class))).then(new Answer<Object>() {
             @Override
@@ -119,9 +119,9 @@ public class FacilityPullTest {
 
         facilityPull.synchronize();
 
-        verify(propertiesReader, times(3)).getFrProperties();
-        verify(frWebClient).get("/facilities/list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
+        verify(frWebClient).get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
+        verify(scheduledTaskHistory).setFeedUriForLastReadEntryByFeedUri(startsWith("http://hrmtest.dghs.gov.bd/api/1.0/facilities/list?offset="), eq(FR_FACILITY_LEVEL_FEED_URI));
 
     }
 
@@ -132,8 +132,8 @@ public class FacilityPullTest {
         String feedUri = "http://hrmtest.dghs.gov.bd/api/1.0/facilities/list?offset=0&limit=100&updatedSince=2000-12-31 23:55:55";
 
 
-        when(propertiesReader.getFrProperties()).thenReturn(properties);
-        when(frWebClient.get("/facilities/list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(oneLocationEntry(frLocationEntryId));
+        when(propertiesReader.getFrProperties()).thenReturn(frProperties);
+        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(oneLocationEntry(frLocationEntryId));
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
         when(idMappingsRepository.findByExternalId(frLocationEntryId)).thenReturn(getIdMapping(frLocationEntryId, existingLocationUuid));
         when(locationService.getLocationByUuid(existingLocationUuid)).thenReturn(getFacilityLocation(existingLocationUuid));
@@ -144,8 +144,7 @@ public class FacilityPullTest {
 
         facilityPull.synchronize();
 
-        verify(propertiesReader, times(3)).getFrProperties();
-        verify(frWebClient).get("/facilities/list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
+        verify(frWebClient).get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
         verify(idMappingsRepository).findByExternalId(frLocationEntryId);
         verify(locationService).getLocationByUuid(existingLocationUuid);
@@ -158,9 +157,10 @@ public class FacilityPullTest {
         String newLocationUuid = UUID.randomUUID().toString();
         String feedUri = "http://hrmtest.dghs.gov.bd/api/1.0/facilities/list?offset=0&limit=100&updatedSince=2000-12-31 23:55:55";
 
-        when(propertiesReader.getFrProperties()).thenReturn(properties);
+        when(propertiesReader.getFrProperties()).thenReturn(frProperties);
+        when(propertiesReader.getFrBaseUrl()).thenReturn(frProperties.getProperty(FACILITY_REFERENCE_PATH));
         FRLocationEntry[] entries = oneLocationEntry(frLocationEntryId);
-        when(frWebClient.get("/facilities/list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(entries);
+        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(entries);
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
         when(idMappingsRepository.findByExternalId(frLocationEntryId)).thenReturn(null);
         when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(newLocationUuid));
@@ -172,8 +172,8 @@ public class FacilityPullTest {
 
         facilityPull.synchronize();
 
-        verify(propertiesReader, times(3)).getFrProperties();
-        verify(frWebClient).get("/facilities/list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
+        //TODO: verify(propertiesReader, times(3)).getFrProperties();
+        verify(frWebClient).get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
         verify(idMappingsRepository).findByExternalId(frLocationEntryId);
 
@@ -194,9 +194,9 @@ public class FacilityPullTest {
     @Test
     public void shouldSyncMultipleNew() throws Exception {
         String feedUri = "http://hrmtest.dghs.gov.bd/api/1.0/facilities/list?offset=0&limit=100&updatedSince=2000-12-31 23:55:55";
-
-        when(propertiesReader.getFrProperties()).thenReturn(properties);
-        when(frWebClient.get("/facilities/list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(locationEntries);
+        when(propertiesReader.getFrBaseUrl()).thenReturn(frProperties.getProperty(FACILITY_REFERENCE_PATH));
+        when(propertiesReader.getFrProperties()).thenReturn(frProperties);
+        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(locationEntries);
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
         when(idMappingsRepository.findByExternalId(any(String.class))).thenReturn(null);
         when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString()));
@@ -208,8 +208,7 @@ public class FacilityPullTest {
 
         facilityPull.synchronize();
 
-        verify(propertiesReader, times(3)).getFrProperties();
-        verify(frWebClient).get("/facilities/list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
+        verify(frWebClient).get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
         verify(locationService).getLocationTagByName(SHR_LOCATION_TAG_NAME);
         verify(idMappingsRepository, times(10)).findByExternalId(any(String.class));
@@ -222,8 +221,8 @@ public class FacilityPullTest {
     public void shouldUpdateNothingIfWeGetNothing() throws Exception {
         String feedUri = "http://hrmtest.dghs.gov.bd/api/1.0/facilities/list?offset=0&limit=100&updatedSince=2000-12-31 23:55:55";
 
-        when(propertiesReader.getFrProperties()).thenReturn(properties);
-        when(frWebClient.get("/facilities/list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(new FRLocationEntry[]{});
+        when(propertiesReader.getFrProperties()).thenReturn(frProperties);
+        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(new FRLocationEntry[]{});
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
         when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString()));
         when(locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME)).thenReturn(
@@ -234,8 +233,7 @@ public class FacilityPullTest {
 
         facilityPull.synchronize();
 
-        verify(propertiesReader, times(3)).getFrProperties();
-        verify(frWebClient).get("/facilities/list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
+        verify(frWebClient).get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
         verify(idMappingsRepository, times(0)).findByExternalId(any(String.class));
         verify(locationService, times(1)).getLocationTagByName(SHR_LOCATION_TAG_NAME);
@@ -248,9 +246,9 @@ public class FacilityPullTest {
     public void shouldCreateIndividualUriForMappedIds() throws Exception {
         String feedUri = "http://hrmtest.dghs.gov.bd/api/1.0/facilities/list?offset=0&limit=100&updatedSince=2000-12-31 23:55:55";
 
-        when(propertiesReader.getFrBaseUrl()).thenReturn("http://foo.com");
-        when(propertiesReader.getFrProperties()).thenReturn(properties);
-        when(frWebClient.get("/facilities/list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(oneLocationEntry("100001"));
+        when(propertiesReader.getFrBaseUrl()).thenReturn("http://hrmtest.dghs.gov.bd/api/1.0/facilities");
+        when(propertiesReader.getFrProperties()).thenReturn(frProperties);
+        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(oneLocationEntry("100001"));
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
         when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString()));
         when(locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME)).thenReturn(
@@ -261,10 +259,9 @@ public class FacilityPullTest {
 
         facilityPull.synchronize();
 
-        verify(propertiesReader, times(3)).getFrProperties();
         ArgumentCaptor<IdMapping> captor = ArgumentCaptor.forClass(IdMapping.class);
         verify(idMappingsRepository).saveMapping(captor.capture());
-        assertEquals("http://foo.comfacilities/100001.json", captor.getValue().getUri());
+        assertEquals("http://hrmtest.dghs.gov.bd/api/1.0/facilities/100001.json", captor.getValue().getUri());
     }
 
     private IdMapping getIdMapping(String externalId, String existingLocationUuid) {

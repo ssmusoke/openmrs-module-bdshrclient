@@ -3,8 +3,10 @@ package org.openmrs.module.fhir.mapper.model;
 import org.apache.commons.collections4.map.DefaultedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Encounter;
+import org.openmrs.EncounterProvider;
 import org.openmrs.Location;
 import org.openmrs.Patient;
+import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.util.SystemProperties;
 
 import java.lang.reflect.Type;
@@ -19,6 +21,7 @@ public class EntityReference {
         referenceMap.put(Patient.class, new PatientReference());
         referenceMap.put(Encounter.class, new EncounterReference());
         referenceMap.put(Location.class, new FacilityReference());
+        referenceMap.put(EncounterProvider.class, new ProviderReference());
     }
 
     public String build(Type type, SystemProperties systemProperties, String id) {
@@ -41,7 +44,7 @@ public class EntityReference {
 
         @Override
         public String create(String id, SystemProperties systemProperties) {
-            return systemProperties.getMciPatientUrl() + "/" + id;
+            return StringUtil.ensureSuffix(systemProperties.getMciPatientPublicUrl(), "/") + id;
         }
 
         @Override
@@ -60,23 +63,27 @@ public class EntityReference {
     private static class FacilityReference extends EntityReference {
         @Override
         protected String create(String id, SystemProperties systemProperties) {
-            String frBaseUrl = systemProperties.getFrBaseUrl();
-            String facilityCtxUrl = String.format(systemProperties.getFacilityUrlFormat(), id);
-
-            if (frBaseUrl.endsWith("/")) {
-                frBaseUrl = frBaseUrl.substring(0, frBaseUrl.length() - 1);
-            }
-
-            if (facilityCtxUrl.startsWith("/")) {
-                return frBaseUrl + facilityCtxUrl;
-            } else {
-                return frBaseUrl + "/" + facilityCtxUrl;
-            }
+            return String.format("%s/%s.json",
+                    StringUtil.removeSuffix(systemProperties.getFacilityResourcePath(), "/"), id);
         }
 
         @Override
         protected String parseUrl(String facilityUrl) {
             String s = StringUtils.substringAfterLast(facilityUrl, "/");
+            return StringUtils.substringBefore(s, ".json");
+        }
+    }
+
+    private static class ProviderReference extends EntityReference {
+        @Override
+        protected String create(String identifier, SystemProperties systemProperties) {
+            return String.format("%s/%s.json",
+                    StringUtil.removeSuffix(systemProperties.getProviderResourcePath(), "/"), identifier);
+        }
+
+        @Override
+        protected String parseUrl(String providerUrl) {
+            String s = StringUtils.substringAfterLast(providerUrl, "/");
             return StringUtils.substringBefore(s, ".json");
         }
     }

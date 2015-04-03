@@ -1,5 +1,6 @@
 package org.openmrs.module.shrclient.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -9,14 +10,15 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Properties;
 
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_REFERENCE_PATH;
 
-//purpose: reads properties from property files
+
+/**
+ * reads properties from property files
+ */
 @Component("bdshrPropertiesReader")
 public class PropertiesReader {
-
-    public static final String REGEX_TO_MATCH_PORT_NO = "^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$";
     public static final String URL_SEPARATOR_FOR_CONTEXT_PATH = "/";
-    public static final String URL_SEPARATOR_FOR_PORT_NO = ":";
 
     public Properties getMciProperties() {
         return getProperties("mci.properties");
@@ -64,40 +66,38 @@ public class PropertiesReader {
     private String getTrBaseUrl() {
         Properties properties = getTrProperties();
         return getBaseUrl(properties.getProperty("tr.scheme"), properties.getProperty("tr.host"),
-                properties.getProperty("tr.port"));
+                properties.getProperty("tr.port"), null);
     }
 
     public String getMciBaseUrl() {
         Properties properties = getMciProperties();
         return getBaseUrl(properties.getProperty("mci.scheme"), properties.getProperty("mci.host"),
-                properties.getProperty("mci.port"));
+                properties.getProperty("mci.port"), null);
     }
 
     public String getShrBaseUrl() {
         Properties properties = getShrProperties();
         return String.format("%s/%s",getBaseUrl(properties.getProperty("shr.scheme"),
                 properties.getProperty("shr.host"),
-                properties.getProperty("shr.port")), properties.getProperty("shr.version"));
+                properties.getProperty("shr.port"), null), properties.getProperty("shr.version"));
     }
 
     public String getLrBaseUrl() {
         Properties properties = getLrProperties();
         return getBaseUrl(properties.getProperty("lr.scheme"),
-                properties.getProperty("lr.host"),
+                properties.getProperty("lr.host"), null,
                 properties.getProperty("lr.context"));
     }
 
     public String getFrBaseUrl() {
         Properties properties = getFrProperties();
-        return getBaseUrl(properties.getProperty("fr.scheme"),
-                properties.getProperty("fr.host"),
-                properties.getProperty("fr.context"));
+        return properties.getProperty(FACILITY_REFERENCE_PATH);
     }
 
     public String getPrBaseUrl() {
         Properties properties = getPrProperties();
         return getBaseUrl(properties.getProperty("pr.scheme"),
-                properties.getProperty("pr.host"),
+                properties.getProperty("pr.host"), null,
                 properties.getProperty("pr.context"));
     }
 
@@ -105,13 +105,24 @@ public class PropertiesReader {
         Properties properties = getIdentityProperties();
         return getBaseUrl(properties.getProperty("idP.scheme"),
                 properties.getProperty("idP.host"),
-                properties.getProperty("idP.port"));
+                properties.getProperty("idP.port"), null);
     }
 
-    private String getBaseUrl(String scheme, String host, String portNoOrContextPath) {
-        boolean isPortNo = portNoOrContextPath.matches(REGEX_TO_MATCH_PORT_NO);
-        return isPortNo ? String.format("%s://%s" + URL_SEPARATOR_FOR_PORT_NO + "%s", scheme, host, portNoOrContextPath)
-                : String.format("%s://%s" + URL_SEPARATOR_FOR_CONTEXT_PATH + "%s", scheme, host, portNoOrContextPath);
+    private String getBaseUrl(String scheme, String host, String port, String contextPath) {
+        String rootUrl = String.format("%s://%s", scheme, host, getValidPort(port));
+        if (!StringUtils.isBlank(contextPath)) {
+            return rootUrl + contextPath;
+        } else {
+            return rootUrl;
+        }
+    }
+
+    private String getValidPort(String port) {
+        if (StringUtils.isBlank(port)) {
+            return "";
+        } else {
+            return Integer.valueOf(port.trim()).toString();
+        }
     }
 
     private Properties getProperties(String resource) {

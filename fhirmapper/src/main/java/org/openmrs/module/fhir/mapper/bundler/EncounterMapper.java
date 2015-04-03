@@ -5,10 +5,7 @@ import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Enumeration;
 import org.hl7.fhir.instance.model.ResourceReference;
-import org.openmrs.EncounterProvider;
-import org.openmrs.Location;
-import org.openmrs.Patient;
-import org.openmrs.PersonAttribute;
+import org.openmrs.*;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.util.SystemProperties;
@@ -105,21 +102,16 @@ public class EncounterMapper {
         final Set<EncounterProvider> encounterProviders = openMrsEncounter.getEncounterProviders();
         if (!encounterProviders.isEmpty()) {
             EncounterProvider encounterProvider = encounterProviders.iterator().next();
-            String providerUrl = createProviderUrl(systemProperties, encounterProvider);
+            Provider provider = encounterProvider.getProvider();
+            if (provider == null) return;
+            String identifier = provider.getIdentifier();
+            String providerUrl = getReference(EncounterProvider.class, systemProperties, identifier);
             if (providerUrl == null)
                 return;
             Encounter.EncounterParticipantComponent encounterParticipantComponent = encounter.addParticipant();
-            encounterParticipantComponent.setIndividual(
-                    new ResourceReference().setReferenceSimple(providerUrl));
+            encounterParticipantComponent.setIndividual(new ResourceReference().setReferenceSimple(providerUrl));
         }
     }
 
-    private String createProviderUrl(SystemProperties systemProperties, EncounterProvider encounterProvider) {
-        String identifier = encounterProvider.getProvider().getIdentifier();
-        String providerUrl= null;
-        if (identifier != null) {
-            providerUrl = String.format(systemProperties.getProviderUrlFormat(), identifier);
-        }
-        return providerUrl;
-    }
+
 }

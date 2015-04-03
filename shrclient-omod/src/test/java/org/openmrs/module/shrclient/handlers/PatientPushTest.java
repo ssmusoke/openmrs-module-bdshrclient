@@ -17,6 +17,7 @@ import org.openmrs.module.shrclient.util.RestClient;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 
 import static org.junit.Assert.*;
@@ -121,8 +122,8 @@ public class PatientPushTest {
         openMrsPatient.setAttributes(openMrsPatientAttributes);
 
         when(personService.getPersonAttributeTypeByName(HEALTH_ID_ATTRIBUTE)).thenReturn(healthIdAttributeType);
-        when(propertiesReader.getBaseUrls()).thenReturn(new HashMap<String, String>() {{
-            put("mci", "http://example.org");
+        when(propertiesReader.getMciProperties()).thenReturn(new Properties() {{
+            put("mci.publicUrlBase", "http://public.com/");
         }});
         patientPush.updateOpenMrsPatientHealthId(openMrsPatient, healthId);
         verify(patientService).savePatient(any(org.openmrs.Patient.class));

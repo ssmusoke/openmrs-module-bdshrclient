@@ -28,7 +28,8 @@ public class EncounterMapperTest {
         org.hl7.fhir.instance.model.Encounter fhirEncounter = encounterMapper.map(encounter, getSystemProperties("1"));
         ResourceReference subject = fhirEncounter.getSubject();
         assertEquals("1234", subject.getDisplaySimple());
-        assertEquals("http://mci/api/v1/patients/1234", subject.getReferenceSimple());
+        //The subject URL must be the public url reference.
+        assertEquals("http://public.com/api/v1/patients/1234", subject.getReferenceSimple());
         assertEquals("Encounter", fhirEncounter.getIndication().getDisplaySimple());
         assertEquals("urn:" + encounterId, fhirEncounter.getIndication().getReferenceSimple());
 
