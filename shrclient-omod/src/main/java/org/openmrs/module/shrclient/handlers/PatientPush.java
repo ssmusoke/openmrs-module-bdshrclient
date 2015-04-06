@@ -14,9 +14,9 @@ import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
-import org.openmrs.module.shrclient.model.mci.api.MciPatientUpdateResponse;
-import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.Patient;
+import org.openmrs.module.shrclient.model.mci.api.MciPatientUpdateResponse;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.util.SystemProperties;
@@ -62,6 +62,11 @@ public class PatientPush implements EventWorker {
             org.openmrs.Patient openMrsPatient = patientService.getPatientByUuid(uuid);
             if (openMrsPatient == null) {
                 log.debug(String.format("No OpenMRS patient exists with uuid: [%s].", uuid));
+                return;
+            }
+
+            if (event.getUpdatedDate() != null && openMrsPatient.getDateChanged().after(event.getUpdatedDate())) {
+                log.debug("The patient has been updated after this event again");
                 return;
             }
 

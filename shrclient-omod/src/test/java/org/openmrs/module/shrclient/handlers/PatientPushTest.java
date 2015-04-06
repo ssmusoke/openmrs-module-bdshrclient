@@ -4,6 +4,7 @@ import org.ict4h.atomfeed.client.domain.Event;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
 import org.openmrs.PersonAttributeType;
 import org.openmrs.User;
@@ -13,11 +14,8 @@ import org.openmrs.api.UserService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.util.PropertiesReader;
-import org.openmrs.module.shrclient.util.RestClient;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -126,5 +124,22 @@ public class PatientPushTest {
         }});
         patientPush.updateOpenMrsPatientHealthId(openMrsPatient, healthId);
         verify(patientService).savePatient(any(org.openmrs.Patient.class));
+    }
+
+    @Test
+    public void shouldNotProcessIfPatientHasBeenChangedAfterEvent() throws Exception {
+        String content = "/openmrs/ws/rest/v1/patient/36c82d16-6237-4495-889f-59bd9e0d8181?v=full";
+        Date eventUpdatedDate = new Date();
+        Event event = new Event("123defc456", content, "Patient", null, eventUpdatedDate);
+        Patient openMrsPatient = new Patient();
+        Calendar instance = Calendar.getInstance();
+        instance.setTime(eventUpdatedDate);
+        instance.add(Calendar.MINUTE, 2);
+        openMrsPatient.setDateChanged(instance.getTime());
+        when(patientService.getPatientByUuid("36c82d16-6237-4495-889f-59bd9e0d8181")).thenReturn(openMrsPatient);
+
+        patientPush.process(event);
+
+        verify(patientMapper, never()).map(openMrsPatient);
     }
 }
