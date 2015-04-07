@@ -49,6 +49,7 @@ public class PatientMapperTest {
     private String occupation = "agriculture";
     private String educationLevel = "6th to 9th";
     private String primaryContact = "some contact";
+    private String houseHoldCode = "house4";
 
     @Before
     public void setup() throws Exception {
@@ -124,6 +125,7 @@ public class PatientMapperTest {
         p.setHealthId(healthId);
         p.setBirthRegNumber(brnId);
         p.setUniqueId(uniqueId);
+        p.setHouseHoldCode(houseHoldCode);
         p.setGivenName(givenName);
         p.setSurName(familyName);
         p.setGender(gender);
@@ -180,6 +182,10 @@ public class PatientMapperTest {
         final PersonAttributeType primaryContactAttrType = new PersonAttributeType();
         primaryContactAttrType.setName(PRIMARY_CONTACT_ATTRIBUTE);
         attributes.add(new PersonAttribute(primaryContactAttrType, primaryContact));
+
+        final PersonAttributeType houseHoldAttrType = new PersonAttributeType();
+        houseHoldAttrType.setName(HOUSE_HOLD_CODE_ATTRIBUTE);
+        attributes.add(new PersonAttribute(houseHoldAttrType, houseHoldCode));
         return attributes;
     }
 

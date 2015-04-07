@@ -10,9 +10,9 @@ import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
-import org.openmrs.module.shrclient.model.mci.api.MciPatientSearchResponse;
 import org.openmrs.module.shrclient.model.Address;
 import org.openmrs.module.shrclient.model.Patient;
+import org.openmrs.module.shrclient.model.mci.api.MciPatientSearchResponse;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
@@ -29,6 +29,12 @@ import java.util.*;
 @RequestMapping(value = "/mci")
 public class MciPatientLookupController {
     private static final Logger log = Logger.getLogger(MciPatientLookupController.class);
+
+    private static final String NID_PARAM_KEY = "nid";
+    private static final String UID_PARAM_KEY = "uid";
+    private static final String BRN_PARAM_KEY = "bin_brn";
+    private static final String HOUSE_HOLD_CODE_PARAM_KEY = "household_code";
+
     @Autowired
     private MciPatientService mciPatientService;
     @Autowired
@@ -41,24 +47,49 @@ public class MciPatientLookupController {
     public Object search(MciPatientSearchRequest request) {
         Patient mciPatient = null;
 
-        List<Patient> patientList = new ArrayList<Patient>();
+        List<Patient> patientList = new ArrayList<>();
 
-        if (StringUtils.isNotBlank(request.getNid())) {
-            Patient[] patients = searchPatientByNationalId(request.getNid());
-            if ((patients != null) && (patients.length > 0)) {
-                patientList.addAll(Arrays.asList(patients));
-            }
-
-        } else if (StringUtils.isNotBlank(request.getHid())) {
+        if (StringUtils.isNotBlank(request.getHid())) {
             mciPatient = searchPatientByHealthId(request.getHid());
             if (mciPatient != null) {
                 patientList.add(mciPatient);
+            }
+
+        } else {
+            String searchParamKey = null;
+            String searchParamValue = null;
+            if (StringUtils.isNotBlank(request.getNid())) {
+                searchParamKey = NID_PARAM_KEY;
+                searchParamValue = request.getNid();
+            } else if (StringUtils.isNotBlank(request.getUid())) {
+                searchParamKey = UID_PARAM_KEY;
+                searchParamValue = request.getUid();
+            } else if (StringUtils.isNotBlank(request.getBrn())) {
+                searchParamKey = BRN_PARAM_KEY;
+                searchParamValue = request.getBrn();
+            } else if (StringUtils.isNotBlank(request.getHouseHoldCode())) {
+                searchParamKey = HOUSE_HOLD_CODE_PARAM_KEY;
+                searchParamValue = request.getHouseHoldCode();
+            }
+            if (StringUtils.isNotBlank(searchParamKey) && StringUtils.isNotBlank(searchParamValue)) {
+                Patient[] patients = searchPatients(searchParamKey, searchParamValue);
+                if ((patients != null) && (patients.length > 0)) {
+                    patientList.addAll(Arrays.asList(patients));
+                }
             }
         }
         if (!patientList.isEmpty()) {
             return mapSearchResults(patientList);
         }
         return null;
+    }
+
+    private Patient[] searchPatientByUID(String uid) {
+        return new Patient[0];
+    }
+
+    private Patient[] searchPatientByBRN(String brn) {
+        return new Patient[0];
     }
 
     private Object[] mapSearchResults(List<Patient> patientList) {
@@ -94,7 +125,7 @@ public class MciPatientLookupController {
         try {
             bundles = new ClientRegistry(propertiesReader, identityStore).getSHRClient().getEncounters(url);
         } catch (IdentityUnauthorizedException e) {
-            log.error("Clearing unauthorized identity token.");
+            log.info("Clearing unauthorized identity token.");
             identityStore.clearToken();
         }
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
@@ -127,13 +158,13 @@ public class MciPatientLookupController {
         return patientModel;
     }
 
-    private Patient[] searchPatientByNationalId(String nid) {
-        String url = String.format("%s?nid=%s", Constants.MCI_PATIENT_URL, nid);
+    private Patient[] searchPatients(String searchParamKey, String searchParamValue) {
+        String url = String.format("%s?%s=%s", Constants.MCI_PATIENT_URL, searchParamKey, searchParamValue);
         MciPatientSearchResponse mciPatientSearchResponse = null;
         try {
             mciPatientSearchResponse = getMciRestClient().get(url, MciPatientSearchResponse.class);
         } catch (IdentityUnauthorizedException e) {
-            log.error("Clearing unauthorized identity token.");
+            log.info("Clearing unauthorized identity token.");
             identityStore.clearToken();
             throw new RuntimeException(e);
         }
@@ -147,7 +178,7 @@ public class MciPatientLookupController {
         try {
             return getMciRestClient().get(Constants.MCI_PATIENT_URL + "/" + hid, Patient.class);
         } catch (IdentityUnauthorizedException e) {
-            log.error("Clearing unauthorized identity token.");
+            log.info("Clearing unauthorized identity token.");
             identityStore.clearToken();
             throw new RuntimeException(e);
         }

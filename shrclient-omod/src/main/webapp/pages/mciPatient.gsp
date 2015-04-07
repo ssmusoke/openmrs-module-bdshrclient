@@ -106,6 +106,9 @@
                     <select id="idType" class="id-type">
                       <option value="nid">National ID</option>
                       <option value="hid">Health ID</option>
+                      <option value="brn">Birth Registration Number</option>
+                      <option value="uid">Unique Identifier</option>
+                      <option value="houseHoldCode">Household ID</option>
                     </select>
                     <input id="patientId" class="patient-id" type="text" name="patientId" value="">
                 </div>

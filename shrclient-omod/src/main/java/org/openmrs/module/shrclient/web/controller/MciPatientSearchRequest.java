@@ -1,18 +1,12 @@
 package org.openmrs.module.shrclient.web.controller;
 
 public class MciPatientSearchRequest {
-
     private String nid;
-
-    @Override
-    public String toString() {
-        return "MciPatientDownloadRequest{" +
-                "nid='" + nid + '\'' +
-                ", hid='" + hid + '\'' +
-                '}';
-    }
-
     private String hid;
+
+    private String uid;
+    private String brn;
+    private String houseHoldCode;
 
     public String getNid() {
         return nid;
@@ -28,5 +22,40 @@ public class MciPatientSearchRequest {
 
     public void setHid(String hid) {
         this.hid = hid;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
+    public String getBrn() {
+        return brn;
+    }
+
+    public void setBrn(String brn) {
+        this.brn = brn;
+    }
+
+    public String getHouseHoldCode() {
+        return houseHoldCode;
+    }
+
+    public void setHouseHoldCode(String houseHoldCode) {
+        this.houseHoldCode = houseHoldCode;
+    }
+
+    @Override
+    public String toString() {
+        return "MciPatientSearchRequest{" +
+                "nid='" + nid + '\'' +
+                ", hid='" + hid + '\'' +
+                ", uid='" + uid + '\'' +
+                ", brn='" + brn + '\'' +
+                ", houseHoldCode='" + houseHoldCode + '\'' +
+                '}';
     }
 }
