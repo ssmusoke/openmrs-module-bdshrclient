@@ -10,10 +10,10 @@ import org.openmrs.module.shrclient.model.LRAddressHierarchyEntry;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.util.ScheduledTaskHistory;
+import org.openmrs.module.shrclient.util.StringUtil;
 
 import java.io.IOException;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.openmrs.module.shrclient.util.URLParser.parseURL;
@@ -28,12 +28,12 @@ public class LocationPull {
     public static final String LR_PAURASAVAS_LEVEL_FEED_URI = "urn://lr/paurasavas";
     public static final String LR_UNIONS_LEVEL_FEED_URI = "urn://lr/unions";
     public static final String LR_WARDS_LEVEL_FEED_URI = "urn://lr/wards";
-    public static final String LR_DIVISIONS = "lr.divisions";
-    public static final String LR_DISTRICTS = "lr.districts";
-    public static final String LR_UPAZILAS = "lr.upazilas";
-    public static final String LR_PAURASAVAS = "lr.paurasavas";
-    public static final String LR_UNIONS = "lr.unions";
-    public static final String LR_WARDS = "lr.wards";
+    public static final String LR_DIVISIONS_PATH_INFO = "lr.divisionsPathInfo";
+    public static final String LR_DISTRICTS_PATH_INFO = "lr.districtsPathInfo";
+    public static final String LR_UPAZILAS_PATH_INFO = "lr.upazilasPathInfo";
+    public static final String LR_PAURASAVAS_PATH_INFO = "lr.paurasavasPathInfo";
+    public static final String LR_UNIONS_PATH_INFO = "lr.unionsPathInfo";
+    public static final String LR_WARDS_PATH_INFO = "lr.wardsPathInfo";
     public static final String ENCODED_SINGLE_SPACE = "%20";
 
     public static final int INTIAL_OFFSET = 0;
@@ -66,22 +66,22 @@ public class LocationPull {
     public void synchronize() throws IOException {
         noOfEntriesSynchronizedSoFar = 0;
 
-        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForDivisions = synchronizeUpdatesByLevel(LR_DIVISIONS, LR_DIVISIONS_LEVEL_FEED_URI);
+        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForDivisions = synchronizeUpdatesByLevel(LR_DIVISIONS_PATH_INFO, LR_DIVISIONS_LEVEL_FEED_URI);
         logger.info(synchronizedAddressHierarchyEntriesForDivisions.size() + " entries updated");
 
-        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForDistricts = synchronizeUpdatesByLevel(LR_DISTRICTS, LR_DISTRICTS_LEVEL_FEED_URI);
+        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForDistricts = synchronizeUpdatesByLevel(LR_DISTRICTS_PATH_INFO, LR_DISTRICTS_LEVEL_FEED_URI);
         logger.info(synchronizedAddressHierarchyEntriesForDistricts.size() + " entries updated");
 
-        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForUpazilas = synchronizeUpdatesByLevel(LR_UPAZILAS, LR_UPAZILAS_LEVEL_FEED_URI);
+        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForUpazilas = synchronizeUpdatesByLevel(LR_UPAZILAS_PATH_INFO, LR_UPAZILAS_LEVEL_FEED_URI);
         logger.info(synchronizedAddressHierarchyEntriesForUpazilas.size() + " entries updated");
 
-        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForPaurasavas = synchronizeUpdatesByLevel(LR_PAURASAVAS, LR_PAURASAVAS_LEVEL_FEED_URI);
+        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForPaurasavas = synchronizeUpdatesByLevel(LR_PAURASAVAS_PATH_INFO, LR_PAURASAVAS_LEVEL_FEED_URI);
         logger.info(synchronizedAddressHierarchyEntriesForPaurasavas.size() + " entries updated");
 
-        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForUnions = synchronizeUpdatesByLevel(LR_UNIONS, LR_UNIONS_LEVEL_FEED_URI);
+        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForUnions = synchronizeUpdatesByLevel(LR_UNIONS_PATH_INFO, LR_UNIONS_LEVEL_FEED_URI);
         logger.info(synchronizedAddressHierarchyEntriesForUnions.size() + " entries updated");
 
-        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForWards = synchronizeUpdatesByLevel(LR_WARDS, LR_WARDS_LEVEL_FEED_URI);
+        List<LRAddressHierarchyEntry> synchronizedAddressHierarchyEntriesForWards = synchronizeUpdatesByLevel(LR_WARDS_PATH_INFO, LR_WARDS_LEVEL_FEED_URI);
         logger.info(synchronizedAddressHierarchyEntriesForWards.size() + " entries updated");
     }
 
@@ -106,7 +106,9 @@ public class LocationPull {
             offset = Integer.parseInt(parameters.get(OFFSET));
             updatedSince = parameters.get(UPDATED_SINCE);
         }
-        String baseUrl = getBaseUrl(propertiesReader.getLrProperties());
+
+        String locationResourceRefPath = StringUtil.ensureSuffix(propertiesReader.getLrBaseUrl(), "/");
+
         String completeContextPath;
         do {
             completeContextPath = buildCompleteContextPath(baseContextPath, offset, updatedSince);
@@ -127,10 +129,10 @@ public class LocationPull {
         if (lastRetrievedPartOfList != null) {
             if (lastRetrievedPartOfList.size() == DEFAULT_LIMIT) {
                 nextCompleteContextPath = buildCompleteContextPath(baseContextPath, offset, INITIAL_DATETIME);
-                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(baseUrl + nextCompleteContextPath, feedUri);
+                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(locationResourceRefPath + StringUtil.removePrefix(nextCompleteContextPath, "/"), feedUri);
             } else {
                 nextCompleteContextPath = buildCompleteContextPath(baseContextPath, INTIAL_OFFSET, getCurrentDateAndTime());
-                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(baseUrl + nextCompleteContextPath, feedUri);
+                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(locationResourceRefPath + StringUtil.removePrefix(nextCompleteContextPath, "/"), feedUri);
             }
 
             if (!synchronizedAddressHierarchyEntries.isEmpty()) {
@@ -145,10 +147,6 @@ public class LocationPull {
         logger.info(failedDuringSaveOrUpdateOperation.toString());
 
         return synchronizedAddressHierarchyEntries;
-    }
-
-    private String getBaseUrl(Properties properties) {
-        return properties.getProperty("lr.scheme") + "://" + properties.getProperty("lr.host") + "/" + properties.getProperty("lr.context");
     }
 
     private List<LRAddressHierarchyEntry> getNextChunkOfUpdatesFromLR(String completeContextPath) {

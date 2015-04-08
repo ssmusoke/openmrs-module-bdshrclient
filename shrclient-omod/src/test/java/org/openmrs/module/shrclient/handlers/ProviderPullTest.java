@@ -53,14 +53,12 @@ public class ProviderPullTest {
         providerPull = new ProviderPull(propertiesReader, prClient, scheduledTaskHistory, providerMapper);
         providerEntries = getProviderEntries();
         properties = new Properties();
-        properties.put("pr.scheme", "http");
-        properties.put("pr.host", "hrmtest.dghs.gov.bd");
-        properties.put("pr.context", "api/1.0");
-        properties.put("pr.providers", "/providers/list");
+        properties.put("pr.pathInfo", "list");
         properties.put("pr.providerUrlFormat", "/providers/%s.json");
+        properties.put("pr.referenceUrl", "http://hrmtest.dghs.gov.bd/api/1.0/providers");
 
         when(propertiesReader.getPrProperties()).thenReturn(properties);
-        when(propertiesReader.getPrBaseUrl()).thenReturn("http://hrmtest.dghs.gov.bd/api/1.0");
+        when(propertiesReader.getPrBaseUrl()).thenReturn("http://hrmtest.dghs.gov.bd/api/1.0/providers");
         ProviderAttributeType organizationAttributeType = new ProviderAttributeType();
         organizationAttributeType.setName("Organization");
         when(providerService.getAllProviderAttributeTypes(false)).thenReturn(asList(organizationAttributeType));
@@ -68,28 +66,28 @@ public class ProviderPullTest {
 
     @Test
     public void shouldSyncNewProvidersFromProviderRegistry() throws Exception {
-        when(prClient.get("/providers/list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class))
+        when(prClient.get("list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class))
                 .thenReturn(providerEntries);
         providerPull.synchronize();
 
-        verify(prClient, times(1)).get("/providers/list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class);
+        verify(prClient, times(1)).get("list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class);
         verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(PR_FEED_URI);
         verify(providerService, times(5)).saveProvider(any(Provider.class));
         verify(providerService, times(5)).getProviderByIdentifier(anyString());
         String format = new SimpleDateFormat("YYYY-MM-dd").format(new Date());
-        verify(scheduledTaskHistory, times(1)).setFeedUriForLastReadEntryByFeedUri(contains("/providers/list?offset=0&limit=100&updatedSince=" + format), eq(PR_FEED_URI));
+        verify(scheduledTaskHistory, times(1)).setFeedUriForLastReadEntryByFeedUri(contains("list?offset=0&limit=100&updatedSince=" + format), eq(PR_FEED_URI));
         verify(scheduledTaskHistory, times(1)).setLastReadEntryId("23", PR_FEED_URI);
     }
 
     @Test
     public void shouldFindNextOffsetIfAlreadySyncedOnce() throws Exception {
-        when(prClient.get("/providers/list?offset=100&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class))
+        when(prClient.get("list?offset=100&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class))
                 .thenReturn(providerEntries);
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(PR_FEED_URI))
                 .thenReturn("http://hrmtest.dghs.gov.bd/api/1.0/providers/list?offset=100&limit=100&updatedSince=0000-00-00%2000:00:00");
         providerPull.synchronize();
 
-        verify(prClient, times(1)).get("/providers/list?offset=100&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class);
+        verify(prClient, times(1)).get("list?offset=100&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class);
         verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(PR_FEED_URI);
         verify(providerService, times(5)).saveProvider(any(Provider.class));
         verify(providerService, times(5)).getProviderByIdentifier(anyString());
@@ -100,12 +98,12 @@ public class ProviderPullTest {
 
     @Test
     public void shouldSyncUpdatesFromProviderRegistry() throws Exception {
-        when(prClient.get("/providers/list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class))
+        when(prClient.get("list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class))
                 .thenReturn(providerEntries);
         when(providerService.getProviderByIdentifier(anyString())).thenReturn(new Provider());
         providerPull.synchronize();
 
-        verify(prClient, times(1)).get("/providers/list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class);
+        verify(prClient, times(1)).get("list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class);
         verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(PR_FEED_URI);
         verify(providerService, times(5)).saveProvider(any(Provider.class));
         verify(providerService, times(5)).getProviderByIdentifier(anyString());
@@ -116,11 +114,11 @@ public class ProviderPullTest {
 
     @Test
     public void shouldNotUpdateIfWeGetNoUpdates() throws Exception {
-        when(prClient.get("/providers/list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class))
+        when(prClient.get("list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class))
                 .thenReturn(null);
         providerPull.synchronize();
 
-        verify(prClient, times(1)).get("/providers/list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class);
+        verify(prClient, times(1)).get("list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class);
         verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(PR_FEED_URI);
         verify(providerService, times(0)).saveProvider(any(Provider.class));
         verify(providerService, times(0)).getProviderByIdentifier(anyString());
@@ -141,7 +139,7 @@ public class ProviderPullTest {
         verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(PR_FEED_URI);
         verify(providerService, times(1000)).saveProvider(any(Provider.class));
         verify(providerService, times(1000)).getProviderByIdentifier(anyString());
-        verify(scheduledTaskHistory, times(1)).setFeedUriForLastReadEntryByFeedUri(contains("/providers/list?offset=1000&limit=100&updatedSince=0000-00-00%2000:00:00"), eq(PR_FEED_URI));
+        verify(scheduledTaskHistory, times(1)).setFeedUriForLastReadEntryByFeedUri(contains("list?offset=1000&limit=100&updatedSince=0000-00-00%2000:00:00"), eq(PR_FEED_URI));
         verify(scheduledTaskHistory, times(1)).setLastReadEntryId("23", PR_FEED_URI);
     }
 

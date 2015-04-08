@@ -46,10 +46,6 @@ public class SystemProperties {
         return baseUrls.get("fr") + "/";
     }
 
-//    public String getFacilityUrlFormat() {
-//        return frProperties.getProperty(FACILITY_URL_FORMAT);
-//    }
-
     public String getTrValuesetUrl(String valueSetName) {
         return baseUrls.get("tr") + "/" + trProperties.getProperty(TR_VALUESET_URL) + "/" + trProperties.getProperty(TR_VALUESET_KEY + valueSetName);
     }

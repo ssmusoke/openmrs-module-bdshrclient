@@ -95,7 +95,7 @@ public class FacilityPull {
             updatedSince = parameters.get(UPDATED_SINCE);
         }
 
-        String facilityResourceRefPath = StringUtil.ensureSuffix(propertiesReader.getFrProperties().getProperty(FACILITY_REFERENCE_PATH).trim(), "/");
+        String facilityResourceRefPath = StringUtil.ensureSuffix(propertiesReader.getFrBaseUrl(), "/");
         String completeContextPath;
         do {
             completeContextPath = buildCompleteContextPath(baseContextPath, offset, updatedSince);
@@ -116,10 +116,10 @@ public class FacilityPull {
         if (lastRetrievedPartOfList != null) {
             if (lastRetrievedPartOfList.size() == DEFAULT_LIMIT) {
                 nextCompleteContextPath = buildCompleteContextPath(baseContextPath, offset, INITIAL_DATETIME);
-                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(facilityResourceRefPath + nextCompleteContextPath, FR_FACILITY_LEVEL_FEED_URI);
+                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(facilityResourceRefPath + StringUtil.removePrefix(nextCompleteContextPath, "/"), FR_FACILITY_LEVEL_FEED_URI);
             } else {
                 nextCompleteContextPath = buildCompleteContextPath(baseContextPath, INITIAL_OFFSET, getCurrentDateAndTime());
-                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(facilityResourceRefPath + nextCompleteContextPath, FR_FACILITY_LEVEL_FEED_URI);
+                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(facilityResourceRefPath + StringUtil.removePrefix(nextCompleteContextPath, "/"), FR_FACILITY_LEVEL_FEED_URI);
             }
 
             if (!synchronizedLocationEntries.isEmpty()) {

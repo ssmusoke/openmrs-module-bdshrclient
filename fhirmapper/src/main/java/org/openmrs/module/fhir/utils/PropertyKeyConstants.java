@@ -12,5 +12,6 @@ public class PropertyKeyConstants {
     public static final String MCI_PUBLIC_URL_BASE = "mci.publicUrlBase";
 
     public static final String FACILITY_REFERENCE_PATH = "fr.referenceUrl";
+    public static final String LOCATION_REFERENCE_PATH = "lr.referenceUrl";
 
 }

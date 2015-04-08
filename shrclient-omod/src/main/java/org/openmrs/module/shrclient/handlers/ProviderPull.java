@@ -7,10 +7,10 @@ import org.openmrs.module.shrclient.model.ProviderEntry;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.util.ScheduledTaskHistory;
+import org.openmrs.module.shrclient.util.StringUtil;
 
 import java.io.IOException;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -21,7 +21,7 @@ import static org.openmrs.module.shrclient.util.URLParser.parseURL;
 public class ProviderPull {
     private static final int MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED = 1000;
     public static final String PR_FEED_URI = "urn://pr/providers";
-    public static final String PR_PROVIDERS = "pr.providers";
+    public static final String PR_PROVIDERS_PATH_INFO = "pr.pathInfo";
     private static final String OFFSET = "offset";
     private static final String UPDATED_SINCE = "updatedSince";
     private static final int DEFAULT_LIMIT = 100;
@@ -62,7 +62,7 @@ public class ProviderPull {
             updatedSince = parameters.get(UPDATED_SINCE);
         }
 
-        String baseContextPath = propertiesReader.getPrProperties().getProperty(PR_PROVIDERS);
+        String baseContextPath = propertiesReader.getPrProperties().getProperty(PR_PROVIDERS_PATH_INFO);
         int noOfEntriesSynchronizedSoFar = 0;
         List<ProviderEntry> newEntriesFromPr;
         String completeContextPath;
@@ -84,15 +84,15 @@ public class ProviderPull {
 
     private void updateMarkers(int noOfEntriesSynchronizedSoFar, int offset, List<ProviderEntry> newEntriesFromPr, String baseContextPath) {
         String nextCompleteContextPath;
-        String baseUrl = propertiesReader.getPrBaseUrl();
+        String providerResourceRefPath = StringUtil.ensureSuffix(propertiesReader.getPrBaseUrl(), "/");
         if (newEntriesFromPr != null) {
             if (newEntriesFromPr.size() == DEFAULT_LIMIT) {
                 nextCompleteContextPath = buildCompleteContextPath(baseContextPath, offset, INITIAL_DATETIME);
-                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(baseUrl + nextCompleteContextPath, PR_FEED_URI);
+                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(providerResourceRefPath + StringUtil.removePrefix(nextCompleteContextPath, "/"), PR_FEED_URI);
             } else {
                 nextCompleteContextPath = buildCompleteContextPath(baseContextPath, INITIAL_OFFSET,
                         DateUtil.toDateString(new Date(), DateUtil.SIMPLE_DATE_WITH_SECS_FORMAT));
-                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(baseUrl + nextCompleteContextPath, PR_FEED_URI);
+                scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(providerResourceRefPath + StringUtil.removePrefix(nextCompleteContextPath, "/"), PR_FEED_URI);
             }
 
             if (noOfEntriesSynchronizedSoFar != 0) {

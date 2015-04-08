@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_REFERENCE_PATH;
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.LOCATION_REFERENCE_PATH;
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.PROVIDER_REFERENCE_PATH;
+
 
 
 /**
@@ -86,9 +89,7 @@ public class PropertiesReader {
 
     public String getLrBaseUrl() {
         Properties properties = getLrProperties();
-        return getBaseUrl(properties.getProperty("lr.scheme"),
-                properties.getProperty("lr.host"), null,
-                properties.getProperty("lr.context"));
+        return properties.getProperty(LOCATION_REFERENCE_PATH);
     }
 
     public String getFrBaseUrl() {
@@ -98,9 +99,7 @@ public class PropertiesReader {
 
     public String getPrBaseUrl() {
         Properties properties = getPrProperties();
-        return getBaseUrl(properties.getProperty("pr.scheme"),
-                properties.getProperty("pr.host"), null,
-                properties.getProperty("pr.context"));
+        return properties.getProperty(PROVIDER_REFERENCE_PATH);
     }
 
     public String getIdentityServerBaseUrl() {
