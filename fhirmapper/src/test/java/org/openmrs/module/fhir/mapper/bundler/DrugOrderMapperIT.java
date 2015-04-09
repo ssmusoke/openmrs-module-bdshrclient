@@ -109,7 +109,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     private void assertDoseQuantity(MedicationPrescriptionDosageInstructionComponent dosageInstruction) {
         Quantity doseQuantity = dosageInstruction.getDoseQuantity();
         assertNotNull(doseQuantity);
-        assertEquals("http://tr/openmrs/ws/rest/v1/tr/vs/sample-units", doseQuantity.getSystemSimple());
+        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Quantity-Units", doseQuantity.getSystemSimple());
         assertEquals("mg", doseQuantity.getCodeSimple());
         assertTrue(4 == doseQuantity.getValueSimple().doubleValue());
     }
@@ -118,7 +118,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         Coding routeCode = dosageInstruction.getRoute().getCoding().get(0);
         assertEquals("Oral", routeCode.getDisplaySimple());
         assertEquals("Oral", routeCode.getCodeSimple());
-        assertEquals("http://tr/openmrs/ws/rest/v1/tr/vs/sample-route", routeCode.getSystemSimple());
+        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Route-of-Administration", routeCode.getSystemSimple());
     }
 
     private void assertMedicationPrescription(MedicationPrescription prescription, Date expectedDate) {

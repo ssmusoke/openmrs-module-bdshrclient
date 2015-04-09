@@ -101,7 +101,7 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
         Immunization immunization = mapImmunization(11, new Encounter());
         assertTrue(immunization.getDoseQuantity().getValue().getValue().doubleValue() == 10);
         assertEquals("mg", immunization.getDoseQuantity().getCodeSimple());
-        assertEquals("http://tr/openmrs/ws/rest/v1/tr/vs/sample-units", immunization.getDoseQuantity().getSystemSimple());
+        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Quantity-Units", immunization.getDoseQuantity().getSystemSimple());
     }
 
     @Test
@@ -109,7 +109,7 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
         Immunization immunization = mapImmunization(11, new Encounter());
         CodeableConcept immunizationReason = immunization.getExplanation().getReason().get(0);
 
-        assertEquals("http://tr/openmrs/ws/rest/v1/tr/vs/sample-reason",immunizationReason.getCoding().get(0).getSystemSimple());
+        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Immunization-Reason",immunizationReason.getCoding().get(0).getSystemSimple());
         assertEquals("Travel vaccinations",immunizationReason.getCoding().get(0).getCodeSimple());
         assertEquals("Travel vaccinations",immunizationReason.getCoding().get(0).getDisplaySimple());
     }
@@ -119,7 +119,7 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
         Immunization immunization = mapImmunization(11, new Encounter());
         CodeableConcept immunizationRefusalReason = immunization.getExplanation().getRefusalReason().get(0);
 
-        assertEquals("http://tr/openmrs/ws/rest/v1/tr/vs/refusal-reason", immunizationRefusalReason.getCoding().get(0).getSystemSimple());
+        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/No-Immunization-Reason", immunizationRefusalReason.getCoding().get(0).getSystemSimple());
         assertEquals("patient objection", immunizationRefusalReason.getCoding().get(0).getCodeSimple());
         assertEquals("patient objection",immunizationRefusalReason.getCoding().get(0).getDisplaySimple());
     }
@@ -129,7 +129,7 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
         Immunization immunization = mapImmunization(11, new Encounter());
         CodeableConcept route = immunization.getRoute();
 
-        assertEquals("http://tr/openmrs/ws/rest/v1/tr/vs/sample-route", route.getCoding().get(0).getSystemSimple());
+        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Route-of-Administration", route.getCoding().get(0).getSystemSimple());
         assertEquals("Oral", route.getCoding().get(0).getCodeSimple());
         assertEquals("Oral",route.getCoding().get(0).getDisplaySimple());
     }

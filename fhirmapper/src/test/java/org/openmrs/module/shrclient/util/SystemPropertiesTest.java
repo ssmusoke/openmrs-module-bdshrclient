@@ -57,6 +57,7 @@ public class SystemPropertiesTest {
     @Test
     public void shouldReadValueSetUrls() throws Exception {
         Properties trProperties = new Properties();
+        trProperties.setProperty(PropertyKeyConstants.TR_REFERENCE_PATH, "http://172.18.46.56:9080");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_PATH_INFO, "openmrs/ws/rest/v1/tr/vs");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_ROUTE, "Route-of-Administration");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_QTY_UNITS, "Quantity-Units");
