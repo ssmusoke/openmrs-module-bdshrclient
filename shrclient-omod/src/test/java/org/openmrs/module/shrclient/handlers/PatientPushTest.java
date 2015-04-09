@@ -15,6 +15,7 @@ import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.util.PropertiesReader;
+import org.openmrs.module.shrclient.util.SystemProperties;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -146,6 +147,6 @@ public class PatientPushTest {
 
         patientPush.process(event);
 
-        verify(patientMapper, never()).map(openMrsPatient);
+        verify(patientMapper, never()).map(any(Patient.class), any(SystemProperties.class));
     }
 }

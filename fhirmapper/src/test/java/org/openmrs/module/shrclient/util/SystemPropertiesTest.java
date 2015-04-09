@@ -17,7 +17,7 @@ public class SystemPropertiesTest {
     public void shouldReadFacilityId() throws Exception {
         Properties instanceProperties = new Properties();
         instanceProperties.setProperty(FACILITY_ID, "foo");
-        SystemProperties systemProperties = new SystemProperties(new HashMap<String, String>(), new Properties(), new Properties(), new Properties(), instanceProperties, null, null);
+        SystemProperties systemProperties = new SystemProperties(new HashMap<String, String>(), new Properties(), new Properties(), new Properties(), instanceProperties, null);
         assertThat(systemProperties.getFacilityId(), is("foo"));
     }
 
@@ -32,7 +32,7 @@ public class SystemPropertiesTest {
         frProperties.setProperty(FACILITY_URL_FORMAT, "bar");
         SystemProperties systemProperties = new SystemProperties(new HashMap<String, String>(),
                 frProperties, new Properties(), new Properties(), new Properties(),
-                null, null);
+                null);
         //assertThat(systemProperties.getFacilityUrlFormat(), is("bar"));
     }
 
@@ -49,7 +49,7 @@ public class SystemPropertiesTest {
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("mci", "https://mci.com");
         baseUrls.put("fr", "https://fr.com");
-        SystemProperties systemProperties = new SystemProperties(baseUrls, frProperties, new Properties(), new Properties(), new Properties(),mciProperties, null);
+        SystemProperties systemProperties = new SystemProperties(baseUrls, frProperties, new Properties(), new Properties(), new Properties(),mciProperties);
         assertThat(systemProperties.getMciPatientUrl(), is("https://mci.com/api/v1/patients"));
         assertThat(systemProperties.getFacilityResourcePath(), is("https://fr.com"));
     }
@@ -62,7 +62,7 @@ public class SystemPropertiesTest {
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_QTY_UNITS, "Quantity-Units");
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("tr", "http://172.18.46.56:9080");
-        SystemProperties systemProperties = new SystemProperties(baseUrls, new Properties(), trProperties, new Properties(), new Properties(),null, null);
+        SystemProperties systemProperties = new SystemProperties(baseUrls, new Properties(), trProperties, new Properties(), new Properties(),null);
         assertThat(systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_ROUTE), is("http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/vs/Route-of-Administration"));
         assertThat(systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_QTY_UNITS), is("http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/vs/Quantity-Units"));
     }

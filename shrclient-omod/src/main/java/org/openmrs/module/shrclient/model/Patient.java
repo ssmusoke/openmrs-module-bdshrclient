@@ -63,6 +63,10 @@ public class Patient {
     @JsonProperty("relations")
     @JsonInclude(NON_NULL)
     private Relation[] relations;
+    
+    @JsonProperty("provider_id")
+    @JsonInclude(NON_NULL)
+    private String providerReference;
 
     @Override
     public boolean equals(Object o) {
@@ -87,6 +91,8 @@ public class Patient {
         if (uniqueId != null ? !uniqueId.equals(patient.uniqueId) : patient.uniqueId != null) return false;
         if (houseHoldCode != null ? !houseHoldCode.equals(patient.houseHoldCode) : patient.houseHoldCode != null)
             return false;
+        if (providerReference != null ? !providerReference.equals(patient.providerReference) : patient.providerReference != null)
+            return false;
         return true;
     }
 
@@ -105,6 +111,7 @@ public class Patient {
         result = 31 * result + (birthRegNumber != null ? birthRegNumber.hashCode() : 0);
         result = 31 * result + (uniqueId != null ? uniqueId.hashCode() : 0);
         result = 31 * result + (houseHoldCode != null ? houseHoldCode.hashCode() : 0);
+        result = 31 * result + (providerReference != null ? providerReference.hashCode() : 0);
         return result;
     }
 
@@ -125,6 +132,7 @@ public class Patient {
         sb.append(", birthRegNumber='").append(birthRegNumber).append('\'');
         sb.append(", uniqueId='").append(uniqueId).append('\'');
         sb.append(", houseHoldCode='").append(houseHoldCode).append('\'');
+        sb.append(", providerReference='").append(providerReference).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -250,5 +258,12 @@ public class Patient {
     }
 
 
+    public void setProviderReference(String providerReference) {
+        this.providerReference = providerReference;
+    }
+
+    public String getProviderReference() {
+        return providerReference;
+    }
 }
 

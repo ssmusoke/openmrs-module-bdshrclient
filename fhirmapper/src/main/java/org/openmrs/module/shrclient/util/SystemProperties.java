@@ -20,14 +20,13 @@ public class SystemProperties {
     public SystemProperties(Map<String, String> baseUrls, Properties frProperties,
                             Properties trProperties, Properties prProperties,
                             Properties facilityInstanceProperties,
-                            Properties mciProperties, Properties shrProperties) {
+                            Properties mciProperties) {
         this.baseUrls = baseUrls;
         this.frProperties = frProperties;
         this.trProperties = trProperties;
         this.prProperties = prProperties;
         this.facilityInstanceProperties = facilityInstanceProperties;
         this.mciProperties = mciProperties;
-        this.shrProperties = shrProperties;
     }
 
     public String getFacilityId() {
@@ -60,7 +59,4 @@ public class SystemProperties {
         return frProperties.getProperty(FACILITY_REFERENCE_PATH).trim();
     }
 
-    public Properties getShrProperties() {
-        return shrProperties;
-    }
 }

@@ -96,8 +96,7 @@ public class EncounterPush implements EventWorker {
                                     propertiesReader.getTrProperties(),
                                     propertiesReader.getPrProperties(),
                                     propertiesReader.getFacilityInstanceProperties(),
-                                    propertiesReader.getMciProperties(),
-                                    propertiesReader.getShrProperties())));
+                                    propertiesReader.getMciProperties())));
         } catch (IdentityUnauthorizedException e) {
             log.error("Clearing unauthorized identity token.");
             clientRegistry.clearIdentityToken();
