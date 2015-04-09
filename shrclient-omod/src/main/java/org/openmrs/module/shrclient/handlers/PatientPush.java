@@ -76,7 +76,7 @@ public class PatientPush implements EventWorker {
                 return;
             }
 
-            Patient patient = patientMapper.map(openMrsPatient);
+            Patient patient = patientMapper.map(openMrsPatient, getSystemProperties());
             log.debug("Patient: [ " + patient + "]");
 
             PersonAttribute healthIdAttribute = openMrsPatient.getAttribute(HEALTH_ID_ATTRIBUTE);
@@ -162,14 +162,17 @@ public class PatientPush implements EventWorker {
 
     private void addPatientToIdMapping(org.openmrs.Patient emrPatient, String healthId) {
         String patientUuid = emrPatient.getUuid();
-        SystemProperties systemProperties = new SystemProperties(propertiesReader.getBaseUrls(),
-                propertiesReader.getFrProperties(),
-                propertiesReader.getTrProperties(),
-                propertiesReader.getPrProperties(),
-                propertiesReader.getFacilityInstanceProperties());
-        String url = new EntityReference().build(org.openmrs.Patient.class, systemProperties, healthId);
+        String url = new EntityReference().build(org.openmrs.Patient.class, getSystemProperties(), healthId);
         idMappingsRepository.saveMapping(new IdMapping(patientUuid, healthId, ID_MAPPING_PATIENT_TYPE, url));
 
+    }
+
+    private SystemProperties getSystemProperties() {
+        return new SystemProperties(propertiesReader.getBaseUrls(),
+                    propertiesReader.getFrProperties(),
+                    propertiesReader.getTrProperties(),
+                    propertiesReader.getPrProperties(),
+                    propertiesReader.getFacilityInstanceProperties());
     }
 
     private User getShrClientSystemUser() {

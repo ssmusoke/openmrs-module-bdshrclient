@@ -3,11 +3,10 @@ package org.openmrs.module.shrclient.mapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.openmrs.Person;
-import org.openmrs.PersonAddress;
-import org.openmrs.PersonAttribute;
-import org.openmrs.PersonAttributeType;
-import org.openmrs.PersonName;
+import org.openmrs.*;
+import org.openmrs.api.ProviderService;
+import org.openmrs.api.context.Context;
+import org.openmrs.api.context.ServiceContext;
 import org.openmrs.module.addresshierarchy.AddressField;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
@@ -19,16 +18,20 @@ import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;
 import org.openmrs.module.shrclient.util.AddressHelper;
+import org.openmrs.module.shrclient.util.SystemProperties;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.openmrs.module.fhir.utils.Constants.*;
@@ -37,6 +40,10 @@ public class PatientMapperTest {
 
     @Mock
     private AddressHierarchyService addressHierarchyService;
+    @Mock
+    private SystemProperties systemProperties;
+    @Mock
+    private ProviderService providerService;
 
     private AddressHelper addressHelper;
     private BbsCodeService bbsCodeService;
@@ -50,6 +57,9 @@ public class PatientMapperTest {
     private String educationLevel = "6th to 9th";
     private String primaryContact = "some contact";
     private String houseHoldCode = "house4";
+    
+    private org.openmrs.Patient openMrsPatient;
+    private Patient patient;
 
     @Before
     public void setup() throws Exception {
@@ -57,10 +67,35 @@ public class PatientMapperTest {
         this.bbsCodeService = new BbsCodeServiceImpl();
         addressHelper = new AddressHelper(addressHierarchyService);
         patientMapper = new PatientMapper(bbsCodeService, addressHelper);
+        Context context = new Context();
+        ServiceContext serviceContext = ServiceContext.getInstance();
+        serviceContext.setService(ProviderService.class, providerService);
+        context.setServiceContext(serviceContext);
+        setupData();
     }
 
     @Test
     public void shouldMapOpenMrsPatientToMciPatient() throws Exception {
+        Patient expectedPatient = patientMapper.map(openMrsPatient, systemProperties);
+        assertEquals(this.patient, expectedPatient);
+    }
+
+    @Test
+    public void shouldGetProviderFromChangedBy() throws Exception {
+        Person changedByPerson = new Person(12);
+        openMrsPatient.setChangedBy(new User(changedByPerson));
+        Provider mockedProvider = mock(Provider.class);
+        String providerIdentifier = "1234";
+        when(mockedProvider.getIdentifier()).thenReturn(providerIdentifier);
+        when(providerService.getProvidersByPerson(changedByPerson)).thenReturn(asList(mockedProvider));
+        
+        Patient expectedPatient = patientMapper.map(openMrsPatient, systemProperties);
+        assertEquals(this.patient, expectedPatient);
+        
+
+    }
+
+    private void setupData() throws ParseException {
         final String givenName = "Sachin";
         final String middleName = "Ramesh";
         final String familyName = "Tendulkar";
@@ -99,8 +134,10 @@ public class PatientMapperTest {
         address.setAddress3(unionOrUrbanWard);
         address.setAddress2(ruralWard);
         person.addAddress(address);
-        org.openmrs.Patient openMrsPatient = new org.openmrs.Patient(person);
+        openMrsPatient = new org.openmrs.Patient(person);
 
+        Person userPerson = new Person(11);
+        openMrsPatient.setCreator(new User(userPerson));
         openMrsPatient.setAttributes(createOpenMrsPersonAttributes());
 
         List<AddressHierarchyEntry> divisionEntries = createAddressHierarchyEntries(divisionId);
@@ -118,26 +155,32 @@ public class PatientMapperTest {
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(any(AddressHierarchyLevel.class), eq(unionOrUrbanWard))).thenReturn(unionOrUrbanWardEntries);
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(any(AddressHierarchyLevel.class), eq(ruralWard))).thenReturn(ruralWardEntries);
 
-        Patient patient = patientMapper.map(openMrsPatient);
+        String prUrlFormat = "http://pr.com/%s.json";
+        when(systemProperties.getProviderUrlFormat()).thenReturn(prUrlFormat);
+        Provider mockedProvider = mock(Provider.class);
+        String providerIdentifier = "1234";
+        when(mockedProvider.getIdentifier()).thenReturn(providerIdentifier);
+        when(providerService.getProvidersByPerson(userPerson)).thenReturn(asList(mockedProvider));
 
-        Patient p = new Patient();
-        p.setNationalId(nationalId);
-        p.setHealthId(healthId);
-        p.setBirthRegNumber(brnId);
-        p.setUniqueId(uniqueId);
-        p.setHouseHoldCode(houseHoldCode);
-        p.setGivenName(givenName);
-        p.setSurName(familyName);
-        p.setGender(gender);
-        p.setDateOfBirth(DateUtil.toDateString(dateOfBirth,DateUtil.ISO_DATE_IN_HOUR_MIN_FORMAT));
-        p.setOccupation(bbsCodeService.getOccupationCode(occupation));
-        p.setEducationLevel(bbsCodeService.getEducationCode(educationLevel));
-        p.setPrimaryContact(primaryContact);
+        patient = new Patient();
+        patient.setNationalId(nationalId);
+        patient.setHealthId(healthId);
+        patient.setBirthRegNumber(brnId);
+        patient.setUniqueId(uniqueId);
+        patient.setHouseHoldCode(houseHoldCode);
+        patient.setGivenName(givenName);
+        patient.setSurName(familyName);
+        patient.setGender(gender);
+        patient.setDateOfBirth(DateUtil.toDateString(dateOfBirth, DateUtil.ISO_DATE_IN_HOUR_MIN_FORMAT));
+        patient.setOccupation(bbsCodeService.getOccupationCode(occupation));
+        patient.setEducationLevel(bbsCodeService.getEducationCode(educationLevel));
+        patient.setPrimaryContact(primaryContact);
+        patient.setProviderReference(String.format(prUrlFormat, providerIdentifier));
 
         Status status = new Status();
         status.setType('2');
         status.setDateOfDeath(DateUtil.toDateString(dateOfDeath, DateUtil.ISO_DATE_IN_HOUR_MIN_FORMAT));
-        p.setStatus(status);
+        patient.setStatus(status);
 
 
         Address a = new Address();
@@ -148,9 +191,7 @@ public class PatientMapperTest {
         a.setCityCorporationId("40");
         a.setUnionOrUrbanWardId("50");
         a.setRuralWardId("01");
-        p.setAddress(a);
-
-        assertEquals(p, patient);
+        patient.setAddress(a);
     }
 
     private Set<PersonAttribute> createOpenMrsPersonAttributes() {

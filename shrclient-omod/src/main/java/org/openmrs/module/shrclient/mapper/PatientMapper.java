@@ -1,12 +1,18 @@
 package org.openmrs.module.shrclient.mapper;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.openmrs.Person;
 import org.openmrs.PersonAttribute;
+import org.openmrs.Provider;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.util.AddressHelper;
+import org.openmrs.module.shrclient.util.SystemProperties;
 
+import java.util.Collection;
 
 import static org.openmrs.module.fhir.utils.Constants.*;
 
@@ -24,7 +30,7 @@ public class PatientMapper {
         this.addressHelper = addressHelper;
     }
 
-    public Patient map(org.openmrs.Patient openMrsPatient) {
+    public Patient map(org.openmrs.Patient openMrsPatient, SystemProperties systemProperties) {
         Patient patient = new Patient();
 
         String nationalId = getAttributeValue(openMrsPatient, NATIONAL_ID_ATTRIBUTE);
@@ -48,7 +54,7 @@ public class PatientMapper {
         }
 
         String houseHoldCode = getAttributeValue(openMrsPatient, HOUSE_HOLD_CODE_ATTRIBUTE);
-        if(houseHoldCode != null){
+        if (houseHoldCode != null) {
             patient.setHouseHoldCode(houseHoldCode);
         }
 
@@ -73,7 +79,25 @@ public class PatientMapper {
         }
         patient.setAddress(addressHelper.getMciAddress(openMrsPatient));
         patient.setStatus(getMciPatientStatus(openMrsPatient));
+
+        setProvider(patient, openMrsPatient, systemProperties);
+
         return patient;
+    }
+
+    private void setProvider(Patient patient, org.openmrs.Patient openMrsPatient, SystemProperties systemProperties) {
+        Person person = null;
+        if (openMrsPatient.getChangedBy() != null) {
+            person = openMrsPatient.getChangedBy().getPerson();
+        } else if (openMrsPatient.getCreator() != null) {
+            person = openMrsPatient.getCreator().getPerson();
+        }
+        if (null == person) return;
+        Collection<Provider> providers = Context.getProviderService().getProvidersByPerson(person);
+        if (CollectionUtils.isEmpty(providers)) return;
+        Provider provider = providers.iterator().next();
+        String providerUrl = String.format(systemProperties.getProviderUrlFormat(), provider.getIdentifier());
+        patient.setProviderReference(providerUrl);
     }
 
     private String getAttributeValue(org.openmrs.Patient openMrsPatient, String attributeName) {
