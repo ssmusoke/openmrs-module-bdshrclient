@@ -29,11 +29,11 @@ public class MapperTestHelper {
         //facilityRegistry.setProperty(FACILITY_URL_FORMAT, "%s.json");
 
         Properties trProperties = new Properties();
-        trProperties.setProperty("tr.base.valueset.url", "openmrs/ws/rest/v1/tr/vs");
-        trProperties.setProperty("tr.valueset.route", "sample-route");
-        trProperties.setProperty("tr.valueset.quantityunits", "sample-units");
-        trProperties.setProperty("tr.valueset.immunizationReason", "sample-reason");
-        trProperties.setProperty("tr.valueset.refusalReason", "refusal-reason");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_PATH_INFO, "openmrs/ws/rest/v1/tr/vs");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_ROUTE, "Route-of-Administration");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_QTY_UNITS, "Quantity-Units");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_IMMUNIZATION_REASON, "Immunization-Reason");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_REFUSAL_REASON, "No-Immunization-Reason");
 
         Properties providerRegistry = new Properties();
         providerRegistry.setProperty(PropertyKeyConstants.PROVIDER_REFERENCE_PATH, "http://hrmtest.dghs.gov.bd/api/1.0/providers");

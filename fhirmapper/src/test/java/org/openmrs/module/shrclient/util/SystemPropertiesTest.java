@@ -57,13 +57,13 @@ public class SystemPropertiesTest {
     @Test
     public void shouldReadValueSetUrls() throws Exception {
         Properties trProperties = new Properties();
-        trProperties.setProperty("tr.base.valueset.url", "openmrs/ws/rest/v1/tr/vs");
-        trProperties.setProperty("tr.valueset.route", "sample-route");
-        trProperties.setProperty("tr.valueset.quantityunits", "sample-units");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_PATH_INFO, "openmrs/ws/rest/v1/tr/vs");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_ROUTE, "Route-of-Administration");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_QTY_UNITS, "Quantity-Units");
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("tr", "http://172.18.46.56:9080");
         SystemProperties systemProperties = new SystemProperties(baseUrls, new Properties(), trProperties, new Properties(), new Properties(),null, null);
-        assertThat(systemProperties.getTrValuesetUrl("route"), is("http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/vs/sample-route"));
-        assertThat(systemProperties.getTrValuesetUrl("quantityunits"), is("http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/vs/sample-units"));
+        assertThat(systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_ROUTE), is("http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/vs/Route-of-Administration"));
+        assertThat(systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_QTY_UNITS), is("http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/vs/Quantity-Units"));
     }
 }

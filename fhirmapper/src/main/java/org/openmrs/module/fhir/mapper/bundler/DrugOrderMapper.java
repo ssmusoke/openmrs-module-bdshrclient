@@ -7,6 +7,7 @@ import org.openmrs.DrugOrder;
 import org.openmrs.Order;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.fhir.utils.UnitsHelpers;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -19,8 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_DRUG_ORDER_TYPE;
-import static org.openmrs.module.fhir.mapper.TrValueSetKeys.QUANTITY_UNITS;
-import static org.openmrs.module.fhir.mapper.TrValueSetKeys.ROUTE;
 
 @Component
 public class DrugOrderMapper implements EmrOrderResourceHandler {
@@ -65,7 +64,9 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 
     private void setDoseInstructions(DrugOrder drugOrder, MedicationPrescription prescription, SystemProperties systemProperties) {
         MedicationPrescription.MedicationPrescriptionDosageInstructionComponent dosageInstruction = prescription.addDosageInstruction();
-        dosageInstruction.setRoute(codableConceptService.getTRValueSetCodeableConcept(drugOrder.getRoute(), systemProperties.getTrValuesetUrl(ROUTE)));
+        dosageInstruction.setRoute(
+                codableConceptService.getTRValueSetCodeableConcept(drugOrder.getRoute(),
+                systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_ROUTE)));
         setDoseQuantity(drugOrder, dosageInstruction, systemProperties);
         dosageInstruction.setTiming(getSchedule(drugOrder));
     }
@@ -133,7 +134,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         String code = codableConceptService.getTRValueSetCode(drugOrder.getDoseUnits());
         doseQuantity.setCodeSimple(code);
         if (null != idMappingsRepository.findByInternalId(drugOrder.getDoseUnits().getUuid())) {
-            doseQuantity.setSystemSimple(systemProperties.getTrValuesetUrl(QUANTITY_UNITS));
+            doseQuantity.setSystemSimple(systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_QTY_UNITS));
         }
         dosageInstruction.setDoseQuantity(doseQuantity.setValue(dose));
     }

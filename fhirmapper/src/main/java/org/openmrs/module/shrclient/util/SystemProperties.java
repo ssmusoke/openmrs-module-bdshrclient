@@ -1,6 +1,6 @@
 package org.openmrs.module.shrclient.util;
 
-import org.openmrs.module.fhir.utils.Constants;
+import org.apache.commons.lang3.StringUtils;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 
 import java.util.Map;
@@ -34,12 +34,20 @@ public class SystemProperties {
         return facilityInstanceProperties.getProperty(FACILITY_ID);
     }
 
-    public String getTrValuesetUrl(String valueSetName) {
-        return baseUrls.get("tr") + "/" + trProperties.getProperty(TR_VALUESET_URL) + "/" + trProperties.getProperty(TR_VALUESET_KEY + valueSetName);
+    public String getTrValuesetUrl(String valueSetKeyName) {
+        String valuesetName = trProperties.getProperty(valueSetKeyName);
+        if (StringUtils.isBlank(valuesetName)) {
+            throw new RuntimeException("Could not identify valueset. Make sure tr properties has key:" + valueSetKeyName);
+        }
+
+        String trBaseUrl = StringUtil.ensureSuffix(trProperties.getProperty(PropertyKeyConstants.TR_REFERENCE_PATH), "/");
+        String trValueSetPathInfo = StringUtil.removePrefix(trProperties.getProperty(TR_VALUESET_PATH_INFO), "/");
+
+        return StringUtil.ensureSuffix(trBaseUrl + trValueSetPathInfo, "/") + valuesetName;
     }
 
     public String getProviderResourcePath() {
-        return prProperties.getProperty(PROVIDER_REFERENCE_PATH);
+        return prProperties.getProperty(PROVIDER_REFERENCE_PATH).trim();
     }
 
     public String getMciPatientUrl() {

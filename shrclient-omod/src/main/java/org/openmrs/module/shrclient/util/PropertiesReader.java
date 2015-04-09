@@ -20,7 +20,6 @@ import static org.openmrs.module.fhir.utils.PropertyKeyConstants.*;
  */
 @Component("bdshrPropertiesReader")
 public class PropertiesReader {
-    public static final String URL_SEPARATOR_FOR_CONTEXT_PATH = "/";
 
     public Properties getMciProperties() {
         return getProperties("mci.properties");
@@ -69,8 +68,7 @@ public class PropertiesReader {
 
     private String getTrBaseUrl() {
         Properties properties = getTrProperties();
-        return getBaseUrl(properties.getProperty("tr.scheme"), properties.getProperty("tr.host"),
-                properties.getProperty("tr.port"), null);
+        return properties.getProperty(PropertyKeyConstants.TR_REFERENCE_PATH).trim();
     }
 
     public String getMciBaseUrl() {
@@ -81,11 +79,6 @@ public class PropertiesReader {
     public String getShrBaseUrl() {
         Properties properties = getShrProperties();
         return properties.getProperty(SHR_REFERENCE_PATH).trim();
-//        String shrUrl = getBaseUrl(properties.getProperty("shr.scheme"),
-//                properties.getProperty("shr.host"),
-//                properties.getProperty("shr.port"), null);
-//        String shrVersion = properties.getProperty("shr.version");
-//        return StringUtils.isEmpty(shrVersion)? shrUrl : String.format("%s/%s", shrUrl, shrVersion);
     }
 
     public String getLrBaseUrl() {
