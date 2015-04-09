@@ -47,6 +47,11 @@ public class PatientMapper {
             patient.setUniqueId(uniqueId);
         }
 
+        String houseHoldCode = getAttributeValue(openMrsPatient, HOUSE_HOLD_CODE_ATTRIBUTE);
+        if(houseHoldCode != null){
+            patient.setHouseHoldCode(houseHoldCode);
+        }
+
         patient.setGivenName(openMrsPatient.getGivenName());
         patient.setSurName(openMrsPatient.getFamilyName());
         patient.setGender(openMrsPatient.getGender());

@@ -3,6 +3,8 @@ package org.openmrs.module.shrclient.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Arrays;
+
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -54,6 +56,10 @@ public class Patient {
     @JsonInclude(NON_EMPTY)
     private String uniqueId;
 
+    @JsonProperty("household_code")
+    @JsonInclude(NON_EMPTY)
+    private String houseHoldCode;
+
     @JsonProperty("relations")
     @JsonInclude(NON_NULL)
     private Relation[] relations;
@@ -69,7 +75,6 @@ public class Patient {
         if (dateOfBirth != null ? !dateOfBirth.equals(patient.dateOfBirth) : patient.dateOfBirth != null) return false;
         if (educationLevel != null ? !educationLevel.equals(patient.educationLevel) : patient.educationLevel != null)
             return false;
-        if (givenName != null ? !givenName.equals(patient.givenName) : patient.givenName != null) return false;
         if (gender != null ? !gender.equals(patient.gender) : patient.gender != null) return false;
         if (healthId != null ? !healthId.equals(patient.healthId) : patient.healthId != null) return false;
         if (surName != null ? !surName.equals(patient.surName) : patient.surName != null) return false;
@@ -80,6 +85,8 @@ public class Patient {
         if (birthRegNumber != null ? !birthRegNumber.equals(patient.birthRegNumber) : patient.birthRegNumber != null)
             return false;
         if (uniqueId != null ? !uniqueId.equals(patient.uniqueId) : patient.uniqueId != null) return false;
+        if (houseHoldCode != null ? !houseHoldCode.equals(patient.houseHoldCode) : patient.houseHoldCode != null)
+            return false;
         return true;
     }
 
@@ -97,8 +104,10 @@ public class Patient {
         result = 31 * result + (address != null ? address.hashCode() : 0);
         result = 31 * result + (birthRegNumber != null ? birthRegNumber.hashCode() : 0);
         result = 31 * result + (uniqueId != null ? uniqueId.hashCode() : 0);
+        result = 31 * result + (houseHoldCode != null ? houseHoldCode.hashCode() : 0);
         return result;
     }
+
 
     @Override
     public String toString() {
@@ -115,6 +124,7 @@ public class Patient {
         sb.append(", primaryContact='").append(primaryContact).append('\'');
         sb.append(", birthRegNumber='").append(birthRegNumber).append('\'');
         sb.append(", uniqueId='").append(uniqueId).append('\'');
+        sb.append(", houseHoldCode='").append(houseHoldCode).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -230,5 +240,15 @@ public class Patient {
     public void setUniqueId(String uniqueId) {
         this.uniqueId = uniqueId;
     }
+
+    public String getHouseHoldCode() {
+        return houseHoldCode;
+    }
+
+    public void setHouseHoldCode(String houseHoldCode) {
+        this.houseHoldCode = houseHoldCode;
+    }
+
+
 }
 

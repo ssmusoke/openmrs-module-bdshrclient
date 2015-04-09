@@ -2,21 +2,8 @@ package org.openmrs.module.shrclient.service.impl;
 
 import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.model.AtomFeed;
-import org.openmrs.Concept;
-import org.openmrs.Encounter;
-import org.openmrs.Order;
-import org.openmrs.PatientIdentifier;
-import org.openmrs.PatientIdentifierType;
-import org.openmrs.PersonAttribute;
-import org.openmrs.PersonAttributeType;
-import org.openmrs.PersonName;
-import org.openmrs.api.AdministrationService;
-import org.openmrs.api.ConceptService;
-import org.openmrs.api.OrderService;
-import org.openmrs.api.PatientService;
-import org.openmrs.api.PersonService;
-import org.openmrs.api.UserService;
-import org.openmrs.api.VisitService;
+import org.openmrs.*;
+import org.openmrs.api.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
@@ -99,6 +86,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         addPersonAttribute(personService, emrPatient, BIRTH_REG_NO_ATTRIBUTE, mciPatient.getBirthRegNumber());
         addPersonAttribute(personService, emrPatient, UNIQUE_ID_ATTRIBUTE, mciPatient.getUniqueId());
         addPersonAttribute(personService, emrPatient, PRIMARY_CONTACT_ATTRIBUTE, mciPatient.getPrimaryContact());
+        addPersonAttribute(personService, emrPatient, HOUSE_HOLD_CODE_ATTRIBUTE, mciPatient.getHouseHoldCode());
 
         String occupationConceptName = bbsCodeService.getOccupationConceptName(mciPatient.getOccupation());
         String occupationConceptId = getConceptId(occupationConceptName);

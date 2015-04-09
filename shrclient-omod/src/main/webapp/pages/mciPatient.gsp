@@ -101,11 +101,14 @@
             ${ ui.includeFragment("uicommons", "infoAndErrorMessage") }
             <div id="content" class="container">
                 <h1>Search Patient in National Registry</h1>
-                <div style="display:none" class="errorMessage">Error occurred. Could not perform the action.</div>
+                <div style="display:none" class="errorMessage"></div>
                 <div id="searchBox" class="search-box">
                     <select id="idType" class="id-type">
                       <option value="nid">National ID</option>
                       <option value="hid">Health ID</option>
+                      <option value="brn">Birth Registration Number</option>
+                      <option value="uid">Unique Identifier</option>
+                      <option value="houseHoldCode">Household ID</option>
                     </select>
                     <input id="patientId" class="patient-id" type="text" name="patientId" value="">
                 </div>
@@ -140,6 +143,15 @@
                 });
             });
 
+            function onError(error){
+                var message = "Error occurred. Could not perform the action.";
+                if(error.status === 401){
+                    message = "Should Have National Registry Privilege";
+                }
+                jq(".errorMessage").text(message);
+                jq(".errorMessage").show();
+            }
+
             function searchPatient() {
                 jq(".errorMessage").hide();
                 var idType = jq( "#idType" ).val();
@@ -150,9 +162,7 @@
                    dataType: "json"
                 }).done(function( responseData ) {
                    renderMciPatient(responseData);
-                }).fail(function(error) {
-                   jq(".errorMessage").show();
-                });
+                }).fail(onError);
             }
 
             function downloadMciPatient(e) {
@@ -168,9 +178,7 @@
                     else {
                        window.location = "/bahmni/registration/#/patient/" + responseData.uuid;
                     }
-                }).fail(function(error) {
-                   jq(".errorMessage").show();
-                });
+                }).fail(onError);
             }
 
             function renderMciPatient(patients) {
