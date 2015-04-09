@@ -44,7 +44,7 @@ public class EntityReference {
 
         @Override
         public String create(String id, SystemProperties systemProperties) {
-            return StringUtil.ensureSuffix(systemProperties.getMciPatientPublicUrl(), "/") + id;
+            return StringUtil.ensureSuffix(systemProperties.getMciPatientUrl(), "/") + id;
         }
 
         @Override

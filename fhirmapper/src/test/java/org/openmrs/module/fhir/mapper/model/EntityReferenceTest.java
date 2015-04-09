@@ -93,7 +93,8 @@ public class EntityReferenceTest {
         baseUrls.put("fr", "http://fr");
 
         Properties mciProperties = new Properties();
-        mciProperties.put("mci.referenceUrl", "http://mci.com/");
+        mciProperties.put(PropertyKeyConstants.MCI_REFERENCE_PATH, "http://mci.com/");
+        mciProperties.put(PropertyKeyConstants.MCI_PATIENT_CONTEXT, "/api/v1/patients");
 
         return new SystemProperties(baseUrls, frProperties, trProperties, prPoperties, facilityInstanceProperties, mciProperties, null);
     }

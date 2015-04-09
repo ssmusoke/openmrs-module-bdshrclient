@@ -15,6 +15,7 @@ import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityToken;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.PropertiesReader;
+import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.web.controller.MciPatientSearchRequest;
 
 import java.io.File;
@@ -69,7 +70,9 @@ public class MCIPatientLookupServiceImplTest {
         AddressHierarchyEntry entry = new AddressHierarchyEntry();
         entry.setName("testEntry");
 
-        givenThat(get(urlEqualTo(Constants.MCI_PATIENT_URL + "/" + hid))
+        String patientContext = StringUtil.ensureSuffix(propertiesReader.getMciPatientContext(), "/");
+
+        givenThat(get(urlEqualTo(patientContext + hid))
                 .withHeader(FROM_KEY, equalTo(email))
                 .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
                 .withHeader(AUTH_TOKEN_KEY, equalTo(token))
@@ -97,7 +100,9 @@ public class MCIPatientLookupServiceImplTest {
         AddressHierarchyEntry entry = new AddressHierarchyEntry();
         entry.setName("testEntry");
 
-        givenThat(get(urlEqualTo(Constants.MCI_PATIENT_URL + "?nid=" + nid))
+        String patientContext = StringUtil.removeSuffix(propertiesReader.getMciPatientContext(), "/");
+
+        givenThat(get(urlEqualTo(patientContext + "?nid=" + nid))
                 .withHeader(FROM_KEY, equalTo(email))
                 .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
                 .withHeader(AUTH_TOKEN_KEY, equalTo(token))
@@ -128,7 +133,9 @@ public class MCIPatientLookupServiceImplTest {
         AddressHierarchyEntry entry = new AddressHierarchyEntry();
         entry.setName("testEntry");
 
-        givenThat(get(urlEqualTo(Constants.MCI_PATIENT_URL + "?household_code=" + houseHoleId))
+        String patientContext = StringUtil.removeSuffix(propertiesReader.getMciPatientContext(), "/");
+
+        givenThat(get(urlEqualTo(patientContext + "?household_code=" + houseHoleId))
                 .withHeader(FROM_KEY, equalTo(email))
                 .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
                 .withHeader(AUTH_TOKEN_KEY, equalTo(token))

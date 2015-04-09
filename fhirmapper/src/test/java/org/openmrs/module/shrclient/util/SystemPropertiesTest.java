@@ -1,6 +1,7 @@
 package org.openmrs.module.shrclient.util;
 
 import org.junit.Test;
+import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 
 import java.util.HashMap;
 import java.util.Properties;
@@ -8,6 +9,7 @@ import java.util.Properties;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_ID;
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_REFERENCE_PATH;
 import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_URL_FORMAT;
 
 public class SystemPropertiesTest {
@@ -36,13 +38,20 @@ public class SystemPropertiesTest {
 
     @Test
     public void shouldReadBaseUrls() throws Exception {
-        Properties shrProperties = new Properties();
+        Properties mciProperties = new Properties();
+        mciProperties.put(PropertyKeyConstants.MCI_REFERENCE_PATH, "https://mci.com/");
+        mciProperties.put(PropertyKeyConstants.MCI_PATIENT_CONTEXT, "/api/v1/patients");
+
+
+        Properties frProperties = new Properties();
+        frProperties.setProperty(FACILITY_REFERENCE_PATH, "https://fr.com");
+
         HashMap<String, String> baseUrls = new HashMap<>();
-        baseUrls.put("mci", "https://boogiewoogie:8080");
-        baseUrls.put("fr", "https://furrr:8080");
-        SystemProperties systemProperties = new SystemProperties(baseUrls, new Properties(), new Properties(), new Properties(), new Properties(),null, null);
-        assertThat(systemProperties.getMciPatientUrl(), is("https://boogiewoogie:8080/api/v1/patients"));
-        assertThat(systemProperties.getFrBaseUrl(), is("https://furrr:8080/"));
+        baseUrls.put("mci", "https://mci.com");
+        baseUrls.put("fr", "https://fr.com");
+        SystemProperties systemProperties = new SystemProperties(baseUrls, frProperties, new Properties(), new Properties(), new Properties(),mciProperties, null);
+        assertThat(systemProperties.getMciPatientUrl(), is("https://mci.com/api/v1/patients"));
+        assertThat(systemProperties.getFacilityResourcePath(), is("https://fr.com"));
     }
 
     @Test

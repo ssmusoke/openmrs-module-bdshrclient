@@ -25,8 +25,6 @@ public class Constants {
 
     public static final String EMR_PRIMARY_IDENTIFIER_TYPE = "emr.primaryIdentifierType";
 
-    public static final String MCI_PATIENT_URL = "/api/v1/patients";
-
     public static final String ID_MAPPING_ENCOUNTER_TYPE = "encounter";
     public static final String ID_MAPPING_REFERENCE_TERM_TYPE = "concept_reference_term";
     public static final String ID_MAPPING_CONCEPT_TYPE = "concept";

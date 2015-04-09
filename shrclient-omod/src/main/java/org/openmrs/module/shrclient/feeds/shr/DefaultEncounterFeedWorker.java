@@ -12,7 +12,6 @@ import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 
-import static org.openmrs.module.fhir.utils.Constants.MCI_PATIENT_URL;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.getEncounter;
 
 public class DefaultEncounterFeedWorker implements EncounterEventWorker {
@@ -36,7 +35,7 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
         String healthId = identifyPatientHealthId(feed);
         try {
             RestClient mciClient = new ClientRegistry(propertiesReader, identityStore).getMCIClient();
-            Patient patient = mciClient.get(MCI_PATIENT_URL + "/" + healthId, Patient.class);
+            Patient patient = mciClient.get(propertiesReader.getMciPatientContext() + "/" + healthId, Patient.class);
             org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(patient);
 
             if (null == emrPatient) {

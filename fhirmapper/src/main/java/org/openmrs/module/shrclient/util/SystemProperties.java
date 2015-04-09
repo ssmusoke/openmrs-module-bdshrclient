@@ -1,6 +1,7 @@
 package org.openmrs.module.shrclient.util;
 
 import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 
 import java.util.Map;
 import java.util.Properties;
@@ -33,19 +34,6 @@ public class SystemProperties {
         return facilityInstanceProperties.getProperty(FACILITY_ID);
     }
 
-    public String getMciPatientUrl() {
-        String mciBaseUrl = baseUrls.get("mci");
-        if (mciBaseUrl.endsWith("/")) {
-            return mciBaseUrl + Constants.MCI_PATIENT_URL.substring(1);
-        } else {
-            return mciBaseUrl + Constants.MCI_PATIENT_URL;
-        }
-    }
-
-    public String getFrBaseUrl() {
-        return baseUrls.get("fr") + "/";
-    }
-
     public String getTrValuesetUrl(String valueSetName) {
         return baseUrls.get("tr") + "/" + trProperties.getProperty(TR_VALUESET_URL) + "/" + trProperties.getProperty(TR_VALUESET_KEY + valueSetName);
     }
@@ -54,13 +42,10 @@ public class SystemProperties {
         return prProperties.getProperty(PROVIDER_REFERENCE_PATH);
     }
 
-    public String getMciPatientPublicUrl() {
-        String mciBaseUrl = mciProperties.getProperty(MCI_PUBLIC_URL_BASE);
-        if (mciBaseUrl.endsWith("/")) {
-            return mciBaseUrl + Constants.MCI_PATIENT_URL.substring(1);
-        } else {
-            return mciBaseUrl + Constants.MCI_PATIENT_URL;
-        }
+    public String getMciPatientUrl() {
+        String mciRefPath = mciProperties.getProperty(MCI_REFERENCE_PATH);
+        String mciPatientCtx = mciProperties.getProperty(MCI_PATIENT_CONTEXT);
+        return StringUtil.ensureSuffix(mciRefPath, "/") + StringUtil.removePrefix(mciPatientCtx, "/");
     }
 
     public String getFacilityResourcePath() {

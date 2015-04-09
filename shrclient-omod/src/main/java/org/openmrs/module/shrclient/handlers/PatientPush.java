@@ -19,6 +19,7 @@ import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.mci.api.MciPatientUpdateResponse;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
+import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.util.SystemProperties;
 
 import java.util.regex.Matcher;
@@ -87,7 +88,7 @@ public class PatientPush implements EventWorker {
                 updateOpenMrsPatientHealthId(openMrsPatient, response.getHealthId());
             } else {
                 String healthId = healthIdAttribute.getValue();
-                String url = MCI_PATIENT_URL + "/" + healthId;
+                String url = StringUtil.ensureSuffix(propertiesReader.getMciPatientContext(), "/") + healthId;
                 MciPatientUpdateResponse response = updatePatient(patient, url);
             }
         } catch (Exception e) {
@@ -108,7 +109,7 @@ public class PatientPush implements EventWorker {
 
     private MciPatientUpdateResponse newPatient(Patient patient) throws IdentityUnauthorizedException {
         try {
-            return mciRestClient.post(MCI_PATIENT_URL, patient,
+            return mciRestClient.post(propertiesReader.getMciPatientContext(), patient,
                     MciPatientUpdateResponse.class);
         } catch (IdentityUnauthorizedException e) {
             log.error("Clearing unauthorized identity token.");

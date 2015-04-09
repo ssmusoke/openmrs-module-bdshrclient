@@ -32,6 +32,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
     private static final String UID_PARAM_KEY = "uid";
     private static final String BRN_PARAM_KEY = "bin_brn";
     private static final String HOUSE_HOLD_CODE_PARAM_KEY = "household_code";
+    private final String patientContext;
 
     private MciPatientService mciPatientService;
     private PropertiesReader propertiesReader;
@@ -42,6 +43,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
         this.mciPatientService = mciPatientService;
         this.propertiesReader = propertiesReader;
         this.identityStore = identityStore;
+        this.patientContext = propertiesReader.getMciPatientContext();
     }
 
     @Override
@@ -154,7 +156,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
     }
 
     private Patient[] searchPatients(String searchParamKey, String searchParamValue) {
-        String url = String.format("%s?%s=%s", Constants.MCI_PATIENT_URL, searchParamKey, searchParamValue);
+        String url = String.format("%s?%s=%s", this.patientContext, searchParamKey, searchParamValue);
         MciPatientSearchResponse mciPatientSearchResponse = null;
         try {
             mciPatientSearchResponse = getMciRestClient().get(url, MciPatientSearchResponse.class);
@@ -171,7 +173,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
             return null;
         }
         try {
-            return getMciRestClient().get(Constants.MCI_PATIENT_URL + "/" + hid, Patient.class);
+            return getMciRestClient().get(this.patientContext + "/" + hid, Patient.class);
         } catch (IdentityUnauthorizedException e) {
             log.info("Clearing unauthorized identity token.");
             identityStore.clearToken();

@@ -10,7 +10,7 @@ public class PropertyKeyConstants {
     //TODO
     public static final String TR_VALUESET_KEY = "tr.valueset.";
 
-    public static final String MCI_PUBLIC_URL_BASE = "mci.referenceUrl";
+    public static final String MCI_REFERENCE_PATH = "mci.referenceUrl";
     public static final String MCI_PATIENT_CONTEXT = "mci.patientContext";
 
     public static final String FACILITY_REFERENCE_PATH = "fr.referenceUrl";

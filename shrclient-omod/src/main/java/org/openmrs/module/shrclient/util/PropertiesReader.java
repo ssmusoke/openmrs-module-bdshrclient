@@ -1,6 +1,7 @@
 package org.openmrs.module.shrclient.util;
 
 import org.apache.commons.lang3.StringUtils;
+import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -71,7 +72,7 @@ public class PropertiesReader {
 
     public String getMciBaseUrl() {
         Properties properties = getMciProperties();
-        return properties.getProperty(MCI_PUBLIC_URL_BASE);
+        return properties.getProperty(MCI_REFERENCE_PATH);
     }
 
     public String getShrBaseUrl() {
@@ -138,5 +139,9 @@ public class PropertiesReader {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public String getMciPatientContext() {
+        return getMciProperties().getProperty(PropertyKeyConstants.MCI_PATIENT_CONTEXT);
     }
 }
