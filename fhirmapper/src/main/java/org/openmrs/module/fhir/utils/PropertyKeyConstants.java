@@ -7,7 +7,7 @@ public class PropertyKeyConstants {
 
 
     public static final String PROVIDER_REFERENCE_PATH = "pr.referenceUrl";
-    //TODO
+    //TODO ??
     public static final String TR_VALUESET_KEY = "tr.valueset.";
 
     public static final String MCI_REFERENCE_PATH = "mci.referenceUrl";
@@ -16,4 +16,9 @@ public class PropertyKeyConstants {
     public static final String FACILITY_REFERENCE_PATH = "fr.referenceUrl";
     public static final String LOCATION_REFERENCE_PATH = "lr.referenceUrl";
 
+    public static final String SHR_REFERENCE_PATH = "shr.referenceUrl";
+    public static final String SHR_CATCHMENT_PATH_PATTERN = "shr.catchmentPathPattern"; ///catchments/%s/encounters
+    public static final String SHR_PATIENT_ENC_PATH_PATTERN = "shr.patientEncPathPattern"; ///patients/%s/encounters
+
+    public static final String FACILITY_CATCHMENTS = "facility.catchments";
 }

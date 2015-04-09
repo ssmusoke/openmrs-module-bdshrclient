@@ -2,6 +2,7 @@ package org.openmrs.module.shrclient.handlers;
 
 
 import org.apache.log4j.Logger;
+import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.shrclient.feeds.shr.DefaultEncounterFeedWorker;
 import org.openmrs.module.shrclient.feeds.shr.ShrEncounterFeedProcessor;
 import org.openmrs.module.shrclient.identity.IdentityStore;
@@ -9,6 +10,7 @@ import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.PlatformUtil;
 import org.openmrs.module.shrclient.util.PropertiesReader;
+import org.openmrs.module.shrclient.util.StringUtil;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -75,12 +77,15 @@ public class EncounterPull {
 
     public ArrayList<String> getEncounterFeedUrls(PropertiesReader propertiesReader) {
         Properties facilityInstanceProperties = propertiesReader.getFacilityInstanceProperties();
-        String shrBaseUrl = propertiesReader.getShrBaseUrl();
-        String catchments = facilityInstanceProperties.get("facility.catchments").toString();
+        String shrBaseUrl = StringUtil.ensureSuffix(propertiesReader.getShrBaseUrl(), "/");
+        String catchmentPathPattern = StringUtil.removePrefix(propertiesReader.getShrCatchmentPathPattern(), "/");
+        String catchments = facilityInstanceProperties.get(PropertyKeyConstants.FACILITY_CATCHMENTS).toString();
         String[] facilityCatchments = catchments.split(",");
         ArrayList<String> catchmentsUrls = new ArrayList<>();
         for (String facilityCatchment : facilityCatchments) {
-            catchmentsUrls.add(String.format("%s/catchments/%s/encounters", shrBaseUrl, facilityCatchment));
+            String catchmentUrl = shrBaseUrl + String.format(catchmentPathPattern, facilityCatchment);
+            //catchmentsUrls.add(String.format("%s/catchments/%s/encounters", shrBaseUrl, facilityCatchment));
+            catchmentsUrls.add(catchmentUrl);
         }
         return catchmentsUrls;
     }

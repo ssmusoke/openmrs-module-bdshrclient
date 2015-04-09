@@ -79,6 +79,9 @@ public class EncounterPushTest {
 
         when(propertiesReader.getBaseUrls()).thenReturn(getBaseUrls());
         when(propertiesReader.getShrProperties()).thenReturn(getShrProperties(facilityId));
+        when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
+        when(propertiesReader.getShrBaseUrl()).thenReturn("http://172.18.46.54:8080");
+
 
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME)).thenReturn(new User(2));

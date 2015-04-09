@@ -11,6 +11,7 @@ import org.openmrs.User;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.UserService;
+import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.util.PropertiesReader;
@@ -124,7 +125,8 @@ public class PatientPushTest {
 
         when(personService.getPersonAttributeTypeByName(HEALTH_ID_ATTRIBUTE)).thenReturn(healthIdAttributeType);
         when(propertiesReader.getMciProperties()).thenReturn(new Properties() {{
-            put("mci.referenceUrl", "http://public.com/");
+            put(PropertyKeyConstants.MCI_REFERENCE_PATH, "http://public.com/");
+            put(PropertyKeyConstants.MCI_PATIENT_CONTEXT, "/api/v1/patients");
         }});
         patientPush.updateOpenMrsPatientHealthId(openMrsPatient, healthId);
         verify(patientService).savePatient(any(org.openmrs.Patient.class));

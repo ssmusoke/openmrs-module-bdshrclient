@@ -21,6 +21,7 @@ import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.AddressHelper;
 import org.openmrs.module.shrclient.util.PropertiesReader;
+import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -196,8 +197,8 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     private void addEncounterToIdMapping(Encounter newEmrEncounter, String externalUuid, String healthId) {
         String internalUuid = newEmrEncounter.getUuid();
         //TODO : put the right url
-        String url = propertiesReader.getShrBaseUrl() +
-                "/patients/" + healthId + "/encounters/" + externalUuid;
+        String shrBaseUrl = StringUtil.ensureSuffix(propertiesReader.getShrBaseUrl(), "/");
+        String url = shrBaseUrl + "patients/" + healthId + "/encounters/" + externalUuid;
         idMappingsRepository.saveMapping(new IdMapping(internalUuid, externalUuid, ID_MAPPING_ENCOUNTER_TYPE, url));
     }
 

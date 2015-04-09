@@ -21,6 +21,7 @@ import org.openmrs.module.shrclient.model.EncounterResponse;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SHRClient;
+import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.util.SystemProperties;
 
 import java.util.regex.Matcher;
@@ -80,13 +81,15 @@ public class EncounterPush implements EventWorker {
     }
 
     private String formatEncounterUrl(String healthId, String externalUuid) {
-        return propertiesReader.getShrBaseUrl() +
-                "/patients/" + healthId + "/encounters/" + externalUuid;
+        String shrBaseUrl = StringUtil.ensureSuffix(propertiesReader.getShrBaseUrl(), "/");
+        String encPathPattern = StringUtil.removePrefix(propertiesReader.getShrPatientEncPathPattern(), "/");
+        return StringUtil.ensureSuffix(shrBaseUrl + String.format(encPathPattern, healthId), "/") + externalUuid;
     }
 
     private String pushEncounter(Encounter openMrsEncounter, String healthId) throws IdentityUnauthorizedException {
         try {
-            return shrClient.post(String.format("/patients/%s/encounters", healthId),
+            String encPathPattern = StringUtil.removePrefix(propertiesReader.getShrPatientEncPathPattern(), "/");
+            return shrClient.post(String.format(encPathPattern, healthId),
                     compositionBundle.create(openMrsEncounter,
                             new SystemProperties(propertiesReader.getBaseUrls(),
                                     propertiesReader.getFrProperties(),

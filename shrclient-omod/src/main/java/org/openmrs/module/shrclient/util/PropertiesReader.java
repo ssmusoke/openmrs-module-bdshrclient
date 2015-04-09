@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import static org.openmrs.module.fhir.utils.PropertyKeyConstants.*;
@@ -53,6 +54,8 @@ public class PropertiesReader {
         return getProperties("facility_instance.properties");
     }
 
+    private Map<String, Properties> allProperties = new HashMap<String, Properties>();
+
     public HashMap<String, String> getBaseUrls(){
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("mci", getMciBaseUrl()) ;
@@ -72,16 +75,17 @@ public class PropertiesReader {
 
     public String getMciBaseUrl() {
         Properties properties = getMciProperties();
-        return properties.getProperty(MCI_REFERENCE_PATH);
+        return properties.getProperty(MCI_REFERENCE_PATH).trim();
     }
 
     public String getShrBaseUrl() {
         Properties properties = getShrProperties();
-        String shrUrl = getBaseUrl(properties.getProperty("shr.scheme"),
-                properties.getProperty("shr.host"),
-                properties.getProperty("shr.port"), null);
-        String shrVersion = properties.getProperty("shr.version");
-        return StringUtils.isEmpty(shrVersion)? shrUrl : String.format("%s/%s", shrUrl, shrVersion);
+        return properties.getProperty(SHR_REFERENCE_PATH).trim();
+//        String shrUrl = getBaseUrl(properties.getProperty("shr.scheme"),
+//                properties.getProperty("shr.host"),
+//                properties.getProperty("shr.port"), null);
+//        String shrVersion = properties.getProperty("shr.version");
+//        return StringUtils.isEmpty(shrVersion)? shrUrl : String.format("%s/%s", shrUrl, shrVersion);
     }
 
     public String getLrBaseUrl() {
@@ -123,17 +127,21 @@ public class PropertiesReader {
         }
     }
 
-    private Properties getProperties(String resource) {
+    private Properties getProperties(String resourceName) {
+        Properties resourceProperties = allProperties.get(resourceName);
+        if (resourceProperties != null) return resourceProperties;
+
         try {
             Properties properties = new Properties();
-            final File file = new File(System.getProperty("user.home") + File.separator + ".OpenMRS" + File.separator + resource);
+            final File file = new File(System.getProperty("user.home") + File.separator + ".OpenMRS" + File.separator + resourceName);
             final InputStream inputStream;
             if (file.exists()) {
                 inputStream = new FileInputStream(file);
             } else {
-                inputStream = getClass().getClassLoader().getResourceAsStream(resource);
+                inputStream = getClass().getClassLoader().getResourceAsStream(resourceName);
             }
             properties.load(inputStream);
+            allProperties.put(resourceName, properties);
             return properties;
 
         } catch (IOException e) {
@@ -142,6 +150,14 @@ public class PropertiesReader {
     }
 
     public String getMciPatientContext() {
-        return getMciProperties().getProperty(PropertyKeyConstants.MCI_PATIENT_CONTEXT);
+        return getMciProperties().getProperty(PropertyKeyConstants.MCI_PATIENT_CONTEXT).trim();
+    }
+
+    public String getShrCatchmentPathPattern() {
+        return getShrProperties().getProperty(PropertyKeyConstants.SHR_CATCHMENT_PATH_PATTERN).trim();
+    }
+
+    public String getShrPatientEncPathPattern() {
+        return getShrProperties().getProperty(PropertyKeyConstants.SHR_PATIENT_ENC_PATH_PATTERN).trim();
     }
 }

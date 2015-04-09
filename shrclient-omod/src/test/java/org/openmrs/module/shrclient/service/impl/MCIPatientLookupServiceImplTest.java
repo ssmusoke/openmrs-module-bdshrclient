@@ -51,6 +51,9 @@ public class MCIPatientLookupServiceImplTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
+        when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:9997");
+        when(propertiesReader.getMciPatientContext()).thenReturn("/api/v1/patients");
+
         lookupService = new MCIPatientLookupServiceImpl(mciPatientService, propertiesReader, identityStore);
         Context context = new Context();
         ServiceContext serviceContext = ServiceContext.getInstance();
@@ -79,7 +82,7 @@ public class MCIPatientLookupServiceImplTest {
                 .willReturn(aResponse().withBody(asString("patients_response/by_hid.json"))));
 
         when(identityStore.getToken()).thenReturn(new IdentityToken(token));
-        when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:9997");
+
         when(addressHierarchyService.getAddressHierarchyEntryByUserGenId(anyString())).thenReturn(entry);
         when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
 
@@ -109,7 +112,7 @@ public class MCIPatientLookupServiceImplTest {
                 .willReturn(aResponse().withBody(asString("patients_response/by_nid.json"))));
 
         when(identityStore.getToken()).thenReturn(new IdentityToken(token));
-        when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:9997");
+
         when(addressHierarchyService.getAddressHierarchyEntryByUserGenId(anyString())).thenReturn(entry);
         when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
 
@@ -133,6 +136,10 @@ public class MCIPatientLookupServiceImplTest {
         AddressHierarchyEntry entry = new AddressHierarchyEntry();
         entry.setName("testEntry");
 
+        when(identityStore.getToken()).thenReturn(new IdentityToken(token));
+
+        when(addressHierarchyService.getAddressHierarchyEntryByUserGenId(anyString())).thenReturn(entry);
+        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
         String patientContext = StringUtil.removeSuffix(propertiesReader.getMciPatientContext(), "/");
 
         givenThat(get(urlEqualTo(patientContext + "?household_code=" + houseHoleId))
@@ -141,10 +148,6 @@ public class MCIPatientLookupServiceImplTest {
                 .withHeader(AUTH_TOKEN_KEY, equalTo(token))
                 .willReturn(aResponse().withBody(asString("patients_response/by_house_hold_code.json"))));
 
-        when(identityStore.getToken()).thenReturn(new IdentityToken(token));
-        when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:9997");
-        when(addressHierarchyService.getAddressHierarchyEntryByUserGenId(anyString())).thenReturn(entry);
-        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
 
         Object[] patients = (Object[]) lookupService.searchPatientInRegistry(request);
         assertEquals(3, patients.length);
