@@ -9,6 +9,7 @@
             ui.includeCss("uicommons", "styleguide/jquery-ui-1.9.2.custom.min.css", Integer.MAX_VALUE - 10)
             ui.includeJavascript("uicommons", "jquery.toastmessage.js", Integer.MAX_VALUE - 20)
             ui.includeJavascript("shrclient", "mustache.js", Integer.MAX_VALUE - 30)
+            ui.includeJavascript("shrclient", "validation.js", Integer.MAX_VALUE - 30)
             ui.includeCss("uicommons", "styleguide/jquery.toastmessage.css", Integer.MAX_VALUE - 20)
         %>
 
@@ -142,7 +143,7 @@
                     }
                 });
             });
-
+            
             function onError(error){
                 var message = "Error occurred. Could not perform the action.";
                 if(error.status === 401){
@@ -154,8 +155,10 @@
 
             function searchPatient() {
                 jq(".errorMessage").hide();
+                jq('#searchResults').hide();
                 var idType = jq( "#idType" ).val();
                 var patientId = jq( "#patientId" ).val();
+                if(!isPatientIdValid(idType,patientId)) return;
                 jq.ajax({
                    type: "GET",
                    url: "/openmrs/ws/mci/search?" + idType + "=" + patientId,
@@ -173,6 +176,7 @@
                    dataType: "json"
                 }).done(function( responseData ) {
                     if (!responseData) {
+                       jq(".errorMessage").text("Error occurred. Could not perform the action.");
                        jq(".errorMessage").show();
                     }
                     else {
@@ -185,12 +189,14 @@
                 jq(".download-btn").unbind("click", downloadMciPatient);
                 if (!patients) {
                     jq("#searchResults").html("No patient was found in National Registry");
+                    jq('#searchResults').show();
                     return;
                 }
                 var template = jq('#mciPatientTmpl').html();
                 Mustache.parse(template);
                 var rendered = Mustache.render(template, patients);
                 jq('#searchResults').html(rendered);
+                jq('#searchResults').show();
                 jq(".download-btn").bind("click", downloadMciPatient);
             }
         </script>
