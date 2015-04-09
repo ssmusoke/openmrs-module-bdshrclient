@@ -10,10 +10,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Properties;
 
-import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_REFERENCE_PATH;
-import static org.openmrs.module.fhir.utils.PropertyKeyConstants.LOCATION_REFERENCE_PATH;
-import static org.openmrs.module.fhir.utils.PropertyKeyConstants.PROVIDER_REFERENCE_PATH;
-
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.*;
 
 
 /**
@@ -74,8 +71,7 @@ public class PropertiesReader {
 
     public String getMciBaseUrl() {
         Properties properties = getMciProperties();
-        return getBaseUrl(properties.getProperty("mci.scheme"), properties.getProperty("mci.host"),
-                properties.getProperty("mci.port"), null);
+        return properties.getProperty(MCI_PUBLIC_URL_BASE);
     }
 
     public String getShrBaseUrl() {

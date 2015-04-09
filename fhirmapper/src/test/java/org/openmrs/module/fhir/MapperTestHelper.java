@@ -45,7 +45,7 @@ public class MapperTestHelper {
         baseUrls.put("tr", "http://tr");
 
         Properties mciProperties = new Properties();
-        mciProperties.put("mci.publicUrlBase", "http://public.com/");
+        mciProperties.put("mci.referenceUrl", "http://public.com/");
 
         return new SystemProperties(baseUrls, facilityRegistry, trProperties, providerRegistry, facilityInstanceProperties, mciProperties, null);
     }

@@ -30,7 +30,7 @@ public class EntityReferenceTest {
     @Test
     public void shouldCreatePatientReference() {
         EntityReference entityReference = new EntityReference();
-        assertEquals("http://public.com/api/v1/patients/1", entityReference.build(Patient.class, getSystemProperties("1234"), "1"));
+        assertEquals("http://mci.com/api/v1/patients/1", entityReference.build(Patient.class, getSystemProperties("1234"), "1"));
     }
 
     @Test
@@ -46,7 +46,7 @@ public class EntityReferenceTest {
     @Test
     public void shouldCreateFacilityLocationReference() {
         EntityReference entityReference = new EntityReference();
-        assertEquals("http://public.com/api/1.0/facilities/1234.json", entityReference.build(Location.class, getSystemProperties("1234"), "1234"));
+        assertEquals("http://fr.com/api/1.0/facilities/1234.json", entityReference.build(Location.class, getSystemProperties("1234"), "1234"));
     }
 
     @Test
@@ -82,7 +82,7 @@ public class EntityReferenceTest {
 
         Properties frProperties = new Properties();
         frProperties.setProperty(FACILITY_URL_FORMAT, "foo-bar/%s.json");
-        frProperties.setProperty(PropertyKeyConstants.FACILITY_REFERENCE_PATH, "http://public.com/api/1.0/facilities");
+        frProperties.setProperty(PropertyKeyConstants.FACILITY_REFERENCE_PATH, "http://fr.com/api/1.0/facilities");
 
         Properties prPoperties = new Properties();
         prPoperties.setProperty(PROVIDER_REFERENCE_PATH, "http://example.com/api/1.0/providers");
@@ -93,7 +93,7 @@ public class EntityReferenceTest {
         baseUrls.put("fr", "http://fr");
 
         Properties mciProperties = new Properties();
-        mciProperties.put("mci.publicUrlBase", "http://public.com/");
+        mciProperties.put("mci.referenceUrl", "http://mci.com/");
 
         return new SystemProperties(baseUrls, frProperties, trProperties, prPoperties, facilityInstanceProperties, mciProperties, null);
     }

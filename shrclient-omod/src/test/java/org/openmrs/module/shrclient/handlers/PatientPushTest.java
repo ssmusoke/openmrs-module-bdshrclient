@@ -124,7 +124,7 @@ public class PatientPushTest {
 
         when(personService.getPersonAttributeTypeByName(HEALTH_ID_ATTRIBUTE)).thenReturn(healthIdAttributeType);
         when(propertiesReader.getMciProperties()).thenReturn(new Properties() {{
-            put("mci.publicUrlBase", "http://public.com/");
+            put("mci.referenceUrl", "http://public.com/");
         }});
         patientPush.updateOpenMrsPatientHealthId(openMrsPatient, healthId);
         verify(patientService).savePatient(any(org.openmrs.Patient.class));
