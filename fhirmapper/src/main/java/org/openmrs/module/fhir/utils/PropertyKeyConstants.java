@@ -21,4 +21,10 @@ public class PropertyKeyConstants {
     public static final String SHR_PATIENT_ENC_PATH_PATTERN = "shr.patientEncPathPattern"; ///patients/%s/encounters
 
     public static final String FACILITY_CATCHMENTS = "facility.catchments";
+
+    public static final String IDP_SERVER_URL = "idP.referenceUrl";
+    public static final String IDP_SIGNIN_PATH = "idP.signinPath";
+
+    public static final String FACILITY_EMAIL_KEY = "facility.email";
+    public static final String FACILITY_PASSWORD_KEY = "facility.password";
 }

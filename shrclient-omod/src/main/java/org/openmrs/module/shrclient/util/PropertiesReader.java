@@ -100,14 +100,12 @@ public class PropertiesReader {
 
     public String getPrBaseUrl() {
         Properties properties = getPrProperties();
-        return properties.getProperty(PROVIDER_REFERENCE_PATH);
+        return properties.getProperty(PROVIDER_REFERENCE_PATH).trim();
     }
 
-    public String getIdentityServerBaseUrl() {
+    public String getIdPBaseUrl() {
         Properties properties = getIdentityProperties();
-        return getBaseUrl(properties.getProperty("idP.scheme"),
-                properties.getProperty("idP.host"),
-                properties.getProperty("idP.port"), null);
+        return properties.getProperty(IDP_SERVER_URL).trim();
     }
 
     private String getBaseUrl(String scheme, String host, String port, String contextPath) {
@@ -159,5 +157,9 @@ public class PropertiesReader {
 
     public String getShrPatientEncPathPattern() {
         return getShrProperties().getProperty(PropertyKeyConstants.SHR_PATIENT_ENC_PATH_PATTERN).trim();
+    }
+
+    public String getIdPSignInPath() {
+        return getIdentityProperties().getProperty(PropertyKeyConstants.IDP_SIGNIN_PATH).trim();
     }
 }

@@ -5,7 +5,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.openmrs.module.shrclient.util.Headers;
+import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.springframework.http.HttpStatus;
 
@@ -48,7 +48,8 @@ public class IdentityProviderServiceTest {
     public void shouldFetchToken() throws Exception {
         UUID token = UUID.randomUUID();
         setUpIdentityProperties();
-        when(propertiesReader.getIdentityServerBaseUrl()).thenReturn("http://localhost:8089");
+        when(propertiesReader.getIdPBaseUrl()).thenReturn("http://localhost:8089");
+        when(propertiesReader.getIdPSignInPath()).thenReturn("signin");
         String response = "{\"access_token\" : \"" + token.toString() + "\"}";
         stubFor(post(urlMatching("/signin"))
                 .withHeader(xAuthTokenKey, equalTo(xAuthToken))
@@ -83,7 +84,7 @@ public class IdentityProviderServiceTest {
         Properties idpProperties = new Properties();
         idpProperties.setProperty("idP.tokenName", xAuthTokenKey);
         idpProperties.setProperty("idP.clientIdName", clientId);
-        idpProperties.setProperty("idP.signinPath", "signin");
+        idpProperties.setProperty(PropertyKeyConstants.IDP_SIGNIN_PATH, "signin");
         return idpProperties;
     }
 }

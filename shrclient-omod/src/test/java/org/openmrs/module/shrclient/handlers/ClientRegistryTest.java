@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityToken;
 import org.openmrs.module.shrclient.util.PropertiesReader;
@@ -35,6 +36,8 @@ public class ClientRegistryTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
+        when(propertiesReader.getIdentityProperties()).thenReturn(getIdpProperties(AUTH_TOKEN_KEY, CLIENT_ID_KEY));
+        when(propertiesReader.getIdPSignInPath()).thenReturn("signin");
     }
 
     @Test
@@ -44,7 +47,6 @@ public class ClientRegistryTest {
         String email = "email@gmail.com";
 
         when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:8089");
-        when(propertiesReader.getIdentityProperties()).thenReturn(getIdpProperties(AUTH_TOKEN_KEY, CLIENT_ID_KEY));
         when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
 
         UUID token = UUID.randomUUID();
@@ -75,10 +77,9 @@ public class ClientRegistryTest {
         String clientIdValue = "18549";
         String email = "email@gmail.com";
 
-        when(propertiesReader.getIdentityProperties()).thenReturn(getIdpProperties(AUTH_TOKEN_KEY, CLIENT_ID_KEY));
         when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
         when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:8089");
-        when(propertiesReader.getIdentityServerBaseUrl()).thenReturn("http://localhost:8089");
+        when(propertiesReader.getIdPBaseUrl()).thenReturn("http://localhost:8089");
 
         //here the token is set to null, so ClientRegistry should get a new token
         when(identityStore.getToken()).thenReturn(null);
@@ -119,7 +120,6 @@ public class ClientRegistryTest {
         String email = "email@gmail.com";
 
         when(propertiesReader.getShrBaseUrl()).thenReturn("http://localhost:8089");
-        when(propertiesReader.getIdentityProperties()).thenReturn(getIdpProperties(AUTH_TOKEN_KEY, CLIENT_ID_KEY));
         when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
 
         UUID token = UUID.randomUUID();
@@ -163,10 +163,9 @@ public class ClientRegistryTest {
         String clientIdValue = "18549";
         String email = "email@gmail.com";
 
-        when(propertiesReader.getIdentityProperties()).thenReturn(getIdpProperties(AUTH_TOKEN_KEY, CLIENT_ID_KEY));
         when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
         when(propertiesReader.getShrBaseUrl()).thenReturn("http://localhost:8089");
-        when(propertiesReader.getIdentityServerBaseUrl()).thenReturn("http://localhost:8089");
+        when(propertiesReader.getIdPBaseUrl()).thenReturn("http://localhost:8089");
 
         //here the token is set to null, so ClientRegistry should get a new token
         when(identityStore.getToken()).thenReturn(null);
@@ -218,7 +217,6 @@ public class ClientRegistryTest {
         String xAuthToken = "foobarbazboom";
         String clientIdValue = "18549";
 
-        when(propertiesReader.getIdentityProperties()).thenReturn(getIdpProperties(AUTH_TOKEN_KEY, CLIENT_ID_KEY));
         when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, "email@gmail.com", "password"));
 
         when(propertiesReader.getFrBaseUrl()).thenReturn("http://localhost:8089");
@@ -312,7 +310,7 @@ public class ClientRegistryTest {
         Properties idpProperties = new Properties();
         idpProperties.setProperty("idP.tokenName", xAuthTokenKey);
         idpProperties.setProperty("idP.clientIdName", clientId);
-        idpProperties.setProperty("idP.signinPath", "signin");
+        idpProperties.setProperty(PropertyKeyConstants.IDP_SIGNIN_PATH, "signin");
         return idpProperties;
     }
 }
