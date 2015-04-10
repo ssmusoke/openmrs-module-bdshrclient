@@ -66,7 +66,8 @@ public class PatientPush implements EventWorker {
                 return;
             }
 
-            if (event.getUpdatedDate() != null && openMrsPatient.getDateChanged().after(event.getUpdatedDate())) {
+            if (event.getUpdatedDate() != null && openMrsPatient.getDateChanged() != null &&
+                    openMrsPatient.getDateChanged().after(event.getUpdatedDate())) {
                 log.debug("The patient has been updated after this event again");
                 return;
             }
@@ -170,11 +171,11 @@ public class PatientPush implements EventWorker {
 
     private SystemProperties getSystemProperties() {
         return new SystemProperties(propertiesReader.getBaseUrls(),
-                    propertiesReader.getFrProperties(),
-                    propertiesReader.getTrProperties(),
-                    propertiesReader.getPrProperties(),
-                    propertiesReader.getFacilityInstanceProperties(),
-                    propertiesReader.getMciProperties());
+                propertiesReader.getFrProperties(),
+                propertiesReader.getTrProperties(),
+                propertiesReader.getPrProperties(),
+                propertiesReader.getFacilityInstanceProperties(),
+                propertiesReader.getMciProperties());
     }
 
     private User getShrClientSystemUser() {
