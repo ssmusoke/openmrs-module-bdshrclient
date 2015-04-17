@@ -9,7 +9,7 @@ import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.DateUtil;
-import org.openmrs.module.fhir.utils.ParticipantHelper;
+import org.openmrs.module.fhir.utils.SystemUserService;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
@@ -62,7 +62,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     private PropertiesReader propertiesReader;
 
     @Autowired
-    private UserService userService;
+    private SystemUserService systemUserService;
 
     @Autowired
     private ConceptService conceptService;
@@ -113,7 +113,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         Date dob = DateUtil.parseDate(mciPatient.getDateOfBirth());
         emrPatient.setBirthdate(dob);
 
-        ParticipantHelper.setCreator(emrPatient, userService);
+        systemUserService.setCreator(emrPatient);
         org.openmrs.Patient patient = patientService.savePatient(emrPatient);
         addPatientToIdMapping(patient, mciPatient.getHealthId());
         return emrPatient;

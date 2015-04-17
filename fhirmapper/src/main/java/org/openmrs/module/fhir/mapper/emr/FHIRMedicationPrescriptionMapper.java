@@ -23,7 +23,6 @@ import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hl7.fhir.instance.model.MedicationPrescription.MedicationPrescriptionDosageInstructionComponent;
 import static org.openmrs.module.fhir.mapper.MRSProperties.DRUG_ORDER_QUANTITY_UNITS_CONCEPT_NAME;
 import static org.openmrs.module.fhir.utils.DateUtil.parseDate;
-import static org.openmrs.module.fhir.utils.ParticipantHelper.extractProviderId;
 import static org.openmrs.module.fhir.utils.UnitsHelpers.UnitToDaysConverter;
 
 @Component
@@ -64,7 +63,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
         MedicationPrescriptionDosageInstructionComponent dosageInstruction = prescription.getDosageInstruction().get(0);
         mapDosageAndRoute(drugOrder, dosageInstruction);
         mapFrequencyAndDurationAndScheduledDate(drugOrder, dosageInstruction);
-        Provider orderer = getOrderer(prescription, drugOrder);
+        Provider orderer = getOrderer(prescription);
         drugOrder.setOrderer(orderer);
         drugOrder.setNumRefills(DEFAULT_NUM_REFILLS);
         drugOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(feed));
@@ -83,13 +82,12 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
         drugOrder.setQuantityUnits(conceptService.getConceptByName(DRUG_ORDER_QUANTITY_UNITS_CONCEPT_NAME));
     }
 
-    private Provider getOrderer(MedicationPrescription prescription, DrugOrder drugOrder) {
+    private Provider getOrderer(MedicationPrescription prescription) {
         ResourceReference prescriber = prescription.getPrescriber();
         Provider provider = null;
         if (prescriber != null) {
             String presciberReferenceUrl = prescriber.getReferenceSimple();
-            String prescriberId = extractProviderId(presciberReferenceUrl);
-            provider = providerLookupService.getShrClientSystemProvider(prescriberId);
+            provider = providerLookupService.getProviderByReferenceUrl(presciberReferenceUrl);
         }
         return provider;
     }

@@ -19,9 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.openmrs.module.fhir.utils.ParticipantHelper.extractProviderId;
-
-
 @Component
 public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     @Autowired
@@ -81,8 +78,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         ResourceReference orderer = diagnosticOrder.getOrderer();
         if (orderer != null) {
             String practitionerReferenceUrl = orderer.getReferenceSimple();
-            String practitionerId = extractProviderId(practitionerReferenceUrl);
-            testOrder.setOrderer(providerLookupService.getShrClientSystemProvider(practitionerId));
+            testOrder.setOrderer(providerLookupService.getProviderByReferenceUrl(practitionerReferenceUrl));
         }
     }
 }

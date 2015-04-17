@@ -24,7 +24,6 @@ import java.util.*;
 
 import static org.openmrs.module.fhir.utils.Constants.ORGANIZATION_ATTRIBUTE_TYPE_NAME;
 import static org.openmrs.module.fhir.utils.DateUtil.parseDate;
-import static org.openmrs.module.fhir.utils.ParticipantHelper.extractProviderId;
 
 @Component
 public class FHIREncounterMapper {
@@ -85,8 +84,7 @@ public class FHIREncounterMapper {
         if (CollectionUtils.isEmpty(participant)) return;
 
         String providerUrl = participant.get(0).getIndividual().getReferenceSimple();
-        String providerId = extractProviderId(providerUrl);
-        Provider provider = providerLookupService.getShrClientSystemProvider(providerId);
+        Provider provider = providerLookupService.getProviderByReferenceUrl(providerUrl);
         Set<ProviderAttribute> attributes = provider.getAttributes();
         for (ProviderAttribute attribute : attributes) {
             if (attribute.getAttributeType().getName().equals(ORGANIZATION_ATTRIBUTE_TYPE_NAME)) {
@@ -102,6 +100,4 @@ public class FHIREncounterMapper {
         Location location = locationService.getLocationByUuid(idMapping.getInternalId());
         emrEncounter.setLocation(location);
     }
-
-
 }
