@@ -7,35 +7,29 @@ import org.mockito.Mock;
 import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
 import org.openmrs.PersonAttributeType;
-import org.openmrs.User;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
-import org.openmrs.api.UserService;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
+import org.openmrs.module.fhir.utils.SystemUserService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemProperties;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.openmrs.module.fhir.utils.Constants.HEALTH_ID_ATTRIBUTE;
-import static org.openmrs.module.fhir.utils.Constants.OPENMRS_DAEMON_USER;
 
 public class PatientPushTest {
 
     @Mock
     private PatientService patientService;
     @Mock
-    private UserService userService;
+    private SystemUserService systemUserService;
     @Mock
     private PersonService personService;
     @Mock
@@ -55,31 +49,7 @@ public class PatientPushTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        patientPush = new PatientPush(patientService, userService, personService, patientMapper, propertiesReader, clientRegistry, idMappingsRepository);
-    }
-
-    @Test
-    public void shouldNotSyncPatientWhenUsersAreSame() {
-        final org.openmrs.Patient openMrsPatient = new org.openmrs.Patient();
-        User shrUser = new User();
-        shrUser.setId(2);
-        openMrsPatient.setCreator(shrUser);
-        when(userService.getUserByUuid(OPENMRS_DAEMON_USER)).thenReturn(shrUser);
-
-        assertFalse(patientPush.isUpdatedByEmrUser(openMrsPatient));
-    }
-
-    @Test
-    public void shouldSyncPatientWhenUsersAreDifferent() {
-        final org.openmrs.Patient openMrsPatient = new org.openmrs.Patient();
-        User bahmniUser = new User();
-        bahmniUser.setId(1);
-        User shrUser = new User();
-        shrUser.setId(2);
-        openMrsPatient.setCreator(bahmniUser);
-        when(userService.getUserByUuid(OPENMRS_DAEMON_USER)).thenReturn(shrUser);
-
-        assertTrue(patientPush.isUpdatedByEmrUser(openMrsPatient));
+        patientPush = new PatientPush(patientService, systemUserService, personService, patientMapper, propertiesReader, clientRegistry, idMappingsRepository);
     }
 
     @Test

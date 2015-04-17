@@ -3,9 +3,9 @@ package org.openmrs.module.shrclient.scheduler.tasks;
 import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.ict4h.atomfeed.client.service.FeedClient;
-import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
+import org.openmrs.module.fhir.utils.SystemUserService;
 import org.openmrs.module.shrclient.feeds.openmrs.OpenMRSFeedClientFactory;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.handlers.EncounterPush;
@@ -29,21 +29,21 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
     public void execute() {
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
         IdentityStore identityStore = PlatformUtil.getIdentityStore();
-        UserService userService = Context.getUserService();
+        SystemUserService systemUserService = PlatformUtil.getRegisteredComponent(SystemUserService.class);
         ClientRegistry clientRegistry = new ClientRegistry(propertiesReader, identityStore);
 
-        PatientPush patientPush = getPatientRegistry(propertiesReader, userService, clientRegistry);
-        EncounterPush encounterPush = getEncounterRegistry(propertiesReader, userService, clientRegistry);
+        PatientPush patientPush = getPatientRegistry(propertiesReader, systemUserService, clientRegistry);
+        EncounterPush encounterPush = getEncounterRegistry(propertiesReader, systemUserService, clientRegistry);
         executeBahmniTask(patientPush, encounterPush);
     }
 
 
     protected abstract void executeBahmniTask(PatientPush patientPush, EncounterPush encounterPush);
 
-    private EncounterPush getEncounterRegistry(PropertiesReader propertiesReader, UserService userService,
+    private EncounterPush getEncounterRegistry(PropertiesReader propertiesReader, SystemUserService systemUserService,
                                                ClientRegistry clientRegistry) {
         try {
-            return new EncounterPush(Context.getEncounterService(), userService,
+            return new EncounterPush(Context.getEncounterService(), systemUserService,
                     propertiesReader,
                     PlatformUtil.getRegisteredComponent(CompositionBundle.class),
                     PlatformUtil.getIdMappingsRepository(),
@@ -54,12 +54,12 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
         }
     }
 
-    private PatientPush getPatientRegistry(PropertiesReader propertiesReader, UserService userService,
+    private PatientPush getPatientRegistry(PropertiesReader propertiesReader, SystemUserService systemUserService,
                                            ClientRegistry clientRegistry) {
         try {
             return new PatientPush(
                     Context.getPatientService(),
-                    userService,
+                    systemUserService,
                     Context.getPersonService(),
                     new PatientMapper(new BbsCodeServiceImpl()),
                     propertiesReader,

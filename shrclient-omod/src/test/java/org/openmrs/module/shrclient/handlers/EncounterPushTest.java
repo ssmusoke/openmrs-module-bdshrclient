@@ -8,9 +8,9 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.openmrs.*;
 import org.openmrs.api.EncounterService;
-import org.openmrs.api.UserService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
 import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.fhir.utils.SystemUserService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -43,7 +43,7 @@ public class EncounterPushTest {
     private PropertiesReader propertiesReader;
 
     @Mock
-    private UserService userService;
+    private SystemUserService systemUserService;
 
     @Mock
     private CompositionBundle compositionBundle;
@@ -61,7 +61,7 @@ public class EncounterPushTest {
         initMocks(this);
         when(clientRegistry.getSHRClient()).thenReturn(shrClient);
         encounterPush = new EncounterPush(
-                encounterService, userService,
+                encounterService, systemUserService,
                 propertiesReader, compositionBundle,
                 idMappingsRepository,
                 clientRegistry);
@@ -84,10 +84,11 @@ public class EncounterPushTest {
 
 
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
-        when(userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME)).thenReturn(new User(2));
         when(shrClient.post(anyString(), eq(atomFeed))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
         when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(atomFeed);
+        when(systemUserService.isUpdatedByOpenMRSDaemonUser(openMrsEncounter)).thenReturn(false);
         when(idMappingsRepository.findByExternalId(facilityId)).thenReturn(null);
+
         encounterPush.process(event);
 
         verify(encounterService).getEncounterByUuid(uuid);
@@ -102,7 +103,7 @@ public class EncounterPushTest {
         openMrsEncounter.setPatient(patient);
         final PersonAttributeType personAttributeType = new PersonAttributeType();
         personAttributeType.setName(Constants.HEALTH_ID_ATTRIBUTE);
-        patient.setAttributes(new HashSet<PersonAttribute>(Arrays.asList(new PersonAttribute(personAttributeType, "1234567890123"))));
+        patient.setAttributes(new HashSet<>(Arrays.asList(new PersonAttribute(personAttributeType, "1234567890123"))));
         return openMrsEncounter;
     }
 

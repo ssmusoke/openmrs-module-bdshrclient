@@ -10,11 +10,10 @@ import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
-import org.openmrs.User;
 import org.openmrs.api.EncounterService;
-import org.openmrs.api.UserService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
 import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.fhir.utils.SystemUserService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.EncounterResponse;
@@ -38,16 +37,16 @@ public class EncounterPush implements EventWorker {
     private PropertiesReader propertiesReader;
     private ClientRegistry clientRegistry;
     private SHRClient shrClient;
-    private UserService userService;
+    private SystemUserService systemUserService;
 
-    public EncounterPush(EncounterService encounterService, UserService userService, PropertiesReader propertiesReader,
+    public EncounterPush(EncounterService encounterService, SystemUserService systemUserService, PropertiesReader propertiesReader,
                          CompositionBundle compositionBundle, IdMappingsRepository idMappingsRepository,
                          ClientRegistry clientRegistry) throws IdentityUnauthorizedException {
         this.encounterService = encounterService;
         this.propertiesReader = propertiesReader;
         this.clientRegistry = clientRegistry;
         this.shrClient = clientRegistry.getSHRClient();
-        this.userService = userService;
+        this.systemUserService = systemUserService;
         this.compositionBundle = compositionBundle;
         this.idMappingsRepository = idMappingsRepository;
     }
@@ -122,13 +121,7 @@ public class EncounterPush implements EventWorker {
 
     private boolean shouldSyncEncounter(org.openmrs.Encounter openMrsEncounter) {
         if (idMappingsRepository.findByInternalId(openMrsEncounter.getUuid()) == null) {
-            User changedByUser = openMrsEncounter.getChangedBy();
-            if (changedByUser == null) {
-                changedByUser = openMrsEncounter.getCreator();
-            }
-            User shrClientSystemUser = userService.getUserByUsername(org.openmrs.module.fhir.utils.Constants
-                    .SHR_CLIENT_SYSTEM_NAME);
-            return !shrClientSystemUser.getId().equals(changedByUser.getId());
+            return !systemUserService.isUpdatedByOpenMRSDaemonUser(openMrsEncounter);
         }
         return false;
     }

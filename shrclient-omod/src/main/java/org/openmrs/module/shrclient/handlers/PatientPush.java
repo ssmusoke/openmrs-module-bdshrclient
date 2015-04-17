@@ -6,11 +6,10 @@ import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.PersonAttribute;
 import org.openmrs.PersonAttributeType;
-import org.openmrs.User;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
-import org.openmrs.api.UserService;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.utils.SystemUserService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
@@ -25,7 +24,8 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.openmrs.module.fhir.utils.Constants.*;
+import static org.openmrs.module.fhir.utils.Constants.HEALTH_ID_ATTRIBUTE;
+import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_PATIENT_TYPE;
 
 public class PatientPush implements EventWorker {
 
@@ -33,18 +33,18 @@ public class PatientPush implements EventWorker {
     private final ClientRegistry clientRegistry;
 
     private PatientService patientService;
-    private UserService userService;
+    private SystemUserService systemUserService;
     private PersonService personService;
     private PatientMapper patientMapper;
     private PropertiesReader propertiesReader;
     private RestClient mciRestClient;
     private IdMappingsRepository idMappingsRepository;
 
-    public PatientPush(PatientService patientService, UserService userService, PersonService personService,
+    public PatientPush(PatientService patientService, SystemUserService systemUserService, PersonService personService,
                        PatientMapper patientMapper, PropertiesReader propertiesReader, ClientRegistry clientRegistry,
                        IdMappingsRepository idMappingsRepository) throws IdentityUnauthorizedException {
         this.patientService = patientService;
-        this.userService = userService;
+        this.systemUserService = systemUserService;
         this.personService = personService;
         this.patientMapper = patientMapper;
         this.propertiesReader = propertiesReader;
@@ -72,8 +72,8 @@ public class PatientPush implements EventWorker {
                 return;
             }
 
-            if (!isUpdatedByEmrUser(openMrsPatient)) {
-                log.debug(String.format("OpenMRS patient [%s] was created from SHR. Ignoring Patient Sync.",
+            if (!systemUserService.isUpdatedByOpenMRSDaemonUser(openMrsPatient)) {
+                log.debug(String.format("Patient [%s] was created by SHR. Ignoring Patient Sync.",
                         openMrsPatient));
                 return;
             }
@@ -82,7 +82,6 @@ public class PatientPush implements EventWorker {
             log.debug("Patient: [ " + patient + "]");
 
             PersonAttribute healthIdAttribute = openMrsPatient.getAttribute(HEALTH_ID_ATTRIBUTE);
-
 
             if (healthIdAttribute == null) {
                 MciPatientUpdateResponse response = newPatient(patient);
@@ -145,21 +144,10 @@ public class PatientPush implements EventWorker {
             healthIdAttribute.setValue(healthId);
         }
 
-        User shrClientSystemUser = getShrClientSystemUser();
-        log.debug("SHR client system user: " + shrClientSystemUser);
-        openMrsPatient.setChangedBy(shrClientSystemUser);
+        systemUserService.setCreator(openMrsPatient);
 
         patientService.savePatient(openMrsPatient);
         log.debug(String.format("OpenMRS patient updated."));
-    }
-
-    boolean isUpdatedByEmrUser(org.openmrs.Patient openMrsPatient) {
-        User changedByUser = openMrsPatient.getChangedBy();
-        if (changedByUser == null) {
-            changedByUser = openMrsPatient.getCreator();
-        }
-        User shrClientSystemUser = getShrClientSystemUser();
-        return !shrClientSystemUser.getId().equals(changedByUser.getId());
     }
 
     private void addPatientToIdMapping(org.openmrs.Patient emrPatient, String healthId) {
@@ -176,11 +164,6 @@ public class PatientPush implements EventWorker {
                 propertiesReader.getPrProperties(),
                 propertiesReader.getFacilityInstanceProperties(),
                 propertiesReader.getMciProperties());
-    }
-
-    private User getShrClientSystemUser() {
-        //OpenMRS Daemon user. UUID hardcoded in org.openmrs.api.Context.Daemon
-        return userService.getUserByUuid(OPENMRS_DAEMON_USER);
     }
 
     String getPatientUuid(Event event) {
