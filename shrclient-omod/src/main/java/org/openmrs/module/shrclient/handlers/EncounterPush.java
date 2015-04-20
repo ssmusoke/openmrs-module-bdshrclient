@@ -23,6 +23,7 @@ import org.openmrs.module.shrclient.util.SHRClient;
 import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.util.SystemProperties;
 
+import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,18 +62,15 @@ public class EncounterPush implements EventWorker {
                 log.debug(String.format("No OpenMRS encounter exists with uuid: [%s].", uuid));
                 return;
             }
-            if (!shouldSyncEncounter(openMrsEncounter)) {
-                return;
-            }
             String healthId = getHealthIdAttribute(openMrsEncounter.getPatient());
             log.debug("Uploading patient encounter to SHR : [ " + openMrsEncounter.getUuid() + "]");
-            String shrEncounterUuid = pushEncounter(openMrsEncounter, healthId);
-            EncounterResponse encounterResponse = configureObjectMapper().readValue(shrEncounterUuid,
-                    EncounterResponse.class);
-            //TODO : set the right url
-            String externalUuid = encounterResponse.getEncounterId();
-            idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), externalUuid,
-                    Constants.ID_MAPPING_ENCOUNTER_TYPE, formatEncounterUrl(healthId, externalUuid)));
+            if (isEncounterCreateUploaded(openMrsEncounter)) {
+
+            }else{
+                String shrEncounterId = pushCreateEncounter(openMrsEncounter, healthId);
+                idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), shrEncounterId,
+                        Constants.ID_MAPPING_ENCOUNTER_TYPE, formatEncounterUrl(healthId, shrEncounterId)));
+            }
         } catch (Exception e) {
             log.error("Error while processing encounter sync event.", e);
             throw new RuntimeException(e);
@@ -85,10 +83,10 @@ public class EncounterPush implements EventWorker {
         return StringUtil.ensureSuffix(shrBaseUrl + String.format(encPathPattern, healthId), "/") + externalUuid;
     }
 
-    private String pushEncounter(Encounter openMrsEncounter, String healthId) throws IdentityUnauthorizedException {
+    private String pushCreateEncounter(Encounter openMrsEncounter, String healthId) throws IOException {
         try {
             String encPathPattern = StringUtil.removePrefix(propertiesReader.getShrPatientEncPathPattern(), "/");
-            return shrClient.post(String.format(encPathPattern, healthId),
+            String shrEncounterCreateResponse = shrClient.post(String.format(encPathPattern, healthId),
                     compositionBundle.create(openMrsEncounter,
                             new SystemProperties(propertiesReader.getBaseUrls(),
                                     propertiesReader.getFrProperties(),
@@ -96,11 +94,19 @@ public class EncounterPush implements EventWorker {
                                     propertiesReader.getPrProperties(),
                                     propertiesReader.getFacilityInstanceProperties(),
                                     propertiesReader.getMciProperties())));
+            return getEncounterIdFromResponse(shrEncounterCreateResponse);
         } catch (IdentityUnauthorizedException e) {
             log.error("Clearing unauthorized identity token.");
             clientRegistry.clearIdentityToken();
             throw e;
         }
+    }
+
+    private String getEncounterIdFromResponse(String shrEncounterUuid) throws java.io.IOException {
+        EncounterResponse encounterResponse = configureObjectMapper().readValue(shrEncounterUuid,
+                EncounterResponse.class);
+        //TODO : set the right url
+        return encounterResponse.getEncounterId();
     }
 
     private ObjectMapper configureObjectMapper() {
@@ -119,11 +125,9 @@ public class EncounterPush implements EventWorker {
         return healthIdAttribute.getValue();
     }
 
-    private boolean shouldSyncEncounter(org.openmrs.Encounter openMrsEncounter) {
-        if (idMappingsRepository.findByInternalId(openMrsEncounter.getUuid()) == null) {
-            return !systemUserService.isUpdatedByOpenMRSDaemonUser(openMrsEncounter);
-        }
-        return false;
+    private boolean isEncounterCreateUploaded(org.openmrs.Encounter openMrsEncounter) {
+        return idMappingsRepository.findByInternalId(openMrsEncounter.getUuid()) != null;
+
     }
 
     String getUuid(String content) {

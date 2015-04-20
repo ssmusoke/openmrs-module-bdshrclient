@@ -4,7 +4,7 @@ import org.hl7.fhir.instance.model.AtomFeed;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.openmrs.*;
 import org.openmrs.api.EncounterService;
@@ -68,13 +68,13 @@ public class EncounterPushTest {
     }
 
     @Test
-    public void shouldProcessEncounterSyncEvent() throws IOException {
+    public void shouldProcessEncounterCreateEvent() throws IOException {
         final String uuid = "123abc456";
         String facilityId = "10000069";
 
         final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + uuid
                 + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
-        org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter();
+        org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter(uuid);
         final AtomFeed atomFeed = new AtomFeed();
 
         when(propertiesReader.getBaseUrls()).thenReturn(getBaseUrls());
@@ -92,12 +92,20 @@ public class EncounterPushTest {
         encounterPush.process(event);
 
         verify(encounterService).getEncounterByUuid(uuid);
-        verify(shrClient).post(anyString(), eq(atomFeed));
-        verify(idMappingsRepository).saveMapping(Matchers.<IdMapping>anyObject());
+        verify(shrClient).post(eq("patients/1234567890123/encounters"), eq(atomFeed));
+        ArgumentCaptor<IdMapping> idMappingArgumentCaptor = ArgumentCaptor.forClass(IdMapping.class);
+        verify(idMappingsRepository).saveMapping(idMappingArgumentCaptor.capture());
+
+        IdMapping idmapping = idMappingArgumentCaptor.getValue();
+        assertEquals("shr-uuid", idmapping.getExternalId());
+        assertEquals("shr-uuid", idmapping.getExternalId());
+        assertEquals("encounter", idmapping.getType());
+        assertEquals("http://172.18.46.54:8080/patients/1234567890123/encounters/shr-uuid", idmapping.getUri());
     }
 
-    private org.openmrs.Encounter getOpenMrsEncounter() {
+    private org.openmrs.Encounter getOpenMrsEncounter(String uuid) {
         org.openmrs.Encounter openMrsEncounter = new org.openmrs.Encounter();
+        openMrsEncounter.setUuid(uuid);
         openMrsEncounter.setCreator(new User(1));
         final Patient patient = new Patient();
         openMrsEncounter.setPatient(patient);
