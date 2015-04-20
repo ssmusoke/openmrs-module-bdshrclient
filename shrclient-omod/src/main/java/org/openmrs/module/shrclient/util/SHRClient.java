@@ -81,13 +81,9 @@ public class SHRClient {
 
     public String post(final String url, AtomFeed bundle) throws IdentityUnauthorizedException {
         try {
-            XmlComposer composer = new XmlComposer();
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            composer.compose(byteArrayOutputStream, bundle, true);
-            log.debug(String.format("Posting data %s to url %s", bundle, url));
+            StringEntity entity = getPayload(bundle);
             WebClient webClient = new WebClient(baseUrl, headers);
-            StringEntity entity = new StringEntity(byteArrayOutputStream.toString());
-            entity.setContentType("application/xml;charset=UTF-8");
+            log.debug(String.format("Posting data %s to url %s", bundle, url));
             return webClient.post(url, entity);
         } catch (IdentityUnauthorizedException e) {
             log.error("Unauthorized identity. URL: " + url, e);
@@ -96,5 +92,29 @@ public class SHRClient {
             log.error("Error during http post. URL: " + url, e);
             throw new RuntimeException(e);
         }
+    }
+
+    public String put(final String url, AtomFeed bundle) throws IdentityUnauthorizedException {
+        try {
+            StringEntity entity = getPayload(bundle);
+            WebClient webClient = new WebClient(baseUrl, headers);
+            log.debug(String.format("Put request %s to url %s", bundle, url));
+            return webClient.put(url, entity);
+        } catch (IdentityUnauthorizedException e) {
+            log.error("Unauthorized identity. URL: " + url, e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Error during http post. URL: " + url, e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private StringEntity getPayload(AtomFeed bundle) throws Exception {
+        XmlComposer composer = new XmlComposer();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        composer.compose(byteArrayOutputStream, bundle, true);
+        StringEntity entity = new StringEntity(byteArrayOutputStream.toString());
+        entity.setContentType("application/xml;charset=UTF-8");
+        return entity;
     }
 }

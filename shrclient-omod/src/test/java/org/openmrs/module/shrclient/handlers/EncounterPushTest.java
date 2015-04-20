@@ -25,9 +25,10 @@ import java.util.HashSet;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_ID;
 
@@ -86,13 +87,12 @@ public class EncounterPushTest {
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(shrClient.post(anyString(), eq(atomFeed))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
         when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(atomFeed);
-        when(systemUserService.isUpdatedByOpenMRSDaemonUser(openMrsEncounter)).thenReturn(false);
         when(idMappingsRepository.findByExternalId(facilityId)).thenReturn(null);
 
         encounterPush.process(event);
 
         verify(encounterService).getEncounterByUuid(uuid);
-        verify(shrClient).post(eq("patients/1234567890123/encounters"), eq(atomFeed));
+        verify(shrClient).post("patients/1234567890123/encounters", atomFeed);
         ArgumentCaptor<IdMapping> idMappingArgumentCaptor = ArgumentCaptor.forClass(IdMapping.class);
         verify(idMappingsRepository).saveMapping(idMappingArgumentCaptor.capture());
 
@@ -101,6 +101,27 @@ public class EncounterPushTest {
         assertEquals("shr-uuid", idmapping.getExternalId());
         assertEquals("encounter", idmapping.getType());
         assertEquals("http://172.18.46.54:8080/patients/1234567890123/encounters/shr-uuid", idmapping.getUri());
+    }
+
+    @Test
+    public void shouldProcessEncounterUpdateEvent() throws Exception {
+        final String uuid = "123abc456";
+
+        final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + uuid
+                + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
+        org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter(uuid);
+        final AtomFeed atomFeed = new AtomFeed();
+
+        when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
+
+        when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
+        when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid","encounter",null));
+        when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(atomFeed);
+
+        encounterPush.process(event);
+
+        verify(shrClient).put("patients/1234567890123/encounters/shr-uuid",atomFeed);
+        verify(idMappingsRepository,never()).saveMapping(any(IdMapping.class));
     }
 
     private org.openmrs.Encounter getOpenMrsEncounter(String uuid) {

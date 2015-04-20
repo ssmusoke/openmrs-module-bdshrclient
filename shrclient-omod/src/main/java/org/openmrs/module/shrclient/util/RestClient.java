@@ -66,7 +66,10 @@ public class RestClient {
     public <T> T put(String url, Object data, Class<T> returnType) throws IdentityUnauthorizedException {
         try {
             String requestBody = mapper.writeValueAsString(data);
-            String response = webClient.put(url, requestBody, "application/json");
+            StringEntity entity = new StringEntity(requestBody);
+            entity.setContentType("application/json");
+
+            String response = webClient.put(url, entity);
             if (StringUtils.isNotBlank(requestBody)) {
                 return mapper.readValue(response, returnType);
             }

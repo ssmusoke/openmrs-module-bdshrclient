@@ -64,10 +64,11 @@ public class EncounterPush implements EventWorker {
             }
             String healthId = getHealthIdAttribute(openMrsEncounter.getPatient());
             log.debug("Uploading patient encounter to SHR : [ " + openMrsEncounter.getUuid() + "]");
-            if (isEncounterCreateUploaded(openMrsEncounter)) {
-
-            }else{
-                String shrEncounterId = pushCreateEncounter(openMrsEncounter, healthId);
+            String shrEncounterId = getEncounterExternalId(openMrsEncounter);
+            if (shrEncounterId != null) {
+                pushEncounterUpdate(openMrsEncounter, shrEncounterId, healthId);
+            } else {
+                shrEncounterId = pushEncounterCreate(openMrsEncounter, healthId);
                 idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), shrEncounterId,
                         Constants.ID_MAPPING_ENCOUNTER_TYPE, formatEncounterUrl(healthId, shrEncounterId)));
             }
@@ -83,7 +84,7 @@ public class EncounterPush implements EventWorker {
         return StringUtil.ensureSuffix(shrBaseUrl + String.format(encPathPattern, healthId), "/") + externalUuid;
     }
 
-    private String pushCreateEncounter(Encounter openMrsEncounter, String healthId) throws IOException {
+    private String pushEncounterCreate(Encounter openMrsEncounter, String healthId) throws IOException {
         try {
             String encPathPattern = StringUtil.removePrefix(propertiesReader.getShrPatientEncPathPattern(), "/");
             String shrEncounterCreateResponse = shrClient.post(String.format(encPathPattern, healthId),
@@ -95,6 +96,26 @@ public class EncounterPush implements EventWorker {
                                     propertiesReader.getFacilityInstanceProperties(),
                                     propertiesReader.getMciProperties())));
             return getEncounterIdFromResponse(shrEncounterCreateResponse);
+        } catch (IdentityUnauthorizedException e) {
+            log.error("Clearing unauthorized identity token.");
+            clientRegistry.clearIdentityToken();
+            throw e;
+        }
+    }
+
+    private void pushEncounterUpdate(Encounter openMrsEncounter, String shrEncounterId, String healthId) throws IOException {
+        try {
+            String encPathPattern = StringUtil.removePrefix(propertiesReader.getShrPatientEncPathPattern(), "/");
+            String encPath = String.format(encPathPattern, healthId);
+            String encUpdateUrl = String.format("%s/%s", encPath, shrEncounterId);
+            shrClient.put(encUpdateUrl,
+                    compositionBundle.create(openMrsEncounter,
+                            new SystemProperties(propertiesReader.getBaseUrls(),
+                                    propertiesReader.getFrProperties(),
+                                    propertiesReader.getTrProperties(),
+                                    propertiesReader.getPrProperties(),
+                                    propertiesReader.getFacilityInstanceProperties(),
+                                    propertiesReader.getMciProperties())));
         } catch (IdentityUnauthorizedException e) {
             log.error("Clearing unauthorized identity token.");
             clientRegistry.clearIdentityToken();
@@ -125,8 +146,9 @@ public class EncounterPush implements EventWorker {
         return healthIdAttribute.getValue();
     }
 
-    private boolean isEncounterCreateUploaded(org.openmrs.Encounter openMrsEncounter) {
-        return idMappingsRepository.findByInternalId(openMrsEncounter.getUuid()) != null;
+    private String getEncounterExternalId(Encounter openMrsEncounter) {
+        IdMapping idMapping = idMappingsRepository.findByInternalId(openMrsEncounter.getUuid());
+        return idMapping != null ? idMapping.getExternalId() : null;
 
     }
 

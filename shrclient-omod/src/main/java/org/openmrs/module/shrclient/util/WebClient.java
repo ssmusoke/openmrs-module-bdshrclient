@@ -9,7 +9,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.log4j.Logger;
@@ -70,20 +69,18 @@ public class WebClient {
         }
     }
 
-    public String put(String path, String data, String contentType) throws IdentityUnauthorizedException {
+    public String put(String path, HttpEntity entity) throws IdentityUnauthorizedException {
         String url = getUrl(path);
-        log.debug("HTTP post url: " + url);
+        log.debug("HTTP put url: " + url);
         try {
             HttpPut request = new HttpPut(URI.create(url));
-            StringEntity entity = new StringEntity(data);
-            entity.setContentType(contentType);
             request.setEntity(entity);
             return execute(request);
         } catch (IdentityUnauthorizedException e) {
             log.error("Unauthorized identity. URL: " + url, e);
             throw e;
         } catch (IOException e) {
-            log.error("Error during http post. URL: " + url, e);
+            log.error("Error during http put. URL: " + url, e);
             throw new RuntimeException(e);
         }
     }
