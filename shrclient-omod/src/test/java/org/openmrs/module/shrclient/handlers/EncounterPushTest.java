@@ -62,7 +62,7 @@ public class EncounterPushTest {
         initMocks(this);
         when(clientRegistry.getSHRClient()).thenReturn(shrClient);
         encounterPush = new EncounterPush(
-                encounterService, systemUserService,
+                encounterService,
                 propertiesReader, compositionBundle,
                 idMappingsRepository,
                 clientRegistry);
@@ -120,7 +120,7 @@ public class EncounterPushTest {
 
         encounterPush.process(event);
 
-        verify(shrClient).put("patients/1234567890123/encounters/shr-uuid",atomFeed);
+        verify(shrClient).put("patients/1234567890123/encounters/shr-uuid", atomFeed);
         verify(idMappingsRepository,never()).saveMapping(any(IdMapping.class));
     }
 

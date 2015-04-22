@@ -43,7 +43,7 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
     private EncounterPush getEncounterRegistry(PropertiesReader propertiesReader, SystemUserService systemUserService,
                                                ClientRegistry clientRegistry) {
         try {
-            return new EncounterPush(Context.getEncounterService(), systemUserService,
+            return new EncounterPush(Context.getEncounterService(),
                     propertiesReader,
                     PlatformUtil.getRegisteredComponent(CompositionBundle.class),
                     PlatformUtil.getIdMappingsRepository(),

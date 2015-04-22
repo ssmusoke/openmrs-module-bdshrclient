@@ -119,4 +119,20 @@ public class PatientPushTest {
 
         verify(patientMapper, never()).map(any(Patient.class), any(SystemProperties.class));
     }
+
+    @Test
+    public void shouldNotProcessIfPatientIsCreatedByOpenMrsDaemonUser() throws Exception {
+
+        String content = "/openmrs/ws/rest/v1/patient/36c82d16-6237-4495-889f-59bd9e0d8181?v=full";
+        Date eventUpdatedDate = new Date();
+        Event event = new Event("123defc456", content, "Patient", null, eventUpdatedDate);
+        Patient openMrsPatient = new Patient();
+
+        when(systemUserService.isUpdatedByOpenMRSDaemonUser(openMrsPatient)).thenReturn(true);
+        when(patientService.getPatientByUuid("36c82d16-6237-4495-889f-59bd9e0d8181")).thenReturn(openMrsPatient);
+
+        patientPush.process(event);
+
+        verify(patientMapper, never()).map(any(Patient.class), any(SystemProperties.class));
+    }
 }
