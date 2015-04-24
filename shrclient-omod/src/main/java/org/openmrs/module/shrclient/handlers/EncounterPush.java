@@ -13,6 +13,7 @@ import org.openmrs.PersonAttribute;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
 import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.fhir.utils.SystemUserService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.EncounterResponse;
@@ -37,13 +38,15 @@ public class EncounterPush implements EventWorker {
     private PropertiesReader propertiesReader;
     private ClientRegistry clientRegistry;
     private SHRClient shrClient;
+    private SystemUserService systemUserService;
 
     public EncounterPush(EncounterService encounterService, PropertiesReader propertiesReader,
                          CompositionBundle compositionBundle, IdMappingsRepository idMappingsRepository,
-                         ClientRegistry clientRegistry) throws IdentityUnauthorizedException {
+                         ClientRegistry clientRegistry, SystemUserService systemUserService) throws IdentityUnauthorizedException {
         this.encounterService = encounterService;
         this.propertiesReader = propertiesReader;
         this.clientRegistry = clientRegistry;
+        this.systemUserService = systemUserService;
         this.shrClient = clientRegistry.getSHRClient();
         this.compositionBundle = compositionBundle;
         this.idMappingsRepository = idMappingsRepository;
@@ -57,6 +60,10 @@ public class EncounterPush implements EventWorker {
             org.openmrs.Encounter openMrsEncounter = encounterService.getEncounterByUuid(uuid);
             if (openMrsEncounter == null) {
                 log.debug(String.format("No OpenMRS encounter exists with uuid: [%s].", uuid));
+                return;
+            }
+            if(systemUserService.isUpdatedByOpenMRSDaemonUser(openMrsEncounter)){
+                log.debug(String.format("Encounter downloaded from SHR.Ignoring encounter sync."));
                 return;
             }
             String healthId = getHealthIdAttribute(openMrsEncounter.getPatient());

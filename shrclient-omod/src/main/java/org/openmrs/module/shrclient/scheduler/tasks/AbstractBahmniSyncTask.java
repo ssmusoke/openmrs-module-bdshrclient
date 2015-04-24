@@ -47,7 +47,7 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
                     propertiesReader,
                     PlatformUtil.getRegisteredComponent(CompositionBundle.class),
                     PlatformUtil.getIdMappingsRepository(),
-                    clientRegistry);
+                    clientRegistry, systemUserService);
         } catch (IdentityUnauthorizedException e) {
             throw handleInvalidIdentity(clientRegistry, e);
 

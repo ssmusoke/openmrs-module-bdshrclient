@@ -65,7 +65,7 @@ public class EncounterPushTest {
                 encounterService,
                 propertiesReader, compositionBundle,
                 idMappingsRepository,
-                clientRegistry);
+                clientRegistry, systemUserService);
     }
 
     @Test
@@ -121,6 +121,29 @@ public class EncounterPushTest {
         encounterPush.process(event);
 
         verify(shrClient).put("patients/1234567890123/encounters/shr-uuid", atomFeed);
+        verify(idMappingsRepository,never()).saveMapping(any(IdMapping.class));
+    }
+
+    @Test
+    public void shouldNotProcessEncounterDownloadEvent() throws Exception {
+        final String uuid = "123abc456";
+
+        final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + uuid
+                + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
+        org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter(uuid);
+        final AtomFeed atomFeed = new AtomFeed();
+
+        when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
+
+        when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
+        when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid","encounter",null));
+        when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(atomFeed);
+        when(systemUserService.isUpdatedByOpenMRSDaemonUser(openMrsEncounter)).thenReturn(true);
+
+        encounterPush.process(event);
+
+        verify(shrClient, never()).put("patients/1234567890123/encounters/shr-uuid", atomFeed);
+        verify(shrClient, never()).post("patients/1234567890123/encounters/shr-uuid", atomFeed);
         verify(idMappingsRepository,never()).saveMapping(any(IdMapping.class));
     }
 
