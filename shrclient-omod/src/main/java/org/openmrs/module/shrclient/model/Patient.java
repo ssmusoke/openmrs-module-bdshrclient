@@ -64,7 +64,7 @@ public class Patient {
     @JsonInclude(NON_NULL)
     private Relation[] relations;
     
-    @JsonProperty("provider_id")
+    @JsonProperty("provider")
     @JsonInclude(NON_NULL)
     private String providerReference;
 
