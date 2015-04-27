@@ -58,22 +58,6 @@
         </sql>
     </changeSet>
 
-    <changeSet id="bdshrclient-110714" author="tw" context="setup">
-        <preConditions onFail="MARK_RAN">
-            <sqlCheck expectedResult="0">
-                select count(*) from concept_name where name = "uncategorized diagnoses";
-            </sqlCheck>
-        </preConditions>
-        <sql>
-            set @concept_id = 0;
-            set @concept_name_short_id = 0;
-            set @concept_name_full_id = 0;
-            call add_concept(@concept_id, @concept_name_short_id, @concept_name_full_id, 'uncategorized diagnoses', 'uncategorized diagnoses', 'N/A', 'ConvSet', true);
-            call add_concept_word(@concept_id, @concept_name_short_id, 'uncategorized', 1);
-            call add_concept_word(@concept_id, @concept_name_short_id, 'diagnoses', 1);
-        </sql>
-    </changeSet>
-
     <changeSet id="bdshrclient-110714-1" author="tw" context="setup">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
