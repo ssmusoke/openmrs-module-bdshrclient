@@ -359,4 +359,17 @@
             <column name="uuid" valueComputed=" uuid() "/>
         </insert>
     </changeSet>
+    <changeSet id="bdshrclient-110515-1228" author="sanjana" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from scheduler_task_config where
+                name='Catchment Encounters Sync Task';
+            </sqlCheck>
+        </preConditions>
+        <update tableName="scheduler_task_config">
+            <column name="start_on_startup" value="0"/>
+            <column name="started" value="0" />
+            <where>name='Catchment Encounters Sync Task'</where>
+        </update>
+    </changeSet>
 </databaseChangeLog>
