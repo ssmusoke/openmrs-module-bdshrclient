@@ -1,6 +1,7 @@
 package org.openmrs.module.shrclient.mapper;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Person;
 import org.openmrs.PersonAttribute;
 import org.openmrs.Provider;
@@ -88,19 +89,22 @@ public class PatientMapper {
 
     private void setProvider(Patient patient, org.openmrs.Patient openMrsPatient, SystemProperties systemProperties) {
         Person person = null;
-        if (openMrsPatient.getChangedBy() != null) {
-            person = openMrsPatient.getChangedBy().getPerson();
-        } else if (openMrsPatient.getCreator() != null) {
+        if (openMrsPatient.getCreator() != null) {
             person = openMrsPatient.getCreator().getPerson();
         }
         if (null == person) return;
         Collection<Provider> providers = Context.getProviderService().getProvidersByPerson(person);
         if (CollectionUtils.isEmpty(providers)) return;
-        Provider provider = providers.iterator().next();
 
-        String providerUrl = String.format("%s/%s.json",
-                StringUtil.removeSuffix(systemProperties.getProviderResourcePath(), "/"), provider.getIdentifier());
-        patient.setProviderReference(providerUrl);
+        for (Provider provider : providers) {
+            String identifier = provider.getIdentifier();
+            if (!StringUtils.isBlank(identifier)) {
+                String providerUrl = String.format("%s/%s.json",
+                        StringUtil.removeSuffix(systemProperties.getProviderResourcePath(), "/"), provider.getIdentifier());
+                patient.setProviderReference(providerUrl);
+                return;
+            }
+        }
     }
 
     private String getAttributeValue(org.openmrs.Patient openMrsPatient, String attributeName) {
