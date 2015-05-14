@@ -149,11 +149,11 @@ public class PatientMapperTest {
 
         when(addressHierarchyService.getAddressHierarchyLevelByAddressField(any(AddressField.class))).thenReturn(new AddressHierarchyLevel());
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(any(AddressHierarchyLevel.class), eq(division))).thenReturn(divisionEntries);
-        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(any(AddressHierarchyLevel.class), eq(district))).thenReturn(districtEntries);
-        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(any(AddressHierarchyLevel.class), eq(upazilla))).thenReturn(upazillaEntries);
-        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(any(AddressHierarchyLevel.class), eq(cityCorp))).thenReturn(cityCorpEntries);
-        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(any(AddressHierarchyLevel.class), eq(unionOrUrbanWard))).thenReturn(unionOrUrbanWardEntries);
-        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(any(AddressHierarchyLevel.class), eq(ruralWard))).thenReturn(ruralWardEntries);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndNameAndParent(any(AddressHierarchyLevel.class), eq(district), any(AddressHierarchyEntry.class))).thenReturn(districtEntries);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndNameAndParent(any(AddressHierarchyLevel.class), eq(upazilla), any(AddressHierarchyEntry.class))).thenReturn(upazillaEntries);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndNameAndParent(any(AddressHierarchyLevel.class), eq(cityCorp), any(AddressHierarchyEntry.class))).thenReturn(cityCorpEntries);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndNameAndParent(any(AddressHierarchyLevel.class), eq(unionOrUrbanWard), any(AddressHierarchyEntry.class))).thenReturn(unionOrUrbanWardEntries);
+        when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndNameAndParent(any(AddressHierarchyLevel.class), eq(ruralWard), any(AddressHierarchyEntry.class))).thenReturn(ruralWardEntries);
 
         when(systemProperties.getProviderResourcePath()).thenReturn("http://pr.com/");
         Provider mockedProvider = mock(Provider.class);
