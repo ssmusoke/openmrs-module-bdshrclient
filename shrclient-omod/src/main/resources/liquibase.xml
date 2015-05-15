@@ -372,4 +372,18 @@
             <where>name='Catchment Encounters Sync Task'</where>
         </update>
     </changeSet>
+    <changeSet id="bdshrclient-130515-1833" author="sanjana" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from global_property where
+                property='concept.unspecifiedCauseOfDeath';
+            </sqlCheck>
+        </preConditions>
+        <comment>Adding a global property which saves the concept id for unspecified cause of death</comment>
+        <insert tableName="global_property">
+            <column name="property" value="concept.unspecifiedCauseOfDeath"/>
+            <column name="description" value="Concept Id for unspecified CAUSE OF DEATH"/>
+            <column name="uuid" valueComputed="uuid()"/>
+        </insert>
+    </changeSet>
 </databaseChangeLog>

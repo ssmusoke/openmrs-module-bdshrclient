@@ -2,6 +2,7 @@ package org.openmrs.module.shrclient.util;
 
 
 import org.openmrs.api.context.Context;
+import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 
@@ -26,5 +27,9 @@ public class PlatformUtil {
 
     public static IdentityStore getIdentityStore() {
         return getRegisteredComponent(IdentityStore.class);
+    }
+
+    public static OMRSConceptLookup getOMRSConceptLookup(){
+        return getRegisteredComponent(OMRSConceptLookup.class);
     }
 }

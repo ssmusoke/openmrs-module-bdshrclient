@@ -67,4 +67,8 @@ public class MRSProperties {
     public static final String VALUESET_IMMUNIZATION_REASON = "Immunization Reason";
     public static final String VALUESET_IMMUNIZATION_REFUSAL_REASON = "No Immunization Reason";
     public static final String VALUESET_ROUTE = "Route of Administration";
+
+    public static final String GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH = "concept.causeOfDeath";
+    public static final String GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH = "concept.unspecifiedCauseOfDeath";
+    public static final String GLOBAL_PROPERTY_EMR_PRIMARY_IDENTIFIER_TYPE = "emr.primaryIdentifierType";
 }

@@ -4,7 +4,10 @@ import org.apache.commons.collections4.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.Coding;
 import org.openmrs.*;
+import org.openmrs.api.AdministrationService;
 import org.openmrs.api.ConceptService;
+import org.openmrs.api.context.Context;
+import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -139,6 +142,35 @@ public class OMRSConceptLookup {
         concept.addName(new ConceptName(conceptName, ENGLISH));
         concept.addConceptMapping(new ConceptMap(refTerm, conceptService.getConceptMapTypeByUuid(SAME_AS_MAP_TYPE_UUID)));
         return conceptService.saveConcept(concept);
+    }
+
+    public Concept getCauseOfDeathConcept(){
+        return getConceptFromConfiguredGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH);
+    }
+
+    public Concept getUnspecifiedCauseOfDeathConcept(){
+        return getConceptFromConfiguredGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
+    }
+
+    public Map<String, Concept> getCauseOfDeathConceptCache() {
+        Map<String, Concept> conceptCache = new HashMap<>();
+        Concept unspecifiedCauseOfDeathConcept = getUnspecifiedCauseOfDeathConcept();
+        Concept causeOfDeathConcept = getCauseOfDeathConcept();
+        if (unspecifiedCauseOfDeathConcept != null) {
+            conceptCache.put(Constants.UNSPECIFIED_CAUSE_OF_DEATH_CONCEPT_KEY, unspecifiedCauseOfDeathConcept);
+        }
+        if (causeOfDeathConcept != null) {
+            conceptCache.put(Constants.CAUSE_OF_DEATH_CONCEPT_KEY, causeOfDeathConcept);
+        }
+        return conceptCache;
+    }
+
+    private Concept getConceptFromConfiguredGlobalProperty(String propertyName) {
+        AdministrationService administrationService = Context.getAdministrationService();
+        String propertyValue = administrationService.getGlobalProperty(propertyName);
+        if(propertyValue != null && !propertyValue.isEmpty())
+            return conceptService.getConcept(Integer.valueOf(propertyValue));
+        return null;
     }
 
     private static String getUuid(String content) {

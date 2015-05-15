@@ -10,7 +10,6 @@ import org.openmrs.api.context.Context;
 import org.openmrs.api.context.ServiceContext;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
-import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityToken;
 import org.openmrs.module.shrclient.service.MciPatientService;
@@ -54,7 +53,7 @@ public class MCIPatientLookupServiceImplTest {
         when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:9997");
         when(propertiesReader.getMciPatientContext()).thenReturn("/api/v1/patients");
 
-        lookupService = new MCIPatientLookupServiceImpl(mciPatientService, propertiesReader, identityStore);
+        lookupService = new MCIPatientLookupServiceImpl(mciPatientService, propertiesReader, identityStore, null);
         Context context = new Context();
         ServiceContext serviceContext = ServiceContext.getInstance();
         serviceContext.setService(AddressHierarchyService.class, addressHierarchyService);

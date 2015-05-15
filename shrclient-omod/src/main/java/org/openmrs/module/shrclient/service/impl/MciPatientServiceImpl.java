@@ -6,8 +6,10 @@ import org.openmrs.*;
 import org.openmrs.api.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
+import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.SystemUserService;
 import org.openmrs.module.idgen.IdentifierSource;
@@ -29,13 +31,14 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
+import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH;
+import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH;
 import static org.openmrs.module.fhir.utils.Constants.*;
 
 @Component
 public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPatientService {
-
-    public static final String CAUSE_OF_DEATH_NOT_SPECIFIED = "Not Specified";
 
     @Autowired
     private BbsCodeService bbsCodeService;
@@ -65,12 +68,12 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     private SystemUserService systemUserService;
 
     @Autowired
-    private ConceptService conceptService;
+    private ObsService obsService;
 
     private static final Logger logger = Logger.getLogger(MciPatientServiceImpl.class);
 
     @Override
-    public org.openmrs.Patient createOrUpdatePatient(Patient mciPatient) {
+    public org.openmrs.Patient createOrUpdatePatient(Patient mciPatient, Map<String, Concept> conceptCache) {
         AddressHelper addressHelper = new AddressHelper();
         org.openmrs.Patient emrPatient = identifyEmrPatient(mciPatient.getHealthId());
         if (emrPatient == null) {
@@ -79,7 +82,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         emrPatient.setGender(mciPatient.getGender());
         setIdentifier(emrPatient);
         setPersonName(emrPatient, mciPatient);
-        setDeathInfo(emrPatient, mciPatient);
+        setDeathInfo(emrPatient, mciPatient, conceptCache);
         emrPatient.addAddress(addressHelper.setPersonAddress(emrPatient.getPersonAddress(), mciPatient.getAddress()));
 
         addPersonAttribute(personService, emrPatient, NATIONAL_ID_ATTRIBUTE, mciPatient.getNationalId());
@@ -115,11 +118,12 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
         systemUserService.setCreator(emrPatient);
         org.openmrs.Patient patient = patientService.savePatient(emrPatient);
+        //TODO: Is this required? we can identify from the HEALTH ID attribute
         addPatientToIdMapping(patient, mciPatient.getHealthId());
         return emrPatient;
     }
 
-    private void setDeathInfo(org.openmrs.Patient emrPatient, Patient mciPatient) {
+    private void setDeathInfo(org.openmrs.Patient emrPatient, Patient mciPatient, Map<String, Concept> conceptCache) {
         Status status = mciPatient.getStatus();
         boolean isAliveMciPatient = status.getType() == '1' ? true : false;
         boolean isAliveEmrPatient = !emrPatient.isDead();
@@ -136,9 +140,34 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
                 Date dob = DateUtil.parseDate(dateOfDeath);
                 emrPatient.setDeathDate(dob);
             }
-            Concept causeOfDeath = conceptService.getConcept(CAUSE_OF_DEATH_NOT_SPECIFIED);
-            emrPatient.setCauseOfDeath(causeOfDeath);
+
+            emrPatient.setCauseOfDeath(getCauseOfDeath(emrPatient, conceptCache));
         }
+    }
+
+    @Override
+    public Concept getCauseOfDeath(org.openmrs.Patient emrPatient, Map<String, Concept> conceptCache) {
+        Concept unspecifiedCauseOfDeathConcept = conceptCache.get(Constants.UNSPECIFIED_CAUSE_OF_DEATH_CONCEPT_KEY);
+        Concept causeOfDeathConcept = conceptCache.get(Constants.CAUSE_OF_DEATH_CONCEPT_KEY);
+        if (emrPatient.isDead() && unspecifiedCauseOfDeathConcept == null) {
+            throw new RuntimeException(String.format("Configure valid Unspecified Cause Of Death concept id for Global Settings %s", GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH));
+        }
+        if (emrPatient.isDead() && causeOfDeathConcept == null) {
+            throw new RuntimeException(String.format("Configure valid Cause Of Death concept id for Global Settings %s", GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH));
+        }
+        if (emrPatient.isDead() && emrPatient.getCauseOfDeath() != null && emrPatient.getCauseOfDeath() != unspecifiedCauseOfDeathConcept) {
+            return emrPatient.getCauseOfDeath();
+        }
+        Concept causeOfDeath = unspecifiedCauseOfDeathConcept;
+        List<Obs> obsForCauseOfDeath = obsService.getObservationsByPersonAndConcept(emrPatient, causeOfDeathConcept);
+        if ((obsForCauseOfDeath != null) && !obsForCauseOfDeath.isEmpty()) {
+            for (Obs obs : obsForCauseOfDeath) {
+                if (!obs.isVoided()) {
+                    causeOfDeath = obs.getValueCoded();
+                }
+            }
+        }
+        return causeOfDeath;
     }
 
     @Override
@@ -156,10 +185,10 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     @Override
-    public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles, String healthId) {
+    public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles, String healthId, Map<String, Concept> conceptCache) {
         for (EncounterBundle bundle : bundles) {
             try {
-                updateEncounter(emrPatient, bundle, healthId);
+                updateEncounter(emrPatient, bundle, healthId, conceptCache);
             } catch (Exception e) {
                 //TODO do proper handling, write to log API?
                 logger.error("error Occurred while trying to process Encounter from SHR.", e);
@@ -169,7 +198,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     @Override
-    public void updateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId) throws Exception {
+    public void updateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId, Map<String, Concept> conceptCache) throws Exception {
         String fhirEncounterId = encounterBundle.getEncounterId();
         AtomFeed feed = encounterBundle.getResourceOrFeed().getFeed();
         logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), fhirEncounterId));
@@ -179,8 +208,19 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
         addEncounterToIdMapping(newEmrEncounter, fhirEncounterId, healthId);
+        savePatientDeathInfo(emrPatient, conceptCache);
     }
 
+    private void savePatientDeathInfo(org.openmrs.Patient emrPatient, Map<String, Concept> conceptCache) {
+        emrPatient.setCauseOfDeath(getCauseOfDeath(emrPatient, conceptCache));
+        systemUserService.setCreator(emrPatient);
+        patientService.savePatient(emrPatient);
+    }
+
+    /*
+    TODO: Is it required to put the patient health id in the IDMapping table. We can identify from the HEALTH ID attribute of the patient.
+    @link org.openmrs.module.shrclient.handlers.PatientPush
+     */
     private org.openmrs.Patient identifyEmrPatient(String healthId) {
         IdMapping idMap = idMappingsRepository.findByExternalId(healthId);
         if (idMap == null) return null;
@@ -248,7 +288,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     private PatientIdentifierType getPatientIdentifierType() {
         AdministrationService administrationService = Context.getAdministrationService();
-        String globalProperty = administrationService.getGlobalProperty(EMR_PRIMARY_IDENTIFIER_TYPE);
+        String globalProperty = administrationService.getGlobalProperty(MRSProperties.GLOBAL_PROPERTY_EMR_PRIMARY_IDENTIFIER_TYPE);
         PatientIdentifierType patientIdentifierByUuid = Context.getPatientService().getPatientIdentifierTypeByUuid(globalProperty);
         return patientIdentifierByUuid;
     }

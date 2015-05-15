@@ -2,6 +2,7 @@ package org.openmrs.module.shrclient.handlers;
 
 
 import org.apache.log4j.Logger;
+import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.shrclient.feeds.shr.DefaultEncounterFeedWorker;
 import org.openmrs.module.shrclient.feeds.shr.ShrEncounterFeedProcessor;
@@ -54,7 +55,8 @@ public class EncounterPull {
         MciPatientService mciPatientService = PlatformUtil.getRegisteredComponent(MciPatientService.class);
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
         IdentityStore identityStore = PlatformUtil.getIdentityStore();
-        return new DefaultEncounterFeedWorker(mciPatientService, propertiesReader, identityStore);
+        OMRSConceptLookup omrsConceptLookup = PlatformUtil.getOMRSConceptLookup();
+        return new DefaultEncounterFeedWorker(mciPatientService, propertiesReader, identityStore, omrsConceptLookup);
     }
 
     private HashMap<String, String> getRequestHeaders(PropertiesReader propertiesReader) throws IdentityUnauthorizedException {

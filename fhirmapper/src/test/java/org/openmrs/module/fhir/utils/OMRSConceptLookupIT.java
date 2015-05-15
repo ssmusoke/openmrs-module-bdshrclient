@@ -97,6 +97,30 @@ public class OMRSConceptLookupIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(conceptService.getConcept(401), mappedConcept);
     }
 
+    @Test
+    public void shouldReturnCauseOfDeathConcept() throws Exception {
+        executeDataSet("testDataSets/omrsGlobalPropertyTestDS.xml");
+        Concept causeOfDeathConcept = omrsConceptLookup.getCauseOfDeathConcept();
+        assertNotNull(causeOfDeathConcept);
+        assertEquals("Cause Of Death",causeOfDeathConcept.getName().getName());
+
+    }
+
+    @Test
+    public void shouldReturnUnspecifiedCauseOfDeathConcept() throws Exception {
+        executeDataSet("testDataSets/omrsGlobalPropertyTestDS.xml");
+        Concept unspecifiedCauseOfDeathConcept = omrsConceptLookup.getUnspecifiedCauseOfDeathConcept();
+        assertNotNull(unspecifiedCauseOfDeathConcept);
+        assertEquals("Unspecified Cause Of Death", unspecifiedCauseOfDeathConcept.getName().getName());
+
+    }
+
+    @Test
+    public void shouldNotReturnCauseOfDeathConceptIfNotConfigured() throws Exception {
+        Concept causeOfDeathConcept = omrsConceptLookup.getCauseOfDeathConcept();
+        assertNull(causeOfDeathConcept);
+    }
+
     private Coding buildCoding(String uri, String externalId, String code, String display) {
         final Coding coding = new Coding();
         coding.setSystemSimple(uri + externalId);

@@ -4,16 +4,16 @@ import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.formats.XmlParser;
 import org.hl7.fhir.instance.model.Date;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.openmrs.DrugOrder;
-import org.openmrs.Encounter;
-import org.openmrs.Order;
-import org.openmrs.Patient;
-import org.openmrs.TestOrder;
+import org.junit.rules.ExpectedException;
+import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
+import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.service.MciPatientService;
@@ -22,9 +22,7 @@ import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -52,10 +50,15 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Autowired
     private IdMappingsRepository idMappingsRepository;
 
+    @Autowired
+    private OMRSConceptLookup omrsConceptLookup;
+
+    @Rule
+    public ExpectedException expectedEx = ExpectedException.none();
 
     @Before
     public void setUp() throws Exception {
-
+        executeDataSet("testDataSets/omrsGlobalPropertyTestDS.xml");
     }
 
     @Test
@@ -64,8 +67,10 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
         String healthId = "HIDA764177";
         String shrEncounterId = "shr-enc-id";
+        Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
+
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "classpath:encounterBundles/testFHIREncounter.xml");
-        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId, conceptCache);
 
         IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
         assertNotNull(idMapping);
@@ -75,13 +80,33 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
+    public void shouldProcessDeathInfoOfPatientAfterEncounterSave() throws Exception {
+        executeDataSet("testDataSets/patientDeathNoteDS.xml");
+        Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
+
+
+        Patient patient = patientService.getPatient(1);
+        List<EncounterBundle> bundles = getEncounterBundles("healthId", "shrEncounterId", "classpath:encounterBundles/encounterWithDiagnosticOrder.xml");
+
+        assertEquals(true, patient.isDead());
+        assertEquals("Unspecified Cause Of Death", patient.getCauseOfDeath().getName().getName());
+
+        mciPatientService.updateEncounter(patient, bundles.get(0), "healthId", conceptCache);
+
+        assertEquals(true, patient.isDead());
+        assertEquals("HIV", patient.getCauseOfDeath().getName().getName());
+    }
+
+    @Test
     public void shouldSaveTestOrders() throws Exception {
         executeDataSet("testDataSets/shrDiagnosticOrderSyncTestDS.xml");
         String healthId = "5915668841731457025";
         String shrEncounterId = "shr-enc-id";
+        Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
+
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "classpath:encounterBundles/encounterWithDiagnosticOrder.xml");
         Patient emrPatient = patientService.getPatient(1);
-        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId, conceptCache);
 
         IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
         assertNotNull(idMapping);
@@ -97,11 +122,13 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/drugOrderDS.xml");
         String healthId = "5947482439084408833";
         String shrEncounterId = "shr-enc-id";
+        Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
+
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/encounterWithMedicationPrescription.xml");
         Patient emrPatient = patientService.getPatient(110);
         assertEquals(0, encounterService.getEncountersByPatient(emrPatient).size());
 
-        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId, conceptCache);
 
         IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
         assertNotNull(idMapping);
@@ -110,6 +137,69 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         assertFalse(orders.isEmpty());
         assertEquals(1, orders.size());
         assertTrue(orders.iterator().next() instanceof DrugOrder);
+    }
+
+    @Test
+    public void shouldGetCauseOfDeathOfPatientIfAnyObservationCapturedCauseOfDeath() throws Exception {
+        executeDataSet("testDataSets/patientDeathNoteDS.xml");
+        Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
+        Patient patient = patientService.getPatient(1);
+
+        Concept actualCauseOfDeath = mciPatientService.getCauseOfDeath(patient, conceptCache);
+
+        assertEquals("HIV", actualCauseOfDeath.getName().getName());
+
+    }
+
+    @Test
+    public void shouldReturnUnspecifiedCauseOfDeathIfThereIsNoObservationCapturedAndPatientIsToBeMarkedDead() throws Exception {
+        executeDataSet("testDataSets/patientDeathNoteDS.xml");
+        Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
+        Patient patient = patientService.getPatient(4);
+
+        patient.setDead(true);
+        Concept actualCauseOfDeath = mciPatientService.getCauseOfDeath(patient, conceptCache);
+
+        assertEquals("Unspecified Cause Of Death", actualCauseOfDeath.getName().getName());
+
+
+    }
+
+    @Test
+    public void shouldReturnCauseOfDeathIfCauseOfDeathAttributeIsOtherThanUnspecifiedCauseOfDeath() throws Exception {
+        executeDataSet("testDataSets/patientDeathNoteDS.xml");
+        Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
+        Patient patient = patientService.getPatient(3);
+
+        Concept actualCauseOfDeath = mciPatientService.getCauseOfDeath(patient, conceptCache);
+
+        assertEquals("CANCER", actualCauseOfDeath.getName().getName());
+
+
+    }
+
+    @Test
+    public void shouldThrowRunTimeExceptionIfUnspecifiedCauseOfDeathConceptNotConfiguredInGlobalSettings() throws Exception {
+        expectedEx.expect(RuntimeException.class);
+        expectedEx.expectMessage("Configure valid Unspecified Cause Of Death concept id for Global Settings concept.unspecifiedCauseOfDeath");
+
+        Patient patient = new Patient();
+        patient.setDead(true);
+        mciPatientService.getCauseOfDeath(patient, new HashMap<String, Concept>() {{
+            put(Constants.CAUSE_OF_DEATH_CONCEPT_KEY, new Concept());
+        }});
+    }
+
+    @Test
+    public void shouldThrowRunTimeExceptionIfCauseOfDeathConceptNotConfiguredInGlobalSettings() throws Exception {
+        expectedEx.expect(RuntimeException.class);
+        expectedEx.expectMessage("Configure valid Cause Of Death concept id for Global Settings concept.causeOfDeath");
+
+        Patient patient = new Patient();
+        patient.setDead(true);
+        mciPatientService.getCauseOfDeath(patient, new HashMap<String, Concept>() {{
+            put(Constants.UNSPECIFIED_CAUSE_OF_DEATH_CONCEPT_KEY, new Concept());
+        }});
     }
 
     private List<EncounterBundle> getEncounterBundles(String healthId, String shrEncounterId, String encounterBundleFilePath) throws Exception {
