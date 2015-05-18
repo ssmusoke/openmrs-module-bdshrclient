@@ -181,7 +181,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldThrowRunTimeExceptionIfUnspecifiedCauseOfDeathConceptNotConfiguredInGlobalSettings() throws Exception {
         expectedEx.expect(RuntimeException.class);
-        expectedEx.expectMessage("Configure valid Unspecified Cause Of Death concept id for Global Settings concept.unspecifiedCauseOfDeath");
+        expectedEx.expectMessage("Invalid configuration for Global Setting 'concept.unspecifiedCauseOfDeath',associate Unspecified Cause Of Death concept id to it.");
 
         Patient patient = new Patient();
         patient.setDead(true);
@@ -193,7 +193,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldThrowRunTimeExceptionIfCauseOfDeathConceptNotConfiguredInGlobalSettings() throws Exception {
         expectedEx.expect(RuntimeException.class);
-        expectedEx.expectMessage("Configure valid Cause Of Death concept id for Global Settings concept.causeOfDeath");
+        expectedEx.expectMessage("Invalid configuration for Global Setting 'concept.causeOfDeath',associate Cause Of Death concept id to it.");
 
         Patient patient = new Patient();
         patient.setDead(true);

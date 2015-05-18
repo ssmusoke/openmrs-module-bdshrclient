@@ -149,11 +149,16 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     public Concept getCauseOfDeath(org.openmrs.Patient emrPatient, Map<String, Concept> conceptCache) {
         Concept unspecifiedCauseOfDeathConcept = conceptCache.get(Constants.UNSPECIFIED_CAUSE_OF_DEATH_CONCEPT_KEY);
         Concept causeOfDeathConcept = conceptCache.get(Constants.CAUSE_OF_DEATH_CONCEPT_KEY);
+        String error = null;
         if (emrPatient.isDead() && unspecifiedCauseOfDeathConcept == null) {
-            throw new RuntimeException(String.format("Configure valid Unspecified Cause Of Death concept id for Global Settings %s", GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH));
+            error = String.format("Invalid configuration for Global Setting '%s',associate Unspecified Cause Of Death concept id to it.", GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
+            logger.error(error);
+            throw new RuntimeException(error);
         }
         if (emrPatient.isDead() && causeOfDeathConcept == null) {
-            throw new RuntimeException(String.format("Configure valid Cause Of Death concept id for Global Settings %s", GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH));
+            error = String.format("Invalid configuration for Global Setting '%s',associate Cause Of Death concept id to it.", GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH);
+            logger.error(error);
+            throw new RuntimeException(error);
         }
         if (emrPatient.isDead() && emrPatient.getCauseOfDeath() != null && emrPatient.getCauseOfDeath() != unspecifiedCauseOfDeathConcept) {
             return emrPatient.getCauseOfDeath();
