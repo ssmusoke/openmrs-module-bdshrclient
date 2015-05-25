@@ -147,7 +147,7 @@
             function onError(error){
                 var message = "Error occurred. Could not perform the action.";
                 if(error.status === 401){
-                    message = "Should Have National Registry Privilege";
+                    message = "Privileges to download patient is not present.";
                 }
                 jq(".errorMessage").text(message);
                 jq(".errorMessage").show();
