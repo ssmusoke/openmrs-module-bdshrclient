@@ -163,11 +163,13 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
             return emrPatient.getCauseOfDeath();
         }
         Concept causeOfDeath = unspecifiedCauseOfDeathConcept;
-        List<Obs> obsForCauseOfDeath = obsService.getObservationsByPersonAndConcept(emrPatient, causeOfDeathConcept);
-        if ((obsForCauseOfDeath != null) && !obsForCauseOfDeath.isEmpty()) {
-            for (Obs obs : obsForCauseOfDeath) {
-                if (!obs.isVoided()) {
-                    causeOfDeath = obs.getValueCoded();
+        if(emrPatient.getId() != null){
+            List<Obs> obsForCauseOfDeath = obsService.getObservationsByPersonAndConcept(emrPatient, causeOfDeathConcept);
+            if ((obsForCauseOfDeath != null) && !obsForCauseOfDeath.isEmpty()) {
+                for (Obs obs : obsForCauseOfDeath) {
+                    if (!obs.isVoided()) {
+                        causeOfDeath = obs.getValueCoded();
+                    }
                 }
             }
         }
