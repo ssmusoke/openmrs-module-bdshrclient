@@ -2,8 +2,21 @@ package org.openmrs.module.shrclient.service.impl;
 
 import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.model.AtomFeed;
-import org.openmrs.*;
-import org.openmrs.api.*;
+import org.openmrs.Concept;
+import org.openmrs.Encounter;
+import org.openmrs.Obs;
+import org.openmrs.Order;
+import org.openmrs.PatientIdentifier;
+import org.openmrs.PatientIdentifierType;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
+import org.openmrs.PersonName;
+import org.openmrs.api.AdministrationService;
+import org.openmrs.api.ObsService;
+import org.openmrs.api.OrderService;
+import org.openmrs.api.PatientService;
+import org.openmrs.api.PersonService;
+import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.fhir.mapper.MRSProperties;
@@ -40,6 +53,7 @@ import static org.openmrs.module.fhir.utils.Constants.*;
 @Component
 public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPatientService {
 
+    public static final String REGEX_TO_MATCH_MULTIPLE_WHITE_SPACE = "\\s+";
     @Autowired
     private BbsCodeService bbsCodeService;
 
@@ -91,6 +105,9 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         addPersonAttribute(personService, emrPatient, UNIQUE_ID_ATTRIBUTE, mciPatient.getUniqueId());
         addPersonAttribute(personService, emrPatient, PRIMARY_CONTACT_ATTRIBUTE, mciPatient.getPrimaryContact());
         addPersonAttribute(personService, emrPatient, HOUSE_HOLD_CODE_ATTRIBUTE, mciPatient.getHouseHoldCode());
+        String banglaName = mciPatient.getBanglaName().replaceAll(REGEX_TO_MATCH_MULTIPLE_WHITE_SPACE, " ");
+        addPersonAttribute(personService, emrPatient, GIVEN_NAME_LOCAL, getGivenNameLocal(banglaName));
+        addPersonAttribute(personService, emrPatient, FAMILY_NAME_LOCAL, getFamilyNameLocal(banglaName));
 
         String occupationConceptName = bbsCodeService.getOccupationConceptName(mciPatient.getOccupation());
         String occupationConceptId = getConceptId(occupationConceptName);
@@ -121,6 +138,16 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         //TODO: Is this required? we can identify from the HEALTH ID attribute
         addPatientToIdMapping(patient, mciPatient.getHealthId());
         return emrPatient;
+    }
+
+    private String getFamilyNameLocal(String banglaName) {
+        int lastIndexOfSpace = banglaName.lastIndexOf(" ");
+        return (-1 != lastIndexOfSpace ? banglaName.substring(lastIndexOfSpace + 1) : "");
+    }
+
+    private String getGivenNameLocal(String banglaName) {
+        int lastIndexOfSpace = banglaName.lastIndexOf(" ");
+        return (-1 != lastIndexOfSpace ? banglaName.substring(0, lastIndexOfSpace) : banglaName);
     }
 
     private void setDeathInfo(org.openmrs.Patient emrPatient, Patient mciPatient, Map<String, Concept> conceptCache) {

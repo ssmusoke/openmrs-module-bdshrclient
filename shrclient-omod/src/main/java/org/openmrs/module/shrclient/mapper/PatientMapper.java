@@ -60,6 +60,16 @@ public class PatientMapper {
             patient.setHouseHoldCode(houseHoldCode);
         }
 
+        String givenNameLocal = getAttributeValue(openMrsPatient, GIVEN_NAME_LOCAL);
+        String familyNameLocal = getAttributeValue(openMrsPatient, FAMILY_NAME_LOCAL);
+        String banglaName = (StringUtils.isNotBlank(givenNameLocal) ? givenNameLocal : "")
+                .concat(" ")
+                .concat((StringUtils.isNotBlank(familyNameLocal) ? familyNameLocal : "")).trim();
+
+        if (StringUtils.isNotBlank(banglaName)) {
+            patient.setBanglaName(banglaName);
+        }
+
         patient.setGivenName(openMrsPatient.getGivenName());
         patient.setSurName(openMrsPatient.getFamilyName());
         patient.setGender(openMrsPatient.getGender());

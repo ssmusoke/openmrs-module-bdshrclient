@@ -68,6 +68,10 @@ public class Patient {
     @JsonInclude(NON_NULL)
     private String providerReference;
 
+    @JsonProperty("name_bangla")
+    @JsonInclude(NON_EMPTY)
+    private String banglaName;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -81,6 +85,7 @@ public class Patient {
             return false;
         if (gender != null ? !gender.equals(patient.gender) : patient.gender != null) return false;
         if (healthId != null ? !healthId.equals(patient.healthId) : patient.healthId != null) return false;
+        if (surName != null ? !surName.equals(patient.surName) : patient.surName != null) return false;
         if (surName != null ? !surName.equals(patient.surName) : patient.surName != null) return false;
         if (nationalId != null ? !nationalId.equals(patient.nationalId) : patient.nationalId != null) return false;
         if (occupation != null ? !occupation.equals(patient.occupation) : patient.occupation != null) return false;
@@ -102,6 +107,7 @@ public class Patient {
         result = 31 * result + (healthId != null ? healthId.hashCode() : 0);
         result = 31 * result + (givenName != null ? givenName.hashCode() : 0);
         result = 31 * result + (surName != null ? surName.hashCode() : 0);
+        result = 31 * result + (banglaName != null ? banglaName.hashCode() : 0);
         result = 31 * result + (dateOfBirth != null ? dateOfBirth.hashCode() : 0);
         result = 31 * result + (gender != null ? gender.hashCode() : 0);
         result = 31 * result + (occupation != null ? occupation.hashCode() : 0);
@@ -123,6 +129,7 @@ public class Patient {
         sb.append(", healthId='").append(healthId).append('\'');
         sb.append(", givenName='").append(givenName).append('\'');
         sb.append(", surName='").append(surName).append('\'');
+        sb.append(", banglaName='").append(banglaName).append('\'');
         sb.append(", dateOfBirth='").append(dateOfBirth).append('\'');
         sb.append(", address=").append(address);
         sb.append(", gender='").append(gender).append('\'');
@@ -264,6 +271,14 @@ public class Patient {
 
     public String getProviderReference() {
         return providerReference;
+    }
+
+    public String getBanglaName() {
+        return banglaName;
+    }
+
+    public void setBanglaName(String banglaName) {
+        this.banglaName = banglaName;
     }
 }
 

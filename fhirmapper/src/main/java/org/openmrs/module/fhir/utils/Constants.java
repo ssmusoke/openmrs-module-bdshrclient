@@ -11,6 +11,10 @@ public class Constants {
 
     public static final String BIRTH_REG_NO_ATTRIBUTE = "Birth Registration Id";
 
+    public static final String GIVEN_NAME_LOCAL = "givenNameLocal";
+
+    public static final String FAMILY_NAME_LOCAL = "familyNameLocal";
+
     public static final String UNIQUE_ID_ATTRIBUTE = "Unique Id";
 
     public static final String PRIMARY_CONTACT_ATTRIBUTE = "primaryContact";

@@ -4,9 +4,11 @@ package org.openmrs.module.shrclient.util;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.log4j.Logger;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
+import org.openmrs.module.shrclient.model.Patient;
 
 import java.io.IOException;
 import java.util.Map;
@@ -47,7 +49,12 @@ public class RestClient {
     public <T> T post(String url, Object data, Class<T> returnType) throws IdentityUnauthorizedException {
         try {
             String requestBody = mapper.writeValueAsString(data);
-            StringEntity entity = new StringEntity(requestBody);
+            StringEntity entity;
+            if (data instanceof Patient) {
+                entity = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
+            } else {
+                entity = new StringEntity(requestBody);
+            }
             entity.setContentType("application/json");
             String response = webClient.post(url, entity);
             if (StringUtils.isNotBlank(response)) {
@@ -66,7 +73,12 @@ public class RestClient {
     public <T> T put(String url, Object data, Class<T> returnType) throws IdentityUnauthorizedException {
         try {
             String requestBody = mapper.writeValueAsString(data);
-            StringEntity entity = new StringEntity(requestBody);
+            StringEntity entity;
+            if (data instanceof Patient) {
+                entity = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
+            } else {
+                entity = new StringEntity(requestBody);
+            }
             entity.setContentType("application/json");
 
             String response = webClient.put(url, entity);
