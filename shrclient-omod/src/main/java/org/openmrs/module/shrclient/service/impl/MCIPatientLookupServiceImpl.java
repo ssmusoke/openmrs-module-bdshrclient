@@ -126,7 +126,6 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
         patientModel.put("gender", mciPatient.getGender());
         patientModel.put("nationalId", mciPatient.getNationalId());
         patientModel.put("healthId", mciPatient.getHealthId());
-        patientModel.put("primaryContact", mciPatient.getPrimaryContact());
 
         Map<String, String> addressModel = new HashMap<>();
         Address address = mciPatient.getAddress();

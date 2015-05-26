@@ -50,11 +50,6 @@ public class PatientMapper {
             patient.setBirthRegNumber(birthRegNo);
         }
 
-        String uniqueId = getAttributeValue(openMrsPatient, UNIQUE_ID_ATTRIBUTE);
-        if (uniqueId != null) {
-            patient.setUniqueId(uniqueId);
-        }
-
         String houseHoldCode = getAttributeValue(openMrsPatient, HOUSE_HOLD_CODE_ATTRIBUTE);
         if (houseHoldCode != null) {
             patient.setHouseHoldCode(houseHoldCode);
@@ -85,10 +80,6 @@ public class PatientMapper {
             patient.setEducationLevel(bbsCodeService.getEducationCode(education.toString()));
         }
 
-        String primaryContact = getAttributeValue(openMrsPatient, PRIMARY_CONTACT_ATTRIBUTE);
-        if (primaryContact != null) {
-            patient.setPrimaryContact(primaryContact);
-        }
         patient.setAddress(addressHelper.getMciAddress(openMrsPatient));
         patient.setStatus(getMciPatientStatus(openMrsPatient));
 

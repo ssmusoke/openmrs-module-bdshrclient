@@ -15,10 +15,6 @@ public class Constants {
 
     public static final String FAMILY_NAME_LOCAL = "familyNameLocal";
 
-    public static final String UNIQUE_ID_ATTRIBUTE = "Unique Id";
-
-    public static final String PRIMARY_CONTACT_ATTRIBUTE = "primaryContact";
-
     public static final String OCCUPATION_ATTRIBUTE = "occupation";
 
     public static final String EDUCATION_ATTRIBUTE = "education";
@@ -28,8 +24,11 @@ public class Constants {
     public static final String IDENTIFIER_SOURCE_NAME = "BDH";
 
     public static final String ID_MAPPING_ENCOUNTER_TYPE = "encounter";
+
     public static final String ID_MAPPING_REFERENCE_TERM_TYPE = "concept_reference_term";
+
     public static final String ID_MAPPING_CONCEPT_TYPE = "concept";
+
     public static final String ID_MAPPING_PATIENT_TYPE = "patient";
 
     public static final String OPENMRS_DAEMON_USER = "A4F30A1B-5EB9-11DF-A648-37A07F9C90FB";
@@ -37,5 +36,6 @@ public class Constants {
     public final static String ORGANIZATION_ATTRIBUTE_TYPE_NAME = "Organization";
 
     public static final String UNSPECIFIED_CAUSE_OF_DEATH_CONCEPT_KEY = "UNSPECIFIED_CAUSE_OF_DEATH";
+
     public static final String CAUSE_OF_DEATH_CONCEPT_KEY = "CAUSE_OF_DEATH";
 }

@@ -38,10 +38,6 @@ public class Patient {
     @JsonInclude(NON_EMPTY)
     private String educationLevel;
 
-    @JsonProperty("primary_contact")
-    @JsonInclude(NON_EMPTY)
-    private String primaryContact;
-
     @JsonProperty("present_address")
     private Address address;
 
@@ -51,10 +47,6 @@ public class Patient {
     @JsonProperty("bin_brn")
     @JsonInclude(NON_EMPTY)
     private String birthRegNumber;
-
-    @JsonProperty("uid")
-    @JsonInclude(NON_EMPTY)
-    private String uniqueId;
 
     @JsonProperty("household_code")
     @JsonInclude(NON_EMPTY)
@@ -89,11 +81,8 @@ public class Patient {
         if (surName != null ? !surName.equals(patient.surName) : patient.surName != null) return false;
         if (nationalId != null ? !nationalId.equals(patient.nationalId) : patient.nationalId != null) return false;
         if (occupation != null ? !occupation.equals(patient.occupation) : patient.occupation != null) return false;
-        if (primaryContact != null ? !primaryContact.equals(patient.primaryContact) : patient.primaryContact != null)
-            return false;
         if (birthRegNumber != null ? !birthRegNumber.equals(patient.birthRegNumber) : patient.birthRegNumber != null)
             return false;
-        if (uniqueId != null ? !uniqueId.equals(patient.uniqueId) : patient.uniqueId != null) return false;
         if (houseHoldCode != null ? !houseHoldCode.equals(patient.houseHoldCode) : patient.houseHoldCode != null)
             return false;
         if (providerReference != null ? !providerReference.equals(patient.providerReference) : patient.providerReference != null)
@@ -112,10 +101,8 @@ public class Patient {
         result = 31 * result + (gender != null ? gender.hashCode() : 0);
         result = 31 * result + (occupation != null ? occupation.hashCode() : 0);
         result = 31 * result + (educationLevel != null ? educationLevel.hashCode() : 0);
-        result = 31 * result + (primaryContact != null ? primaryContact.hashCode() : 0);
         result = 31 * result + (address != null ? address.hashCode() : 0);
         result = 31 * result + (birthRegNumber != null ? birthRegNumber.hashCode() : 0);
-        result = 31 * result + (uniqueId != null ? uniqueId.hashCode() : 0);
         result = 31 * result + (houseHoldCode != null ? houseHoldCode.hashCode() : 0);
         result = 31 * result + (providerReference != null ? providerReference.hashCode() : 0);
         return result;
@@ -135,9 +122,7 @@ public class Patient {
         sb.append(", gender='").append(gender).append('\'');
         sb.append(", occupation='").append(occupation).append('\'');
         sb.append(", educationLevel='").append(educationLevel).append('\'');
-        sb.append(", primaryContact='").append(primaryContact).append('\'');
         sb.append(", birthRegNumber='").append(birthRegNumber).append('\'');
-        sb.append(", uniqueId='").append(uniqueId).append('\'');
         sb.append(", houseHoldCode='").append(houseHoldCode).append('\'');
         sb.append(", providerReference='").append(providerReference).append('\'');
         sb.append('}');
@@ -224,14 +209,6 @@ public class Patient {
         this.educationLevel = educationLevel;
     }
 
-    public String getPrimaryContact() {
-        return primaryContact;
-    }
-
-    public void setPrimaryContact(String primaryContact) {
-        this.primaryContact = primaryContact;
-    }
-
     public String getBirthRegNumber() {
         return birthRegNumber;
     }
@@ -246,14 +223,6 @@ public class Patient {
 
     public void setRelations(Relation[] relations) {
         this.relations = relations;
-    }
-
-    public String getUniqueId() {
-        return uniqueId;
-    }
-
-    public void setUniqueId(String uniqueId) {
-        this.uniqueId = uniqueId;
     }
 
     public String getHouseHoldCode() {

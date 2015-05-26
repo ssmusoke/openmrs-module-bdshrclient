@@ -165,7 +165,6 @@ public class PatientMapperTest {
         patient.setNationalId(nationalId);
         patient.setHealthId(healthId);
         patient.setBirthRegNumber(brnId);
-        patient.setUniqueId(uniqueId);
         patient.setHouseHoldCode(houseHoldCode);
         patient.setGivenName(givenName);
         patient.setSurName(familyName);
@@ -173,7 +172,6 @@ public class PatientMapperTest {
         patient.setDateOfBirth(DateUtil.toDateString(dateOfBirth, DateUtil.ISO_DATE_IN_HOUR_MIN_FORMAT));
         patient.setOccupation(bbsCodeService.getOccupationCode(occupation));
         patient.setEducationLevel(bbsCodeService.getEducationCode(educationLevel));
-        patient.setPrimaryContact(primaryContact);
         patient.setProviderReference("http://pr.com/" + providerIdentifier + ".json");
 
         Status status = new Status();
@@ -207,10 +205,6 @@ public class PatientMapperTest {
         brnIdAttrType.setName(BIRTH_REG_NO_ATTRIBUTE);
         attributes.add(new PersonAttribute(brnIdAttrType, brnId));
 
-        final PersonAttributeType uniqueIdAttrType = new PersonAttributeType();
-        uniqueIdAttrType.setName(UNIQUE_ID_ATTRIBUTE);
-        attributes.add(new PersonAttribute(uniqueIdAttrType, uniqueId));
-
         final PersonAttributeType occupationAttrType = new PersonAttributeType();
         occupationAttrType.setName(OCCUPATION_ATTRIBUTE);
         attributes.add(new PersonAttribute(occupationAttrType, occupation));
@@ -218,10 +212,6 @@ public class PatientMapperTest {
         final PersonAttributeType educationAttrType = new PersonAttributeType();
         educationAttrType.setName(EDUCATION_ATTRIBUTE);
         attributes.add(new PersonAttribute(educationAttrType, educationLevel));
-
-        final PersonAttributeType primaryContactAttrType = new PersonAttributeType();
-        primaryContactAttrType.setName(PRIMARY_CONTACT_ATTRIBUTE);
-        attributes.add(new PersonAttribute(primaryContactAttrType, primaryContact));
 
         final PersonAttributeType houseHoldAttrType = new PersonAttributeType();
         houseHoldAttrType.setName(HOUSE_HOLD_CODE_ATTRIBUTE);
