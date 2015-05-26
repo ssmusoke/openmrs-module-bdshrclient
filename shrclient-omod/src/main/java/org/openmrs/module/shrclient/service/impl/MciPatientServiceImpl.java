@@ -1,5 +1,6 @@
 package org.openmrs.module.shrclient.service.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.openmrs.Concept;
@@ -105,7 +106,11 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         addPersonAttribute(personService, emrPatient, UNIQUE_ID_ATTRIBUTE, mciPatient.getUniqueId());
         addPersonAttribute(personService, emrPatient, PRIMARY_CONTACT_ATTRIBUTE, mciPatient.getPrimaryContact());
         addPersonAttribute(personService, emrPatient, HOUSE_HOLD_CODE_ATTRIBUTE, mciPatient.getHouseHoldCode());
-        String banglaName = mciPatient.getBanglaName().replaceAll(REGEX_TO_MATCH_MULTIPLE_WHITE_SPACE, " ");
+        String banglaName = mciPatient.getBanglaName();
+        if (StringUtils.isNotBlank(banglaName)) {
+            banglaName = banglaName.replaceAll(REGEX_TO_MATCH_MULTIPLE_WHITE_SPACE, " ");
+        }
+
         addPersonAttribute(personService, emrPatient, GIVEN_NAME_LOCAL, getGivenNameLocal(banglaName));
         addPersonAttribute(personService, emrPatient, FAMILY_NAME_LOCAL, getFamilyNameLocal(banglaName));
 
@@ -213,11 +218,17 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     private String getFamilyNameLocal(String banglaName) {
+        if (StringUtils.isBlank(banglaName)) {
+            return null;
+        }
         int lastIndexOfSpace = banglaName.lastIndexOf(" ");
         return (-1 != lastIndexOfSpace ? banglaName.substring(lastIndexOfSpace + 1) : "");
     }
 
     private String getGivenNameLocal(String banglaName) {
+        if (StringUtils.isBlank(banglaName)) {
+            return null;
+        }
         int lastIndexOfSpace = banglaName.lastIndexOf(" ");
         return (-1 != lastIndexOfSpace ? banglaName.substring(0, lastIndexOfSpace) : banglaName);
     }
