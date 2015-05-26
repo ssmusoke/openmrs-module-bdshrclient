@@ -84,14 +84,13 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/patientDeathNoteDS.xml");
         Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
 
-
         Patient patient = patientService.getPatient(1);
         List<EncounterBundle> bundles = getEncounterBundles("healthId", "shrEncounterId", "classpath:encounterBundles/encounterWithDiagnosticOrder.xml");
 
         assertEquals(true, patient.isDead());
         assertEquals("Unspecified Cause Of Death", patient.getCauseOfDeath().getName().getName());
 
-        mciPatientService.updateEncounter(patient, bundles.get(0), "healthId", conceptCache);
+        mciPatientService.createOrUpdateEncounter(patient, bundles.get(0), "healthId", conceptCache);
 
         assertEquals(true, patient.isDead());
         assertEquals("HIV", patient.getCauseOfDeath().getName().getName());

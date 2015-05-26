@@ -5,7 +5,7 @@ import org.ict4h.atomfeed.client.service.EventWorker;
 import org.ict4h.atomfeed.client.service.FeedClient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
-import org.openmrs.module.fhir.utils.SystemUserService;
+import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.feeds.openmrs.OpenMRSFeedClientFactory;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.handlers.EncounterPush;

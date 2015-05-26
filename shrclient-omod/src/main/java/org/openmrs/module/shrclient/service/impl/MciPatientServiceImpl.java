@@ -24,7 +24,6 @@ import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.fhir.utils.DateUtil;
-import org.openmrs.module.fhir.utils.SystemUserService;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
@@ -38,6 +37,7 @@ import org.openmrs.module.shrclient.util.AddressHelper;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.util.SystemProperties;
+import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -133,43 +133,10 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         Date dob = DateUtil.parseDate(mciPatient.getDateOfBirth());
         emrPatient.setBirthdate(dob);
 
-        systemUserService.setCreator(emrPatient);
         org.openmrs.Patient patient = patientService.savePatient(emrPatient);
-        //TODO: Is this required? we can identify from the HEALTH ID attribute
+        systemUserService.setOpenmrsDeamonUserAsCreator(emrPatient);
         addPatientToIdMapping(patient, mciPatient.getHealthId());
         return emrPatient;
-    }
-
-    private String getFamilyNameLocal(String banglaName) {
-        int lastIndexOfSpace = banglaName.lastIndexOf(" ");
-        return (-1 != lastIndexOfSpace ? banglaName.substring(lastIndexOfSpace + 1) : "");
-    }
-
-    private String getGivenNameLocal(String banglaName) {
-        int lastIndexOfSpace = banglaName.lastIndexOf(" ");
-        return (-1 != lastIndexOfSpace ? banglaName.substring(0, lastIndexOfSpace) : banglaName);
-    }
-
-    private void setDeathInfo(org.openmrs.Patient emrPatient, Patient mciPatient, Map<String, Concept> conceptCache) {
-        Status status = mciPatient.getStatus();
-        boolean isAliveMciPatient = status.getType() == '1' ? true : false;
-        boolean isAliveEmrPatient = !emrPatient.isDead();
-        if (isAliveMciPatient && isAliveEmrPatient) {
-            return;
-        } else if (isAliveMciPatient) {
-            emrPatient.setDead(false);
-            emrPatient.setCauseOfDeath(null);
-            emrPatient.setDeathDate(null);
-        } else {
-            emrPatient.setDead(true);
-            String dateOfDeath = status.getDateOfDeath();
-            if (dateOfDeath != null) {
-                Date dob = DateUtil.parseDate(dateOfDeath);
-                emrPatient.setDeathDate(dob);
-            }
-
-            emrPatient.setCauseOfDeath(getCauseOfDeath(emrPatient, conceptCache));
-        }
     }
 
     @Override
@@ -220,7 +187,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles, String healthId, Map<String, Concept> conceptCache) {
         for (EncounterBundle bundle : bundles) {
             try {
-                updateEncounter(emrPatient, bundle, healthId, conceptCache);
+                createOrUpdateEncounter(emrPatient, bundle, healthId, conceptCache);
             } catch (Exception e) {
                 //TODO do proper handling, write to log API?
                 logger.error("error Occurred while trying to process Encounter from SHR.", e);
@@ -230,7 +197,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     @Override
-    public void updateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId, Map<String, Concept> conceptCache) throws Exception {
+    public void createOrUpdateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId, Map<String, Concept> conceptCache) throws Exception {
         String fhirEncounterId = encounterBundle.getEncounterId();
         AtomFeed feed = encounterBundle.getResourceOrFeed().getFeed();
         logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), fhirEncounterId));
@@ -239,20 +206,52 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, feed);
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
+        systemUserService.setOpenmrsDeamonUserAsCreator(newEmrEncounter);
+        systemUserService.setOpenmrsDeamonUserAsCreator(newEmrEncounter.getVisit());
         addEncounterToIdMapping(newEmrEncounter, fhirEncounterId, healthId);
         savePatientDeathInfo(emrPatient, conceptCache);
     }
 
-    private void savePatientDeathInfo(org.openmrs.Patient emrPatient, Map<String, Concept> conceptCache) {
-        emrPatient.setCauseOfDeath(getCauseOfDeath(emrPatient, conceptCache));
-        systemUserService.setCreator(emrPatient);
-        patientService.savePatient(emrPatient);
+    private String getFamilyNameLocal(String banglaName) {
+        int lastIndexOfSpace = banglaName.lastIndexOf(" ");
+        return (-1 != lastIndexOfSpace ? banglaName.substring(lastIndexOfSpace + 1) : "");
     }
 
-    /*
-    TODO: Is it required to put the patient health id in the IDMapping table. We can identify from the HEALTH ID attribute of the patient.
-    @link org.openmrs.module.shrclient.handlers.PatientPush
-     */
+    private String getGivenNameLocal(String banglaName) {
+        int lastIndexOfSpace = banglaName.lastIndexOf(" ");
+        return (-1 != lastIndexOfSpace ? banglaName.substring(0, lastIndexOfSpace) : banglaName);
+    }
+
+    private void setDeathInfo(org.openmrs.Patient emrPatient, Patient mciPatient, Map<String, Concept> conceptCache) {
+        Status status = mciPatient.getStatus();
+        boolean isAliveMciPatient = status.getType() == '1' ? true : false;
+        boolean isAliveEmrPatient = !emrPatient.isDead();
+        if (isAliveMciPatient && isAliveEmrPatient) {
+            return;
+        } else if (isAliveMciPatient) {
+            emrPatient.setDead(false);
+            emrPatient.setCauseOfDeath(null);
+            emrPatient.setDeathDate(null);
+        } else {
+            emrPatient.setDead(true);
+            String dateOfDeath = status.getDateOfDeath();
+            if (dateOfDeath != null) {
+                Date dob = DateUtil.parseDate(dateOfDeath);
+                emrPatient.setDeathDate(dob);
+            }
+
+            emrPatient.setCauseOfDeath(getCauseOfDeath(emrPatient, conceptCache));
+        }
+    }
+
+    private void savePatientDeathInfo(org.openmrs.Patient emrPatient, Map<String, Concept> conceptCache) {
+        if(emrPatient.isDead()) {
+            emrPatient.setCauseOfDeath(getCauseOfDeath(emrPatient, conceptCache));
+            patientService.savePatient(emrPatient);
+            systemUserService.setOpenmrsDeamonUserAsCreator(emrPatient);
+        }
+    }
+
     private org.openmrs.Patient identifyEmrPatient(String healthId) {
         IdMapping idMap = idMappingsRepository.findByExternalId(healthId);
         if (idMap == null) return null;

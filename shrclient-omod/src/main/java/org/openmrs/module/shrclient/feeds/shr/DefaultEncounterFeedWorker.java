@@ -50,7 +50,7 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
                 logger.error(message);
                 throw new Exception(message);
             }
-            mciPatientService.updateEncounter(emrPatient, encounterBundle, healthId, conceptCache);
+            mciPatientService.createOrUpdateEncounter(emrPatient, encounterBundle, healthId, conceptCache);
         } catch (Exception e) {
             String message = String.format("Error occurred while trying to process encounter[%s] of patient[%s]",
                     encounterBundle.getEncounterId(), encounterBundle.getHealthId());

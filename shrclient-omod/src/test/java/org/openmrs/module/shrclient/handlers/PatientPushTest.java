@@ -10,7 +10,7 @@ import org.openmrs.PersonAttributeType;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
-import org.openmrs.module.fhir.utils.SystemUserService;
+import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.util.PropertiesReader;

@@ -23,7 +23,11 @@ import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements MCIPatientLookupService {
@@ -39,7 +43,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
     private PropertiesReader propertiesReader;
     private IdentityStore identityStore;
     private OMRSConceptLookup omrsConceptLookup;
-    
+
     @Autowired
     public MCIPatientLookupServiceImpl(MciPatientService mciPatientService, PropertiesReader propertiesReader, IdentityStore identityStore, OMRSConceptLookup omrsConceptLookup) {
         this.mciPatientService = mciPatientService;
@@ -130,7 +134,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
         addressModel.put("division", getAddressEntryText(address.getDivisionId()));
         addressModel.put("district", getAddressEntryText(address.createUserGeneratedDistrictId()));
         addressModel.put("upazilla", getAddressEntryText(address.createUserGeneratedUpazillaId()));
-        
+
         if (address.getCityCorporationId() != null) {
             addressModel.put("cityCorporation", getAddressEntryText(address.createUserGeneratedCityCorporationId()));
             if (address.getUnionOrUrbanWardId() != null)

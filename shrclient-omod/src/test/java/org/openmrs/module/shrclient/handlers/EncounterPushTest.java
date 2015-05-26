@@ -10,7 +10,7 @@ import org.openmrs.*;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
 import org.openmrs.module.fhir.utils.Constants;
-import org.openmrs.module.fhir.utils.SystemUserService;
+import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.IdMapping;

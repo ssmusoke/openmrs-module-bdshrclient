@@ -14,6 +14,6 @@ public interface MciPatientService extends OpenmrsService {
      org.openmrs.Patient createOrUpdatePatient(Patient mciPatient, Map<String, Concept> conceptCache);
      org.openmrs.PatientIdentifier generateIdentifier();
      void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles, String healthId, Map<String, Concept> conceptCache);
-     void updateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId, Map<String, Concept> conceptCache) throws Exception;
+     void createOrUpdateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId, Map<String, Concept> conceptCache) throws Exception;
      Concept getCauseOfDeath(org.openmrs.Patient emrPatient, Map<String, Concept> conceptCache);
 }

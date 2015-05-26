@@ -1,4 +1,4 @@
-package org.openmrs.module.fhir.utils;
+package org.openmrs.module.shrclient.util;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +20,7 @@ public class SystemUserServiceTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        systemUserService = new SystemUserService(userService);
+        systemUserService = new SystemUserService(userService, null);
     }
 
     @Test

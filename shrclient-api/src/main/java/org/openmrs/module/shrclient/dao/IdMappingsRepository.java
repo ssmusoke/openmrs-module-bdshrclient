@@ -50,7 +50,6 @@ public class IdMappingsRepository {
         });
     }
 
-
     private boolean mappingExists(final IdMapping idMapping) {
         return database.executeInTransaction(new TxWork<Boolean>() {
             @Override

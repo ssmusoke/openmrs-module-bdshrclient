@@ -8,7 +8,6 @@ import org.openmrs.EncounterRole;
 import org.openmrs.Patient;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
-import org.openmrs.module.fhir.utils.SystemUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,22 +27,17 @@ public class FHIRMapper {
     private EncounterService encounterService;
 
     @Autowired
-    SystemUserService systemUserService;
-
-    @Autowired
     private ProviderLookupService providerLookupService;
 
     public Encounter map(Patient emrPatient, AtomFeed feed) throws ParseException {
         Composition composition = getComposition(feed);
         final org.hl7.fhir.instance.model.Encounter encounter = getEncounter(feed);
         org.openmrs.Encounter newEmrEncounter = fhirEncounterMapper.map(encounter, composition.getDateSimple().toString(), emrPatient, feed);
-        setEncounterProviderAndCreator(newEmrEncounter, encounter);
+        setEncounterProvider(newEmrEncounter, encounter);
         return newEmrEncounter;
     }
 
-    public void setEncounterProviderAndCreator(org.openmrs.Encounter newEmrEncounter, org.hl7.fhir.instance.model.Encounter fhirEncounter) {
-        systemUserService.setCreator(newEmrEncounter);
-        systemUserService.setCreator(newEmrEncounter.getVisit());
+    public void setEncounterProvider(org.openmrs.Encounter newEmrEncounter, org.hl7.fhir.instance.model.Encounter fhirEncounter) {
         List<org.hl7.fhir.instance.model.Encounter.EncounterParticipantComponent> participants = fhirEncounter.getParticipant();
         String providerUrl = null;
         if (!CollectionUtils.isEmpty(participants)) {

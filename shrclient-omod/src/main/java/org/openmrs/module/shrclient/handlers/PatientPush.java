@@ -9,7 +9,7 @@ import org.openmrs.PersonAttributeType;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.SystemUserService;
+import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
@@ -144,9 +144,9 @@ public class PatientPush implements EventWorker {
             healthIdAttribute.setValue(healthId);
         }
 
-        systemUserService.setCreator(openMrsPatient);
-
         patientService.savePatient(openMrsPatient);
+        systemUserService.setOpenmrsDeamonUserAsCreator(openMrsPatient);
+
         log.debug(String.format("OpenMRS patient updated."));
     }
 
