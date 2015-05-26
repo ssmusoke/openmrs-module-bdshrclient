@@ -161,8 +161,18 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         Concept actualCauseOfDeath = mciPatientService.getCauseOfDeath(patient, conceptCache);
 
         assertEquals("Unspecified Cause Of Death", actualCauseOfDeath.getName().getName());
+    }
 
+    @Test
+    public void shouldReturnUnspecifiedCauseOfDeathIfThePatientIsNewAndPatientIsToBeMarkedDead() throws Exception {
+        executeDataSet("testDataSets/patientDeathNoteDS.xml");
+        Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
+        Patient patient = new Patient();
 
+        patient.setDead(true);
+        Concept actualCauseOfDeath = mciPatientService.getCauseOfDeath(patient, conceptCache);
+
+        assertEquals("Unspecified Cause Of Death", actualCauseOfDeath.getName().getName());
     }
 
     @Test
