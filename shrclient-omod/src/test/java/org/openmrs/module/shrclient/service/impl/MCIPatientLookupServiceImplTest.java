@@ -51,7 +51,7 @@ public class MCIPatientLookupServiceImplTest {
     public void setUp() throws Exception {
         initMocks(this);
         when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:9997");
-        when(propertiesReader.getMciPatientContext()).thenReturn("/api/v1/patients");
+        when(propertiesReader.getMciPatientContext()).thenReturn("/api/default/patients");
 
         lookupService = new MCIPatientLookupServiceImpl(mciPatientService, propertiesReader, identityStore, null);
         Context context = new Context();

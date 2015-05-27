@@ -40,7 +40,7 @@ public class SystemPropertiesTest {
     public void shouldReadBaseUrls() throws Exception {
         Properties mciProperties = new Properties();
         mciProperties.put(PropertyKeyConstants.MCI_REFERENCE_PATH, "https://mci.com/");
-        mciProperties.put(PropertyKeyConstants.MCI_PATIENT_CONTEXT, "/api/v1/patients");
+        mciProperties.put(PropertyKeyConstants.MCI_PATIENT_CONTEXT, "/api/default/patients");
 
 
         Properties frProperties = new Properties();
@@ -50,7 +50,7 @@ public class SystemPropertiesTest {
         baseUrls.put("mci", "https://mci.com");
         baseUrls.put("fr", "https://fr.com");
         SystemProperties systemProperties = new SystemProperties(baseUrls, frProperties, new Properties(), new Properties(), new Properties(),mciProperties);
-        assertThat(systemProperties.getMciPatientUrl(), is("https://mci.com/api/v1/patients"));
+        assertThat(systemProperties.getMciPatientUrl(), is("https://mci.com/api/default/patients"));
         assertThat(systemProperties.getFacilityResourcePath(), is("https://fr.com"));
     }
 

@@ -87,7 +87,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         List<Condition> conditions = FHIRFeedHelper.getConditions(encounterBundle);
         final Composition composition = FHIRFeedHelper.getComposition(encounterBundle);
         assertEquals(2, conditions.size());
-        assertEquals("http://mci.com//api/v1/patients/HIDA764177", conditions.get(0).getSubject().getReferenceSimple());
+        assertEquals("http://mci.com//api/default/patients/HIDA764177", conditions.get(0).getSubject().getReferenceSimple());
 
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
         final Encounter encounter = FHIRFeedHelper.getEncounter(encounterBundle);

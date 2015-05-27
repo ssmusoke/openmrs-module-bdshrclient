@@ -47,7 +47,7 @@ public class MapperTestHelper {
 
         Properties mciProperties = new Properties();
         mciProperties.put(PropertyKeyConstants.MCI_REFERENCE_PATH, "http://public.com/");
-        mciProperties.put(PropertyKeyConstants.MCI_PATIENT_CONTEXT, "/api/v1/patients");
+        mciProperties.put(PropertyKeyConstants.MCI_PATIENT_CONTEXT, "/api/default/patients");
 
         return new SystemProperties(baseUrls, facilityRegistry, trProperties, providerRegistry, facilityInstanceProperties, mciProperties);
     }

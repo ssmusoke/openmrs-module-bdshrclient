@@ -36,7 +36,7 @@
                     </content>
                 </section>
                 <subject>
-                    <reference value="http://mci.com//api/v1/patients/HIDA764177"/>
+                    <reference value="http://mci.com//api/default/patients/HIDA764177"/>
                 </subject>
             </Composition>
         </content>
@@ -55,7 +55,7 @@
                     <text value="OPD"/>
                 </type>
                 <subject>
-                    <reference value="http://mci.com//api/v1/patients/HIDA764177"/>
+                    <reference value="http://mci.com//api/default/patients/HIDA764177"/>
                 </subject>
                 <participant>
                     <individual>
@@ -80,7 +80,7 @@
                     <value value="urn:cf64a660-973b-41ec-9efe-2c988dd0c904"/>
                 </identifier>
                 <subject>
-                    <reference value="http://mci.com//api/v1/patients/HIDA764177"/>
+                    <reference value="http://mci.com//api/default/patients/HIDA764177"/>
                 </subject>
                 <encounter>
                     <reference value="urn:26504add-2d96-44d0-a2f6-d849dc090254"/>
@@ -123,7 +123,7 @@
                     <value value="urn:a6975b3f-8195-49a5-a3d6-de0dfa96a24a"/>
                 </identifier>
                 <subject>
-                    <reference value="http://mci.com//api/v1/patients/HIDA764177"/>
+                    <reference value="http://mci.com//api/default/patients/HIDA764177"/>
                 </subject>
                 <encounter>
                     <reference value="urn:d87b8d00-0321-4d31-9b7c-6ec572853e7a"/>

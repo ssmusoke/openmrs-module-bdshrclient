@@ -30,7 +30,7 @@ public class EntityReferenceTest {
     @Test
     public void shouldCreatePatientReference() {
         EntityReference entityReference = new EntityReference();
-        assertEquals("http://mci.com/api/v1/patients/1", entityReference.build(Patient.class, getSystemProperties("1234"), "1"));
+        assertEquals("http://mci.com/api/default/patients/1", entityReference.build(Patient.class, getSystemProperties("1234"), "1"));
     }
 
     @Test
@@ -94,7 +94,7 @@ public class EntityReferenceTest {
 
         Properties mciProperties = new Properties();
         mciProperties.put(PropertyKeyConstants.MCI_REFERENCE_PATH, "http://mci.com/");
-        mciProperties.put(PropertyKeyConstants.MCI_PATIENT_CONTEXT, "/api/v1/patients");
+        mciProperties.put(PropertyKeyConstants.MCI_PATIENT_CONTEXT, "/api/default/patients");
 
         return new SystemProperties(baseUrls, frProperties, trProperties, prPoperties, facilityInstanceProperties, mciProperties);
     }

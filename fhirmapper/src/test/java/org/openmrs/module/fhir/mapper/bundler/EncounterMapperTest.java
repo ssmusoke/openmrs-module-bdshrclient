@@ -29,7 +29,7 @@ public class EncounterMapperTest {
         ResourceReference subject = fhirEncounter.getSubject();
         assertEquals("1234", subject.getDisplaySimple());
         //The subject URL must be the public url reference.
-        assertEquals("http://public.com/api/v1/patients/1234", subject.getReferenceSimple());
+        assertEquals("http://public.com/api/default/patients/1234", subject.getReferenceSimple());
         assertEquals("Encounter", fhirEncounter.getIndication().getDisplaySimple());
         assertEquals("urn:" + encounterId, fhirEncounter.getIndication().getReferenceSimple());
 
