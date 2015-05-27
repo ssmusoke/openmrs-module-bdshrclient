@@ -15,6 +15,8 @@ public class Constants {
 
     public static final String FAMILY_NAME_LOCAL = "familyNameLocal";
 
+    public static final String PHONE_NUMBER = "Phone Number";
+
     public static final String OCCUPATION_ATTRIBUTE = "occupation";
 
     public static final String EDUCATION_ATTRIBUTE = "education";

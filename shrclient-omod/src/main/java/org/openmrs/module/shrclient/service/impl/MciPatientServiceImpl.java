@@ -29,6 +29,7 @@ import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.mapper.PhoneNumberMapper;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.Status;
@@ -108,9 +109,9 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         if (StringUtils.isNotBlank(banglaName)) {
             banglaName = banglaName.replaceAll(REGEX_TO_MATCH_MULTIPLE_WHITE_SPACE, " ");
         }
-
         addPersonAttribute(personService, emrPatient, GIVEN_NAME_LOCAL, getGivenNameLocal(banglaName));
         addPersonAttribute(personService, emrPatient, FAMILY_NAME_LOCAL, getFamilyNameLocal(banglaName));
+        addPersonAttribute(personService, emrPatient, PHONE_NUMBER, PhoneNumberMapper.map(mciPatient.getPhoneNumber()));
 
         String occupationConceptName = bbsCodeService.getOccupationConceptName(mciPatient.getOccupation());
         String occupationConceptId = getConceptId(occupationConceptName);

@@ -8,6 +8,7 @@ import org.openmrs.Provider;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.model.Patient;
+import org.openmrs.module.shrclient.model.PhoneNumber;
 import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.util.AddressHelper;
@@ -63,6 +64,12 @@ public class PatientMapper {
 
         if (StringUtils.isNotBlank(banglaName)) {
             patient.setBanglaName(banglaName);
+        }
+
+        String openmrsPhoneNumber = getAttributeValue(openMrsPatient, PHONE_NUMBER);
+        if (StringUtils.isNotBlank(openmrsPhoneNumber)) {
+            PhoneNumber mciPhoneNumber = PhoneNumberMapper.map(openmrsPhoneNumber);
+            patient.setPhoneNumber(mciPhoneNumber);
         }
 
         patient.setGivenName(openMrsPatient.getGivenName());

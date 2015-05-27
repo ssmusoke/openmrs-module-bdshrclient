@@ -64,6 +64,10 @@ public class Patient {
     @JsonInclude(NON_EMPTY)
     private String banglaName;
 
+    @JsonProperty("phone_number")
+    @JsonInclude(NON_EMPTY)
+    private PhoneNumber phoneNumber;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -87,6 +91,8 @@ public class Patient {
             return false;
         if (providerReference != null ? !providerReference.equals(patient.providerReference) : patient.providerReference != null)
             return false;
+        if (phoneNumber != null ? !phoneNumber.equals(patient.phoneNumber) : patient.phoneNumber != null)
+            return false;
         return true;
     }
 
@@ -105,6 +111,7 @@ public class Patient {
         result = 31 * result + (birthRegNumber != null ? birthRegNumber.hashCode() : 0);
         result = 31 * result + (houseHoldCode != null ? houseHoldCode.hashCode() : 0);
         result = 31 * result + (providerReference != null ? providerReference.hashCode() : 0);
+        result = 31 * result + (phoneNumber != null ? phoneNumber.hashCode() : 0);
         return result;
     }
 
@@ -125,6 +132,7 @@ public class Patient {
         sb.append(", birthRegNumber='").append(birthRegNumber).append('\'');
         sb.append(", houseHoldCode='").append(houseHoldCode).append('\'');
         sb.append(", providerReference='").append(providerReference).append('\'');
+        sb.append(", phoneNumber='").append(phoneNumber).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -248,6 +256,14 @@ public class Patient {
 
     public void setBanglaName(String banglaName) {
         this.banglaName = banglaName;
+    }
+
+    public PhoneNumber getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(PhoneNumber phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 }
 
