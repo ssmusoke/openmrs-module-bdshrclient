@@ -6,6 +6,7 @@ import org.openmrs.Location;
 import org.openmrs.LocationTag;
 import org.openmrs.api.LocationService;
 import org.openmrs.module.fhir.utils.DateUtil;
+import org.openmrs.module.shrclient.dao.FacilityCatchmentRepository;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.LocationMapper;
 import org.openmrs.module.shrclient.model.FRLocationEntry;
@@ -46,6 +47,7 @@ public class FacilityPull {
     private final LocationService locationService;
     private final IdMappingsRepository idMappingsRepository;
     private final LocationMapper locationMapper;
+    private final FacilityCatchmentRepository facilityCatchmentRepository;
     private final ScheduledTaskHistory scheduledTaskHistory;
     private final PropertiesReader propertiesReader;
     private final RestClient frWebClient;
@@ -56,13 +58,14 @@ public class FacilityPull {
 
     public FacilityPull(PropertiesReader propertiesReader, RestClient frWebClient, LocationService locationService,
                         ScheduledTaskHistory scheduledTaskHistory, IdMappingsRepository idMappingsRepository,
-                        LocationMapper locationMapper) {
+                        LocationMapper locationMapper, FacilityCatchmentRepository facilityCatchmentRepository) {
         this.propertiesReader = propertiesReader;
         this.frWebClient = frWebClient;
         this.locationService = locationService;
         this.idMappingsRepository = idMappingsRepository;
         this.scheduledTaskHistory = scheduledTaskHistory;
         this.locationMapper = locationMapper;
+        this.facilityCatchmentRepository = facilityCatchmentRepository;
         this.shrLocationTag = locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME);
         this.failedDuringSaveOrUpdateOperation = new ArrayList<>();
     }
@@ -153,9 +156,13 @@ public class FacilityPull {
             location = locationMapper.create(frLocationEntry);
             location.addTag(shrLocationTag);
             location = locationService.saveLocation(location);
+
+            facilityCatchmentRepository.saveMappings(location.getLocationId(), frLocationEntry.getProperties().getCatchments());
+
             String locationUrl = StringUtil.ensureSuffix(propertiesReader.getFrBaseUrl(), "/") + frLocationEntry.getId() + ".json";
             idMappingsRepository.saveMapping(new IdMapping(location.getUuid(), frLocationEntry.getId(),
                     ID_MAPPING_TYPE, locationUrl));
+
         } catch (Exception e) {
             logger.error("Error while creating a new Location : " + e);
             logger.info("Logging the failed event : " + frLocationEntry.toString());
@@ -170,6 +177,7 @@ public class FacilityPull {
         try {
             location = locationMapper.updateExisting(
                     locationService.getLocationByUuid(idMapping.getInternalId()), frLocationEntry);
+            facilityCatchmentRepository.saveMappings(location.getLocationId(), frLocationEntry.getProperties().getCatchments());
 
         } catch (Exception e) {
             logger.error("Error while updating an old Location : " + e);

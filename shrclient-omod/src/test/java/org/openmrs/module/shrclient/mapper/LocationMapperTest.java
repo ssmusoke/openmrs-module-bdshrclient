@@ -3,6 +3,10 @@ package org.openmrs.module.shrclient.mapper;
 import org.junit.Test;
 import org.openmrs.Location;
 import org.openmrs.module.shrclient.model.FRLocationEntry;
+import org.openmrs.module.shrclient.model.FacilityCatchment;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;

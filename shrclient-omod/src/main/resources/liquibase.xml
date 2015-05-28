@@ -386,4 +386,24 @@
             <column name="uuid" valueComputed="uuid()"/>
         </insert>
     </changeSet>
+
+    <changeSet id="bdshrclient-280515-1445" author="ranjan@tw" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="markers"/>
+            </not>
+        </preConditions>
+        <comment>Adding a map of facility(location) and catchments</comment>
+        <createTable tableName="facility_catchment">
+            <column name="location_id" type="int"/>
+            <column name="catchment" type="varchar(255)"/>
+            <column name="active" type="boolean"/>
+            <column name="retiredReason" type="varchar(255)"/>
+        </createTable>
+    
+        <addPrimaryKey tableName="facility_catchment" columnNames="location_id, catchment" />
+        <addForeignKeyConstraint baseTableName="facility_catchment" baseColumnNames="location_id"
+                                 constraintName="fk_location_facility_catchment" referencedTableName="location"
+                                 referencedColumnNames="location_id"/>
+    </changeSet>
 </databaseChangeLog>

@@ -26,7 +26,7 @@ public class FRSyncTask extends AbstractTask {
                     Context.getService(LocationService.class),
                     PlatformUtil.getRegisteredComponent(ScheduledTaskHistory.class),
                     PlatformUtil.getIdMappingsRepository(),
-                    new LocationMapper()).synchronize();
+                    new LocationMapper(), PlatformUtil.getFacilityCatchmentRepository()).synchronize();
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException();

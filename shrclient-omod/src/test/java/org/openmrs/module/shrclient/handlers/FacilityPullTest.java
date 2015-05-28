@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -13,6 +14,7 @@ import org.openmrs.Location;
 import org.openmrs.LocationTag;
 import org.openmrs.api.LocationService;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
+import org.openmrs.module.shrclient.dao.FacilityCatchmentRepository;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.LocationMapper;
 import org.openmrs.module.shrclient.model.FRLocationEntry;
@@ -26,6 +28,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -49,6 +52,12 @@ public class FacilityPullTest {
     @Mock
     private IdMappingsRepository idMappingsRepository;
 
+    @Mock
+    private FacilityCatchmentRepository facilityCatchmentRepository;
+
+    @Captor
+    private ArgumentCaptor<ArrayList<String>> catchmentsArgumentCaptor;
+
     private LocationMapper locationMapper = new LocationMapper();
 
     FRLocationEntry[] locationEntries;
@@ -71,7 +80,8 @@ public class FacilityPullTest {
 
         when(propertiesReader.getFrProperties()).thenReturn(frProperties);
         when(propertiesReader.getFrBaseUrl()).thenReturn(frProperties.getProperty(FACILITY_REFERENCE_PATH));
-        when(frWebClient.get("list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", FRLocationEntry[].class)).thenReturn(locationEntries);
+        when(frWebClient.get("list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", FRLocationEntry[].class)).thenReturn
+                (locationEntries);
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
         when(idMappingsRepository.findByExternalId(any(String.class))).then(new Answer<Object>() {
             @Override
@@ -81,12 +91,12 @@ public class FacilityPullTest {
             }
         });
 
-        when(locationService.getLocationByUuid(existingLocationUuid)).thenReturn(getFacilityLocation(existingLocationUuid));
+        when(locationService.getLocationByUuid(existingLocationUuid)).thenReturn(getFacilityLocation(existingLocationUuid, 100001));
         when(locationService.saveLocation(any(Location.class))).thenReturn(null);
 
 
         FacilityPull facilityPull = new FacilityPull(propertiesReader, frWebClient,
-                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper);
+                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper, facilityCatchmentRepository);
         facilityPull.synchronize();
 
         verify(frWebClient).get("list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", FRLocationEntry[].class);
@@ -102,7 +112,8 @@ public class FacilityPullTest {
 
         when(propertiesReader.getFrProperties()).thenReturn(frProperties);
         when(propertiesReader.getFrBaseUrl()).thenReturn(frProperties.getProperty(FACILITY_REFERENCE_PATH));
-        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(locationEntries);
+        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn
+                (locationEntries);
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
         when(idMappingsRepository.findByExternalId(any(String.class))).then(new Answer<Object>() {
             @Override
@@ -111,73 +122,77 @@ public class FacilityPullTest {
                 return getIdMapping(arguments[0].toString(), existingLocationUuid);
             }
         });
-        when(locationService.getLocationByUuid(existingLocationUuid)).thenReturn(getFacilityLocation(existingLocationUuid));
+        when(locationService.getLocationByUuid(existingLocationUuid)).thenReturn(getFacilityLocation(existingLocationUuid, 100001));
         when(locationService.saveLocation(any(Location.class))).thenReturn(null);
 
 
         FacilityPull facilityPull = new FacilityPull(propertiesReader, frWebClient,
-                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper);
+                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper, facilityCatchmentRepository);
 
         facilityPull.synchronize();
 
         verify(frWebClient).get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
-        verify(scheduledTaskHistory).setFeedUriForLastReadEntryByFeedUri(startsWith("http://hrmtest.dghs.gov.bd/api/1.0/facilities/list?offset="), eq(FR_FACILITY_LEVEL_FEED_URI));
+        verify(scheduledTaskHistory).setFeedUriForLastReadEntryByFeedUri(startsWith("http://hrmtest.dghs.gov.bd/api/1" +
+                ".0/facilities/list?offset="), eq(FR_FACILITY_LEVEL_FEED_URI));
 
     }
 
     @Test
     public void shouldUpdateExistingLocation() throws Exception {
         String existingLocationUuid = UUID.randomUUID().toString();
-        String frLocationEntryId = "10000001";
+        int frLocationEntryId = 10000001;
         String feedUri = "http://hrmtest.dghs.gov.bd/api/1.0/facilities/list?offset=0&limit=100&updatedSince=2000-12-31 23:55:55";
 
 
         when(propertiesReader.getFrProperties()).thenReturn(frProperties);
         when(propertiesReader.getFrBaseUrl()).thenReturn(frProperties.getProperty(FACILITY_REFERENCE_PATH));
-        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(oneLocationEntry(frLocationEntryId));
+        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn
+                (oneLocationEntry(String.valueOf(frLocationEntryId)));
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
-        when(idMappingsRepository.findByExternalId(frLocationEntryId)).thenReturn(getIdMapping(frLocationEntryId, existingLocationUuid));
-        when(locationService.getLocationByUuid(existingLocationUuid)).thenReturn(getFacilityLocation(existingLocationUuid));
+        when(idMappingsRepository.findByExternalId(String.valueOf(frLocationEntryId))).thenReturn(getIdMapping(String.valueOf
+                (frLocationEntryId), existingLocationUuid));
+        when(locationService.getLocationByUuid(existingLocationUuid)).thenReturn(getFacilityLocation(existingLocationUuid,
+                frLocationEntryId));
         when(locationService.saveLocation(any(Location.class))).thenReturn(null);
 
         FacilityPull facilityPull = new FacilityPull(propertiesReader, frWebClient,
-                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper);
+                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper, facilityCatchmentRepository);
 
         facilityPull.synchronize();
 
         verify(frWebClient).get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
-        verify(idMappingsRepository).findByExternalId(frLocationEntryId);
+        verify(idMappingsRepository).findByExternalId(String.valueOf(frLocationEntryId));
         verify(locationService).getLocationByUuid(existingLocationUuid);
         verify(locationService).saveLocation(any(Location.class));
     }
 
     @Test
     public void shouldCreateNewLocation() throws Exception {
-        String frLocationEntryId = "10000001";
+        int frLocationEntryId = 10000001;
         String newLocationUuid = UUID.randomUUID().toString();
         String feedUri = "http://hrmtest.dghs.gov.bd/api/1.0/facilities/list?offset=0&limit=100&updatedSince=2000-12-31 23:55:55";
 
         when(propertiesReader.getFrProperties()).thenReturn(frProperties);
         when(propertiesReader.getFrBaseUrl()).thenReturn(frProperties.getProperty(FACILITY_REFERENCE_PATH));
-        FRLocationEntry[] entries = oneLocationEntry(frLocationEntryId);
+        FRLocationEntry[] entries = oneLocationEntry(String.valueOf(frLocationEntryId));
         when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(entries);
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
-        when(idMappingsRepository.findByExternalId(frLocationEntryId)).thenReturn(null);
-        when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(newLocationUuid));
+        when(idMappingsRepository.findByExternalId(String.valueOf(frLocationEntryId))).thenReturn(null);
+        when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(newLocationUuid, frLocationEntryId));
         when(locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME)).thenReturn(
                 new LocationTag(SHR_LOCATION_TAG_NAME, "foo bar baz"));
 
         FacilityPull facilityPull = new FacilityPull(propertiesReader, frWebClient,
-                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper);
+                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper, facilityCatchmentRepository);
 
         facilityPull.synchronize();
 
         //TODO: verify(propertiesReader, times(3)).getFrProperties();
         verify(frWebClient).get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
-        verify(idMappingsRepository).findByExternalId(frLocationEntryId);
+        verify(idMappingsRepository).findByExternalId(String.valueOf(frLocationEntryId));
 
         ArgumentCaptor<Location> locationArgumentCaptor = ArgumentCaptor.forClass(Location.class);
         verify(locationService).saveLocation(locationArgumentCaptor.capture());
@@ -189,7 +204,7 @@ public class FacilityPullTest {
         ArgumentCaptor<IdMapping> idMappingArgumentCaptor = ArgumentCaptor.forClass(IdMapping.class);
         verify(idMappingsRepository).saveMapping(idMappingArgumentCaptor.capture());
         IdMapping idMapping = idMappingArgumentCaptor.getValue();
-        assertEquals(frLocationEntryId, idMapping.getExternalId());
+        assertEquals(String.valueOf(frLocationEntryId), idMapping.getExternalId());
         assertEquals(newLocationUuid, idMapping.getInternalId());
     }
 
@@ -198,15 +213,16 @@ public class FacilityPullTest {
         String feedUri = "http://hrmtest.dghs.gov.bd/api/1.0/facilities/list?offset=0&limit=100&updatedSince=2000-12-31 23:55:55";
         when(propertiesReader.getFrBaseUrl()).thenReturn(frProperties.getProperty(FACILITY_REFERENCE_PATH));
         when(propertiesReader.getFrProperties()).thenReturn(frProperties);
-        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(locationEntries);
+        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn
+                (locationEntries);
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
         when(idMappingsRepository.findByExternalId(any(String.class))).thenReturn(null);
-        when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString()));
+        when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString(), 100001));
         when(locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME)).thenReturn(
                 new LocationTag(SHR_LOCATION_TAG_NAME, "foo bar baz"));
 
         FacilityPull facilityPull = new FacilityPull(propertiesReader, frWebClient,
-                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper);
+                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper, facilityCatchmentRepository);
 
         facilityPull.synchronize();
 
@@ -225,14 +241,15 @@ public class FacilityPullTest {
 
         when(propertiesReader.getFrProperties()).thenReturn(frProperties);
         when(propertiesReader.getFrBaseUrl()).thenReturn(frProperties.getProperty(FACILITY_REFERENCE_PATH));
-        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(new FRLocationEntry[]{});
+        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(new
+                FRLocationEntry[]{});
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
-        when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString()));
+        when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString(), 100001));
         when(locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME)).thenReturn(
                 new LocationTag(SHR_LOCATION_TAG_NAME, "foo bar baz"));
 
         FacilityPull facilityPull = new FacilityPull(propertiesReader, frWebClient,
-                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper);
+                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper, facilityCatchmentRepository);
 
         facilityPull.synchronize();
 
@@ -251,14 +268,15 @@ public class FacilityPullTest {
 
         when(propertiesReader.getFrBaseUrl()).thenReturn("http://hrmtest.dghs.gov.bd/api/1.0/facilities");
         when(propertiesReader.getFrProperties()).thenReturn(frProperties);
-        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(oneLocationEntry("100001"));
+        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn
+                (oneLocationEntry("100001"));
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
-        when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString()));
+        when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString(), 100001));
         when(locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME)).thenReturn(
                 new LocationTag(SHR_LOCATION_TAG_NAME, "foo bar baz"));
 
         FacilityPull facilityPull = new FacilityPull(propertiesReader, frWebClient,
-                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper);
+                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper, facilityCatchmentRepository);
 
         facilityPull.synchronize();
 
@@ -267,15 +285,87 @@ public class FacilityPullTest {
         assertEquals("http://hrmtest.dghs.gov.bd/api/1.0/facilities/100001.json", captor.getValue().getUri());
     }
 
+    @Test
+    public void shouldCreateFacilityCatchmentMappingsForNewFacility() throws IOException {
+        int frLocationEntryId = 10000001;
+        String feedUri = "http://hrmtest.dghs.gov.bd/api/1.0/facilities/list?offset=0&limit=100&updatedSince=2000-12-31 23:55:55";
+
+        when(propertiesReader.getFrProperties()).thenReturn(frProperties);
+        when(propertiesReader.getFrBaseUrl()).thenReturn(frProperties.getProperty(FACILITY_REFERENCE_PATH));
+        FRLocationEntry[] entries = oneLocationEntryWithCatchments(String.valueOf(frLocationEntryId));
+        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(entries);
+        when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
+        when(idMappingsRepository.findByExternalId(String.valueOf(frLocationEntryId))).thenReturn(null);
+        when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString(),
+                frLocationEntryId));
+        when(locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME)).thenReturn(
+                new LocationTag(SHR_LOCATION_TAG_NAME, "foo bar baz"));
+
+        FacilityPull facilityPull = new FacilityPull(propertiesReader, frWebClient,
+                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper, facilityCatchmentRepository);
+
+        facilityPull.synchronize();
+
+        //TODO: verify(propertiesReader, times(3)).getFrProperties();
+        verify(frWebClient).get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
+        verify(scheduledTaskHistory).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
+        verify(idMappingsRepository).findByExternalId(String.valueOf(frLocationEntryId));
+        verify(facilityCatchmentRepository).saveMappings(frLocationEntryId, getCatchments());
+
+        ArgumentCaptor<Integer> idArgumentCaptor = ArgumentCaptor.forClass(Integer.class);
+        verify(facilityCatchmentRepository).saveMappings(idArgumentCaptor.capture(), catchmentsArgumentCaptor.capture());
+        ArrayList<String> catchments = catchmentsArgumentCaptor.getValue();
+        assertEquals(3, catchments.size());
+    }
+
+    @Test
+    public void shouldCreateFacilityCatchmentMappingsForExistingFacility() throws IOException {
+        int frLocationEntryId = 10000001;
+        String existingLocationUuid = UUID.randomUUID().toString();
+        String feedUri = "http://hrmtest.dghs.gov.bd/api/1.0/facilities/list?offset=0&limit=100&updatedSince=2000-12-31 23:55:55";
+
+
+        when(propertiesReader.getFrProperties()).thenReturn(frProperties);
+        when(propertiesReader.getFrBaseUrl()).thenReturn(frProperties.getProperty(FACILITY_REFERENCE_PATH));
+        when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn
+                (oneLocationEntryWithCatchments(String.valueOf(frLocationEntryId)));
+        when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
+        when(idMappingsRepository.findByExternalId(String.valueOf(frLocationEntryId))).thenReturn(getIdMapping(String.valueOf
+                (frLocationEntryId), existingLocationUuid));
+        when(locationService.getLocationByUuid(existingLocationUuid)).thenReturn(getFacilityLocation(UUID.randomUUID().toString(),
+                frLocationEntryId));
+        when(locationService.saveLocation(any(Location.class))).thenReturn(null);
+
+        FacilityPull facilityPull = new FacilityPull(propertiesReader, frWebClient,
+                locationService, scheduledTaskHistory, idMappingsRepository, locationMapper, facilityCatchmentRepository);
+
+        facilityPull.synchronize();
+
+        verify(frWebClient).get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
+        verify(scheduledTaskHistory).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
+        verify(idMappingsRepository).findByExternalId(String.valueOf(frLocationEntryId));
+        verify(locationService).getLocationByUuid(existingLocationUuid);
+        verify(locationService).saveLocation(any(Location.class));
+        verify(facilityCatchmentRepository).saveMappings(frLocationEntryId, getCatchments());
+
+
+        ArgumentCaptor<Integer> idArgumentCaptor = ArgumentCaptor.forClass(Integer.class);
+        verify(facilityCatchmentRepository).saveMappings(idArgumentCaptor.capture(), catchmentsArgumentCaptor.capture());
+        ArrayList<String> catchments = catchmentsArgumentCaptor.getValue();
+        assertEquals(3, catchments.size());
+    }
+
     private IdMapping getIdMapping(String externalId, String existingLocationUuid) {
         return new IdMapping(existingLocationUuid, externalId, "fr_location", StringUtils.EMPTY);
     }
 
-    private Location getFacilityLocation(String locationUuid) {
+    private Location getFacilityLocation(String locationUuid, int locationId) {
         Location location = new Location();
         location.setUuid(locationUuid);
+        location.setLocationId(locationId);
         return location;
     }
+
 
     public FRLocationEntry[] getFacilityEntries() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
@@ -291,4 +381,22 @@ public class FacilityPullTest {
         frLocationEntry.setActive("0");
         return new FRLocationEntry[]{frLocationEntry};
     }
+
+    public FRLocationEntry[] oneLocationEntryWithCatchments(String id) throws IOException {
+        FRLocationEntry frLocationEntry = new FRLocationEntry();
+        frLocationEntry.setId(id);
+        frLocationEntry.setName("bar");
+        frLocationEntry.setActive("0");
+        frLocationEntry.getProperties().setCatchments(getCatchments());
+        return new FRLocationEntry[]{frLocationEntry};
+    }
+
+    private List<String> getCatchments() {
+        ArrayList<String> catchments = new ArrayList<>();
+        catchments.add("123");
+        catchments.add("223344");
+        catchments.add("33");
+        return catchments;
+    }
+
 }

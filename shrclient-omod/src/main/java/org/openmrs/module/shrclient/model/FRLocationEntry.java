@@ -39,7 +39,7 @@ public class FRLocationEntry {
     private Identifiers identifiers;
 
     @JsonProperty("properties")
-    private Properties properties;
+    private Properties properties = new Properties();
 
     public String getName() {
         return name;
