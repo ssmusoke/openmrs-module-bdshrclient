@@ -33,7 +33,7 @@ public class PhoneNumber {
         if (areaCode != null ? !areaCode.equals(that.areaCode) : that.areaCode != null) return false;
         if (countryCode != null ? !countryCode.equals(that.countryCode) : that.countryCode != null) return false;
         if (extension != null ? !extension.equals(that.extension) : that.extension != null) return false;
-        if (!number.equals(that.number)) return false;
+        if (number != null ? !number.equals(that.number) : that.number != null) return false;
 
         return true;
     }
@@ -42,7 +42,7 @@ public class PhoneNumber {
     public int hashCode() {
         int result = countryCode != null ? countryCode.hashCode() : 0;
         result = 31 * result + (areaCode != null ? areaCode.hashCode() : 0);
-        result = 31 * result + number.hashCode();
+        result = 31 * result + number != null ? number.hashCode() : 0;
         result = 31 * result + (extension != null ? extension.hashCode() : 0);
         return result;
     }

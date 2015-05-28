@@ -5,22 +5,20 @@ import org.openmrs.module.shrclient.model.PhoneNumber;
 
 public class PhoneNumberMapper {
 
-    public static final int MINIMUM_LENGTH_OF_PHONE_NO = 3;
-    public static final int MAXIMUM_LENGTH_OF_PHONE_NO = 11;
-
     public static PhoneNumber map(String phoneNumber) {
-        if (null == phoneNumber) {
-            return null;
-        }
-        if (phoneNumber.length() < MINIMUM_LENGTH_OF_PHONE_NO || phoneNumber.length() > MAXIMUM_LENGTH_OF_PHONE_NO) {
-            throw new RuntimeException(String.format("Phone Number should be between %s to %s digits", MINIMUM_LENGTH_OF_PHONE_NO, MAXIMUM_LENGTH_OF_PHONE_NO));
-        }
         PhoneNumber mciPhoneNumber = new PhoneNumber();
+        if (StringUtils.isBlank(phoneNumber)) {
+            return mciPhoneNumber;
+        }
+        phoneNumber = phoneNumber.trim();
         mciPhoneNumber.setNumber(phoneNumber);
         return mciPhoneNumber;
     }
 
     public static String map(PhoneNumber phoneNumber) {
+        if (null == phoneNumber) {
+            return StringUtils.EMPTY;
+        }
         String openmrsPhoneNumber = "";
         if (StringUtils.isNotBlank(phoneNumber.getCountryCode())) {
             openmrsPhoneNumber = openmrsPhoneNumber + phoneNumber.getCountryCode();
@@ -34,6 +32,6 @@ public class PhoneNumberMapper {
         if (StringUtils.isNotBlank(phoneNumber.getExtension())) {
             openmrsPhoneNumber = openmrsPhoneNumber + phoneNumber.getExtension();
         }
-        return StringUtils.isNotBlank(openmrsPhoneNumber.trim()) ? openmrsPhoneNumber.trim() : null;
+        return openmrsPhoneNumber.trim();
     }
 }
