@@ -49,6 +49,22 @@
     <bean id="conceptCodeMappingService" class="org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl">
     </bean>
 
+    <bean id="facilityCatchmentService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+        <property name="transactionManager">
+            <ref bean="transactionManager"/>
+        </property>
+        <property name="target">
+            <bean class="org.openmrs.module.shrclient.service.impl.FacilityCatchmentServiceImpl">
+            </bean>
+        </property>
+        <property name="preInterceptors">
+            <ref bean="serviceInterceptors"/>
+        </property>
+        <property name="transactionAttributeSource">
+            <ref bean="transactionAttributeSource"/>
+        </property>
+    </bean>
+
     <util:properties id="mciProperties" location="classpath:mci.properties" />
     <util:properties id="shrProperties" location="classpath:shr.properties" />
     <util:properties id="identityProperties" location="classpath:identity.properties" />

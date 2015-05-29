@@ -16,5 +16,10 @@
         <property name="type" column="type" type="java.lang.String" not-null="true" length="50"/>
         <property name="uri" column="uri" type="java.lang.String" not-null="false" length="150" />
     </class>
-
+    <class name="FacilityCatchment" table="facility_catchment">
+        <composite-id>
+            <key-property name="locationId" column="location_id" type="java.lang.Integer" access="field"/>
+            <key-property name="catchment" column="catchment" type="java.lang.String" access="field"/>
+        </composite-id>
+    </class>
 </hibernate-mapping>

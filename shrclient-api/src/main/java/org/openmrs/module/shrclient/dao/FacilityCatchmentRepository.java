@@ -13,7 +13,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Component("bdShrClientFacilityCatchmentRepository")
 public class FacilityCatchmentRepository {
@@ -24,6 +26,7 @@ public class FacilityCatchmentRepository {
     private Database database;
 
     public void saveMappings(final int locationId, final List<String> catchments) {
+        final Set<String> uniqueCatchments = findUniqueCatchments(catchments);
         database.executeInTransaction(new TxWork<Object>() {
             @Override
             public Object execute(Connection connection) {
@@ -36,7 +39,7 @@ public class FacilityCatchmentRepository {
                     deleteStatement.setInt(1, locationId);
                     deleteStatement.execute();
 
-                    for (String catchment : catchments) {
+                    for (String catchment : uniqueCatchments) {
                         createStatement = connection.prepareStatement(createQuery);
                         createStatement.setInt(1, locationId);
                         createStatement.setString(2, catchment);
@@ -55,6 +58,12 @@ public class FacilityCatchmentRepository {
                 return null;
             }
         });
+    }
+
+    private Set<String> findUniqueCatchments(List<String> catchments) {
+        Set<String> uniqueCatchments = new HashSet<>();
+        uniqueCatchments.addAll(catchments);
+        return uniqueCatchments;
     }
 
 
