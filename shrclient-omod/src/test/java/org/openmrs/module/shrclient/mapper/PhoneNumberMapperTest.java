@@ -18,11 +18,11 @@ public class PhoneNumberMapperTest {
     @Test
     public void shouldMapAllTheFieldsInOrder() throws Exception {
         PhoneNumber mciPhoneNumber = new PhoneNumber();
-        mciPhoneNumber.setNumber("4335335");
+        mciPhoneNumber.setNumber("43353");
         mciPhoneNumber.setCountryCode("880");
         mciPhoneNumber.setAreaCode("10");
         mciPhoneNumber.setExtension("67");
-        assertEquals("88010433533567", PhoneNumberMapper.map(mciPhoneNumber));
+        assertEquals("880104335367", PhoneNumberMapper.map(mciPhoneNumber));
     }
 
     @Test
@@ -35,6 +35,15 @@ public class PhoneNumberMapperTest {
     public void shouldReturnEmptyStringForEmptyMciPhoneNo() throws Exception {
         PhoneNumber mciPhoneNumber = new PhoneNumber();
         assertEquals(StringUtils.EMPTY, PhoneNumberMapper.map(mciPhoneNumber));
+    }
+
+    @Test
+    public void shouldReturnLastTwelveDigitsMciPhoneNo() throws Exception {
+        PhoneNumber mciPhoneNumber = new PhoneNumber();
+        mciPhoneNumber.setCountryCode("880");
+        mciPhoneNumber.setAreaCode("1234");
+        mciPhoneNumber.setNumber("877887789");
+        assertEquals("234877887789", PhoneNumberMapper.map(mciPhoneNumber));
     }
 
     @Test

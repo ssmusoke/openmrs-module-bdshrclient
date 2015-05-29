@@ -5,6 +5,8 @@ import org.openmrs.module.shrclient.model.PhoneNumber;
 
 public class PhoneNumberMapper {
 
+    public static final int MAX_ALLOWED_LENGTH_OF_PHONE_NO = 12;
+
     public static PhoneNumber map(String phoneNumber) {
         PhoneNumber mciPhoneNumber = new PhoneNumber();
         if (StringUtils.isBlank(phoneNumber)) {
@@ -32,6 +34,7 @@ public class PhoneNumberMapper {
         if (StringUtils.isNotBlank(phoneNumber.getExtension())) {
             openmrsPhoneNumber = openmrsPhoneNumber + phoneNumber.getExtension();
         }
-        return openmrsPhoneNumber.trim();
+        openmrsPhoneNumber = openmrsPhoneNumber.trim();
+        return openmrsPhoneNumber.length() <= 12 ? openmrsPhoneNumber : openmrsPhoneNumber.substring(openmrsPhoneNumber.trim().length() - MAX_ALLOWED_LENGTH_OF_PHONE_NO);
     }
 }
