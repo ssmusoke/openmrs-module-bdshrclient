@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletResponse;
@@ -25,7 +26,7 @@ public class FacilityCatchmentController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/findByFacility")
     @ResponseBody
-    public Object findByFacility(int locationId, HttpServletResponse response) throws IOException {
+    public Object findByFacility(@RequestParam int locationId, HttpServletResponse response) throws IOException {
         try {
             return facilityCatchmentService.getCatchmentsForFacility(locationId);
         } catch (APIAuthenticationException e) {
@@ -37,7 +38,7 @@ public class FacilityCatchmentController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/findByFacility")
     @ResponseBody
-    public Object findByFacility(String catchment, HttpServletResponse response) throws IOException {
+    public Object findByFacility(@RequestParam String catchment, HttpServletResponse response) throws IOException {
         try {
             return facilityCatchmentService.getFacilitiesForCatchment(catchment);
         } catch (APIAuthenticationException e) {
