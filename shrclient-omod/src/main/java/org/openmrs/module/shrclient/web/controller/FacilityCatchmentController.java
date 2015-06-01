@@ -36,9 +36,9 @@ public class FacilityCatchmentController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/findByFacility")
+    @RequestMapping(method = RequestMethod.GET, value = "/findByCatchment")
     @ResponseBody
-    public Object findByFacility(@RequestParam String catchment, HttpServletResponse response) throws IOException {
+    public Object findByCatchment(@RequestParam String catchment, HttpServletResponse response) throws IOException {
         try {
             return facilityCatchmentService.getFacilitiesForCatchment(catchment);
         } catch (APIAuthenticationException e) {
