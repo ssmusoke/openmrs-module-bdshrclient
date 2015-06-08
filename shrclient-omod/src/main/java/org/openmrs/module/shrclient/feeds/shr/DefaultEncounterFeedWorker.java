@@ -16,6 +16,9 @@ import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 
 import java.util.Map;
 
+import static java.util.Arrays.asList;
+import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH;
+import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.getEncounter;
 
 public class DefaultEncounterFeedWorker implements EncounterEventWorker {
@@ -42,15 +45,16 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
         try {
             RestClient mciClient = new ClientRegistry(propertiesReader, identityStore).getMCIClient();
             Patient patient = mciClient.get(propertiesReader.getMciPatientContext() + "/" + healthId, Patient.class);
-            Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
-            org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(patient, conceptCache);
+            Map<String, Concept> deathConceptsCache = omrsConceptLookup.getConceptsConfiguredViaGlobalProperties(asList(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH,
+                                                                                                        GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH));
+            org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(patient, deathConceptsCache);
 
             if (null == emrPatient) {
                 String message = String.format("Can not identify patient[%s]", healthId);
                 logger.error(message);
                 throw new Exception(message);
             }
-            mciPatientService.createOrUpdateEncounter(emrPatient, encounterBundle, healthId, conceptCache);
+            mciPatientService.createOrUpdateEncounter(emrPatient, encounterBundle, healthId, deathConceptsCache);
         } catch (Exception e) {
             String message = String.format("Error occurred while trying to process encounter[%s] of patient[%s]",
                     encounterBundle.getEncounterId(), encounterBundle.getHealthId());

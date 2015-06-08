@@ -12,7 +12,6 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
-import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -25,6 +24,8 @@ import org.springframework.context.ApplicationContext;
 import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH;
+import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
@@ -67,7 +68,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
         String healthId = "HIDA764177";
         String shrEncounterId = "shr-enc-id";
-        Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
+        Map<String, Concept> conceptCache = omrsConceptLookup.getConceptsConfiguredViaGlobalProperties(Arrays.asList(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH, GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH));
 
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "classpath:encounterBundles/testFHIREncounter.xml");
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId, conceptCache);
@@ -82,7 +83,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldProcessDeathInfoOfPatientAfterEncounterSave() throws Exception {
         executeDataSet("testDataSets/patientDeathNoteDS.xml");
-        Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
+        Map<String, Concept> conceptCache = omrsConceptLookup.getConceptsConfiguredViaGlobalProperties(Arrays.asList(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH, GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH));
 
         Patient patient = patientService.getPatient(1);
         List<EncounterBundle> bundles = getEncounterBundles("healthId", "shrEncounterId", "classpath:encounterBundles/encounterWithDiagnosticOrder.xml");
@@ -101,7 +102,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/shrDiagnosticOrderSyncTestDS.xml");
         String healthId = "5915668841731457025";
         String shrEncounterId = "shr-enc-id";
-        Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
+        Map<String, Concept> conceptCache = omrsConceptLookup.getConceptsConfiguredViaGlobalProperties(Arrays.asList(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH, GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH));
 
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "classpath:encounterBundles/encounterWithDiagnosticOrder.xml");
         Patient emrPatient = patientService.getPatient(1);
@@ -121,7 +122,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/drugOrderDS.xml");
         String healthId = "5947482439084408833";
         String shrEncounterId = "shr-enc-id";
-        Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
+        Map<String, Concept> conceptCache = omrsConceptLookup.getConceptsConfiguredViaGlobalProperties(Arrays.asList(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH, GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH));
 
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/encounterWithMedicationPrescription.xml");
         Patient emrPatient = patientService.getPatient(110);
@@ -141,7 +142,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldGetCauseOfDeathOfPatientIfAnyObservationCapturedCauseOfDeath() throws Exception {
         executeDataSet("testDataSets/patientDeathNoteDS.xml");
-        Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
+        Map<String, Concept> conceptCache = omrsConceptLookup.getConceptsConfiguredViaGlobalProperties(Arrays.asList(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH, GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH));
         Patient patient = patientService.getPatient(1);
 
         Concept actualCauseOfDeath = mciPatientService.getCauseOfDeath(patient, conceptCache);
@@ -153,7 +154,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldReturnUnspecifiedCauseOfDeathIfThereIsNoObservationCapturedAndPatientIsToBeMarkedDead() throws Exception {
         executeDataSet("testDataSets/patientDeathNoteDS.xml");
-        Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
+        Map<String, Concept> conceptCache = omrsConceptLookup.getConceptsConfiguredViaGlobalProperties(Arrays.asList(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH, GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH));
         Patient patient = patientService.getPatient(4);
 
         patient.setDead(true);
@@ -165,7 +166,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldReturnUnspecifiedCauseOfDeathIfThePatientIsNewAndPatientIsToBeMarkedDead() throws Exception {
         executeDataSet("testDataSets/patientDeathNoteDS.xml");
-        Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
+        Map<String, Concept> conceptCache = omrsConceptLookup.getConceptsConfiguredViaGlobalProperties(Arrays.asList(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH, GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH));
         Patient patient = new Patient();
 
         patient.setDead(true);
@@ -177,7 +178,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldReturnCauseOfDeathIfCauseOfDeathAttributeIsOtherThanUnspecifiedCauseOfDeath() throws Exception {
         executeDataSet("testDataSets/patientDeathNoteDS.xml");
-        Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
+        Map<String, Concept> conceptCache = omrsConceptLookup.getConceptsConfiguredViaGlobalProperties(Arrays.asList(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH, GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH));
         Patient patient = patientService.getPatient(3);
 
         Concept actualCauseOfDeath = mciPatientService.getCauseOfDeath(patient, conceptCache);
@@ -195,7 +196,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         Patient patient = new Patient();
         patient.setDead(true);
         mciPatientService.getCauseOfDeath(patient, new HashMap<String, Concept>() {{
-            put(Constants.CAUSE_OF_DEATH_CONCEPT_KEY, new Concept());
+            put(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH, new Concept());
         }});
     }
 
@@ -207,7 +208,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         Patient patient = new Patient();
         patient.setDead(true);
         mciPatientService.getCauseOfDeath(patient, new HashMap<String, Concept>() {{
-            put(Constants.UNSPECIFIED_CAUSE_OF_DEATH_CONCEPT_KEY, new Concept());
+            put(GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH, new Concept());
         }});
     }
 

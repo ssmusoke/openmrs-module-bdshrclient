@@ -24,10 +24,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH;
+import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH;
 
 @Component
 public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements MCIPatientLookupService {
@@ -82,7 +85,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
             if (StringUtils.isNotBlank(searchParamKey) && StringUtils.isNotBlank(searchParamValue)) {
                 Patient[] patients = searchPatients(searchParamKey, searchParamValue);
                 if ((patients != null) && (patients.length > 0)) {
-                    patientList.addAll(Arrays.asList(patients));
+                    patientList.addAll(asList(patients));
                 }
             }
         }
@@ -98,10 +101,10 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
         Patient mciPatient = searchPatientByHealthId(healthId);
         if (mciPatient != null) {
             Map<String, String> downloadResponse = new HashMap<>();
-            Map<String, Concept> conceptCache = omrsConceptLookup.getCauseOfDeathConceptCache();
-            org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(mciPatient, conceptCache);
+            Map<String, Concept> deathConceptsCache = omrsConceptLookup.getConceptsConfiguredViaGlobalProperties(asList(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH, GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH));
+            org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(mciPatient, deathConceptsCache);
             if (emrPatient != null) {
-                createOrUpdateEncounters(healthId, emrPatient, conceptCache);
+                createOrUpdateEncounters(healthId, emrPatient, deathConceptsCache);
             }
             downloadResponse.put("uuid", emrPatient.getUuid());
             return downloadResponse;
@@ -150,7 +153,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
         return entry.getName();
     }
 
-    private void createOrUpdateEncounters(String healthId, org.openmrs.Patient emrPatient, Map<String, Concept> conceptCache) {
+    private void createOrUpdateEncounters(String healthId, org.openmrs.Patient emrPatient, Map<String, Concept> deathConceptsCache) {
         final String url = String.format("/patients/%s/encounters", healthId);
         List<EncounterBundle> bundles = null;
         try {
@@ -159,7 +162,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
             log.info("Clearing unauthorized identity token.");
             identityStore.clearToken();
         }
-        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId, conceptCache);
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId, deathConceptsCache);
     }
 
     private Patient[] searchPatients(String searchParamKey, String searchParamValue) {

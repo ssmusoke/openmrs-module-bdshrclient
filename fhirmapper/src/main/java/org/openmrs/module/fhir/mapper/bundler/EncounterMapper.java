@@ -8,7 +8,9 @@ import org.hl7.fhir.instance.model.ResourceReference;
 import org.openmrs.*;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.fhir.utils.OMRSLocationService;
 import org.openmrs.module.shrclient.util.SystemProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Type;
@@ -17,16 +19,19 @@ import java.util.Set;
 @Component
 public class EncounterMapper {
 
-    private Logger logger = Logger.getLogger(EncounterMapper.class);
+    @Autowired
+    private OMRSLocationService omrsLocationService;
 
+
+    private Logger logger = Logger.getLogger(EncounterMapper.class);
     public Encounter map(org.openmrs.Encounter openMrsEncounter, SystemProperties systemProperties) {
         Encounter encounter = new Encounter();
+        encounter.setStatus(new Enumeration<>(Encounter.EncounterState.finished));
         setEncounterReference(openMrsEncounter, encounter, systemProperties);
-        setStatus(encounter);
         setClass(openMrsEncounter, encounter);
         setSubject(openMrsEncounter, encounter, systemProperties);
         setParticipant(openMrsEncounter, encounter, systemProperties);
-        setServiceProvider(encounter, systemProperties);
+        encounter.setServiceProvider(getServiceProvider(openMrsEncounter, systemProperties));
         setIdentifiers(encounter, openMrsEncounter, systemProperties);
         setType(encounter, openMrsEncounter);
         return encounter;
@@ -49,14 +54,13 @@ public class EncounterMapper {
         encounter.addIdentifier().setValueSimple(getReference(org.openmrs.Encounter.class, systemProperties, openMrsEncounter.getUuid()));
     }
 
-    private void setServiceProvider(Encounter encounter, SystemProperties systemProperties) {
-        encounter.setServiceProvider(new ResourceReference().setReferenceSimple(
-                getReference(Location.class, systemProperties, systemProperties.getFacilityId())
-        ));
-    }
+    public ResourceReference getServiceProvider(org.openmrs.Encounter openMrsEncounter, SystemProperties systemProperties) {
 
-    private void setStatus(Encounter encounter) {
-        encounter.setStatus(new Enumeration<>(Encounter.EncounterState.finished));
+        boolean isHIEFacility = omrsLocationService.isLocationHIEFacility(openMrsEncounter.getLocation());
+        String serviceProviderId = null;
+        serviceProviderId = isHIEFacility ? omrsLocationService.getLocationHIEIdentifier(openMrsEncounter.getLocation()) : systemProperties.getFacilityId();
+        return new ResourceReference().setReferenceSimple(
+                getReference(Location.class, systemProperties, serviceProviderId));
     }
 
     private void setClass(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {

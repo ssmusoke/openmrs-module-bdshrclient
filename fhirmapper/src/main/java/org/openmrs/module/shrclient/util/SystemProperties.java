@@ -15,7 +15,6 @@ public class SystemProperties {
     private Properties prProperties;
     private Properties facilityInstanceProperties;
     private Properties mciProperties;
-    private Properties shrProperties;
 
     public SystemProperties(Map<String, String> baseUrls, Properties frProperties,
                             Properties trProperties, Properties prProperties,

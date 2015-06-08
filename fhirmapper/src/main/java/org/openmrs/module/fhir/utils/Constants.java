@@ -37,7 +37,4 @@ public class Constants {
 
     public final static String ORGANIZATION_ATTRIBUTE_TYPE_NAME = "Organization";
 
-    public static final String UNSPECIFIED_CAUSE_OF_DEATH_CONCEPT_KEY = "UNSPECIFIED_CAUSE_OF_DEATH";
-
-    public static final String CAUSE_OF_DEATH_CONCEPT_KEY = "CAUSE_OF_DEATH";
 }

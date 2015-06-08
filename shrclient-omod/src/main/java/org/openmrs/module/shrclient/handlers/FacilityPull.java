@@ -6,6 +6,7 @@ import org.openmrs.Location;
 import org.openmrs.LocationTag;
 import org.openmrs.api.LocationService;
 import org.openmrs.module.fhir.utils.DateUtil;
+import org.openmrs.module.fhir.utils.OMRSLocationService;
 import org.openmrs.module.shrclient.dao.FacilityCatchmentRepository;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.LocationMapper;
@@ -18,13 +19,8 @@ import org.openmrs.module.shrclient.util.StringUtil;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_REFERENCE_PATH;
 import static org.openmrs.module.shrclient.util.URLParser.parseURL;
 
 public class FacilityPull {
@@ -39,7 +35,6 @@ public class FacilityPull {
     private static final String SINGLE_SPACE = " ";
     public static final String FR_FACILITY_LEVEL_FEED_URI = "urn://fr/facilities";
     public static final String FR_PATH_INFO = "fr.pathInfo";
-    public static final String SHR_LOCATION_TAG_NAME = "DGHS Facilities";
     public static final String ID_MAPPING_TYPE = "fr_location";
     private static final int MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED = 1000;
     private static final String INITIAL_DATETIME = "0000-00-00 00:00:00";
@@ -48,6 +43,7 @@ public class FacilityPull {
     private final IdMappingsRepository idMappingsRepository;
     private final LocationMapper locationMapper;
     private final FacilityCatchmentRepository facilityCatchmentRepository;
+    private OMRSLocationService omrsLocationService;
     private final ScheduledTaskHistory scheduledTaskHistory;
     private final PropertiesReader propertiesReader;
     private final RestClient frWebClient;
@@ -58,7 +54,7 @@ public class FacilityPull {
 
     public FacilityPull(PropertiesReader propertiesReader, RestClient frWebClient, LocationService locationService,
                         ScheduledTaskHistory scheduledTaskHistory, IdMappingsRepository idMappingsRepository,
-                        LocationMapper locationMapper, FacilityCatchmentRepository facilityCatchmentRepository) {
+                        LocationMapper locationMapper, FacilityCatchmentRepository facilityCatchmentRepository, OMRSLocationService omrsLocationService) {
         this.propertiesReader = propertiesReader;
         this.frWebClient = frWebClient;
         this.locationService = locationService;
@@ -66,7 +62,8 @@ public class FacilityPull {
         this.scheduledTaskHistory = scheduledTaskHistory;
         this.locationMapper = locationMapper;
         this.facilityCatchmentRepository = facilityCatchmentRepository;
-        this.shrLocationTag = locationService.getLocationTagByName(SHR_LOCATION_TAG_NAME);
+        this.omrsLocationService = omrsLocationService;
+        this.shrLocationTag =  locationService.getLocationTag(omrsLocationService.getHIEFacilityLocationTag());
         this.failedDuringSaveOrUpdateOperation = new ArrayList<>();
     }
 
@@ -149,7 +146,7 @@ public class FacilityPull {
         return downloadedData;
     }
 
-    private Location createNewLocation(FRLocationEntry frLocationEntry, LocationTag shrLocationTag) {
+    private Location createNewLocation(FRLocationEntry frLocationEntry) {
         logger.info("Creating new location: " + frLocationEntry.getName());
         Location location = null;
         try {
@@ -193,7 +190,7 @@ public class FacilityPull {
             if (idMapping != null)
                 updateExistingLocation(frLocationEntry, idMapping);
             else {
-                createNewLocation(frLocationEntry, shrLocationTag);
+                createNewLocation(frLocationEntry);
             }
         }
     }

@@ -4,10 +4,7 @@ import org.apache.commons.collections4.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.Coding;
 import org.openmrs.*;
-import org.openmrs.api.AdministrationService;
 import org.openmrs.api.ConceptService;
-import org.openmrs.api.context.Context;
-import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,18 +17,19 @@ import java.util.Map;
 import static java.util.Locale.ENGLISH;
 import static org.apache.commons.collections4.CollectionUtils.exists;
 import static org.openmrs.ConceptMapType.SAME_AS_MAP_TYPE_UUID;
-import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_CONCEPT_TYPE;
-import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_REFERENCE_TERM_TYPE;
+import static org.openmrs.module.fhir.utils.Constants.*;
 
 @Component
 public class OMRSConceptLookup {
 
     private ConceptService conceptService;
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
     private IdMappingsRepository idMappingsRepository;
 
     @Autowired
-    public OMRSConceptLookup(ConceptService conceptService, IdMappingsRepository repository) {
+    public OMRSConceptLookup(ConceptService conceptService, GlobalPropertyLookUpService globalPropertyLookUpService, IdMappingsRepository repository) {
         this.conceptService = conceptService;
+        this.globalPropertyLookUpService = globalPropertyLookUpService;
         this.idMappingsRepository = repository;
     }
 
@@ -144,32 +142,27 @@ public class OMRSConceptLookup {
         return conceptService.saveConcept(concept);
     }
 
-    public Concept getCauseOfDeathConcept(){
-        return getConceptFromConfiguredGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH);
-    }
-
-    public Concept getUnspecifiedCauseOfDeathConcept(){
-        return getConceptFromConfiguredGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
-    }
-
-    public Map<String, Concept> getCauseOfDeathConceptCache() {
+    public Map<String, Concept> getConceptsConfiguredViaGlobalProperties(List<String> globalPropertyKeys) {
         Map<String, Concept> conceptCache = new HashMap<>();
-        Concept unspecifiedCauseOfDeathConcept = getUnspecifiedCauseOfDeathConcept();
-        Concept causeOfDeathConcept = getCauseOfDeathConcept();
-        if (unspecifiedCauseOfDeathConcept != null) {
-            conceptCache.put(Constants.UNSPECIFIED_CAUSE_OF_DEATH_CONCEPT_KEY, unspecifiedCauseOfDeathConcept);
+
+        for (String globalProperty : globalPropertyKeys) {
+            addToCache(conceptCache, globalProperty, getConceptFromConfiguredGlobalProperty(globalProperty));
         }
-        if (causeOfDeathConcept != null) {
-            conceptCache.put(Constants.CAUSE_OF_DEATH_CONCEPT_KEY, causeOfDeathConcept);
-        }
+
         return conceptCache;
     }
 
-    private Concept getConceptFromConfiguredGlobalProperty(String propertyName) {
-        AdministrationService administrationService = Context.getAdministrationService();
-        String propertyValue = administrationService.getGlobalProperty(propertyName);
-        if(propertyValue != null && !propertyValue.isEmpty())
-            return conceptService.getConcept(Integer.valueOf(propertyValue));
+    private void addToCache(Map<String, Concept> conceptCache, String key, Concept concept) {
+        if (concept != null) {
+            conceptCache.put(key, concept);
+        }
+    }
+
+    public Concept getConceptFromConfiguredGlobalProperty(String propertyName) {
+        Integer value = globalPropertyLookUpService.getGlobalPropertyValue(propertyName);
+        if(value != null){
+            return conceptService.getConcept(value);
+        }
         return null;
     }
 

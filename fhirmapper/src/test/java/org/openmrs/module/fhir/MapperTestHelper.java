@@ -21,8 +21,6 @@ public class MapperTestHelper {
     }
 
     public static SystemProperties getSystemProperties(String facilityId) {
-        Properties shrProperties = new Properties();
-        shrProperties.setProperty(FACILITY_ID, facilityId);
 
         Properties facilityRegistry = new Properties();
         facilityRegistry.setProperty(FACILITY_REFERENCE_PATH, "http://hrmtest.dghs.gov.bd/api/1.0/facilities");
@@ -40,6 +38,7 @@ public class MapperTestHelper {
         providerRegistry.setProperty(PropertyKeyConstants.PROVIDER_REFERENCE_PATH, "http://hrmtest.dghs.gov.bd/api/1.0/providers");
 
         Properties facilityInstanceProperties = new Properties();
+        facilityInstanceProperties.setProperty(FACILITY_ID, facilityId);
 
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("mci", "http://mci");

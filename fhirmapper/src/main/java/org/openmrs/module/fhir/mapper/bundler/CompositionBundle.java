@@ -2,9 +2,7 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.hl7.fhir.instance.model.*;
-import org.hl7.fhir.instance.model.Encounter;
-import org.openmrs.*;
-import org.openmrs.Location;
+import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.FHIRIdentifier;
 import org.openmrs.module.shrclient.util.SystemProperties;
@@ -38,7 +36,7 @@ public class CompositionBundle {
         Encounter fhirEncounter = encounterMapper.map(emrEncounter, systemProperties);
         Composition composition = createComposition(emrEncounter.getEncounterDatetime(), fhirEncounter, systemProperties);
         atomFeed.setTitle("Encounter");
-        atomFeed.setAuthorUri(getReference(Location.class, systemProperties));
+        atomFeed.setAuthorUri(fhirEncounter.getServiceProvider().getReferenceSimple());
         atomFeed.setUpdated(composition.getDateSimple());
         atomFeed.setId(new FHIRIdentifier(UUID.randomUUID().toString()).getExternalForm());
         final FHIRResource encounterResource = new FHIRResource("Encounter", fhirEncounter.getIdentifier(), fhirEncounter);
@@ -108,7 +106,7 @@ public class CompositionBundle {
         composition.setIdentifier(new Identifier().setValueSimple(new EntityReference().build(Composition.class, systemProperties, UUID.randomUUID().toString())));
         composition.setSubject(encounter.getSubject());
         ResourceReference resourceReferenceAuthor = composition.addAuthor();
-        resourceReferenceAuthor.setReferenceSimple(getReference(Location.class, systemProperties));
+        resourceReferenceAuthor.setReferenceSimple(encounter.getServiceProvider().getReferenceSimple());
         composition.setConfidentiality(getConfidentialityCoding());
         return composition;
     }

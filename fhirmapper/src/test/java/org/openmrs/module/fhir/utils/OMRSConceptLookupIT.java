@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
 import org.openmrs.api.ConceptService;
+import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -98,26 +99,17 @@ public class OMRSConceptLookupIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    public void shouldReturnCauseOfDeathConcept() throws Exception {
+    public void shouldReturnConceptConfiguredViaGlobalProperty() throws Exception {
         executeDataSet("testDataSets/omrsGlobalPropertyTestDS.xml");
-        Concept causeOfDeathConcept = omrsConceptLookup.getCauseOfDeathConcept();
+        Concept causeOfDeathConcept = omrsConceptLookup.getConceptFromConfiguredGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH);
         assertNotNull(causeOfDeathConcept);
         assertEquals("Cause Of Death",causeOfDeathConcept.getName().getName());
 
     }
 
     @Test
-    public void shouldReturnUnspecifiedCauseOfDeathConcept() throws Exception {
-        executeDataSet("testDataSets/omrsGlobalPropertyTestDS.xml");
-        Concept unspecifiedCauseOfDeathConcept = omrsConceptLookup.getUnspecifiedCauseOfDeathConcept();
-        assertNotNull(unspecifiedCauseOfDeathConcept);
-        assertEquals("Unspecified Cause Of Death", unspecifiedCauseOfDeathConcept.getName().getName());
-
-    }
-
-    @Test
-    public void shouldNotReturnCauseOfDeathConceptIfNotConfigured() throws Exception {
-        Concept causeOfDeathConcept = omrsConceptLookup.getCauseOfDeathConcept();
+    public void shouldNotReturnConceptIfNotConfigured() throws Exception {
+        Concept causeOfDeathConcept = omrsConceptLookup.getConceptFromConfiguredGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
         assertNull(causeOfDeathConcept);
     }
 
