@@ -21,7 +21,7 @@ public class MRSProperties {
 
     public static final String MRS_CONCEPT_NAME_FAMILY_HISTORY = "Family History";
     public static final String MRS_CONCEPT_NAME_PERSON = "Person";
-    public static final String MRS_CONCEPT_NAME_RELATIONSHIP = "Relationship";
+    public static final String MRS_CONCEPT_NAME_RELATIONSHIP = "Relationship Type";
     public static final String MRS_CONCEPT_NAME_BORN_ON = "Born On";
     public static final String MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION = "Relationship Condition";
     public static final String MRS_CONCEPT_NAME_ONSET_AGE = "Onset Age";
