@@ -7,8 +7,6 @@ import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.domain.FailedEvent;
 import org.ict4h.atomfeed.client.domain.Marker;
 import org.ict4h.atomfeed.client.exceptions.AtomFeedClientException;
-import org.ict4h.atomfeed.client.repository.memory.AllFailedEventsInMemoryImpl;
-import org.ict4h.atomfeed.client.repository.memory.AllMarkersInMemoryImpl;
 import org.ict4h.atomfeed.client.service.AtomFeedClient;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.ict4h.atomfeed.client.service.FeedClient;
@@ -30,8 +28,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class OpenMRSFeedsTest {
