@@ -128,7 +128,7 @@ public class PatientPushTest {
         Event event = new Event("123defc456", content, "Patient", null, eventUpdatedDate);
         Patient openMrsPatient = new Patient();
 
-        when(systemUserService.isUpdatedByOpenMRSDaemonUser(openMrsPatient)).thenReturn(true);
+        when(systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsPatient)).thenReturn(true);
         when(patientService.getPatientByUuid("36c82d16-6237-4495-889f-59bd9e0d8181")).thenReturn(openMrsPatient);
 
         patientPush.process(event);

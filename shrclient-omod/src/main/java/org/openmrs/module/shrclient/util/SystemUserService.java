@@ -7,7 +7,7 @@ import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.Visit;
 import org.openmrs.api.UserService;
-import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,45 +15,50 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY__SHR_SYSTEM_USER_TAG;
+
 @Component
 public class SystemUserService {
     private UserService userService;
     private Database database;
-    private User daemonUser;
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
+    private User shrSystemUser;
 
     private Logger logger = Logger.getLogger(SystemUserService.class);
 
     @Autowired
-    public SystemUserService(UserService userService, Database database) {
+    public SystemUserService(UserService userService, Database database, GlobalPropertyLookUpService globalPropertyLookUpService) {
         this.userService = userService;
         this.database = database;
+        this.globalPropertyLookUpService = globalPropertyLookUpService;
     }
 
-    public User getOpenMRSDeamonUser() {
-        if (daemonUser == null) {
-            daemonUser = userService.getUserByUuid(Constants.OPENMRS_DAEMON_USER);
+    public User getOpenMRSShrSystemUser() {
+        if (shrSystemUser == null) {
+            Integer shrSystemUserId = globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY__SHR_SYSTEM_USER_TAG);
+            shrSystemUser = userService.getUser(shrSystemUserId);
         }
-        return daemonUser;
+        return shrSystemUser;
     }
 
-    public boolean isUpdatedByOpenMRSDaemonUser(BaseOpenmrsData openMrsEntity) {
+    public boolean isUpdatedByOpenMRSShrSystemUser(BaseOpenmrsData openMrsEntity) {
         User changedByUser = openMrsEntity.getChangedBy();
         if (changedByUser == null) {
             changedByUser = openMrsEntity.getCreator();
         }
-        User openMrsDaemonUser = getOpenMRSDeamonUser();
-        return openMrsDaemonUser.getId().equals(changedByUser.getId());
+        User openMrsShrSystemUser = getOpenMRSShrSystemUser();
+        return openMrsShrSystemUser.getId().equals(changedByUser.getId());
     }
 
-    public void setOpenmrsDeamonUserAsCreator(Encounter encounter) {
+    public void setOpenmrsShrSystemUserAsCreator(Encounter encounter) {
         updateUser("encounter", "encounter_id", encounter);
     }
 
-    public void setOpenmrsDeamonUserAsCreator(Visit visit) {
+    public void setOpenmrsShrSystemUserAsCreator(Visit visit) {
         updateUser("visit", "visit_id", visit);
     }
 
-    public void setOpenmrsDeamonUserAsCreator(Patient patient) {
+    public void setOpenmrsShrSystemUserAsCreator(Patient patient) {
         updateUser("patient", "patient_id", patient);
     }
 
@@ -71,7 +76,7 @@ public class SystemUserService {
                 String query = "update " + tableName + " set " + userColumnName + " = ? where " + idColumnName + " = ?;";
                 try {
                     statement = connection.prepareStatement(query);
-                    statement.setInt(1, getOpenMRSDeamonUser().getUserId());
+                    statement.setInt(1, getOpenMRSShrSystemUser().getUserId());
                     statement.setInt(2, openMrsEntity.getId());
                     statement.executeUpdate();
                 } catch (Exception e) {

@@ -138,7 +138,7 @@ public class EncounterPushTest {
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid","encounter",null));
         when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(atomFeed);
-        when(systemUserService.isUpdatedByOpenMRSDaemonUser(openMrsEncounter)).thenReturn(true);
+        when(systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsEncounter)).thenReturn(true);
 
         encounterPush.process(event);
 

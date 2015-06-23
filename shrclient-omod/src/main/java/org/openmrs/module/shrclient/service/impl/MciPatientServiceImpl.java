@@ -120,7 +120,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         emrPatient.setBirthdate(dob);
 
         org.openmrs.Patient patient = patientService.savePatient(emrPatient);
-        systemUserService.setOpenmrsDeamonUserAsCreator(emrPatient);
+        systemUserService.setOpenmrsShrSystemUserAsCreator(emrPatient);
         addPatientToIdMapping(patient, mciPatient.getHealthId());
         return emrPatient;
     }
@@ -194,8 +194,8 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, feed);
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
-        systemUserService.setOpenmrsDeamonUserAsCreator(newEmrEncounter);
-        systemUserService.setOpenmrsDeamonUserAsCreator(newEmrEncounter.getVisit());
+        systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter);
+        systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter.getVisit());
         addEncounterToIdMapping(newEmrEncounter, fhirEncounterId, healthId);
         savePatientDeathInfo(emrPatient, deathConceptsCache);
     }
@@ -242,7 +242,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         if(emrPatient.isDead()) {
             emrPatient.setCauseOfDeath(getCauseOfDeath(emrPatient, conceptCache));
             patientService.savePatient(emrPatient);
-            systemUserService.setOpenmrsDeamonUserAsCreator(emrPatient);
+            systemUserService.setOpenmrsShrSystemUserAsCreator(emrPatient);
         }
     }
 

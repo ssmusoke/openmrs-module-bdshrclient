@@ -72,7 +72,7 @@ public class PatientPush implements EventWorker {
                 return;
             }
 
-            if (systemUserService.isUpdatedByOpenMRSDaemonUser(openMrsPatient)) {
+            if (systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsPatient)) {
                 log.debug(String.format("Patient [%s] was created by SHR. Ignoring Patient Sync.",
                         openMrsPatient));
                 return;
@@ -145,7 +145,7 @@ public class PatientPush implements EventWorker {
         }
 
         patientService.savePatient(openMrsPatient);
-        systemUserService.setOpenmrsDeamonUserAsCreator(openMrsPatient);
+        systemUserService.setOpenmrsShrSystemUserAsCreator(openMrsPatient);
 
         log.debug(String.format("OpenMRS patient updated."));
     }

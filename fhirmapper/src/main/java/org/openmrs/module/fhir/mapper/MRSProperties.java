@@ -71,5 +71,6 @@ public class MRSProperties {
     public static final String GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH = "concept.causeOfDeath";
     public static final String GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH = "concept.unspecifiedCauseOfDeath";
     public static final String GLOBAL_PROPERTY_CONCEPT_SHR_HIE_FACILITY_LOCATION_TAG = "shr.hie.facilities.location.tag";
+    public static final String GLOBAL_PROPERTY__SHR_SYSTEM_USER_TAG = "shr.system.user";
     public static final String GLOBAL_PROPERTY_EMR_PRIMARY_IDENTIFIER_TYPE = "emr.primaryIdentifierType";
 }

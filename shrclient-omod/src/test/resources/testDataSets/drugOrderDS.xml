@@ -47,6 +47,8 @@
     <provider provider_id="22" person_id="2" name="shrclientsystem" creator="1" date_created="2005-01-01 00:00:00.0"
               retired="false" uuid="331c6bf8-7846-11e3-a96a-0900271c1b75"/>
 
+    <global_property property="shr.system.user" property_value="777" description="Shr System User" uuid="lkieyg88-efd9-fda3-2b99-z12aalsa677h"/>
+
     <concept_reference_source concept_source_id="1" name="ATC" creator="1" date_created="2004-08-12 00:00:00.0"
                               uuid="b5e44116-778f-11e2-ad73-903c7bb72694"/>
 

@@ -62,7 +62,7 @@ public class EncounterPush implements EventWorker {
                 log.debug(String.format("No OpenMRS encounter exists with uuid: [%s].", uuid));
                 return;
             }
-            if(systemUserService.isUpdatedByOpenMRSDaemonUser(openMrsEncounter)){
+            if(systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsEncounter)){
                 log.debug(String.format("Encounter downloaded from SHR.Ignoring encounter sync."));
                 return;
             }

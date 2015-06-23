@@ -435,4 +435,17 @@
             insert into global_property (property, description, property_value, uuid) values ('shr.hie.facilities.location.tag', 'Location tag uuid for HIE Facilities', @location_tag_id, uuid());
         </sql>
     </changeSet>
+    <changeSet id="bdshrclient-23062015-1136" author="neha" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from global_property where property = 'shr.system.user';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            set @shr_system_user_id = 0;
+
+            select user_id into @shr_system_user_id from users where system_id  = 'shrclientsystem';
+            insert into global_property (property, description, property_value, uuid) values ('shr.system.user', 'Shr System User', @shr_system_user_id, uuid());
+        </sql>
+    </changeSet>
 </databaseChangeLog>
