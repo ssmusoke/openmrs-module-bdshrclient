@@ -13,6 +13,7 @@ import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -23,8 +24,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_CLASS_LAB_SET;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_LAB_NOTES;
@@ -88,16 +87,12 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     private Order getOrder(DiagnosticReport diagnosticReport, Concept concept) {
         List<ResourceReference> requestDetail = diagnosticReport.getRequestDetail();
         for (ResourceReference reference : requestDetail) {
-            String encounterUrl = reference.getReferenceSimple();
-            Pattern p = Pattern.compile("http:\\/\\/(.*)\\/patients\\/(.*)\\/encounters\\/(.*)");
-            Matcher matcher = p.matcher(encounterUrl);
-            if (matcher.matches()) {
-                String shrEncounterId = matcher.group(3);
-                if (!shrEncounterId.isEmpty()) {
-                    IdMapping orderEncounterIdMapping = idMappingsRepository.findByExternalId(shrEncounterId);
-                    Encounter orderEncounter = encounterService.getEncounterByUuid(orderEncounterIdMapping.getInternalId());
-                    return findOrderFromEncounter(orderEncounter.getOrders(), concept);
-                }
+            String requestDetailReference = reference.getReferenceSimple();
+            if (requestDetailReference.startsWith("http://") || requestDetailReference.startsWith("https://")) {
+                String shrEncounterId = new EntityReference().parse(Encounter.class, requestDetailReference);
+                IdMapping orderEncounterIdMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+                Encounter orderEncounter = encounterService.getEncounterByUuid(orderEncounterIdMapping.getInternalId());
+                return findOrderFromEncounter(orderEncounter.getOrders(), concept);
             }
         }
         return null;

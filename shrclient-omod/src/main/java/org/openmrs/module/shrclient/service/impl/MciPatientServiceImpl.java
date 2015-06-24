@@ -186,7 +186,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     @Override
     public void createOrUpdateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId, Map<String, Concept> deathConceptsCache) throws Exception {
-        String fhirEncounterId = encounterBundle.getEncounterId();
+        String fhirEncounterId = StringUtils.substringAfter(encounterBundle.getTitle(), "Encounter:");
         AtomFeed feed = encounterBundle.getResourceOrFeed().getFeed();
         logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), fhirEncounterId));
 

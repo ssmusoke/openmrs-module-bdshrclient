@@ -58,6 +58,11 @@ public class EntityReference {
         protected String create(String id, SystemProperties systemProperties) {
             return "urn:" +  id;
         }
+
+        @Override
+        protected String parseUrl(String encounterUrl) {
+            return StringUtils.substringAfterLast(encounterUrl, "/");
+        }
     }
 
     private static class FacilityReference extends EntityReference {

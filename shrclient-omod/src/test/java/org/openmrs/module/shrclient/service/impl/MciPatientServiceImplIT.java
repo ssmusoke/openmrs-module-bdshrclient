@@ -218,6 +218,8 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         bundle.setEncounterId(shrEncounterId);
         bundle.setPublishedDate(new Date().toString());
         bundle.setHealthId(healthId);
+        bundle.setLink("http://shr.com/patients/" + healthId + "/encounters/" + shrEncounterId);
+        bundle.setTitle("Encounter:" + shrEncounterId);
         bundle.addContent(loadSampleFHIREncounter(encounterBundleFilePath, springContext));
         bundles.add(bundle);
         return bundles;
