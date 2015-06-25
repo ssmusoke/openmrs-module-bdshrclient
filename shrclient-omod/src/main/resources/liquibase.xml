@@ -448,4 +448,54 @@
             insert into global_property (property, description, property_value, uuid) values ('shr.system.user', 'Shr System User', @shr_system_user_id, uuid());
         </sql>
     </changeSet>
+    <changeSet id="bdshrclient-25062015-1536" author="neha,angshu" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="shr_id_mapping"></tableExists>
+            </not>
+        </preConditions>
+        <comment>Create a mapping table for external id to internal id mapping</comment>
+        <createTable tableName="shr_id_mapping">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="internal_id" type="varchar(50)"></column>
+            <column name="external_id" type="varchar(50)"></column>
+            <column name="type" type="varchar(50)"></column>
+            <column name="uri" type="varchar(150)"></column>
+        </createTable>
+    </changeSet>
+    <changeSet id="bdshrclient-25062015-1545" author="neha,angshu" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_shr_id_mapping_internal_id"/>
+            </not>
+        </preConditions>
+        <comment>Creating index shr_id_mapping.internal_id</comment>
+        <createIndex indexName="idx_shr_id_mapping_internal_id" tableName="shr_id_mapping">
+            <column name="internal_id" type="varchar(50)"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="bdshrclient-25062015-1546" author="neha,angshu" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_shr_id_mapping_external_id"/>
+            </not>
+        </preConditions>
+        <comment>Creating index shr_id_mapping.external_id</comment>
+        <createIndex indexName="idx_shr_id_mapping_external_id" tableName="shr_id_mapping">
+            <column name="external_id" type="varchar(50)"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="bdshrclient-25062015-1547" author="neha,angshu" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="last_sync_datetime" tableName="shr_id_mapping"/>
+            </not>
+        </preConditions>
+        <comment>Creating column shr_id_mapping.last_sync_datetime</comment>
+        <addColumn tableName="shr_id_mapping">
+            <column name="last_sync_datetime" type="datetime" defaultValueComputed="now()"></column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
