@@ -13,7 +13,6 @@ import org.openmrs.module.atomfeed.transaction.support.AtomFeedSpringTransaction
 import org.springframework.aop.AfterReturningAdvice;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.List;
@@ -23,8 +22,8 @@ public class ShrEncounterAdvice implements AfterReturningAdvice {
 
     private static final Logger log = Logger.getLogger(ShrEncounterAdvice.class);
     public static final String ENCOUNTER_REST_URL = "/openmrs/ws/rest/v1/encounter/%s?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))";
-    public static final String TITLE = "Encounter";
-    public static final String CATEGORY = "Encounter";
+    public static final String TITLE = "OpenMRSEncounter";
+    public static final String CATEGORY = "OpenMRSEncounter";
     private static final String SAVE_METHOD = "saveEncounter";
     private final EventService eventService;
     private AtomFeedSpringTransactionManager atomFeedSpringTransactionManager;
@@ -42,8 +41,13 @@ public class ShrEncounterAdvice implements AfterReturningAdvice {
     @Override
     public void afterReturning(Object returnValue, Method method, Object[] args, Object target) throws Throwable {
         if (!method.getName().equals(SAVE_METHOD)) return;
-        Object encounterUuid = PropertyUtils.getProperty(returnValue, "uuid");
+        final Object encounterUuid = PropertyUtils.getProperty(returnValue, "uuid");
         if (encounterUuid == null) return;
+        final boolean alreadyRaisedEvent = EncounterAdviceState.hasAlreadyProcessedEncounter((String) encounterUuid);
+        if (alreadyRaisedEvent) {
+            //we have already raised an event. return
+            return;
+        }
 
         String url = String.format(ENCOUNTER_REST_URL, encounterUuid);
         final Event event = new Event(UUID.randomUUID().toString(), TITLE, DateTime.now(), (URI) null, url, CATEGORY);
@@ -53,6 +57,7 @@ public class ShrEncounterAdvice implements AfterReturningAdvice {
                     @Override
                     protected void doInTransaction() {
                         eventService.notify(event);
+                        EncounterAdviceState.addProcessedEncounter((String) encounterUuid);
                     }
 
                     @Override

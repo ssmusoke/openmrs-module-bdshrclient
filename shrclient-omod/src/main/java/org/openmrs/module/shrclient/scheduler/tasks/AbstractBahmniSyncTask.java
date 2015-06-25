@@ -23,7 +23,7 @@ import java.net.URISyntaxException;
 public abstract class AbstractBahmniSyncTask extends AbstractTask {
     private static final Logger log = Logger.getLogger(AbstractBahmniSyncTask.class);
     public static final String OPENMRS_PATIENT_FEED_URI = "openmrs://events/patient/recent";
-    public static final String OPENMRS_ENCOUNTER_FEED_URI = "openmrs://events/encounter/recent";
+    public static final String OPENMRS_ENCOUNTER_FEED_URI = "openmrs://events/OpenMRSEncounter/recent";
 
     @Override
     public void execute() {
