@@ -1,6 +1,7 @@
 package org.openmrs.module.shrclient.advice;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.server.repository.jdbc.AllEventRecordsJdbcImpl;
 import org.ict4h.atomfeed.server.service.Event;
@@ -27,15 +28,18 @@ public class ShrEncounterAdvice implements AfterReturningAdvice {
     private static final String SAVE_METHOD = "saveEncounter";
     private final EventService eventService;
     private AtomFeedSpringTransactionManager atomFeedSpringTransactionManager;
+    private EncounterAdviceState encounterAdviceState;
 
     public ShrEncounterAdvice() {
         atomFeedSpringTransactionManager = findTransactionManager();
         eventService = getEventService(atomFeedSpringTransactionManager);
+        encounterAdviceState = new EncounterAdviceState();
     }
 
-    public ShrEncounterAdvice(AtomFeedSpringTransactionManager atomFeedSpringTransactionManager, EventService eventService) {
+    public ShrEncounterAdvice(AtomFeedSpringTransactionManager atomFeedSpringTransactionManager, EventService eventService, EncounterAdviceState encounterAdviceState) {
         this.atomFeedSpringTransactionManager = atomFeedSpringTransactionManager;
         this.eventService = eventService;
+        this.encounterAdviceState = encounterAdviceState;
     }
 
     @Override
@@ -43,21 +47,24 @@ public class ShrEncounterAdvice implements AfterReturningAdvice {
         if (!method.getName().equals(SAVE_METHOD)) return;
         final Object encounterUuid = PropertyUtils.getProperty(returnValue, "uuid");
         if (encounterUuid == null) return;
-        final boolean alreadyRaisedEvent = EncounterAdviceState.hasAlreadyProcessedEncounter((String) encounterUuid);
+        final boolean alreadyRaisedEvent = encounterAdviceState.hasAlreadyProcessedEncounter((String) encounterUuid);
         if (alreadyRaisedEvent) {
-            //we have already raised an event. return
+            //we have already raised an event
             return;
         }
 
         String url = String.format(ENCOUNTER_REST_URL, encounterUuid);
         final Event event = new Event(UUID.randomUUID().toString(), TITLE, DateTime.now(), (URI) null, url, CATEGORY);
-
+        Object encounterType = PropertyUtils.getProperty(returnValue, "encounterType");
+        final String encounterTypeName = encounterType != null ? (String) PropertyUtils.getProperty(encounterType, "name") : null;
         atomFeedSpringTransactionManager.executeWithTransaction(
                 new AFTransactionWorkWithoutResult() {
                     @Override
                     protected void doInTransaction() {
                         eventService.notify(event);
-                        EncounterAdviceState.addProcessedEncounter((String) encounterUuid);
+                        if (shouldAddToEncounterAdviceState(encounterTypeName)) {
+                            encounterAdviceState.addProcessedEncounter((String) encounterUuid);
+                        }
                     }
 
                     @Override
@@ -66,6 +73,17 @@ public class ShrEncounterAdvice implements AfterReturningAdvice {
                     }
                 }
         );
+    }
+
+    /*
+    * We do not add encounter uuid to thread local when the encounter types are as follows.
+    * These encounter types are getting created from OpenElis only.
+    * Assumption : Encounters created through OpenElis are saved only once.
+    * */
+    private boolean shouldAddToEncounterAdviceState(String encounterTypeName) {
+        return !(StringUtils.equals(encounterTypeName, "VALIDATION NOTES") ||
+                StringUtils.equals(encounterTypeName, "LAB_RESULT") ||
+                StringUtils.equals(encounterTypeName, "INVESTIGATION"));
     }
 
     private AtomFeedSpringTransactionManager findTransactionManager() {

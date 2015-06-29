@@ -35,6 +35,17 @@
         <class>org.openmrs.module.shrclient.advice.ShrEncounterAdvice</class>
     </advice>
 
+	<!-- Filters -->
+	<filter>
+		<filter-name>ShrEncounterAdviceFilter</filter-name>
+		<filter-class>org.openmrs.module.shrclient.advice.ShrEncounterAdviceFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>ShrEncounterAdviceFilter</filter-name>
+		<url-pattern>/ws/rest/v1/bahmnicore/bahmniencounter</url-pattern>
+	</filter-mapping>
+	<!-- Filters -->
+
 	<!-- Maps hibernate file's, if present -->
 	<!--
 	<mappingFiles>

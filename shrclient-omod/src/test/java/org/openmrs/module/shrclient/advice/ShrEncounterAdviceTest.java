@@ -16,14 +16,17 @@ import java.lang.reflect.Method;
 import static junit.framework.TestCase.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class ShrEncounterAdviceTest {
 
     @Mock
-    private AtomFeedSpringTransactionManager atomFeedSpringTransactionManager;
+    private AtomFeedSpringTransactionManager mockAtomFeedSpringTransactionManager;
     @Mock
-    private EventService eventService;
+    private EventService mockEventService;
+    @Mock
+    private EncounterAdviceState mockEncounterAdviceState;
 
     private ArgumentCaptor<AFTransactionWorkWithoutResult> captor = ArgumentCaptor.forClass(AFTransactionWorkWithoutResult.class);
 
@@ -34,7 +37,7 @@ public class ShrEncounterAdviceTest {
     @Before
     public void setup() {
         initMocks(this);
-        encounterSaveInterceptor = new ShrEncounterAdvice(atomFeedSpringTransactionManager, eventService);
+        encounterSaveInterceptor = new ShrEncounterAdvice(mockAtomFeedSpringTransactionManager, mockEventService, mockEncounterAdviceState);
         encounter = new Encounter();
         encounter.setUuid("uuid");
     }
@@ -43,21 +46,31 @@ public class ShrEncounterAdviceTest {
     public void shouldPublishUpdateEventToFeedAfterSaveEncounter() throws Throwable {
         Method method = EncounterService.class.getMethod("saveEncounter", Encounter.class);
         Object[] objects = new Object[]{encounter};
+        when(mockEncounterAdviceState.hasAlreadyProcessedEncounter("uuid")).thenReturn(false);
 
         encounterSaveInterceptor.afterReturning(encounter, method, objects, null);
-        verify(atomFeedSpringTransactionManager).executeWithTransaction(any(AFTransactionWorkWithoutResult.class));
+        verify(mockAtomFeedSpringTransactionManager).executeWithTransaction(any(AFTransactionWorkWithoutResult.class));
     }
 
     @Test
     public void shouldSaveEventInTheSameTransactionAsTheTrigger() throws Throwable {
         Method method = EncounterService.class.getMethod("saveEncounter", Encounter.class);
         Object[] objects = new Object[]{encounter};
+        when(mockEncounterAdviceState.hasAlreadyProcessedEncounter("uuid")).thenReturn(false);
 
         encounterSaveInterceptor.afterReturning(encounter, method, objects, null);
-        verify(atomFeedSpringTransactionManager).executeWithTransaction(captor.capture());
+        verify(mockAtomFeedSpringTransactionManager).executeWithTransaction(captor.capture());
 
         assertEquals(AFTransactionWork.PropagationDefinition.PROPAGATION_REQUIRED, captor.getValue().getTxPropagationDefinition());
     }
 
+    @Test
+    public void shouldProcessEncounterIfNotAlreadyProcessed() throws Throwable {
+        Method method = EncounterService.class.getMethod("saveEncounter", Encounter.class);
+        Object[] objects = new Object[]{encounter};
+        when(mockEncounterAdviceState.hasAlreadyProcessedEncounter("uuid")).thenReturn(false);
 
+        encounterSaveInterceptor.afterReturning(encounter, method, objects, null);
+        verify(mockAtomFeedSpringTransactionManager).executeWithTransaction(captor.capture());
+    }
 }

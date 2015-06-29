@@ -2,6 +2,7 @@ package org.openmrs.module.shrclient.handlers;
 
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.ict4h.atomfeed.client.domain.Event;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -20,6 +21,7 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
@@ -110,18 +112,69 @@ public class EncounterPushTest {
         final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + uuid
                 + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
         org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter(uuid);
+        DateTime dateCreated = new DateTime(openMrsEncounter.getDateCreated());
+        openMrsEncounter.setDateChanged(dateCreated.plusMinutes(10).toDate());
         final AtomFeed atomFeed = new AtomFeed();
 
         when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
-
+        when(propertiesReader.getShrBaseUrl()).thenReturn("http://172.18.46.54:8080");
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
-        when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid","encounter",null));
+        when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid","encounter",null, openMrsEncounter.getDateCreated()));
         when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(atomFeed);
 
         encounterPush.process(event);
 
         verify(shrClient).put("patients/1234567890123/encounters/shr-uuid", atomFeed);
-        verify(idMappingsRepository,never()).saveMapping(any(IdMapping.class));
+        verify(idMappingsRepository,times(1)).saveMapping(any(IdMapping.class));
+    }
+
+    @Test
+    public void shouldNotSyncEncounterIfUpdatedBeforeLastSync() throws Exception {
+        final String uuid = "123abc456";
+
+        final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + uuid
+                + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
+        org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter(uuid);
+        DateTime dateCreated = new DateTime(new Date()).minusMinutes(20);
+        openMrsEncounter.setDateCreated(dateCreated.toDate());
+        openMrsEncounter.setDateChanged(dateCreated.plusMinutes(10).toDate());
+        Date lastSyncDateTime = dateCreated.plusMinutes(15).toDate();
+        final AtomFeed atomFeed = new AtomFeed();
+
+        when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
+        when(propertiesReader.getShrBaseUrl()).thenReturn("http://172.18.46.54:8080");
+        when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
+        when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid","encounter",null, lastSyncDateTime));
+        when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(atomFeed);
+
+        encounterPush.process(event);
+
+        verify(shrClient, never()).put("patients/1234567890123/encounters/shr-uuid", atomFeed);
+    }
+
+    @Test
+    public void shouldUpdateEncounterIfUpdatedAfterLastSync() throws Exception {
+        final String uuid = "123abc456";
+
+        final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + uuid
+                + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
+        org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter(uuid);
+        DateTime dateCreated = new DateTime(new Date()).minusMinutes(20);
+        openMrsEncounter.setDateCreated(dateCreated.toDate());
+        openMrsEncounter.setDateChanged(dateCreated.plusMinutes(10).toDate());
+        Date lastSyncDateTime = dateCreated.plusMinutes(5).toDate();
+        final AtomFeed atomFeed = new AtomFeed();
+
+        when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
+        when(propertiesReader.getShrBaseUrl()).thenReturn("http://172.18.46.54:8080");
+        when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
+        when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid","encounter",null, lastSyncDateTime));
+        when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(atomFeed);
+
+        encounterPush.process(event);
+
+        verify(shrClient, times(1)).put("patients/1234567890123/encounters/shr-uuid", atomFeed);
+        verify(idMappingsRepository,times(1)).saveMapping(any(IdMapping.class));
     }
 
     @Test
@@ -147,24 +200,25 @@ public class EncounterPushTest {
         verify(idMappingsRepository,never()).saveMapping(any(IdMapping.class));
     }
 
-    private org.openmrs.Encounter getOpenMrsEncounter(String uuid) {
-        org.openmrs.Encounter openMrsEncounter = new org.openmrs.Encounter();
-        openMrsEncounter.setUuid(uuid);
-        openMrsEncounter.setCreator(new User(1));
-        final Patient patient = new Patient();
-        openMrsEncounter.setPatient(patient);
-        final PersonAttributeType personAttributeType = new PersonAttributeType();
-        personAttributeType.setName(Constants.HEALTH_ID_ATTRIBUTE);
-        patient.setAttributes(new HashSet<>(Arrays.asList(new PersonAttribute(personAttributeType, "1234567890123"))));
-        return openMrsEncounter;
-    }
-
     @Test
     public void shouldGetEncounterUuidFromEventContent() {
         final String uuid = "123abc456";
         final String content = "/openmrs/ws/rest/v1/encounter/" + uuid +
                 "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))";
         assertEquals(uuid, encounterPush.getUuid(content));
+    }
+
+    private org.openmrs.Encounter getOpenMrsEncounter(String uuid) {
+        org.openmrs.Encounter openMrsEncounter = new org.openmrs.Encounter();
+        openMrsEncounter.setUuid(uuid);
+        openMrsEncounter.setCreator(new User(1));
+        openMrsEncounter.setDateCreated(new Date());
+        final Patient patient = new Patient();
+        openMrsEncounter.setPatient(patient);
+        final PersonAttributeType personAttributeType = new PersonAttributeType();
+        personAttributeType.setName(Constants.HEALTH_ID_ATTRIBUTE);
+        patient.setAttributes(new HashSet<>(Arrays.asList(new PersonAttribute(personAttributeType, "1234567890123"))));
+        return openMrsEncounter;
     }
 
     private Properties getShrProperties(String facilityId) {

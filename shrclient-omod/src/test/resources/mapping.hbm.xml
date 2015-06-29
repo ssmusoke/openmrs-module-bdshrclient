@@ -15,6 +15,9 @@
         <property name="externalId" column="external_id" type="java.lang.String" not-null="true" length="50"/>
         <property name="type" column="type" type="java.lang.String" not-null="true" length="50"/>
         <property name="uri" column="uri" type="java.lang.String" not-null="false" length="150" />
+        <property name="lastSyncDateTime" type="java.util.Date" >
+            <column name="last_sync_datetime" default="now()" length="150"></column>
+        </property>
     </class>
     <class name="FacilityCatchment" table="facility_catchment">
         <composite-id>

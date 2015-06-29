@@ -1,8 +1,5 @@
 package org.openmrs.module.shrclient.advice;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * This is a hack!
  * This is done so that multiple events is not created for the same encounter during the encounter processing.
@@ -11,19 +8,20 @@ import java.util.List;
  *  because the SHREncounterAdvice intercepts EncounterService.save()
  */
 public class EncounterAdviceState {
-    private static final ThreadLocal<List<String>> processedEncounters = new ThreadLocal<List<String>>() {
-        @Override
-        protected List<String> initialValue() {
-            return new ArrayList<String>();
-        }
-    };
+    private static ThreadLocal<String> processingEncounterIdThread;
 
-    public static void addProcessedEncounter(String encounterId) {
-        List<String> encounterIds = processedEncounters.get();
-        encounterIds.add(encounterId);
+    public void addProcessedEncounter(String encounterId) {
+        if(processingEncounterIdThread == null)
+            processingEncounterIdThread = new ThreadLocal<String>();
+        processingEncounterIdThread.set(encounterId);
     }
-    public static boolean hasAlreadyProcessedEncounter(String encounterId) {
-        List<String> encounterIds = processedEncounters.get();
-        return encounterIds.contains(encounterId);
+    public boolean hasAlreadyProcessedEncounter(String encounterId) {
+        if(processingEncounterIdThread == null) return false;
+        String processsingEncounterId = processingEncounterIdThread.get();
+        return (processsingEncounterId != null) && processsingEncounterId.trim().equals(encounterId) ? true : false;
+    }
+
+    public void reset() {
+        processingEncounterIdThread.remove();
     }
 }

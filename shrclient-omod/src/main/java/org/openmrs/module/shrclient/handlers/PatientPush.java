@@ -9,6 +9,7 @@ import org.openmrs.PersonAttributeType;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
@@ -21,6 +22,7 @@ import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.util.SystemProperties;
 
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,20 +63,8 @@ public class PatientPush implements EventWorker {
             log.debug("Patient uuid: [" + uuid + "]");
 
             org.openmrs.Patient openMrsPatient = patientService.getPatientByUuid(uuid);
-            if (openMrsPatient == null) {
-                log.debug(String.format("No OpenMRS patient exists with uuid: [%s].", uuid));
-                return;
-            }
 
-            if (event.getUpdatedDate() != null && openMrsPatient.getDateChanged() != null &&
-                    openMrsPatient.getDateChanged().after(event.getUpdatedDate())) {
-                log.debug("The patient has been updated after this event again");
-                return;
-            }
-
-            if (systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsPatient)) {
-                log.debug(String.format("Patient [%s] was created by SHR. Ignoring Patient Sync.",
-                        openMrsPatient));
+            if (!shouldUploadPatient(openMrsPatient)) {
                 return;
             }
 
@@ -90,11 +80,38 @@ public class PatientPush implements EventWorker {
                 String healthId = healthIdAttribute.getValue();
                 String url = StringUtil.ensureSuffix(propertiesReader.getMciPatientContext(), "/") + healthId;
                 MciPatientUpdateResponse response = updatePatient(patient, url);
+                saveIdMapping(openMrsPatient, healthId);
             }
         } catch (Exception e) {
             log.error("Error while processing patient sync event.", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private boolean shouldUploadPatient(org.openmrs.Patient openMrsPatient) {
+        if (openMrsPatient == null) {
+            log.debug(String.format("No OpenMRS patient exists with uuid: [%s].", openMrsPatient.getUuid()));
+            return false;
+        }
+
+        if (systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsPatient)) {
+            log.debug(String.format("Patient [%s] was created by SHR. Ignoring Patient Sync.",
+                    openMrsPatient));
+            return false;
+        }
+
+        IdMapping mapping = idMappingsRepository.findByInternalId(openMrsPatient.getUuid());
+        if (mapping == null) return true;
+        if (mapping.getLastSyncDateTime() == null) return true;
+
+        Date lastUpdatedPatientDate = openMrsPatient.getDateChanged() != null ? openMrsPatient.getDateChanged() : openMrsPatient.getDateCreated();
+        if (DateUtil.isLaterThan(lastUpdatedPatientDate, mapping.getLastSyncDateTime()) ) {
+            return true;
+        } else {
+            log.debug("The patient has been updated after this event again");
+        }
+
+        return false;
     }
 
     private MciPatientUpdateResponse updatePatient(Patient patient, String url) throws IdentityUnauthorizedException {
@@ -138,23 +155,22 @@ public class PatientPush implements EventWorker {
             healthIdAttribute.setAttributeType(healthAttrType);
             healthIdAttribute.setValue(healthId);
             openMrsPatient.addAttribute(healthIdAttribute);
-            addPatientToIdMapping(openMrsPatient, healthId);
 
         } else {
             healthIdAttribute.setValue(healthId);
         }
-
+        saveIdMapping(openMrsPatient, healthId);
         patientService.savePatient(openMrsPatient);
         systemUserService.setOpenmrsShrSystemUserAsCreator(openMrsPatient);
 
         log.debug(String.format("OpenMRS patient updated."));
     }
 
-    private void addPatientToIdMapping(org.openmrs.Patient emrPatient, String healthId) {
+    private void saveIdMapping(org.openmrs.Patient emrPatient, String healthId) {
         String patientUuid = emrPatient.getUuid();
         String url = new EntityReference().build(org.openmrs.Patient.class, getSystemProperties(), healthId);
-        idMappingsRepository.saveMapping(new IdMapping(patientUuid, healthId, ID_MAPPING_PATIENT_TYPE, url));
-
+        Date dateUpdated = emrPatient.getDateChanged() != null ? emrPatient.getDateChanged() : emrPatient.getDateCreated();
+        idMappingsRepository.saveMapping(new IdMapping(patientUuid, healthId, ID_MAPPING_PATIENT_TYPE, url, dateUpdated));
     }
 
     private SystemProperties getSystemProperties() {

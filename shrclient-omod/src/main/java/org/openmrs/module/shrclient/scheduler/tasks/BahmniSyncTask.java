@@ -14,10 +14,8 @@ public class BahmniSyncTask extends AbstractBahmniSyncTask {
     protected void executeBahmniTask(PatientPush patientPush, EncounterPush encounterPush) {
         log.debug("SCHEDULED JOB : SHR Patient Sync Task");
         try {
-
             getFeedClient(OPENMRS_PATIENT_FEED_URI, patientPush).processEvents();
             getFeedClient(OPENMRS_ENCOUNTER_FEED_URI, encounterPush).processEvents();
-
         } catch (URISyntaxException e) {
             log.error(e.getMessage());
         }

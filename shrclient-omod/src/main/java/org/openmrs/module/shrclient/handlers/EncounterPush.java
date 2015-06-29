@@ -13,7 +13,7 @@ import org.openmrs.PersonAttribute;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
 import org.openmrs.module.fhir.utils.Constants;
-import org.openmrs.module.shrclient.util.SystemUserService;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.EncounterResponse;
@@ -22,8 +22,10 @@ import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SHRClient;
 import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.util.SystemProperties;
+import org.openmrs.module.shrclient.util.SystemUserService;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,25 +64,50 @@ public class EncounterPush implements EventWorker {
                 log.debug(String.format("No OpenMRS encounter exists with uuid: [%s].", uuid));
                 return;
             }
-            if(systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsEncounter)){
-                log.debug(String.format("Encounter downloaded from SHR.Ignoring encounter sync."));
+            IdMapping mapping = getEncounterMapping(openMrsEncounter);
+            if (!shouldUploadEncounter(openMrsEncounter, mapping)) {
                 return;
             }
+
             String healthId = getHealthIdAttribute(openMrsEncounter.getPatient());
             log.debug("Uploading patient encounter to SHR : [ " + openMrsEncounter.getUuid() + "]");
-            String shrEncounterId = getEncounterExternalId(openMrsEncounter);
+            String shrEncounterId = mapping != null ? mapping.getExternalId() : null;
             if (shrEncounterId != null) {
                 pushEncounterUpdate(openMrsEncounter, shrEncounterId, healthId);
             } else {
                 shrEncounterId = pushEncounterCreate(openMrsEncounter, healthId);
-                idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), shrEncounterId,
-                        Constants.ID_MAPPING_ENCOUNTER_TYPE, formatEncounterUrl(healthId, shrEncounterId)));
             }
+            saveIdMapping(openMrsEncounter, healthId, shrEncounterId);
         } catch (Exception e) {
             log.error("Error while processing encounter sync event.", e);
             throw new RuntimeException(e);
         }
     }
+
+    private void saveIdMapping(Encounter openMrsEncounter, String healthId, String shrEncounterId) {
+        idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), shrEncounterId,
+                Constants.ID_MAPPING_ENCOUNTER_TYPE, formatEncounterUrl(healthId, shrEncounterId), new Date()));
+    }
+
+    private boolean shouldUploadEncounter(Encounter openMrsEncounter, IdMapping mapping) {
+        if(systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsEncounter)){
+            log.debug(String.format("Encounter downloaded from SHR.Ignoring encounter sync."));
+            return false;
+        }
+        if (mapping == null) return true;
+        if (mapping.getLastSyncDateTime() == null) return true;
+
+        Date lastUpdatedEncounterDate = openMrsEncounter.getDateChanged() != null ? openMrsEncounter.getDateChanged() : openMrsEncounter.getDateCreated();
+        if (DateUtil.isLaterThan(lastUpdatedEncounterDate, mapping.getLastSyncDateTime()) ) {
+            return true;
+        } else {
+            log.debug("The encounter has been updated after this event again");
+        }
+
+        return false;
+    }
+
+
 
     private String formatEncounterUrl(String healthId, String externalUuid) {
         String shrBaseUrl = StringUtil.ensureSuffix(propertiesReader.getShrBaseUrl(), "/");
@@ -150,10 +177,8 @@ public class EncounterPush implements EventWorker {
         return healthIdAttribute.getValue();
     }
 
-    private String getEncounterExternalId(Encounter openMrsEncounter) {
-        IdMapping idMapping = idMappingsRepository.findByInternalId(openMrsEncounter.getUuid());
-        return idMapping != null ? idMapping.getExternalId() : null;
-
+    private IdMapping getEncounterMapping(Encounter openMrsEncounter) {
+        return idMappingsRepository.findByInternalId(openMrsEncounter.getUuid());
     }
 
     String getUuid(String content) {

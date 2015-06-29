@@ -5,7 +5,6 @@ import org.ict4h.atomfeed.client.service.EventWorker;
 import org.ict4h.atomfeed.client.service.FeedClient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
-import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.feeds.openmrs.OpenMRSFeedClientFactory;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.handlers.EncounterPush;
@@ -16,6 +15,7 @@ import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;
 import org.openmrs.module.shrclient.util.PlatformUtil;
 import org.openmrs.module.shrclient.util.PropertiesReader;
+import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.scheduler.tasks.AbstractTask;
 
 import java.net.URISyntaxException;
@@ -36,7 +36,6 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
         EncounterPush encounterPush = getEncounterRegistry(propertiesReader, systemUserService, clientRegistry);
         executeBahmniTask(patientPush, encounterPush);
     }
-
 
     protected abstract void executeBahmniTask(PatientPush patientPush, EncounterPush encounterPush);
 

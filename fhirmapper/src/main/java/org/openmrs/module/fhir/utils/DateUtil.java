@@ -83,4 +83,16 @@ public class DateUtil {
         SimpleDateFormat dateFormat = new SimpleDateFormat(format);
         return dateFormat.format(date);
     }
+
+    public static boolean isLaterThan(Date firstDate, Date secondDate) {
+        Calendar firstTime = Calendar.getInstance();
+        firstTime.setTime(firstDate);
+        firstTime.set(Calendar.MILLISECOND, 0);
+
+        Calendar secondTime = Calendar.getInstance();
+        secondTime.setTime(secondDate);
+        secondTime.set(Calendar.MILLISECOND, 0);
+
+        return firstTime.after(secondTime);
+    }
 }

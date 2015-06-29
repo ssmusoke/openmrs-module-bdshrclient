@@ -3,6 +3,8 @@ package org.openmrs.module.shrclient.model;
 import org.apache.commons.lang.Validate;
 import org.apache.log4j.Logger;
 
+import java.util.Date;
+
 public class IdMapping {
 
     private Logger logger = Logger.getLogger(IdMapping.class);
@@ -12,8 +14,9 @@ public class IdMapping {
     private String externalId;
     private String type;
     private String uri;
+    private Date lastSyncDateTime;
 
-    public IdMapping(String internalId, String externalId, String type, String uri) {
+    public IdMapping(String internalId, String externalId, String type, String uri, Date lastSyncDateTime) {
         Validate.notNull(internalId);
         Validate.notNull(externalId);
         Validate.notNull(type);
@@ -21,6 +24,11 @@ public class IdMapping {
         this.externalId = externalId;
         this.type = type;
         this.uri = uri;
+        this.lastSyncDateTime = lastSyncDateTime;
+    }
+
+    public IdMapping(String internalId, String externalId, String type, String uri) {
+        this(internalId, externalId, type, uri, null);
     }
 
     public IdMapping() {
@@ -64,5 +72,13 @@ public class IdMapping {
 
     public void setUri(String uri) {
         this.uri = uri;
+    }
+
+    public Date getLastSyncDateTime() {
+        return lastSyncDateTime;
+    }
+
+    public void setLastSyncDateTime(Date lastSyncDateTime) {
+        this.lastSyncDateTime = lastSyncDateTime;
     }
 }
