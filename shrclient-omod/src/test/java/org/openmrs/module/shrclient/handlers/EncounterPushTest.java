@@ -7,17 +7,21 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.openmrs.*;
+import org.openmrs.Encounter;
+import org.openmrs.Patient;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
+import org.openmrs.User;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
 import org.openmrs.module.fhir.utils.Constants;
-import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SHRClient;
 import org.openmrs.module.shrclient.util.SystemProperties;
+import org.openmrs.module.shrclient.util.SystemUserService;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -67,7 +71,8 @@ public class EncounterPushTest {
                 encounterService,
                 propertiesReader, compositionBundle,
                 idMappingsRepository,
-                clientRegistry, systemUserService);
+                clientRegistry,
+                systemUserService);
     }
 
     @Test
@@ -119,62 +124,14 @@ public class EncounterPushTest {
         when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
         when(propertiesReader.getShrBaseUrl()).thenReturn("http://172.18.46.54:8080");
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
-        when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid","encounter",null, openMrsEncounter.getDateCreated()));
+        when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid", "encounter", null, openMrsEncounter.getDateCreated()));
         when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(atomFeed);
 
         encounterPush.process(event);
 
         verify(shrClient).put("patients/1234567890123/encounters/shr-uuid", atomFeed);
-        verify(idMappingsRepository,times(1)).saveMapping(any(IdMapping.class));
-    }
+        verify(idMappingsRepository, times(1)).saveMapping(any(IdMapping.class));
 
-    @Test
-    public void shouldNotSyncEncounterIfUpdatedBeforeLastSync() throws Exception {
-        final String uuid = "123abc456";
-
-        final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + uuid
-                + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
-        org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter(uuid);
-        DateTime dateCreated = new DateTime(new Date()).minusMinutes(20);
-        openMrsEncounter.setDateCreated(dateCreated.toDate());
-        openMrsEncounter.setDateChanged(dateCreated.plusMinutes(10).toDate());
-        Date lastSyncDateTime = dateCreated.plusMinutes(15).toDate();
-        final AtomFeed atomFeed = new AtomFeed();
-
-        when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
-        when(propertiesReader.getShrBaseUrl()).thenReturn("http://172.18.46.54:8080");
-        when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
-        when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid","encounter",null, lastSyncDateTime));
-        when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(atomFeed);
-
-        encounterPush.process(event);
-
-        verify(shrClient, never()).put("patients/1234567890123/encounters/shr-uuid", atomFeed);
-    }
-
-    @Test
-    public void shouldUpdateEncounterIfUpdatedAfterLastSync() throws Exception {
-        final String uuid = "123abc456";
-
-        final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + uuid
-                + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
-        org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter(uuid);
-        DateTime dateCreated = new DateTime(new Date()).minusMinutes(20);
-        openMrsEncounter.setDateCreated(dateCreated.toDate());
-        openMrsEncounter.setDateChanged(dateCreated.plusMinutes(10).toDate());
-        Date lastSyncDateTime = dateCreated.plusMinutes(5).toDate();
-        final AtomFeed atomFeed = new AtomFeed();
-
-        when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
-        when(propertiesReader.getShrBaseUrl()).thenReturn("http://172.18.46.54:8080");
-        when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
-        when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid","encounter",null, lastSyncDateTime));
-        when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(atomFeed);
-
-        encounterPush.process(event);
-
-        verify(shrClient, times(1)).put("patients/1234567890123/encounters/shr-uuid", atomFeed);
-        verify(idMappingsRepository,times(1)).saveMapping(any(IdMapping.class));
     }
 
     @Test
@@ -189,7 +146,7 @@ public class EncounterPushTest {
         when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
 
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
-        when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid","encounter",null));
+        when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid", "encounter", null));
         when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(atomFeed);
         when(systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsEncounter)).thenReturn(true);
 
@@ -197,7 +154,7 @@ public class EncounterPushTest {
 
         verify(shrClient, never()).put("patients/1234567890123/encounters/shr-uuid", atomFeed);
         verify(shrClient, never()).post("patients/1234567890123/encounters/shr-uuid", atomFeed);
-        verify(idMappingsRepository,never()).saveMapping(any(IdMapping.class));
+        verify(idMappingsRepository, never()).saveMapping(any(IdMapping.class));
     }
 
     @Test

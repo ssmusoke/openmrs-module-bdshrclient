@@ -13,7 +13,6 @@ import org.openmrs.PersonAttribute;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
 import org.openmrs.module.fhir.utils.Constants;
-import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.EncounterResponse;
@@ -25,7 +24,9 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,16 +36,17 @@ public class EncounterPush implements EventWorker {
 
     private CompositionBundle compositionBundle;
     private IdMappingsRepository idMappingsRepository;
-
     private EncounterService encounterService;
     private PropertiesReader propertiesReader;
     private ClientRegistry clientRegistry;
     private SHRClient shrClient;
+    private List<String> encounterUuidsProcessed;
     private SystemUserService systemUserService;
 
     public EncounterPush(EncounterService encounterService, PropertiesReader propertiesReader,
                          CompositionBundle compositionBundle, IdMappingsRepository idMappingsRepository,
-                         ClientRegistry clientRegistry, SystemUserService systemUserService) throws IdentityUnauthorizedException {
+                         ClientRegistry clientRegistry,
+                         SystemUserService systemUserService) throws IdentityUnauthorizedException {
         this.encounterService = encounterService;
         this.propertiesReader = propertiesReader;
         this.clientRegistry = clientRegistry;
@@ -52,6 +54,7 @@ public class EncounterPush implements EventWorker {
         this.shrClient = clientRegistry.getSHRClient();
         this.compositionBundle = compositionBundle;
         this.idMappingsRepository = idMappingsRepository;
+        this.encounterUuidsProcessed = new ArrayList<>();
     }
 
     @Override
@@ -77,6 +80,7 @@ public class EncounterPush implements EventWorker {
             } else {
                 shrEncounterId = pushEncounterCreate(openMrsEncounter, healthId);
             }
+            encounterUuidsProcessed.add(openMrsEncounter.getUuid());
             saveIdMapping(openMrsEncounter, healthId, shrEncounterId);
         } catch (Exception e) {
             log.error("Error while processing encounter sync event.", e);
@@ -90,23 +94,20 @@ public class EncounterPush implements EventWorker {
     }
 
     private boolean shouldUploadEncounter(Encounter openMrsEncounter, IdMapping mapping) {
-        if(systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsEncounter)){
+        if (systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsEncounter)) {
             log.debug(String.format("Encounter downloaded from SHR.Ignoring encounter sync."));
             return false;
         }
-        if (mapping == null) return true;
-        if (mapping.getLastSyncDateTime() == null) return true;
-
-        Date lastUpdatedEncounterDate = openMrsEncounter.getDateChanged() != null ? openMrsEncounter.getDateChanged() : openMrsEncounter.getDateCreated();
-        if (DateUtil.isLaterThan(lastUpdatedEncounterDate, mapping.getLastSyncDateTime()) ) {
-            return true;
-        } else {
-            log.debug("The encounter has been updated after this event again");
+        /*
+        * To avoid processing of events for the same encounter in a job run, we store the encounter uuids processed in this job run.
+        * It is cleared once the job has finished processing.
+        */
+        if (encounterUuidsProcessed.contains(openMrsEncounter.getUuid())) {
+            log.debug(String.format("Enounter[%s] has been processed in the same job run before.", openMrsEncounter.getUuid()));
+            return false;
         }
-
-        return false;
+        return true;
     }
-
 
 
     private String formatEncounterUrl(String healthId, String externalUuid) {
@@ -193,6 +194,7 @@ public class EncounterPush implements EventWorker {
 
     @Override
     public void cleanUp(Event event) {
+
     }
 
 }

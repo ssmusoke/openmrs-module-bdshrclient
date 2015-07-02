@@ -31,7 +31,6 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
         IdentityStore identityStore = PlatformUtil.getIdentityStore();
         SystemUserService systemUserService = PlatformUtil.getRegisteredComponent(SystemUserService.class);
         ClientRegistry clientRegistry = new ClientRegistry(propertiesReader, identityStore);
-
         PatientPush patientPush = getPatientRegistry(propertiesReader, systemUserService, clientRegistry);
         EncounterPush encounterPush = getEncounterRegistry(propertiesReader, systemUserService, clientRegistry);
         executeBahmniTask(patientPush, encounterPush);
@@ -46,7 +45,8 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
                     propertiesReader,
                     PlatformUtil.getRegisteredComponent(CompositionBundle.class),
                     PlatformUtil.getIdMappingsRepository(),
-                    clientRegistry, systemUserService);
+                    clientRegistry,
+                    systemUserService);
         } catch (IdentityUnauthorizedException e) {
             throw handleInvalidIdentity(clientRegistry, e);
 

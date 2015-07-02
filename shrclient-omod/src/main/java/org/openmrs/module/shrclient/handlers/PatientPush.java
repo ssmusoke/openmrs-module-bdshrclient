@@ -9,8 +9,6 @@ import org.openmrs.PersonAttributeType;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.DateUtil;
-import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
@@ -21,8 +19,11 @@ import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.util.SystemProperties;
+import org.openmrs.module.shrclient.util.SystemUserService;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,6 +40,7 @@ public class PatientPush implements EventWorker {
     private PersonService personService;
     private PatientMapper patientMapper;
     private PropertiesReader propertiesReader;
+    private List<String> patientUuidsProcessed;
     private RestClient mciRestClient;
     private IdMappingsRepository idMappingsRepository;
 
@@ -53,6 +55,7 @@ public class PatientPush implements EventWorker {
         this.mciRestClient = clientRegistry.getMCIClient();
         this.idMappingsRepository = idMappingsRepository;
         this.clientRegistry = clientRegistry;
+        this.patientUuidsProcessed = new ArrayList<>();
     }
 
     @Override
@@ -82,6 +85,7 @@ public class PatientPush implements EventWorker {
                 MciPatientUpdateResponse response = updatePatient(patient, url);
                 saveIdMapping(openMrsPatient, healthId);
             }
+            patientUuidsProcessed.add(openMrsPatient.getUuid());
         } catch (Exception e) {
             log.error("Error while processing patient sync event.", e);
             throw new RuntimeException(e);
@@ -100,18 +104,15 @@ public class PatientPush implements EventWorker {
             return false;
         }
 
-        IdMapping mapping = idMappingsRepository.findByInternalId(openMrsPatient.getUuid());
-        if (mapping == null) return true;
-        if (mapping.getLastSyncDateTime() == null) return true;
-
-        Date lastUpdatedPatientDate = openMrsPatient.getDateChanged() != null ? openMrsPatient.getDateChanged() : openMrsPatient.getDateCreated();
-        if (DateUtil.isLaterThan(lastUpdatedPatientDate, mapping.getLastSyncDateTime()) ) {
-            return true;
-        } else {
-            log.debug("The patient has been updated after this event again");
+        /*
+        * To avoid processing of events for the same encounter in a job run, we store the encounter uuids processed in this job run.
+        * It is cleared once the job has finished processing.
+        */
+        if (patientUuidsProcessed.contains(openMrsPatient.getUuid())) {
+            log.debug(String.format("Patient[%s] has been processed in the same job run before.", openMrsPatient.getUuid()));
+            return false;
         }
-
-        return false;
+        return true;
     }
 
     private MciPatientUpdateResponse updatePatient(Patient patient, String url) throws IdentityUnauthorizedException {

@@ -1,7 +1,6 @@
 package org.openmrs.module.shrclient.handlers;
 
 import org.ict4h.atomfeed.client.domain.Event;
-import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -11,23 +10,23 @@ import org.openmrs.PersonAttributeType;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
-import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.module.shrclient.model.mci.api.MciPatientUpdateResponse;
-import org.openmrs.module.shrclient.util.RestClient;
-import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.util.PropertiesReader;
+import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.util.SystemProperties;
+import org.openmrs.module.shrclient.util.SystemUserService;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.openmrs.module.fhir.utils.Constants.HEALTH_ID_ATTRIBUTE;
-import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_PATIENT_TYPE;
 
 public class PatientPushTest {
 
@@ -65,7 +64,6 @@ public class PatientPushTest {
             put(PropertyKeyConstants.MCI_REFERENCE_PATH, "http://public.com/");
             put(PropertyKeyConstants.MCI_PATIENT_CONTEXT, "/api/default/patients");
         }});
-
     }
 
     @Test
@@ -108,74 +106,6 @@ public class PatientPushTest {
         when(personService.getPersonAttributeTypeByName(HEALTH_ID_ATTRIBUTE)).thenReturn(healthIdAttributeType);
         patientPush.updateOpenMrsPatientHealthId(openMrsPatient, healthId);
         verify(patientService).savePatient(any(org.openmrs.Patient.class));
-    }
-
-    @Test
-    public void shouldProcessIfPatientHasBeenChangedAfterEvent() throws Exception {
-        String content = "/openmrs/ws/rest/v1/patient/36c82d16-6237-4495-889f-59bd9e0d8181?v=full";
-        Date eventUpdatedDate = new Date();
-        Event event = new Event("123defc456", content, "Patient", null, eventUpdatedDate);
-        String mciPatientUrl = mciPatientContext + "/" + healthId;
-
-        org.openmrs.module.shrclient.model.Patient mciPatient = new org.openmrs.module.shrclient.model.Patient();
-        mciPatient.setHealthId(healthId);
-
-        Patient openMrsPatient = new Patient();
-        openMrsPatient.setUuid("36c82d16-6237-4495-889f-59bd9e0d8181");
-
-        PersonAttribute healthIdAttribute = createHealthIdAttribute();
-        openMrsPatient.addAttribute(healthIdAttribute);
-
-        DateTime dateCreated = new DateTime(new Date()).minusMinutes(20);
-        openMrsPatient.setDateCreated(dateCreated.toDate());
-        DateTime dateChanged = dateCreated.plusMinutes(10);
-        openMrsPatient.setDateChanged(dateChanged.toDate());
-        DateTime lastSyncTime = dateCreated.plusMinutes(5);
-        IdMapping mapping = new IdMapping("36c82d16-6237-4495-889f-59bd9e0d8181", healthId, ID_MAPPING_PATIENT_TYPE,
-                mciPatientUrl, lastSyncTime.toDate());
-
-        when(idMappingsRepository.findByInternalId(openMrsPatient.getUuid())).thenReturn(mapping);
-        when(patientService.getPatientByUuid("36c82d16-6237-4495-889f-59bd9e0d8181")).thenReturn(openMrsPatient);
-        when(patientMapper.map(eq(openMrsPatient), any(SystemProperties.class))).thenReturn(mciPatient);
-
-        patientPush.process(event);
-
-        verify(patientMapper, times(1)).map(any(Patient.class), any(SystemProperties.class));
-        verify(mockMciRestClient, times(1)).put(mciPatientUrl, mciPatient, MciPatientUpdateResponse.class);
-    }
-
-    @Test
-    public void shouldNotProcessIfPatientHasBeenUpdatedBeforeSyncEvent() throws Exception {
-        String content = "/openmrs/ws/rest/v1/patient/36c82d16-6237-4495-889f-59bd9e0d8181?v=full";
-        Date eventUpdatedDate = new Date();
-        Event event = new Event("123defc456", content, "Patient", null, eventUpdatedDate);
-        String mciPatientUrl = mciPatientContext + "/" + healthId;
-
-        org.openmrs.module.shrclient.model.Patient mciPatient = new org.openmrs.module.shrclient.model.Patient();
-        mciPatient.setHealthId(healthId);
-
-        Patient openMrsPatient = new Patient();
-        openMrsPatient.setUuid("36c82d16-6237-4495-889f-59bd9e0d8181");
-
-        PersonAttribute healthIdAttribute = createHealthIdAttribute();
-        openMrsPatient.addAttribute(healthIdAttribute);
-
-        DateTime dateCreated = new DateTime(new Date()).minusMinutes(20);
-        openMrsPatient.setDateCreated(dateCreated.toDate());
-        DateTime dateChanged = dateCreated.plusMinutes(10);
-        openMrsPatient.setDateChanged(dateChanged.toDate());
-        DateTime lastSyncTime = dateCreated.plusMinutes(15);
-        IdMapping mapping = new IdMapping("36c82d16-6237-4495-889f-59bd9e0d8181", healthId, ID_MAPPING_PATIENT_TYPE,
-                mciPatientUrl, lastSyncTime.toDate());
-
-        when(idMappingsRepository.findByInternalId(openMrsPatient.getUuid())).thenReturn(mapping);
-        when(patientService.getPatientByUuid("36c82d16-6237-4495-889f-59bd9e0d8181")).thenReturn(openMrsPatient);
-        when(patientMapper.map(eq(openMrsPatient), any(SystemProperties.class))).thenReturn(mciPatient);
-
-        patientPush.process(event);
-
-        verify(patientMapper, never()).map(any(Patient.class), any(SystemProperties.class));
-        verify(mockMciRestClient, never()).put(mciPatientUrl, mciPatient, MciPatientUpdateResponse.class);
     }
 
     @Test
