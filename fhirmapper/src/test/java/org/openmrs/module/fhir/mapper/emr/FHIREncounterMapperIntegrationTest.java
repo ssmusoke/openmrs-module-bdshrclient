@@ -5,12 +5,15 @@ import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.Composition;
 import org.hl7.fhir.instance.model.Condition;
 import org.hl7.fhir.instance.model.Encounter;
+import org.hl7.fhir.instance.model.Resource;
+import org.hl7.fhir.instance.model.ResourceType;
 import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.MapperTestHelper;
+import org.openmrs.module.fhir.TestFhirFeedHelper;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -84,10 +87,10 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
         final AtomFeed encounterBundle = loadSampleFHIREncounter().getFeed();
 
-        List<Condition> conditions = FHIRFeedHelper.getConditions(encounterBundle);
+        List<Resource> conditions = TestFhirFeedHelper.getResourceByType(encounterBundle, ResourceType.Condition);
         final Composition composition = FHIRFeedHelper.getComposition(encounterBundle);
         assertEquals(2, conditions.size());
-        assertEquals("http://mci.com//api/default/patients/HIDA764177", conditions.get(0).getSubject().getReferenceSimple());
+        assertEquals("http://mci.com//api/default/patients/HIDA764177", ((Condition)conditions.get(0)).getSubject().getReferenceSimple());
 
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
         final Encounter encounter = FHIRFeedHelper.getEncounter(encounterBundle);

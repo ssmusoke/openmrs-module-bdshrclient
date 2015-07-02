@@ -133,6 +133,6 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         
         assertEquals("drugs/104", prescription.getMedication().getReferenceSimple());
         assertEquals("Lactic Acid", prescription.getMedication().getDisplaySimple());
-        assertEquals("provider", prescription.getPrescriber().getReferenceSimple());
+        assertTrue(prescription.getPrescriber().getReferenceSimple().endsWith("321.json"));
     }
 }

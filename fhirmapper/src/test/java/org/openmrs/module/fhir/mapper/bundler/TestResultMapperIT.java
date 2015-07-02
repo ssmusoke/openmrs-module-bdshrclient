@@ -15,6 +15,8 @@ import static org.hl7.fhir.instance.model.DiagnosticReport.DiagnosticReportStatu
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
+import static org.openmrs.module.fhir.TestFhirFeedHelper.getResourceByReference;
+import static org.openmrs.module.fhir.TestFhirFeedHelper.getResourceByType;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
@@ -38,7 +40,7 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
         List<FHIRResource> FHIRResources = testResultMapper.map(obsService.getObs(1), fhirEncounter, getSystemProperties("1"));
         assertNotNull(FHIRResources);
         assertEquals(2, FHIRResources.size());
-        FHIRResource diagnosticReportResource = getResource(ResourceType.DiagnosticReport, FHIRResources);
+        FHIRResource diagnosticReportResource = getResourceByType(ResourceType.DiagnosticReport, FHIRResources);
         DiagnosticReport report = (DiagnosticReport) diagnosticReportResource.getResource();
         assertEquals(fhirEncounter.getSubject(), report.getSubject());
         assertEquals(fhirEncounter.getParticipant().get(0).getIndividual(), report.getPerformer());
@@ -69,7 +71,7 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     private void assertDiagnosticReport(DiagnosticReport report, List<FHIRResource> FHIRResources) {
-        FHIRResource observationResource = getResource(report.getResult().get(0), FHIRResources);
+        FHIRResource observationResource = getResourceByReference(report.getResult().get(0), FHIRResources);
         assertNotNull(observationResource);
         assertFalse(report.getResult().isEmpty());
         assertNotNull(report.getIdentifier());
@@ -84,24 +86,6 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
             assertEquals("120.0", ((Decimal) observation.getValue()).getStringValue());
         }
         assertEquals(obsService.getObs(4).getValueText(), report.getConclusionSimple());
-    }
-
-    private FHIRResource getResource(ResourceType type, List<FHIRResource> FHIRResources) {
-        for (FHIRResource FHIRResource : FHIRResources) {
-            if(type.equals(FHIRResource.getResource().getResourceType())) {
-                return FHIRResource;
-            }
-        }
-        return null;
-    }
-
-    private FHIRResource getResource(ResourceReference reference, List<FHIRResource> FHIRResources) {
-        for (FHIRResource FHIRResource : FHIRResources) {
-            if(FHIRResource.getIdentifier().getValueSimple().equals(reference.getReferenceSimple())) {
-                return FHIRResource;
-            }
-        }
-        return null;
     }
 
     private Encounter buildEncounter() {

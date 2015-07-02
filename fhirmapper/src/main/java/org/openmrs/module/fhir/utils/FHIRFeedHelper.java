@@ -37,18 +37,6 @@ public class FHIRFeedHelper {
         return resource != null ? (Encounter) resource : null;
     }
 
-    public static List<Condition> getConditions(AtomFeed bundle) {
-        List<Condition> conditions = new ArrayList<Condition>();
-        List<AtomEntry<? extends Resource>> entryList = bundle.getEntryList();
-        for (AtomEntry<? extends org.hl7.fhir.instance.model.Resource> atomEntry : entryList) {
-            Resource resource = atomEntry.getResource();
-            if (resource.getResourceType().equals(ResourceType.Condition)) {
-                conditions.add((Condition) resource);
-            }
-        }
-        return conditions;
-    }
-
     public static Resource findResourceByReference(AtomFeed bundle, ResourceReference reference) {
         for (AtomEntry<? extends Resource> atomEntry : bundle.getEntryList()) {
             if (StringUtils.equals(atomEntry.getId(), reference.getReferenceSimple())) {

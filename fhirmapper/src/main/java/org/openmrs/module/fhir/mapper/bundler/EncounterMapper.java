@@ -109,7 +109,7 @@ public class EncounterMapper {
             Provider provider = encounterProvider.getProvider();
             if (provider == null) return;
             String identifier = provider.getIdentifier();
-            String providerUrl = getReference(EncounterProvider.class, systemProperties, identifier);
+            String providerUrl = getReference(Provider.class, systemProperties, identifier);
             if (providerUrl == null)
                 return;
             Encounter.EncounterParticipantComponent encounterParticipantComponent = encounter.addParticipant();

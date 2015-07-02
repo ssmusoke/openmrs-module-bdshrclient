@@ -15,6 +15,7 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
+import static org.openmrs.module.fhir.TestFhirFeedHelper.getResourceByReference;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
@@ -106,7 +107,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         Procedure procedure= getProcedure(fhirResources);
 
         ResourceReference resourceReference = procedure.getReport().get(0);
-        Resource dianosticReportResource= getResource(resourceReference,fhirResources).getResource();
+        Resource dianosticReportResource= getResourceByReference(resourceReference, fhirResources).getResource();
         DiagnosticReport diagnosticReport= null;
         if (dianosticReportResource instanceof DiagnosticReport){
             diagnosticReport= (DiagnosticReport) dianosticReportResource;
@@ -189,15 +190,6 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
              if((procedure= fhirResource.getResource()) instanceof Procedure){
                  return (Procedure)procedure;
              }
-        }
-        return null;
-    }
-
-    private FHIRResource getResource(ResourceReference reference, List<FHIRResource> FHIRResources) {
-        for (FHIRResource FHIRResource : FHIRResources) {
-            if(FHIRResource.getIdentifier().getValueSimple().equals(reference.getReferenceSimple())) {
-                return FHIRResource;
-            }
         }
         return null;
     }

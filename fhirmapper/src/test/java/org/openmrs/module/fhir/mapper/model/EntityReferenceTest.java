@@ -2,9 +2,9 @@ package org.openmrs.module.fhir.mapper.model;
 
 import org.junit.Test;
 import org.openmrs.Encounter;
-import org.openmrs.EncounterProvider;
 import org.openmrs.Location;
 import org.openmrs.Patient;
+import org.openmrs.Provider;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.shrclient.util.SystemProperties;
 
@@ -12,9 +12,7 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
-import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_ID;
-import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_URL_FORMAT;
-import static org.openmrs.module.fhir.utils.PropertyKeyConstants.PROVIDER_REFERENCE_PATH;
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.*;
 
 public class EntityReferenceTest {
     @Test
@@ -66,13 +64,13 @@ public class EntityReferenceTest {
     @Test
     public void shouldCreateProviderReference() {
         EntityReference entityReference = new EntityReference();
-        assertEquals("http://example.com/api/1.0/providers/1234.json", entityReference.build(EncounterProvider.class, getSystemProperties("1234"), "1234"));
+        assertEquals("http://example.com/api/1.0/providers/1234.json", entityReference.build(Provider.class, getSystemProperties("1234"), "1234"));
     }
 
     @Test
     public void shouldParseProviderUrl() {
         EntityReference entityReference = new EntityReference();
-        assertEquals("1234",entityReference.parse(EncounterProvider.class, "http://example.com/api/1.0/providers/1234.json"));
+        assertEquals("1234",entityReference.parse(Provider.class, "http://example.com/api/1.0/providers/1234.json"));
     }
 
     private SystemProperties getSystemProperties(String facilityId) {

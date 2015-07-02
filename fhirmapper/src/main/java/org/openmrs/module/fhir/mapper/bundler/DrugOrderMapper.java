@@ -1,10 +1,12 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.hl7.fhir.instance.model.*;
 import org.hl7.fhir.instance.model.Integer;
 import org.hl7.fhir.instance.model.Schedule.ScheduleRepeatComponent;
 import org.openmrs.DrugOrder;
 import org.openmrs.Order;
+import org.openmrs.Provider;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodableConceptService;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
@@ -46,7 +48,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         setPatient(fhirEncounter, prescription);
         prescription.setDateWritten(getDateWritten(drugOrder));
         prescription.setMedication(getMedication(drugOrder));
-        prescription.setPrescriber(getParticipant(fhirEncounter));
+        prescription.setPrescriber(getParticipant(drugOrder, fhirEncounter, systemProperties));
         setDoseInstructions(drugOrder, prescription, systemProperties);
         Identifier identifier = prescription.addIdentifier();
         identifier.setValueSimple(new EntityReference().build(Order.class, systemProperties, order.getUuid()));
@@ -54,9 +56,15 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         return FHIRResources;
     }
 
-    protected ResourceReference getParticipant(Encounter encounter) {
+    protected ResourceReference getParticipant(DrugOrder order, Encounter encounter, SystemProperties systemProperties) {
+        if (order.getOrderer() != null) {
+            String providerUrl = new EntityReference().build(Provider.class, systemProperties, order.getOrderer().getIdentifier());
+            if (providerUrl != null) {
+                return new ResourceReference().setReferenceSimple(providerUrl);
+            }
+        }
         List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
-        if ((participants != null) && !participants.isEmpty()) {
+        if (!CollectionUtils.isEmpty(participants)) {
             return participants.get(0).getIndividual();
         }
         return null;

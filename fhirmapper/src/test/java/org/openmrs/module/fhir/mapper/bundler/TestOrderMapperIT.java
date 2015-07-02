@@ -3,19 +3,21 @@ package org.openmrs.module.fhir.mapper.bundler;
 import org.hl7.fhir.instance.model.AtomEntry;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.DiagnosticOrder;
+import org.hl7.fhir.instance.model.ResourceType;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.api.EncounterService;
+import org.openmrs.api.ProviderService;
+import org.openmrs.module.fhir.TestFhirFeedHelper;
 import org.openmrs.module.fhir.mapper.model.FHIRIdentifier;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -26,6 +28,9 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     EncounterService encounterService;
+
+    @Autowired
+    ProviderService providerService;
 
     @Before
     public void setUp() throws Exception {
@@ -42,6 +47,10 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         List<FHIRResource> mappedResources = testOrderMapper.map(order, fhirEncounter, feed, getSystemProperties("1"));
         assertNotNull(mappedResources);
         assertEquals(2, mappedResources.size());
+        DiagnosticOrder diagnosticOrder = (DiagnosticOrder)TestFhirFeedHelper.getResourceByType(ResourceType.DiagnosticOrder, mappedResources).getResource();
+        assertNotNull(diagnosticOrder);
+        assertNotNull(TestFhirFeedHelper.getResourceByType(ResourceType.Specimen, mappedResources));
+        assertTrue(diagnosticOrder.getOrderer().getReferenceSimple().endsWith("321.json"));
     }
 
     @Test

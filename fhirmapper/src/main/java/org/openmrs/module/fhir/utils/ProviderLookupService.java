@@ -1,7 +1,6 @@
 package org.openmrs.module.fhir.utils;
 
 import org.apache.commons.lang.StringUtils;
-import org.openmrs.EncounterProvider;
 import org.openmrs.Provider;
 import org.openmrs.User;
 import org.openmrs.api.ProviderService;
@@ -41,7 +40,7 @@ public class ProviderLookupService {
     }
 
     public Provider getProviderByReferenceUrl(String providerReferenceUrl){
-        String providerId = new EntityReference().parse(EncounterProvider.class, providerReferenceUrl);
+        String providerId = new EntityReference().parse(Provider.class, providerReferenceUrl);
         return getProviderById(providerId);
     }
 }

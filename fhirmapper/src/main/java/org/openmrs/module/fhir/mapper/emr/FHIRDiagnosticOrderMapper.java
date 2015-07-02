@@ -68,13 +68,13 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         testOrder.setConcept(testOrderConcept);
         testOrder.setPatient(patient);
         testOrder.setEncounter(encounter);
-        setPractitioner(testOrder, diagnosticOrder);
+        setOrderer(testOrder, diagnosticOrder);
         testOrder.setDateActivated(encounter.getEncounterDatetime());
         testOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(feed));
         return testOrder;
     }
 
-    private void setPractitioner(TestOrder testOrder, DiagnosticOrder diagnosticOrder) {
+    private void setOrderer(TestOrder testOrder, DiagnosticOrder diagnosticOrder) {
         ResourceReference orderer = diagnosticOrder.getOrderer();
         if (orderer != null) {
             String practitionerReferenceUrl = orderer.getReferenceSimple();

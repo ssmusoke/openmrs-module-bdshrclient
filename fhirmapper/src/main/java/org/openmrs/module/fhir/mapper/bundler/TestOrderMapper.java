@@ -2,10 +2,12 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.hl7.fhir.instance.model.*;
-import org.hl7.fhir.instance.model.Encounter;
-import org.openmrs.*;
+import org.openmrs.Concept;
 import org.openmrs.ConceptMap;
+import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.Order;
+import org.openmrs.Provider;
+import org.openmrs.TestOrder;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -163,7 +165,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
             return null;
         }
         CodeableConcept result = codableConceptService.addTRCoding(order.getConcept(), idMappingsRepository);
-        if(result.getCoding().isEmpty()) {
+        if (result.getCoding().isEmpty()) {
             Coding coding = result.addCoding();
             coding.setDisplaySimple(order.getConcept().getName().getName());
         }
@@ -174,17 +176,23 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         DiagnosticOrder diagnosticOrder;
         diagnosticOrder = new DiagnosticOrder();
         diagnosticOrder.setSubject(fhirEncounter.getSubject());
-        diagnosticOrder.setOrderer(getOrdererReference(fhirEncounter));
+        diagnosticOrder.setOrderer(getOrdererReference(order, fhirEncounter, systemProperties));
         Identifier identifier = diagnosticOrder.addIdentifier();
         identifier.setValueSimple(new EntityReference().build(Order.class, systemProperties, UUID.randomUUID().toString()));
         diagnosticOrder.setEncounter(fhirEncounter.getIndication());
         diagnosticOrder.setStatusSimple(requested);
         return diagnosticOrder;
     }
-    
-    private ResourceReference getOrdererReference(Encounter encounter) {
+
+    private ResourceReference getOrdererReference(Order order, Encounter encounter, SystemProperties systemProperties) {
+        if (order.getOrderer() != null) {
+            String providerUrl = new EntityReference().build(Provider.class, systemProperties, order.getOrderer().getIdentifier());
+            if (providerUrl != null) {
+                return new ResourceReference().setReferenceSimple(providerUrl);
+            }
+        }
         List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
-        if(!CollectionUtils.isEmpty(participants)) {
+        if (!CollectionUtils.isEmpty(participants)) {
             return participants.get(0).getIndividual();
         }
         return null;

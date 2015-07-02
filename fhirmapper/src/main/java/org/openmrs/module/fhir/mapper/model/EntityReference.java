@@ -3,9 +3,9 @@ package org.openmrs.module.fhir.mapper.model;
 import org.apache.commons.collections4.map.DefaultedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Encounter;
-import org.openmrs.EncounterProvider;
 import org.openmrs.Location;
 import org.openmrs.Patient;
+import org.openmrs.Provider;
 import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.util.SystemProperties;
 
@@ -21,7 +21,7 @@ public class EntityReference {
         referenceMap.put(Patient.class, new PatientReference());
         referenceMap.put(Encounter.class, new EncounterReference());
         referenceMap.put(Location.class, new FacilityReference());
-        referenceMap.put(EncounterProvider.class, new ProviderReference());
+        referenceMap.put(Provider.class, new ProviderReference());
     }
 
     public String build(Type type, SystemProperties systemProperties, String id) {
