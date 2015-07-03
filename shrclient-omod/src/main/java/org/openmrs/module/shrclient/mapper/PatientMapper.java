@@ -97,9 +97,7 @@ public class PatientMapper {
 
     private void setProvider(Patient patient, org.openmrs.Patient openMrsPatient, SystemProperties systemProperties) {
         Person person = null;
-        if (openMrsPatient.getCreator() != null) {
-            person = openMrsPatient.getCreator().getPerson();
-        }
+        person = openMrsPatient.getChangedBy() != null ? openMrsPatient.getChangedBy().getPerson() : openMrsPatient.getCreator().getPerson();
         if (null == person) return;
         Collection<Provider> providers = Context.getProviderService().getProvidersByPerson(person);
         if (CollectionUtils.isEmpty(providers)) return;

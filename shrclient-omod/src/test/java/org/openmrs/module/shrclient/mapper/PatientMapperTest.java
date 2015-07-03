@@ -3,7 +3,13 @@ package org.openmrs.module.shrclient.mapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.openmrs.*;
+import org.openmrs.Person;
+import org.openmrs.PersonAddress;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
+import org.openmrs.PersonName;
+import org.openmrs.Provider;
+import org.openmrs.User;
 import org.openmrs.api.ProviderService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.ServiceContext;
@@ -31,7 +37,6 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.openmrs.module.fhir.utils.Constants.*;
@@ -84,15 +89,13 @@ public class PatientMapperTest {
     public void shouldGetProviderFromChangedBy() throws Exception {
         Person changedByPerson = new Person(12);
         openMrsPatient.setChangedBy(new User(changedByPerson));
-        Provider mockedProvider = mock(Provider.class);
-        String providerIdentifier = "1234";
-        when(mockedProvider.getIdentifier()).thenReturn(providerIdentifier);
-        when(providerService.getProvidersByPerson(changedByPerson)).thenReturn(asList(mockedProvider));
+        Provider provider = new Provider(104);
+        provider.setIdentifier("1234");
+        provider.setPerson(changedByPerson);
+        when(providerService.getProvidersByPerson(changedByPerson)).thenReturn(asList(provider));
         
         Patient expectedPatient = patientMapper.map(openMrsPatient, systemProperties);
-        assertEquals(this.patient, expectedPatient);
-        
-
+        assertEquals("http://pr.com/1234.json", expectedPatient.getProviderReference());
     }
 
     private void setupData() throws ParseException {
@@ -136,8 +139,16 @@ public class PatientMapperTest {
         person.addAddress(address);
         openMrsPatient = new org.openmrs.Patient(person);
 
-        Person userPerson = new Person(11);
-        openMrsPatient.setCreator(new User(userPerson));
+        Person userPerson = new Person(101);
+        Provider provider = new Provider(101);
+        User user = new User(userPerson);
+        String providerIdentifier = "4321";
+        provider.setIdentifier(providerIdentifier);
+        provider.setPerson(userPerson);
+        when(providerService.getProvidersByPerson(userPerson)).thenReturn(asList(provider));
+        openMrsPatient.setCreator(user);
+        when(systemProperties.getProviderResourcePath()).thenReturn("http://pr.com/");
+
         openMrsPatient.setAttributes(createOpenMrsPersonAttributes());
 
         List<AddressHierarchyEntry> divisionEntries = createAddressHierarchyEntries(divisionId);
@@ -155,11 +166,7 @@ public class PatientMapperTest {
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndNameAndParent(any(AddressHierarchyLevel.class), eq(unionOrUrbanWard), any(AddressHierarchyEntry.class))).thenReturn(unionOrUrbanWardEntries);
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndNameAndParent(any(AddressHierarchyLevel.class), eq(ruralWard), any(AddressHierarchyEntry.class))).thenReturn(ruralWardEntries);
 
-        when(systemProperties.getProviderResourcePath()).thenReturn("http://pr.com/");
-        Provider mockedProvider = mock(Provider.class);
-        String providerIdentifier = "1234";
-        when(mockedProvider.getIdentifier()).thenReturn(providerIdentifier);
-        when(providerService.getProvidersByPerson(userPerson)).thenReturn(asList(mockedProvider));
+
 
         patient = new Patient();
         patient.setNationalId(nationalId);

@@ -117,8 +117,4 @@ public class CompositionBundle {
         coding.setSystemSimple(FHIR_CONFIDENTIALITY_SYSTEM);
         return coding;
     }
-
-    private String getReference(java.lang.reflect.Type type, SystemProperties systemProperties) {
-        return new EntityReference().build(type, systemProperties, systemProperties.getFacilityId());
-    }
 }

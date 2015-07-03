@@ -68,7 +68,7 @@ public class SystemUserService {
             public Object execute(Connection connection) {
                 PreparedStatement statement = null;
                 String userColumnName = null;
-                if (openMrsEntity.getDateChanged() != null && openMrsEntity.getDateChanged().after(openMrsEntity.getDateCreated())) {
+                if (openMrsEntity.getChangedBy() != null) {
                     userColumnName = "changed_by";
                 } else {
                     userColumnName = "creator";
