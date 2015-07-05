@@ -28,26 +28,35 @@ public class EncounterPull {
     private final static String FACILITY_ID_HEADER_KEY = "facilityId";
 
     private final Logger logger = Logger.getLogger(EncounterPull.class);
+    private PropertiesReader propertiesReader;
+    private IdentityStore identityStore;
     private ClientRegistry clientRegistry;
 
-    public EncounterPull(ClientRegistry clientRegistry) {
-        this.clientRegistry = clientRegistry;
+    public EncounterPull(PropertiesReader propertiesReader, IdentityStore identityStore) {
+        this.propertiesReader = propertiesReader;
+        this.identityStore = identityStore;
+        clientRegistry = new ClientRegistry(propertiesReader, identityStore);
     }
 
-    public void download() throws IdentityUnauthorizedException {
+    public void download() {
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
         ArrayList<String> encounterFeedUrls = getEncounterFeedUrls(propertiesReader);
-        Map<String, String> requestHeaders = getRequestHeaders(propertiesReader);
-        DefaultEncounterFeedWorker defaultEncounterFeedWorker = getEncounterFeedWorker();
-        for (String encounterFeedUrl : encounterFeedUrls) {
-            ShrEncounterFeedProcessor feedProcessor =
-                    new ShrEncounterFeedProcessor(encounterFeedUrl, requestHeaders, defaultEncounterFeedWorker,
-                            clientRegistry);
-            try {
-                feedProcessor.process();
-            } catch (URISyntaxException e) {
-                logger.error("Couldn't download catchment encounters. Error: ", e);
+        try {
+            Map<String, String> requestHeaders = getRequestHeaders(propertiesReader);
+            DefaultEncounterFeedWorker defaultEncounterFeedWorker = getEncounterFeedWorker();
+            for (String encounterFeedUrl : encounterFeedUrls) {
+                ShrEncounterFeedProcessor feedProcessor =
+                        new ShrEncounterFeedProcessor(encounterFeedUrl, requestHeaders, defaultEncounterFeedWorker,
+                                clientRegistry);
+                try {
+                    feedProcessor.process();
+                } catch (URISyntaxException e) {
+                    logger.error("Couldn't download catchment encounters. Error: ", e);
+                }
             }
+        } catch (IdentityUnauthorizedException e) {
+            logger.info("Clearing unauthorized identity token.");
+            identityStore.clearToken();
         }
     }
 
@@ -95,18 +104,22 @@ public class EncounterPull {
     public void retry() throws IdentityUnauthorizedException {
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
         ArrayList<String> encounterFeedUrls = getEncounterFeedUrls(propertiesReader);
-
-        Map<String, String> requestProperties = getRequestHeaders(propertiesReader);
-        DefaultEncounterFeedWorker defaultEncounterFeedWorker = getEncounterFeedWorker();
-        for (String encounterFeedUrl : encounterFeedUrls) {
-            ShrEncounterFeedProcessor feedProcessor =
-                    new ShrEncounterFeedProcessor(encounterFeedUrl, requestProperties, defaultEncounterFeedWorker,
-                            clientRegistry);
-            try {
-                feedProcessor.processFailedEvents();
-            } catch (URISyntaxException e) {
-                logger.error("Couldn't download catchment encounters. Error: ", e);
+        try {
+            Map<String, String> requestProperties = getRequestHeaders(propertiesReader);
+            DefaultEncounterFeedWorker defaultEncounterFeedWorker = getEncounterFeedWorker();
+            for (String encounterFeedUrl : encounterFeedUrls) {
+                ShrEncounterFeedProcessor feedProcessor =
+                        new ShrEncounterFeedProcessor(encounterFeedUrl, requestProperties, defaultEncounterFeedWorker,
+                                clientRegistry);
+                try {
+                    feedProcessor.processFailedEvents();
+                } catch (URISyntaxException e) {
+                    logger.error("Couldn't download catchment encounters. Error: ", e);
+                }
             }
+        } catch (IdentityUnauthorizedException e) {
+            logger.info("Clearing unauthorized identity token.");
+            identityStore.clearToken();
         }
     }
 }

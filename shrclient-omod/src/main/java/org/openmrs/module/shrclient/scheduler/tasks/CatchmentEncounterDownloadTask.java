@@ -1,10 +1,11 @@
 package org.openmrs.module.shrclient.scheduler.tasks;
 
 import org.apache.log4j.Logger;
-import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.handlers.EncounterPull;
+import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.util.PlatformUtil;
+import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.scheduler.tasks.AbstractTask;
 
 public class CatchmentEncounterDownloadTask extends AbstractTask {
@@ -12,15 +13,11 @@ public class CatchmentEncounterDownloadTask extends AbstractTask {
 
     @Override
     public void execute() {
-        ClientRegistry clientRegistry = new ClientRegistry(PlatformUtil.getPropertiesReader(),
-                PlatformUtil.getIdentityStore());
+        PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
+        IdentityStore identityStore = PlatformUtil.getIdentityStore();
+        new EncounterPull(propertiesReader, identityStore).download();
         try {
-            new EncounterPull(clientRegistry).download();
-        } catch (IdentityUnauthorizedException e) {
-            clearIdentity(e);
-        }
-        try {
-            new EncounterPull(clientRegistry).retry();
+            new EncounterPull(propertiesReader, identityStore).retry();
         } catch (IdentityUnauthorizedException e) {
             clearIdentity(e);
         }
