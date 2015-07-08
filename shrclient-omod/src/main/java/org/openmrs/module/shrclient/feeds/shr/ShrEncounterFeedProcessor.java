@@ -50,7 +50,6 @@ public class ShrEncounterFeedProcessor {
         atomFeedClient(new URI(this.feedUrl), new FeedEventWorker(shrEventWorker)).processFailedEvents();
     }
 
-
     private AtomFeedProperties getAtomFeedProperties() {
         AtomFeedProperties atomProperties = new AtomFeedProperties();
         atomProperties.setMaxFailedEvents(20);

@@ -46,6 +46,10 @@ public class SystemUserService {
         if (changedByUser == null) {
             changedByUser = openMrsEntity.getCreator();
         }
+        return isOpenMRSSystemUser(changedByUser);
+    }
+
+    public boolean isOpenMRSSystemUser(User changedByUser) {
         User openMrsShrSystemUser = getOpenMRSShrSystemUser();
         return openMrsShrSystemUser.getId().equals(changedByUser.getId());
     }

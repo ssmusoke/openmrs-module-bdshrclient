@@ -62,7 +62,7 @@ public class PatientMapperTest {
     private String educationLevel = "6th to 9th";
     private String primaryContact = "some contact";
     private String houseHoldCode = "house4";
-    
+
     private org.openmrs.Patient openMrsPatient;
     private Patient patient;
 
@@ -93,7 +93,7 @@ public class PatientMapperTest {
         provider.setIdentifier("1234");
         provider.setPerson(changedByPerson);
         when(providerService.getProvidersByPerson(changedByPerson)).thenReturn(asList(provider));
-        
+
         Patient expectedPatient = patientMapper.map(openMrsPatient, systemProperties);
         assertEquals("http://pr.com/1234.json", expectedPatient.getProviderReference());
     }

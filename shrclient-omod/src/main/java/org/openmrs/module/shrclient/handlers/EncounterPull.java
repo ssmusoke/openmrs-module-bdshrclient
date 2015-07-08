@@ -39,7 +39,6 @@ public class EncounterPull {
     }
 
     public void download() {
-        PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
         ArrayList<String> encounterFeedUrls = getEncounterFeedUrls(propertiesReader);
         try {
             Map<String, String> requestHeaders = getRequestHeaders(propertiesReader);
@@ -101,7 +100,7 @@ public class EncounterPull {
         return catchmentsUrls;
     }
 
-    public void retry() throws IdentityUnauthorizedException {
+    public void retry() {
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
         ArrayList<String> encounterFeedUrls = getEncounterFeedUrls(propertiesReader);
         try {

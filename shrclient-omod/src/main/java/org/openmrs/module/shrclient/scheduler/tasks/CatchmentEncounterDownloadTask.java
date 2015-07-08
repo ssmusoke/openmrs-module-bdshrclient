@@ -16,11 +16,7 @@ public class CatchmentEncounterDownloadTask extends AbstractTask {
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
         IdentityStore identityStore = PlatformUtil.getIdentityStore();
         new EncounterPull(propertiesReader, identityStore).download();
-        try {
-            new EncounterPull(propertiesReader, identityStore).retry();
-        } catch (IdentityUnauthorizedException e) {
-            clearIdentity(e);
-        }
+        new EncounterPull(propertiesReader, identityStore).retry();
     }
 
     private void clearIdentity(IdentityUnauthorizedException e) {
