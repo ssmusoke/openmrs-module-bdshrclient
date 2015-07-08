@@ -72,9 +72,11 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 
     private void setDoseInstructions(DrugOrder drugOrder, MedicationPrescription prescription, SystemProperties systemProperties) {
         MedicationPrescription.MedicationPrescriptionDosageInstructionComponent dosageInstruction = prescription.addDosageInstruction();
-        dosageInstruction.setRoute(
-                codableConceptService.getTRValueSetCodeableConcept(drugOrder.getRoute(),
-                systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_ROUTE)));
+        if (null != drugOrder.getRoute()) {
+            dosageInstruction.setRoute(
+                    codableConceptService.getTRValueSetCodeableConcept(drugOrder.getRoute(),
+                            systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_ROUTE)));
+        }
         setDoseQuantity(drugOrder, dosageInstruction, systemProperties);
         dosageInstruction.setTiming(getSchedule(drugOrder));
     }
@@ -89,21 +91,23 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 
     private void setEvent(DrugOrder drugOrder, Schedule schedule) {
         java.util.Date scheduledDate = drugOrder.getScheduledDate();
-        if (scheduledDate != null) {
+        if (null != scheduledDate) {
             Period period = schedule.addEvent();
             period.setStartSimple(new DateAndTime(scheduledDate));
         }
     }
 
     private void setRepeatComponent(DrugOrder drugOrder, Schedule schedule) {
-        Decimal duration = getDuration();
-        String conceptName = drugOrder.getFrequency().getConcept().getName().getName();
-        Schedule.UnitsOfTime frequencyUnit = unitsHelpers.getUnitsOfTime(conceptName);
-        ScheduleRepeatComponent repeatComponent = new ScheduleRepeatComponent(duration, new Enumeration<>(frequencyUnit));
-        repeatComponent.setFrequencySimple(getFrequencyPerUnit(drugOrder, frequencyUnit, unitsHelpers));
-        repeatComponent.setUnitsSimple(frequencyUnit);
-        setCount(drugOrder, unitsHelpers, schedule, frequencyUnit, repeatComponent);
-        schedule.setRepeat(repeatComponent);
+        if (null != drugOrder.getFrequency() && null != drugOrder.getDuration()) {
+            Decimal duration = getDuration();
+            String conceptName = drugOrder.getFrequency().getConcept().getName().getName();
+            Schedule.UnitsOfTime frequencyUnit = unitsHelpers.getUnitsOfTime(conceptName);
+            ScheduleRepeatComponent repeatComponent = new ScheduleRepeatComponent(duration, new Enumeration<>(frequencyUnit));
+            repeatComponent.setFrequencySimple(getFrequencyPerUnit(drugOrder, frequencyUnit, unitsHelpers));
+            repeatComponent.setUnitsSimple(frequencyUnit);
+            setCount(drugOrder, unitsHelpers, schedule, frequencyUnit, repeatComponent);
+            schedule.setRepeat(repeatComponent);
+        }
     }
 
     private Decimal getDuration() {
@@ -136,15 +140,19 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 
 
     private void setDoseQuantity(DrugOrder drugOrder, MedicationPrescription.MedicationPrescriptionDosageInstructionComponent dosageInstruction, SystemProperties systemProperties) {
-        Quantity doseQuantity = new Quantity();
-        Decimal dose = new Decimal();
-        dose.setValue(new BigDecimal(drugOrder.getDose()));
-        String code = codableConceptService.getTRValueSetCode(drugOrder.getDoseUnits());
-        doseQuantity.setCodeSimple(code);
-        if (null != idMappingsRepository.findByInternalId(drugOrder.getDoseUnits().getUuid())) {
-            doseQuantity.setSystemSimple(systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_QTY_UNITS));
+        if (null != drugOrder.getDose()) {
+            Quantity doseQuantity = new Quantity();
+            Decimal dose = new Decimal();
+            dose.setValue(new BigDecimal(drugOrder.getDose()));
+            if(null != drugOrder.getDoseUnits()) {
+                if (null != idMappingsRepository.findByInternalId(drugOrder.getDoseUnits().getUuid())) {
+                    String code = codableConceptService.getTRValueSetCode(drugOrder.getDoseUnits());
+                    doseQuantity.setCodeSimple(code);
+                    doseQuantity.setSystemSimple(systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_QTY_UNITS));
+                }
+            }
+            dosageInstruction.setDoseQuantity(doseQuantity.setValue(dose));
         }
-        dosageInstruction.setDoseQuantity(doseQuantity.setValue(dose));
     }
 
     private ResourceReference getMedication(DrugOrder drugOrder) {

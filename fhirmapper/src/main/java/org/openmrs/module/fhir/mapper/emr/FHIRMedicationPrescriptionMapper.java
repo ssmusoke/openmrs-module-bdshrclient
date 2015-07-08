@@ -1,10 +1,21 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.model.*;
-import org.openmrs.*;
+import org.hl7.fhir.instance.model.AtomFeed;
+import org.hl7.fhir.instance.model.MedicationPrescription;
+import org.hl7.fhir.instance.model.Period;
+import org.hl7.fhir.instance.model.Quantity;
+import org.hl7.fhir.instance.model.Resource;
+import org.hl7.fhir.instance.model.ResourceReference;
+import org.hl7.fhir.instance.model.ResourceType;
+import org.hl7.fhir.instance.model.Schedule;
+import org.openmrs.Concept;
+import org.openmrs.Drug;
+import org.openmrs.DrugOrder;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
+import org.openmrs.OrderFrequency;
 import org.openmrs.Patient;
+import org.openmrs.Provider;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
@@ -29,6 +40,7 @@ import static org.openmrs.module.fhir.utils.UnitsHelpers.UnitToDaysConverter;
 public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
     private static final int DEFAULT_NUM_REFILLS = 0;
     private static final String URL_SEPERATOR = "/";
+    private static final String ROUTE_NOT_SPECIFIED = "NOT SPECIFIED";
 
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
@@ -60,6 +72,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
         Drug drug = mapDrug(prescription);
         if (drug == null) return;
         drugOrder.setDrug(drug);
+        if (prescription.getDosageInstruction().isEmpty()) return;
         MedicationPrescriptionDosageInstructionComponent dosageInstruction = prescription.getDosageInstruction().get(0);
         mapDosageAndRoute(drugOrder, dosageInstruction);
         mapFrequencyAndDurationAndScheduledDate(drugOrder, dosageInstruction);
@@ -93,7 +106,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
     }
 
     private void mapFrequencyAndDurationAndScheduledDate(DrugOrder drugOrder, MedicationPrescriptionDosageInstructionComponent dosageInstruction) {
-        if (dosageInstruction.getTiming() instanceof Schedule) {
+        if (null != dosageInstruction.getTiming() && dosageInstruction.getTiming() instanceof Schedule) {
             Schedule schedule = (Schedule) dosageInstruction.getTiming();
             UnitToDaysConverter unit = unitsHelpers.getUnitsOfTimeMapper().get(schedule.getRepeat().getUnitsSimple());
             setOrderDuration(drugOrder, schedule, unit);
@@ -145,18 +158,23 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
 
     private void mapDosageAndRoute(DrugOrder drugOrder, MedicationPrescriptionDosageInstructionComponent dosageInstruction) {
         Quantity doseQuantity = dosageInstruction.getDoseQuantity();
-        drugOrder.setDose(doseQuantity.getValueSimple().doubleValue());
-        drugOrder.setDoseUnits(omrsConceptLookup.findConceptFromValueSetCode(doseQuantity.getSystemSimple(), doseQuantity.getCodeSimple()));
+        if (doseQuantity != null) {
+            drugOrder.setDose(doseQuantity.getValueSimple().doubleValue());
+            drugOrder.setDoseUnits(omrsConceptLookup.findConceptFromValueSetCode(doseQuantity.getSystemSimple(), doseQuantity.getCodeSimple()));
+        }
         drugOrder.setRoute(mapRoute(dosageInstruction));
     }
 
     private Concept mapRoute(MedicationPrescriptionDosageInstructionComponent dosageInstruction) {
         Concept route = null;
-        if (!dosageInstruction.getRoute().getCoding().isEmpty()) {
+        if (null != dosageInstruction.getRoute() && !dosageInstruction.getRoute().getCoding().isEmpty()) {
             route = omrsConceptLookup.findConcept(dosageInstruction.getRoute().getCoding());
             if (route == null) {
                 route = conceptService.getConceptByName(dosageInstruction.getRoute().getCoding().get(0).getDisplaySimple());
             }
+        }
+        if(route == null) {
+            route = conceptService.getConceptByName(ROUTE_NOT_SPECIFIED);
         }
         return route;
     }
