@@ -1,19 +1,25 @@
 package org.openmrs.module.fhir.mapper.emr;
 
 import org.apache.commons.lang.StringUtils;
-import org.hl7.fhir.instance.model.*;
+import org.hl7.fhir.instance.model.Age;
+import org.hl7.fhir.instance.model.AtomFeed;
+import org.hl7.fhir.instance.model.CodeableConcept;
+import org.hl7.fhir.instance.model.Coding;
+import org.hl7.fhir.instance.model.Date;
+import org.hl7.fhir.instance.model.FamilyHistory;
+import org.hl7.fhir.instance.model.Resource;
+import org.hl7.fhir.instance.model.Type;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -89,7 +95,7 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
     private Obs mapRelationCondition(FamilyHistory.FamilyHistoryRelationConditionComponent component) {
         Obs result = new Obs();
         result.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION));
-        mapOnsetDate(result, (Age) component.getOnset());
+        mapOnsetDate(result, component.getOnset());
         mapNotes(result, component);
         mapCondition(component, result);
         return result;
@@ -115,19 +121,23 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
     }
 
     private void mapNotes(Obs result, FamilyHistory.FamilyHistoryRelationConditionComponent component) {
-        Obs notes = new Obs();
-        Concept onsetDateConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_RELATIONSHIP_NOTES);
-        notes.setConcept(onsetDateConcept);
-        notes.setValueText(component.getNoteSimple());
-        result.addGroupMember(notes);
+        if (null != component.getNote()) {
+            Obs notes = new Obs();
+            Concept onsetDateConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_RELATIONSHIP_NOTES);
+            notes.setConcept(onsetDateConcept);
+            notes.setValueText(component.getNoteSimple());
+            result.addGroupMember(notes);
+        }
     }
 
-    private void mapOnsetDate(Obs result, Age onset) {
-        Obs ageValue = new Obs();
-        Concept onsetDateConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_ONSET_AGE);
-        ageValue.setConcept(onsetDateConcept);
-        ageValue.setValueNumeric(onset.getValue().getValue().doubleValue());
-        result.addGroupMember(ageValue);
+    private void mapOnsetDate(Obs result, Type onset) {
+        if (null != onset && onset instanceof Age) {
+            Obs ageValue = new Obs();
+            Concept onsetDateConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_ONSET_AGE);
+            ageValue.setConcept(onsetDateConcept);
+            ageValue.setValueNumeric(((Age) onset).getValue().getValue().doubleValue());
+            result.addGroupMember(ageValue);
+        }
     }
 
 
@@ -143,18 +153,16 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
     }
 
     private Obs setBornOnObs(FamilyHistory.FamilyHistoryRelationComponent relation) {
-        Obs bornOnObs = new Obs();
-        java.util.Date observationValue = null;
-        Concept bornOnConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_BORN_ON);
-        String date = ((Date) relation.getBorn()).getValue().toString();
-        final SimpleDateFormat ISODateFomat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
-        try {
-            observationValue = ISODateFomat.parse(date);
-        } catch (ParseException e) {
-            e.printStackTrace();
+        if (null != relation.getBorn() && relation.getBorn() instanceof Date) {
+            Obs bornOnObs = new Obs();
+            java.util.Date observationValue = null;
+            Concept bornOnConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_BORN_ON);
+            String bornOnDate = ((Date) relation.getBorn()).getValue().toString();
+            observationValue = DateUtil.parseDate(bornOnDate);
+            bornOnObs.setValueDate(observationValue);
+            bornOnObs.setConcept(bornOnConcept);
+            return bornOnObs;
         }
-        bornOnObs.setValueDate(observationValue);
-        bornOnObs.setConcept(bornOnConcept);
-        return bornOnObs;
+        return null;
     }
 }
