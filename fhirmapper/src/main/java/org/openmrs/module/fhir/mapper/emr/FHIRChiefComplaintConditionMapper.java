@@ -69,17 +69,16 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
             chiefComplaintObs.setValueCoded(conceptAnswer);
         }
 
-        Obs chiefComplaintDurationObs = new Obs();
-        chiefComplaintDurationObs.setConcept(chiefComplaintDurationConcept);
-
-        if (hasDuration(condition)) {
-            chiefComplaintDurationObs.setValueNumeric(getComplaintDuration(condition));
-        }
-
         Obs chiefComplaintDataObs = new Obs();
         chiefComplaintDataObs.setConcept(chiefComplaintDataConcept);
         chiefComplaintDataObs.addGroupMember(chiefComplaintObs);
-        chiefComplaintDataObs.addGroupMember(chiefComplaintDurationObs);
+
+        if (hasDuration(condition)) {
+            Obs chiefComplaintDurationObs = new Obs();
+            chiefComplaintDurationObs.setConcept(chiefComplaintDurationConcept);
+            chiefComplaintDurationObs.setValueNumeric(getComplaintDuration(condition));
+            chiefComplaintDataObs.addGroupMember(chiefComplaintDurationObs);
+        }
 
         //TODO : don't create history and examination obs if it already exists in encounter
         Obs historyExaminationObs = new Obs();

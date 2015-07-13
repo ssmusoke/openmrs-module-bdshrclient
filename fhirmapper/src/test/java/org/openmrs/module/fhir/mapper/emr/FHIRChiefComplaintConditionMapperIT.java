@@ -35,8 +35,8 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
     @Autowired
     private FHIRChiefComplaintConditionMapper fhirChiefComplaintConditionMapper;
 
-    public ParserBase.ResourceOrFeed loadSampleFHIREncounter() throws Exception {
-        return new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/testFHIREncounter.xml", springContext);
+    public ParserBase.ResourceOrFeed loadSampleFHIREncounter(String filePath) throws Exception {
+        return new MapperTestHelper().loadSampleFHIREncounter(filePath, springContext);
     }
 
     @Before
@@ -46,7 +46,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
 
     @Test
     public void shouldMapFHIRComplaint() throws Exception {
-        final AtomFeed bundle = loadSampleFHIREncounter().getFeed();
+        final AtomFeed bundle = loadSampleFHIREncounter("classpath:encounterBundles/testFHIREncounter.xml").getFeed();
         final List<Resource> conditions = TestFhirFeedHelper.getResourceByType(bundle, ResourceType.Condition);
         Patient emrPatient = new Patient();
         Encounter emrEncounter = new Encounter();
@@ -78,5 +78,31 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
                 assertEquals(120, groupMember.getValueNumeric(), 0);
             }
         }
+    }
+
+    @Test
+    public void shouldNotCreateDurationObsIfDurationNotGiven() throws Exception {
+        final AtomFeed bundle = loadSampleFHIREncounter("classpath:encounterBundles/chiefComplaintWithoutDuration.xml").getFeed();
+        final List<Resource> conditions = TestFhirFeedHelper.getResourceByType(bundle, ResourceType.Condition);
+        Patient emrPatient = new Patient();
+        Encounter emrEncounter = new Encounter();
+        emrEncounter.setPatient(emrPatient);
+        for (Resource condition : conditions) {
+            if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
+                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter, new HashMap<String, List<String>>());
+            }
+        }
+        final Set<Obs> observations = emrEncounter.getAllObs();
+        Concept durationConcept = conceptService.getConceptByName("Chief Complaint Duration");
+        assertNull(identifyObsByConcept(observations, durationConcept));
+    }
+
+    private Obs identifyObsByConcept(Set<Obs> observations, Concept concept) {
+        for (Obs observation : observations) {
+            if(observation.getConcept().equals(concept)) {
+                return observation;
+            }
+        }
+        return null;
     }
 }
