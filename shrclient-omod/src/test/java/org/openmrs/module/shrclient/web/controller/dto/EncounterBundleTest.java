@@ -3,7 +3,6 @@ package org.openmrs.module.shrclient.web.controller.dto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
-import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.ResourceType;
 import org.junit.Test;
@@ -21,7 +20,7 @@ public class EncounterBundleTest {
 
     @Test
     public void shouldDeSerializeEncounterBundle() throws IOException {
-        final URL resource = URLClassLoader.getSystemResource("sample_encounter.json");
+        final URL resource = URLClassLoader.getSystemResource("sample_encounter_bundle.json");
         final String json = FileUtils.readFileToString(new File(resource.getPath()));
         ObjectMapper mapper = new ObjectMapper();
         List<EncounterBundle> bundles = mapper.readValue(json, new TypeReference<List<EncounterBundle>>() {
@@ -32,16 +31,12 @@ public class EncounterBundleTest {
         assertNotNull(bundle.getEncounterId());
         assertNotNull(bundle.getHealthId());
 
-        final ParserBase.ResourceOrFeed resourceOrFeed = bundle.getResourceOrFeed();
-        assertNotNull(resourceOrFeed);
-
-        final AtomFeed feed = resourceOrFeed.getFeed();
+        final AtomFeed feed = bundle.getFeed();
         assertEquals("urn:38052a8c-c5ad-4821-9e38-b49432a2ccc4", feed.getId());
         assertNotNull(feed);
         assertNotNull(feed.getEntryList());
         assertEquals(2, feed.getEntryList().size());
         assertEquals(ResourceType.Composition, feed.getEntryList().get(0).getResource().getResourceType());
         assertEquals(ResourceType.Encounter, feed.getEntryList().get(1).getResource().getResourceType());
-
     }
 }

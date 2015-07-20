@@ -1,9 +1,8 @@
 package org.openmrs.module.shrclient.web.controller.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import org.hl7.fhir.instance.formats.ParserBase;
+import org.hl7.fhir.instance.model.AtomFeed;
 
 public class EncounterBundle {
 
@@ -23,7 +22,7 @@ public class EncounterBundle {
 
     @JsonProperty("content")
     @JsonDeserialize(using = ResourceOrFeedDeserializer.class)
-    private ParserBase.ResourceOrFeed resourceOrFeed;
+    private AtomFeed feed;
 
     public String getEncounterId() {
         return encounterId;
@@ -37,8 +36,8 @@ public class EncounterBundle {
         return publishedDate;
     }
 
-    public ParserBase.ResourceOrFeed getResourceOrFeed() {
-        return resourceOrFeed;
+    public AtomFeed getFeed() {
+        return feed;
     }
 
     public void setEncounterId(String encounterId) {
@@ -53,8 +52,8 @@ public class EncounterBundle {
         this.publishedDate = date;
     }
 
-    public void addContent(ParserBase.ResourceOrFeed resourceOrFeed) {
-        this.resourceOrFeed = resourceOrFeed;
+    public void addContent(AtomFeed feed) {
+        this.feed = feed;
     }
 
     public String getTitle() {

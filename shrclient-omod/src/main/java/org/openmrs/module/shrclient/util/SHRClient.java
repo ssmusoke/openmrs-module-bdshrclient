@@ -50,7 +50,7 @@ public class SHRClient {
                 EncounterBundle bundle = new EncounterBundle();
                 bundle.setEncounterId(entry.getId());
                 bundle.setTitle(entry.getTitle());
-                bundle.addContent(getResourceOrFeed(entryContent));
+                bundle.addContent(getResourceOrFeed(entryContent).getFeed());
                 encounterBundles.add(bundle);
             }
             return encounterBundles;

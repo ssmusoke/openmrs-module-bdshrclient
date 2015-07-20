@@ -40,7 +40,7 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
     @Override
     public void process(EncounterBundle encounterBundle) {
         logger.info("Processing bundle with encounter id: " + encounterBundle.getEncounterId());
-        AtomFeed feed = encounterBundle.getResourceOrFeed().getFeed();
+        AtomFeed feed = encounterBundle.getFeed();
         String healthId = identifyPatientHealthId(feed);
         try {
             RestClient mciClient = new ClientRegistry(propertiesReader, identityStore).getMCIClient();

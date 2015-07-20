@@ -3,6 +3,8 @@ package org.openmrs.module.shrclient.service.impl;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.hl7.fhir.instance.model.AtomFeed;
+import org.hl7.fhir.instance.model.Coding;
+import org.hl7.fhir.instance.model.Composition;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
@@ -22,8 +24,10 @@ import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
+import org.openmrs.module.fhir.mapper.model.Confidentiality;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.DateUtil;
+import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
@@ -49,43 +53,48 @@ import java.util.Map;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH;
 import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH;
+import static org.openmrs.module.fhir.mapper.model.Confidentiality.getConfidentiality;
 import static org.openmrs.module.fhir.utils.Constants.*;
 
 @Component
 public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPatientService {
 
+    private static final Logger logger = Logger.getLogger(MciPatientServiceImpl.class);
     public static final String REGEX_TO_MATCH_MULTIPLE_WHITE_SPACE = "\\s+";
-    @Autowired
+
     private BbsCodeService bbsCodeService;
-
-    @Autowired
     private VisitService visitService;
-
-    @Autowired
     private FHIRMapper fhirMapper;
-
-    @Autowired
-    PatientService patientService;
-
-    @Autowired
-    PersonService personService;
-
-    @Autowired
+    private PatientService patientService;
+    private PersonService personService;
     private OrderService orderService;
-
-    @Autowired
     private IdMappingsRepository idMappingsRepository;
-
-    @Autowired
     private PropertiesReader propertiesReader;
-
-    @Autowired
     private SystemUserService systemUserService;
-
-    @Autowired
     private ObsService obsService;
 
-    private static final Logger logger = Logger.getLogger(MciPatientServiceImpl.class);
+    @Autowired
+    public MciPatientServiceImpl(BbsCodeService bbsCodeService,
+                                 VisitService visitService,
+                                 FHIRMapper fhirMapper,
+                                 PatientService patientService,
+                                 PersonService personService,
+                                 OrderService orderService,
+                                 IdMappingsRepository idMappingsRepository,
+                                 PropertiesReader propertiesReader,
+                                 SystemUserService systemUserService,
+                                 ObsService obsService) {
+        this.bbsCodeService = bbsCodeService;
+        this.visitService = visitService;
+        this.fhirMapper = fhirMapper;
+        this.patientService = patientService;
+        this.personService = personService;
+        this.orderService = orderService;
+        this.idMappingsRepository = idMappingsRepository;
+        this.propertiesReader = propertiesReader;
+        this.systemUserService = systemUserService;
+        this.obsService = obsService;
+    }
 
     @Override
     public org.openmrs.Patient createOrUpdatePatient(Patient mciPatient, Map<String, Concept> deathConceptsCache) {
@@ -161,7 +170,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
             return emrPatient.getCauseOfDeath();
         }
         Concept causeOfDeath = unspecifiedCauseOfDeathConcept;
-        if(emrPatient.getId() != null){
+        if (emrPatient.getId() != null) {
             List<Obs> obsForCauseOfDeath = obsService.getObservationsByPersonAndConcept(emrPatient, causeOfDeathConcept);
             if ((obsForCauseOfDeath != null) && !obsForCauseOfDeath.isEmpty()) {
                 for (Obs obs : obsForCauseOfDeath) {
@@ -204,10 +213,10 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     @Override
     public void createOrUpdateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId, Map<String, Concept> deathConceptsCache) throws Exception {
         String fhirEncounterId = StringUtils.substringAfter(encounterBundle.getTitle(), "Encounter:");
-        AtomFeed feed = encounterBundle.getResourceOrFeed().getFeed();
+        AtomFeed feed = encounterBundle.getFeed();
         logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), fhirEncounterId));
 
-        if (!shouldSyncEncounter(fhirEncounterId)) return;
+        if (!shouldSyncEncounter(fhirEncounterId, feed)) return;
         org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, feed);
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
@@ -256,7 +265,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     private void savePatientDeathInfo(org.openmrs.Patient emrPatient, Map<String, Concept> conceptCache) {
-        if(emrPatient.isDead()) {
+        if (emrPatient.isDead()) {
             emrPatient.setCauseOfDeath(getCauseOfDeath(emrPatient, conceptCache));
             patientService.savePatient(emrPatient);
             systemUserService.setOpenmrsShrSystemUserAsCreator(emrPatient);
@@ -284,9 +293,26 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         idMappingsRepository.saveMapping(new IdMapping(internalUuid, externalUuid, ID_MAPPING_ENCOUNTER_TYPE, url));
     }
 
-    private boolean shouldSyncEncounter(String encounterId) {
-        return (idMappingsRepository.findByExternalId(encounterId) == null) ? true : false;
+    private boolean shouldSyncEncounter(String encounterId, AtomFeed feed) {
+        if (idMappingsRepository.findByExternalId(encounterId) != null) {
+            return false;
+        }
+        if(getEncounterConfidentiality(feed).ordinal() > Confidentiality.Normal.ordinal()) {
+            return false;
+        }
+        return true;
     }
+
+    private Confidentiality getEncounterConfidentiality(AtomFeed feed) {
+        Composition composition = FHIRFeedHelper.getComposition(feed);
+        Coding confidentiality = composition.getConfidentiality();
+        if (null == confidentiality) {
+            return Confidentiality.Normal;
+        }
+        String code = confidentiality.getCodeSimple();
+        return getConfidentiality(code);
+    }
+
 
     private String getConceptId(String conceptName) {
         if (conceptName == null) {
