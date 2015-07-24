@@ -254,6 +254,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
             emrPatient.setDeathDate(null);
         } else {
             emrPatient.setDead(true);
+            emrPatient.setDeathDate(null);
             String dateOfDeath = status.getDateOfDeath();
             if (dateOfDeath != null) {
                 Date dob = DateUtil.parseDate(dateOfDeath);
