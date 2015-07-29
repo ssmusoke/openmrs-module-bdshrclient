@@ -1,5 +1,7 @@
 package org.openmrs.module.fhir.utils;
 
+import org.apache.commons.lang3.time.DateUtils;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -14,9 +16,12 @@ public class DateUtil {
     public static final String ISO_DATE_IN_MILLIS_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"; //2015-02-17T11:36:11.587+0530
     public static final String ISO_DATE_IN_SECS_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ"; //2015-02-17T11:37:16+0530
     public static final String ISO_DATE_IN_HOUR_MIN_FORMAT = "yyyy-MM-dd'T'HH:mmZ"; //2015-02-17T11:37+0530
-    public static final String ISO_8601_DATE_IN_MILLIS_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"; //2015-02-17T11:36:11.587+05:30
-    public static final String ISO_8601_DATE_IN_SECS_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZZ"; //2015-02-17T11:37:16+05:30
-    public static final String ISO_8601_DATE_IN_HOUR_MIN_FORMAT = "yyyy-MM-dd'T'HH:mmZZ"; //2015-02-17T11:37+05:30
+    public static final String ISO_8601_DATE_IN_MILLIS_FORMAT1 = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"; //2015-02-17T11:36:11.587+05:30
+    public static final String ISO_8601_DATE_IN_SECS_FORMAT1 = "yyyy-MM-dd'T'HH:mm:ssZZ"; //2015-02-17T11:37:16+05:30
+    public static final String ISO_8601_DATE_IN_HOUR_MIN_FORMAT1 = "yyyy-MM-dd'T'HH:mmZZ"; //2015-02-17T11:37+05:30
+    public static final String ISO_8601_DATE_IN_HOUR_MIN_FORMAT2 = "yyyy-MM-dd'T'HH:mmXXX"; //2015-02-17T11:37+05:30
+    public static final String ISO_8601_DATE_IN_SECS_FORMAT2 = "yyyy-MM-dd'T'HH:mm:ssXXX"; //2015-02-17T11:37:16+05:30
+    public static final String ISO_8601_DATE_IN_MILLIS_FORMAT2 = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"; //2015-02-17T11:36:11.587+05:30
 
     public static final String UTC_DATE_MILLIS_TZD_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSX"; //2011-04-15T20:08:18.032Z
     public static final String UTC_DATE_IN_SECS_TZD_FORMAT = "yyyy-MM-dd'T'HH:mm:ssX"; //2011-04-15T20:08:18Z;
@@ -33,7 +38,9 @@ public class DateUtil {
             UTC_DATE_MILLIS_TZD_FORMAT, UTC_DATE_IN_SECS_TZD_FORMAT,
             UTC_DATE_IN_MIN_TZD_FORMAT, UTC_DATE_IN_HOUR_TZD_FORMAT,
             UTC_DATE_IN_DATE_TZD_FORMAT, UTC_DATE_IN_SIMPLE_TZD_FORMAT,
-            ISO_8601_DATE_IN_MILLIS_FORMAT, ISO_8601_DATE_IN_SECS_FORMAT, ISO_8601_DATE_IN_HOUR_MIN_FORMAT};
+            ISO_8601_DATE_IN_MILLIS_FORMAT1, ISO_8601_DATE_IN_SECS_FORMAT1,
+            ISO_8601_DATE_IN_HOUR_MIN_FORMAT1, ISO_8601_DATE_IN_HOUR_MIN_FORMAT2,
+            ISO_8601_DATE_IN_SECS_FORMAT2, ISO_8601_DATE_IN_MILLIS_FORMAT2};
 
     public static String getCurrentTimeInUTCString() {
         SimpleDateFormat dateFormat = new SimpleDateFormat(UTC_DATE_IN_MILLIS_FORMAT);
@@ -94,5 +101,14 @@ public class DateUtil {
         secondTime.set(Calendar.MILLISECOND, 0);
 
         return firstTime.after(secondTime);
+    }
+
+    public static boolean isEqualTo(Date date1, Date date2) {
+        if (date1 != null && date2 != null) {
+            Date truncatedDate1 = DateUtils.setMilliseconds(date1, 0);
+            Date truncatedDate2 = DateUtils.setMilliseconds(date2, 0);
+            return truncatedDate1.equals(truncatedDate2);
+        }
+        return date1 == null && date2 == null;
     }
 }

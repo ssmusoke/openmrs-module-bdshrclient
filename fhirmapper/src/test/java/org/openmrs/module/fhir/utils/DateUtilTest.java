@@ -24,4 +24,23 @@ public class DateUtilTest {
         secondDate = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss:SSS").parse("21-06-2015 15:30:20:245");
         assertFalse(DateUtil.isLaterThan(firstDate, secondDate));
     }
+
+    @Test
+    public void shouldIgnoreMillisecondsWhileComparingDates() throws Exception {
+        Date date1 = DateUtil.parseDate("2015-01-29T10:41:48.560+06:00");
+        Date date2 = DateUtil.parseDate("2015-01-29T10:41:47.401+06:00");
+        assertFalse(DateUtil.isEqualTo(date1, date2));
+
+        date1 = DateUtil.parseDate("2015-01-29T10:41:48.560+06:00");
+        date2 = DateUtil.parseDate("2015-01-29T10:41:48.401+06:00");
+        assertTrue(DateUtil.isEqualTo(date1, date2));
+
+        date1 = DateUtil.parseDate("2015-01-29T10:41:48.560+06:00");
+        date2 = null;
+        assertFalse(DateUtil.isEqualTo(date1, date2));
+
+        date1 = null;
+        date2 = null;
+        assertTrue(DateUtil.isEqualTo(date1, date2));
+    }
 }

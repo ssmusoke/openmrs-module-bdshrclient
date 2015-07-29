@@ -6,7 +6,6 @@ import org.openmrs.Person;
 import org.openmrs.PersonAttribute;
 import org.openmrs.Provider;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.PhoneNumber;
 import org.openmrs.module.shrclient.model.Status;
@@ -75,7 +74,7 @@ public class PatientMapper {
         patient.setGivenName(openMrsPatient.getGivenName());
         patient.setSurName(openMrsPatient.getFamilyName());
         patient.setGender(openMrsPatient.getGender());
-        patient.setDateOfBirth(DateUtil.toDateString(openMrsPatient.getBirthdate(), DateUtil.ISO_DATE_IN_HOUR_MIN_FORMAT));
+        patient.setDateOfBirth(openMrsPatient.getBirthdate());
 
         PersonAttribute occupation = getAttribute(openMrsPatient, OCCUPATION_ATTRIBUTE);
         if (occupation != null) {
@@ -130,11 +129,8 @@ public class PatientMapper {
         if (isDead) {
             type = '2';
         }
-        if (openMrsPatient.getDeathDate() != null) {
-            dateOfDeath = DateUtil.toDateString(openMrsPatient.getDeathDate(), DateUtil.ISO_DATE_IN_HOUR_MIN_FORMAT);
-        }
         status.setType(type);
-        status.setDateOfDeath(dateOfDeath);
+        status.setDateOfDeath(openMrsPatient.getDeathDate());
         return status;
     }
 }

@@ -176,14 +176,14 @@ public class PatientMapperTest {
         patient.setGivenName(givenName);
         patient.setSurName(familyName);
         patient.setGender(gender);
-        patient.setDateOfBirth(DateUtil.toDateString(dateOfBirth, DateUtil.ISO_DATE_IN_HOUR_MIN_FORMAT));
+        patient.setDateOfBirth(dateOfBirth);
         patient.setOccupation(bbsCodeService.getOccupationCode(occupation));
         patient.setEducationLevel(bbsCodeService.getEducationCode(educationLevel));
         patient.setProviderReference("http://pr.com/" + providerIdentifier + ".json");
 
         Status status = new Status();
         status.setType('2');
-        status.setDateOfDeath(DateUtil.toDateString(dateOfDeath, DateUtil.ISO_DATE_IN_HOUR_MIN_FORMAT));
+        status.setDateOfDeath(dateOfDeath);
         patient.setStatus(status);
 
 

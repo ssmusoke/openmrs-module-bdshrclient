@@ -26,7 +26,6 @@ import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.Confidentiality;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
@@ -142,7 +141,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
                     mciPatient.getHealthId(), educationConceptName, mciPatient.getEducationLevel()));
         }
 
-        Date dob = DateUtil.parseDate(mciPatient.getDateOfBirth());
+        Date dob = mciPatient.getDateOfBirth();
         emrPatient.setBirthdate(dob);
 
         org.openmrs.Patient patient = patientService.savePatient(emrPatient);
@@ -254,13 +253,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
             emrPatient.setDeathDate(null);
         } else {
             emrPatient.setDead(true);
-            emrPatient.setDeathDate(null);
-            String dateOfDeath = status.getDateOfDeath();
-            if (dateOfDeath != null) {
-                Date dob = DateUtil.parseDate(dateOfDeath);
-                emrPatient.setDeathDate(dob);
-            }
-
+            emrPatient.setDeathDate(status.getDateOfDeath());
             emrPatient.setCauseOfDeath(getCauseOfDeath(emrPatient, conceptCache));
         }
     }

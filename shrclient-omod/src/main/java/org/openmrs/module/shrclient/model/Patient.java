@@ -1,13 +1,16 @@
 package org.openmrs.module.shrclient.model;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.openmrs.module.fhir.utils.DateUtil;
 
-import java.util.Arrays;
+import java.util.Date;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 public class Patient {
 
     @JsonProperty("nid")
@@ -76,7 +79,7 @@ public class Patient {
         Patient patient = (Patient) o;
 
         if (address != null ? !address.equals(patient.address) : patient.address != null) return false;
-        if (dateOfBirth != null ? !dateOfBirth.equals(patient.dateOfBirth) : patient.dateOfBirth != null) return false;
+        if (dateOfBirth != null ? !DateUtil.isEqualTo(getDateOfBirth(), patient.getDateOfBirth()) : patient.dateOfBirth != null) return false;
         if (educationLevel != null ? !educationLevel.equals(patient.educationLevel) : patient.educationLevel != null)
             return false;
         if (gender != null ? !gender.equals(patient.gender) : patient.gender != null) return false;
@@ -169,12 +172,12 @@ public class Patient {
         this.surName = surName;
     }
 
-    public String getDateOfBirth() {
-        return dateOfBirth;
+    public Date getDateOfBirth() {
+        return dateOfBirth == null ? null : DateUtil.parseDate(dateOfBirth);
     }
 
-    public void setDateOfBirth(String dateOfBirth) {
-        this.dateOfBirth = dateOfBirth;
+    public void setDateOfBirth(Date dateOfBirth) {
+        this.dateOfBirth = dateOfBirth == null ? null : DateUtil.toDateString(dateOfBirth, DateUtil.ISO_8601_DATE_IN_SECS_FORMAT2);
     }
 
     public Address getAddress() {
