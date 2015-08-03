@@ -8,6 +8,8 @@ public class MciPatientSearchRequest {
     private String brn;
     private String houseHoldCode;
 
+    private String phoneNo;
+
     public String getNid() {
         return nid;
     }
@@ -48,6 +50,14 @@ public class MciPatientSearchRequest {
         this.houseHoldCode = houseHoldCode;
     }
 
+    public String getPhoneNo() {
+        return phoneNo;
+    }
+
+    public void setPhoneNo(String phoneNo) {
+        this.phoneNo = phoneNo;
+    }
+
     @Override
     public String toString() {
         return "MciPatientSearchRequest{" +
@@ -56,6 +66,7 @@ public class MciPatientSearchRequest {
                 ", uid='" + uid + '\'' +
                 ", brn='" + brn + '\'' +
                 ", houseHoldCode='" + houseHoldCode + '\'' +
+                ", phoneNo='" + phoneNo + '\'' +
                 '}';
     }
 }

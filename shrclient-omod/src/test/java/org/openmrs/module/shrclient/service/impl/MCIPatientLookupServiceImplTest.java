@@ -155,6 +155,72 @@ public class MCIPatientLookupServiceImplTest {
         assertPatient((Map<String, Object>) patients[2], "11408953847", "house 3", "M");
 
     }
+    
+    @Test
+    public void shouldSearchPatientsByPhoneNumber() throws Exception {
+        String xAuthToken = "xyz";
+        String clientIdValue = "12345";
+        String email = "email@gmail.com";
+        String token = UUID.randomUUID().toString();
+        MciPatientSearchRequest request = new MciPatientSearchRequest();
+        String phoneNumber = "12345";
+        request.setPhoneNo(phoneNumber);
+        AddressHierarchyEntry entry = new AddressHierarchyEntry();
+        entry.setName("testEntry");
+
+        when(identityStore.getToken()).thenReturn(new IdentityToken(token));
+
+        when(addressHierarchyService.getAddressHierarchyEntryByUserGenId(anyString())).thenReturn(entry);
+        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
+        String patientContext = StringUtil.removeSuffix(propertiesReader.getMciPatientContext(), "/");
+
+        givenThat(get(urlEqualTo(patientContext + "?phone_no=" + phoneNumber))
+                .withHeader(FROM_KEY, equalTo(email))
+                .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
+                .withHeader(AUTH_TOKEN_KEY, equalTo(token))
+                .willReturn(aResponse().withBody(asString("patients_response/by_phone_number.json"))));
+
+
+        Object[] patients = (Object[]) lookupService.searchPatientInRegistry(request);
+        assertEquals(3, patients.length);
+        assertPatient((Map<String, Object>) patients[0], "98001000317", "A89 805045", "M");
+        assertPatient((Map<String, Object>) patients[1], "98001000333", "A89 47125", "F");
+        assertPatient((Map<String, Object>) patients[2], "98001000341", "A89 560325", "M");
+
+    }
+    
+    @Test
+    public void shouldIgnoreInactivePatients() throws Exception {
+        String xAuthToken = "xyz";
+        String clientIdValue = "12345";
+        String email = "email@gmail.com";
+        String token = UUID.randomUUID().toString();
+        MciPatientSearchRequest request = new MciPatientSearchRequest();
+        String phoneNumber = "12345";
+        request.setPhoneNo(phoneNumber);
+        AddressHierarchyEntry entry = new AddressHierarchyEntry();
+        entry.setName("testEntry");
+
+        when(identityStore.getToken()).thenReturn(new IdentityToken(token));
+
+        when(addressHierarchyService.getAddressHierarchyEntryByUserGenId(anyString())).thenReturn(entry);
+        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
+        String patientContext = StringUtil.removeSuffix(propertiesReader.getMciPatientContext(), "/");
+
+        givenThat(get(urlEqualTo(patientContext + "?phone_no=" + phoneNumber))
+                .withHeader(FROM_KEY, equalTo(email))
+                .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
+                .withHeader(AUTH_TOKEN_KEY, equalTo(token))
+                .willReturn(aResponse().withBody(asString("patients_response/including_inactive.json"))));
+
+
+        Object[] patients = (Object[]) lookupService.searchPatientInRegistry(request);
+        assertEquals(3, patients.length);
+        assertPatient((Map<String, Object>) patients[0], "98001000317", "A89 805045", "M");
+        assertPatient((Map<String, Object>) patients[1], "98001000333", "A89 47125", "F");
+        assertPatient((Map<String, Object>) patients[2], "98001000341", "A89 560325", "M");
+
+    }
 
 
     private void assertPatient(Map<String, Object> patient, String hid, String firstName, String gender) {

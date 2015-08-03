@@ -40,6 +40,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
     private static final String UID_PARAM_KEY = "uid";
     private static final String BRN_PARAM_KEY = "bin_brn";
     private static final String HOUSE_HOLD_CODE_PARAM_KEY = "household_code";
+    private static final String PHONE_NO_PARAM_KEY = "phone_no";
     private final String patientContext;
 
     private MciPatientService mciPatientService;
@@ -81,6 +82,9 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
             } else if (StringUtils.isNotBlank(request.getHouseHoldCode())) {
                 searchParamKey = HOUSE_HOLD_CODE_PARAM_KEY;
                 searchParamValue = request.getHouseHoldCode();
+            } else if (StringUtils.isNotBlank(request.getPhoneNo())) {
+                searchParamKey = PHONE_NO_PARAM_KEY;
+                searchParamValue = request.getPhoneNo();
             }
             if (StringUtils.isNotBlank(searchParamKey) && StringUtils.isNotBlank(searchParamValue)) {
                 Patient[] patients = searchPatients(searchParamKey, searchParamValue);
@@ -113,13 +117,13 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
     }
 
     private Object[] mapSearchResults(List<Patient> patientList) {
-        Object[] results = new Object[patientList.size()];
-        int idx = 0;
+        ArrayList<Object> results = new ArrayList<>();
         for (Patient patient : patientList) {
-            results[idx] = mapToPatientUIModel(patient);
-            idx++;
+            if (patient.isActive()) {
+                results.add(mapToPatientUIModel(patient));
+            }
         }
-        return results;
+        return results.toArray();
     }
 
     private Map<String, Object> mapToPatientUIModel(Patient mciPatient) {

@@ -110,6 +110,7 @@
                       <option value="brn">Birth Registration Number</option>
                       <option value="uid">Unique Identifier</option>
                       <option value="houseHoldCode">Household ID</option>
+                      <option value="phoneNo">Phone Number</option>
                     </select>
                     <input id="patientId" class="patient-id" type="text" name="patientId" value="">
                 </div>

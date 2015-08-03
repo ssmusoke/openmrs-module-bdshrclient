@@ -71,6 +71,10 @@ public class Patient {
     @JsonInclude(NON_EMPTY)
     private PhoneNumber phoneNumber;
 
+    @JsonProperty("active")
+    @JsonInclude(NON_EMPTY)
+    private boolean active;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -118,7 +122,6 @@ public class Patient {
         return result;
     }
 
-
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Patient{");
@@ -139,6 +142,7 @@ public class Patient {
         sb.append('}');
         return sb.toString();
     }
+
 
     public String getNationalId() {
         return nationalId;
@@ -244,10 +248,10 @@ public class Patient {
         this.houseHoldCode = houseHoldCode;
     }
 
-
     public void setProviderReference(String providerReference) {
         this.providerReference = providerReference;
     }
+
 
     public String getProviderReference() {
         return providerReference;
@@ -267,6 +271,14 @@ public class Patient {
 
     public void setPhoneNumber(PhoneNumber phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }
 

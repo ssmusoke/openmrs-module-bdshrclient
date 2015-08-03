@@ -16,7 +16,8 @@
         "district_id": "26",
         "upazila_id": "11",
         "country_code": "050"
-      }
+      },
+      "active": true
     },
     {
       "hid": "11408953847",
@@ -33,7 +34,8 @@
         "district_id": "26",
         "upazila_id": "11",
         "country_code": "050"
-      }
+      },
+      "active": true
     },
     {
       "hid": "11420126616",
@@ -50,7 +52,8 @@
         "district_id": "26",
         "upazila_id": "11",
         "country_code": "050"
-      }
+      },
+      "active": true
     }
   ]
 }

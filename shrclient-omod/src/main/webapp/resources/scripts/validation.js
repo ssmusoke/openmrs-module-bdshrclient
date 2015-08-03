@@ -1,4 +1,4 @@
-function isPatientIdValid(idType, patientId) {
+    function isPatientIdValid(idType, patientId) {
     if (idType === "nid") {
         if (!patientId.match("^(\\d{13}|\\d{17})$")) {
             jq(".errorMessage").text("National Id should be 13 or 17 digit number.");
@@ -38,6 +38,14 @@ function isPatientIdValid(idType, patientId) {
             return false;
         }
         return true;
+    }
+    if (idType === "phoneNo") {
+        if (patientId.match("^\\d{1,12}$")) {
+            return true;
+        }
+        jq(".errorMessage").text("Phone Number should be between 1 to 12 digit.");
+        jq(".errorMessage").show();
+        return false;
     }
     return false;
 }
