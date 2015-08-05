@@ -15,6 +15,8 @@ import org.openmrs.api.OrderService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
+import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -44,6 +46,8 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
     private FHIRObservationsMapper observationsMapper;
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Before
     public void setUp() throws Exception {
@@ -59,7 +63,8 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         Encounter encounter = new Encounter();
         encounter.setPatient(patientService.getPatient(1));
         HashMap<String, List<String>> processedList = new HashMap<>();
-        diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter, processedList);
+        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
+        diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter, processedList, conceptCache);
         assertEquals(2, processedList.size());
         assertTrue(processedList.containsKey(report.getIdentifier().getValueSimple()));
         Set<Obs> obsSet = encounter.getObsAtTopLevel(false);
@@ -97,11 +102,11 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         Encounter encounter = new Encounter();
         encounter.setPatient(patientService.getPatient(1));
         HashMap<String, List<String>> processedList = new HashMap<>();
-
-        observationsMapper.map(bundle, observation, encounter.getPatient(), encounter, processedList);
+        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
+        observationsMapper.map(bundle, observation, encounter.getPatient(), encounter, processedList, conceptCache);
         assertTrue(processedList.containsKey(observation.getIdentifier().getValueSimple()));
 
-        diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter, processedList);
+        diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter, processedList, conceptCache);
         assertEquals(2, processedList.size());
         assertTrue(processedList.containsKey(report.getIdentifier().getValueSimple()));
         Set<Obs> obsSet = encounter.getObsAtTopLevel(false);
@@ -120,8 +125,9 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         encounter.setPatient(patientService.getPatient(1));
         HashMap<String, List<String>> processedList = new HashMap<>();
         for (Resource resource : resources) {
+            ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
             org.hl7.fhir.instance.model.DiagnosticReport report = (org.hl7.fhir.instance.model.DiagnosticReport) resource;
-            diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter, processedList);
+            diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter, processedList, conceptCache);
             assertTrue(processedList.containsKey(report.getIdentifier().getValueSimple()));
         }
         assertEquals(4, processedList.size());

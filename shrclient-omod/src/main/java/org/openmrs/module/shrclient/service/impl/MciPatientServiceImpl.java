@@ -26,6 +26,7 @@ import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.Confidentiality;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
@@ -37,18 +38,13 @@ import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.MciPatientService;
-import org.openmrs.module.shrclient.util.AddressHelper;
-import org.openmrs.module.shrclient.util.PropertiesReader;
-import org.openmrs.module.shrclient.util.StringUtil;
-import org.openmrs.module.shrclient.util.SystemProperties;
-import org.openmrs.module.shrclient.util.SystemUserService;
+import org.openmrs.module.shrclient.util.*;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH;
 import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH;
@@ -96,7 +92,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     @Override
-    public org.openmrs.Patient createOrUpdatePatient(Patient mciPatient, Map<String, Concept> deathConceptsCache) {
+    public org.openmrs.Patient createOrUpdatePatient(Patient mciPatient, ConceptCache conceptCache) {
         AddressHelper addressHelper = new AddressHelper();
         org.openmrs.Patient emrPatient = identifyEmrPatient(mciPatient.getHealthId());
         if (emrPatient == null) {
@@ -105,7 +101,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         emrPatient.setGender(mciPatient.getGender());
         setIdentifier(emrPatient);
         setPersonName(emrPatient, mciPatient);
-        setDeathInfo(emrPatient, mciPatient, deathConceptsCache);
+        setDeathInfo(emrPatient, mciPatient, conceptCache);
         emrPatient.addAddress(addressHelper.setPersonAddress(emrPatient.getPersonAddress(), mciPatient.getAddress()));
 
         addPersonAttribute(personService, emrPatient, NATIONAL_ID_ATTRIBUTE, mciPatient.getNationalId());
@@ -151,9 +147,9 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     @Override
-    public Concept getCauseOfDeath(org.openmrs.Patient emrPatient, Map<String, Concept> deathConceptsCache) {
-        Concept unspecifiedCauseOfDeathConcept = deathConceptsCache.get(GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
-        Concept causeOfDeathConcept = deathConceptsCache.get(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH);
+    public Concept getCauseOfDeath(org.openmrs.Patient emrPatient, ConceptCache conceptCache) {
+        Concept unspecifiedCauseOfDeathConcept = conceptCache.getConceptFromGlobalProperty(GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
+        Concept causeOfDeathConcept = conceptCache.getConceptFromGlobalProperty(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH);
         String error = null;
         if (emrPatient.isDead() && unspecifiedCauseOfDeathConcept == null) {
             error = String.format("Invalid configuration for Global Setting '%s',associate Unspecified Cause Of Death concept id to it.", GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
@@ -197,10 +193,10 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     @Override
-    public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles, String healthId, Map<String, Concept> deathConceptsCache) {
+    public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles, String healthId, ConceptCache conceptsCache) {
         for (EncounterBundle bundle : bundles) {
             try {
-                createOrUpdateEncounter(emrPatient, bundle, healthId, deathConceptsCache);
+                createOrUpdateEncounter(emrPatient, bundle, healthId, conceptsCache);
             } catch (Exception e) {
                 //TODO do proper handling, write to log API?
                 logger.error("error Occurred while trying to process Encounter from SHR.", e);
@@ -210,19 +206,19 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     @Override
-    public void createOrUpdateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId, Map<String, Concept> deathConceptsCache) throws Exception {
+    public void createOrUpdateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId, ConceptCache conceptCache) throws Exception {
         String fhirEncounterId = StringUtils.substringAfter(encounterBundle.getTitle(), "Encounter:");
         AtomFeed feed = encounterBundle.getFeed();
         logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), fhirEncounterId));
 
         if (!shouldSyncEncounter(fhirEncounterId, feed)) return;
-        org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, feed);
+        org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, feed, conceptCache);
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
         systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter);
         systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter.getVisit());
         addEncounterToIdMapping(newEmrEncounter, fhirEncounterId, healthId);
-        savePatientDeathInfo(emrPatient, deathConceptsCache);
+        savePatientDeathInfo(emrPatient, conceptCache);
     }
 
     private String getFamilyNameLocal(String banglaName) {
@@ -241,7 +237,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         return (-1 != lastIndexOfSpace ? banglaName.substring(0, lastIndexOfSpace) : banglaName);
     }
 
-    private void setDeathInfo(org.openmrs.Patient emrPatient, Patient mciPatient, Map<String, Concept> conceptCache) {
+    private void setDeathInfo(org.openmrs.Patient emrPatient, Patient mciPatient, ConceptCache conceptCache) {
         Status status = mciPatient.getStatus();
         boolean isAliveMciPatient = status.getType() == '1' ? true : false;
         boolean isAliveEmrPatient = !emrPatient.isDead();
@@ -258,7 +254,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         }
     }
 
-    private void savePatientDeathInfo(org.openmrs.Patient emrPatient, Map<String, Concept> conceptCache) {
+    private void savePatientDeathInfo(org.openmrs.Patient emrPatient, ConceptCache conceptCache) {
         if (emrPatient.isDead()) {
             emrPatient.setCauseOfDeath(getCauseOfDeath(emrPatient, conceptCache));
             patientService.savePatient(emrPatient);

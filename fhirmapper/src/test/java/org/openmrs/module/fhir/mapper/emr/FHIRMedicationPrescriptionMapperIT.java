@@ -14,9 +14,12 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
+import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +28,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
@@ -35,6 +39,9 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
 
     @Autowired
     private ConceptService conceptService;
+    
+    @Autowired
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     private Resource resource;
     private AtomFeed feed;
@@ -88,7 +95,8 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
     public void shouldMapPatientToDrug(){
         Encounter mappedEncounter = new Encounter();
         Patient patient = new Patient();
-        mapper.map(feed, resource, patient, mappedEncounter,new HashMap<String, List<String>>());
+        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
+        mapper.map(feed, resource, patient, mappedEncounter,new HashMap<String, List<String>>(), conceptCache);
 
         assertEquals(1, mappedEncounter.getOrders().size());
         Order order = mappedEncounter.getOrders().iterator().next();
@@ -127,7 +135,8 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
     private Order getOrder() {
         Encounter mappedEncounter = new Encounter();
         Patient patient = new Patient();
-        mapper.map(feed, resource, patient, mappedEncounter,new HashMap<String, List<String>>());
+        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
+        mapper.map(feed, resource, patient, mappedEncounter,new HashMap<String, List<String>>(), conceptCache);
 
         assertEquals(1, mappedEncounter.getOrders().size());
         return mappedEncounter.getOrders().iterator().next();

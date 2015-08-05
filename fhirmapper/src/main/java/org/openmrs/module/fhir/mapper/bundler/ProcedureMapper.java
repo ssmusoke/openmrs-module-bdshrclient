@@ -7,6 +7,7 @@ import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,16 +26,19 @@ public class ProcedureMapper implements EmrObsResourceHandler {
 
     @Autowired
     private DiagnosticReportBuilder diagnosticReportBuilder;
+    
+    @Autowired
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Override
     public boolean canHandle(Obs observation) {
-        CompoundObservation obs = new CompoundObservation(observation);
+        CompoundObservation obs = new CompoundObservation(observation, globalPropertyLookUpService);
         return obs.isOfType(ObservationType.PROCEDURES);
     }
 
     @Override
     public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
-        CompoundObservation compoundObservationProcedure = new CompoundObservation(obs);
+        CompoundObservation compoundObservationProcedure = new CompoundObservation(obs, globalPropertyLookUpService);
 
         return mapProcedure(obs, fhirEncounter, systemProperties, compoundObservationProcedure);
     }
@@ -142,7 +146,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     private DiagnosticReport buildDiagnosticReport(CompoundObservation compoundObservationProcedure, Encounter fhirEncounter, SystemProperties systemProperties) {
         DiagnosticReport diagnosticReport = null;
         Obs diagnosticStudyObs = compoundObservationProcedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_STUDY);
-        CompoundObservation compoundDiagnosticStudyObs = new CompoundObservation(diagnosticStudyObs);
+        CompoundObservation compoundDiagnosticStudyObs = new CompoundObservation(diagnosticStudyObs, globalPropertyLookUpService);
         CodeableConcept diagnosisTestName = getNameToDiagnosticReport(compoundDiagnosticStudyObs);
         if (diagnosisTestName != null) {
             diagnosticReport = diagnosticReportBuilder.build(diagnosticStudyObs, fhirEncounter, systemProperties);

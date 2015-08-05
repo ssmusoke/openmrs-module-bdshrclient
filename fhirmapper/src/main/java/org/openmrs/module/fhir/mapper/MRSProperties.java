@@ -13,12 +13,6 @@ public class MRSProperties {
     public static final String MRS_CONCEPT_NAME_DIAGNOSIS_CERTAINTY = "Diagnosis Certainty";
     public static final String MRS_CONCEPT_NAME_DIAGNOSIS_ORDER = "Diagnosis order";
 
-    public static final String MRS_CONCEPT_NAME_HISTORY_AND_EXAMINATION = "History and Examination";
-    public static final String MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA = "Chief Complaint Data";
-    public static final String MRS_CONCEPT_NAME_CHIEF_COMPLAINT = "Chief Complaint";
-    public static final String MRS_CONCEPT_NAME_NON_CODED_CHIEF_COMPLAINT = "Non-Coded Chief Complaint";
-    public static final String MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DURATION = "Chief Complaint Duration";
-
     public static final String MRS_CONCEPT_NAME_FAMILY_HISTORY = "Family History";
     public static final String MRS_CONCEPT_NAME_PERSON = "Person";
     public static final String MRS_CONCEPT_NAME_RELATIONSHIP = "Relationship Type";
@@ -49,7 +43,7 @@ public class MRSProperties {
     public static final String MRS_CONCEPT_VACCINATION_REPORTED = "Vaccination Reported";
     public static final String MRS_CONCEPT_DOSAGE = "Dosage";
 
-    public static final String MRS_DIAGNOSIS_REPORT_RESOURCE_NAME= "Diagnostic Report";
+    public static final String MRS_DIAGNOSIS_REPORT_RESOURCE_NAME = "Diagnostic Report";
     public static final String MRS_CONCEPT_PROCEDURES = "Procedures";
     public static final String MRS_CONCEPT_PROCEDURE_TYPE = "Procedure";
     public static final String MRS_CONCEPT_PROCEDURE_OUTCOME = "Outcome";
@@ -62,7 +56,6 @@ public class MRSProperties {
     public static final String MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_RESULT = "Result";
 
 
-
     public static final String VALUESET_QUANTITY_UNITS = "Quantity Units";
     public static final String VALUESET_IMMUNIZATION_REASON = "Immunization Reason";
     public static final String VALUESET_IMMUNIZATION_REFUSAL_REASON = "No Immunization Reason";
@@ -73,4 +66,10 @@ public class MRSProperties {
     public static final String GLOBAL_PROPERTY_CONCEPT_SHR_HIE_FACILITY_LOCATION_TAG = "shr.hie.facilities.location.tag";
     public static final String GLOBAL_PROPERTY__SHR_SYSTEM_USER_TAG = "shr.system.user";
     public static final String GLOBAL_PROPERTY_EMR_PRIMARY_IDENTIFIER_TYPE = "emr.primaryIdentifierType";
+
+    public static final String GLOBAL_PROPERTY_CONCEPT_HISTORY_AND_EXAMINATION = "shr.concept.history.and.examination";
+    public static final String GLOBAL_PROPERTY_CONCEPT_CHIEF_COMPLAINT_DATA = "shr.concept.chief.complaint.data";
+    public static final String GLOBAL_PROPERTY_CONCEPT_CHIEF_COMPLAINT = "shr.concept.chief.complaint";
+    public static final String GLOBAL_PROPERTY_CONCEPT_NON_CODED_CHIEF_COMPLAINT = "shr.concept.non.coded.chief.complaint";
+    public static final String GLOBAL_PROPERTY_CONCEPT_CHIEF_COMPLAINT_DURATION = "shr.concept.chief.complaint.duration";
 }

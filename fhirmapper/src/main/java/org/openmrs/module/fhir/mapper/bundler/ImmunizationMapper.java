@@ -11,6 +11,7 @@ import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
 import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -34,17 +35,19 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     private ObservationValueMapper obsValueMapper;
     @Autowired
     private CodableConceptService codableConceptService;
+    @Autowired
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Override
     public boolean canHandle(Obs observation) {
-        CompoundObservation obs = new CompoundObservation(observation);
+        CompoundObservation obs = new CompoundObservation(observation, globalPropertyLookUpService);
         return obs.isOfType(ObservationType.IMMUNIZATION);
     }
 
     @Override
     public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> resources = new ArrayList<>();
-        Immunization immunization = mapObservation(new CompoundObservation(obs), fhirEncounter, systemProperties);
+        Immunization immunization = mapObservation(new CompoundObservation(obs, globalPropertyLookUpService), fhirEncounter, systemProperties);
         if(immunization != null) {
             FHIRResource immunizationResource = new FHIRResource("Immunization", immunization.getIdentifier(), immunization);
             resources.add(immunizationResource);

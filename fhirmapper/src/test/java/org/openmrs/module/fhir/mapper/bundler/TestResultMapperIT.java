@@ -7,6 +7,7 @@ import org.openmrs.api.ObsService;
 import org.openmrs.api.OrderService;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -19,6 +20,7 @@ import static org.openmrs.module.fhir.TestFhirFeedHelper.getResourceByReference;
 import static org.openmrs.module.fhir.TestFhirFeedHelper.getResourceByType;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired

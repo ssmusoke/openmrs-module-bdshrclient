@@ -2,6 +2,9 @@ package org.openmrs.module.shrclient.handlers;
 
 
 import org.apache.log4j.Logger;
+import org.openmrs.api.ConceptService;
+import org.openmrs.api.context.Context;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.shrclient.feeds.shr.DefaultEncounterFeedWorker;
@@ -13,6 +16,7 @@ import org.openmrs.module.shrclient.util.PlatformUtil;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.StringUtil;
 
+import javax.swing.text.AbstractDocument;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,8 +67,8 @@ public class EncounterPull {
         MciPatientService mciPatientService = PlatformUtil.getRegisteredComponent(MciPatientService.class);
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
         IdentityStore identityStore = PlatformUtil.getIdentityStore();
-        OMRSConceptLookup omrsConceptLookup = PlatformUtil.getOMRSConceptLookup();
-        return new DefaultEncounterFeedWorker(mciPatientService, propertiesReader, identityStore, omrsConceptLookup);
+        GlobalPropertyLookUpService globalPropertyLookUpService = PlatformUtil.getRegisteredComponent(GlobalPropertyLookUpService.class);
+        return new DefaultEncounterFeedWorker(mciPatientService, propertiesReader, identityStore, Context.getConceptService(), globalPropertyLookUpService);
     }
 
     private HashMap<String, String> getRequestHeaders(PropertiesReader propertiesReader) throws IdentityUnauthorizedException {

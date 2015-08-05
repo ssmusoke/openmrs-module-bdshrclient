@@ -83,4 +83,9 @@
          uuid="eeea54cb-2a25-471a-9cd7-1434a5aa337a" creator="1" obs_group_id="2" value_numeric="120" concept_id="408" voided="0" />
 
     <shr_id_mapping id="1" internal_id="baef67ac-b24e-4b04-ac83-c3b994132b85" external_id="5018b827-a67c-421f-a705-e5efe0e6a972" type="concept" uri="http://172.18.46.53:9080/openmrs/ws/rest/v1/tr/referenceterms/5018b827-a67c-421f-a705-e5efe0e6a972"></shr_id_mapping>
+    
+    <global_property property="shr.concept.history.and.examination" property_value="399" uuid="04e2g3d3-a6d0-40dd-8ed3-3895edb62s4t"/>
+    <global_property property="shr.concept.chief.complaint.data" property_value="398" uuid="04w4w5f0-s50u-40dd-8ed3-3895edb62s4t"/>
+    <global_property property="shr.concept.chief.complaint" property_value="402" uuid="04w4w2e5-s31w-42ed-8ed3-3895edb62s4t"/>
+    <global_property property="shr.concept.chief.complaint.duration" property_value="408" uuid="12q4v4e5-s50u-40dd-8ed3-3895edb62s4t"/>
 </dataset>

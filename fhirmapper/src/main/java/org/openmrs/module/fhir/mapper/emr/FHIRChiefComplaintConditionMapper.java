@@ -6,23 +6,23 @@ import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
-import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
+import org.openmrs.module.shrclient.util.ConceptCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
 
-    @Autowired
-    private ConceptService conceptService;
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
 
@@ -41,30 +41,30 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
+    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList, ConceptCache conceptCache) {
         Condition condition = (Condition) resource;
 
         if (isAlreadyProcessed(condition, processedList))
             return;
-        Concept historyAndExaminationConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_HISTORY_AND_EXAMINATION);
-        Concept chiefComplaintDataConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA);
-        Concept chiefComplaintDurationConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DURATION);
+
+        Concept historyAndExaminationConcept = conceptCache.getConceptFromGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_HISTORY_AND_EXAMINATION);
+        Concept chiefComplaintDataConcept = conceptCache.getConceptFromGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_CHIEF_COMPLAINT_DATA);
+        Concept chiefComplaintDurationConcept = conceptCache.getConceptFromGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_CHIEF_COMPLAINT_DURATION);
 
         Obs chiefComplaintObs = new Obs();
         List<Coding> conditionCoding = condition.getCode().getCoding();
         Concept conceptAnswer = omrsConceptLookup.findConcept(conditionCoding);
         if (conceptAnswer == null) {
-            if(CollectionUtils.isNotEmpty(conditionCoding)) {
+            if (CollectionUtils.isNotEmpty(conditionCoding)) {
                 String displayName = conditionCoding.get(0).getDisplaySimple();
-                Concept nonCodedChiefComplaintConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_NON_CODED_CHIEF_COMPLAINT);
+                Concept nonCodedChiefComplaintConcept = conceptCache.getConceptFromGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_NON_CODED_CHIEF_COMPLAINT);
                 chiefComplaintObs.setConcept(nonCodedChiefComplaintConcept);
                 chiefComplaintObs.setValueText(displayName);
-            }
-            else {
+            } else {
                 return;
             }
         } else {
-            Concept chiefComplaintConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT);
+            Concept chiefComplaintConcept = conceptCache.getConceptFromGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_CHIEF_COMPLAINT);
             chiefComplaintObs.setConcept(chiefComplaintConcept);
             chiefComplaintObs.setValueCoded(conceptAnswer);
         }
@@ -80,13 +80,29 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
             chiefComplaintDataObs.addGroupMember(chiefComplaintDurationObs);
         }
 
-        //TODO : don't create history and examination obs if it already exists in encounter
-        Obs historyExaminationObs = new Obs();
+        Obs historyExaminationObs = getHistoryAndExaminationObservation(newEmrEncounter, historyAndExaminationConcept);
         historyExaminationObs.setConcept(historyAndExaminationConcept);
         historyExaminationObs.addGroupMember(chiefComplaintDataObs);
         newEmrEncounter.addObs(historyExaminationObs);
 
         processedList.put(condition.getIdentifier().get(0).getValueSimple(), Arrays.asList(chiefComplaintDataObs.getUuid()));
+    }
+
+    public Obs getHistoryAndExaminationObservation(Encounter newEmrEncounter, Concept historyAndExaminationConcept) {
+        Obs historyExaminationObs = findObservationFromEncounter(newEmrEncounter, historyAndExaminationConcept);
+        if (historyExaminationObs == null) {
+            historyExaminationObs = new Obs();
+        }
+        return historyExaminationObs;
+    }
+
+    public Obs findObservationFromEncounter(Encounter newEmrEncounter, Concept historyAndExaminationConcept) {
+        for (Obs obs : newEmrEncounter.getAllObs()) {
+            if (obs.getConcept().equals(historyAndExaminationConcept)) {
+                return obs;
+            }
+        }
+        return null;
     }
 
     private boolean hasDuration(Condition condition) {

@@ -6,11 +6,11 @@ import org.openmrs.Concept;
 import org.openmrs.ConceptName;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
-import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
 import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +23,7 @@ import java.util.List;
 
 import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_UNIT_FOR_YEARS;
 import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_URL;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_BORN_ON;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_ONSET_AGE;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_NOTES;
+import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
 @Component
 public class FamilyHistoryMapper implements EmrObsResourceHandler {
@@ -37,14 +32,14 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
     IdMappingsRepository idMappingsRepository;
 
     @Autowired
-    ObservationValueMapper observationValueMapper;
+    private CodableConceptService codableConceptService;
 
     @Autowired
-    private CodableConceptService codableConceptService;
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Override
     public boolean canHandle(Obs observation) {
-        CompoundObservation obs = new CompoundObservation(observation);
+        CompoundObservation obs = new CompoundObservation(observation, globalPropertyLookUpService);
         return obs.isOfType(ObservationType.FAMILY_HISTORY);
     }
 

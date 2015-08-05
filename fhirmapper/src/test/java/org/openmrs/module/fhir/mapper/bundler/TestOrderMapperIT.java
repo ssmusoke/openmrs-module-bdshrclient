@@ -14,6 +14,7 @@ import org.openmrs.module.fhir.TestFhirFeedHelper;
 import org.openmrs.module.fhir.mapper.model.FHIRIdentifier;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
@@ -28,9 +30,6 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     EncounterService encounterService;
-
-    @Autowired
-    ProviderService providerService;
 
     @Before
     public void setUp() throws Exception {

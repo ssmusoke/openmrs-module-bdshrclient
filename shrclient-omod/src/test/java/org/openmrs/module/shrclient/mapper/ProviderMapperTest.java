@@ -9,11 +9,13 @@ import org.openmrs.api.ProviderService;
 import org.openmrs.module.shrclient.model.ProviderEntry;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import static org.junit.Assert.*;
 import static org.openmrs.module.shrclient.mapper.ProviderMapper.RETIRE_REASON;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ProviderMapperTest extends BaseModuleWebContextSensitiveTest {
 
     @Autowired

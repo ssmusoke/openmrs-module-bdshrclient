@@ -9,6 +9,7 @@ import org.openmrs.api.ObsService;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.*;
 import java.util.Date;
@@ -18,6 +19,7 @@ import static org.junit.Assert.assertTrue;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired

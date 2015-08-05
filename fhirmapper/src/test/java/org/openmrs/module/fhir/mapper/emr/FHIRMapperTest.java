@@ -8,15 +8,19 @@ import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.MapperTestHelper;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
+import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
@@ -30,6 +34,9 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     private ConceptService conceptService;
+    
+    @Autowired
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Test
     public void shouldMapObservations() throws Exception {
@@ -38,7 +45,7 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
 
         Patient patient = patientService.getPatient(1);
 
-        Encounter encounter = fhirMapper.map(patient, encounterBundle);
+        Encounter encounter = fhirMapper.map(patient, encounterBundle, new ConceptCache(conceptService,globalPropertyLookUpService));
         assertEquals(4, encounter.getAllObs().size());
 
         Set<Obs> topLevelObs = encounter.getObsAtTopLevel(false);

@@ -13,6 +13,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
+import org.openmrs.module.shrclient.util.ConceptCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -47,7 +48,7 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
+    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList, ConceptCache conceptCache) {
         Condition condition = (Condition) resource;
 
         if (isAlreadyProcessed(condition, processedList))

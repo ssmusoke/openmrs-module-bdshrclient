@@ -8,6 +8,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -20,6 +21,7 @@ import static org.openmrs.module.fhir.mapper.FHIRProperties.FHIR_DOC_TYPECODES_U
 
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired

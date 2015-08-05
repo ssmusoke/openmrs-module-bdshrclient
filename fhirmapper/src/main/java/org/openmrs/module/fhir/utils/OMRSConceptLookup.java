@@ -23,13 +23,11 @@ import static org.openmrs.module.fhir.utils.Constants.*;
 public class OMRSConceptLookup {
 
     private ConceptService conceptService;
-    private GlobalPropertyLookUpService globalPropertyLookUpService;
     private IdMappingsRepository idMappingsRepository;
 
     @Autowired
-    public OMRSConceptLookup(ConceptService conceptService, GlobalPropertyLookUpService globalPropertyLookUpService, IdMappingsRepository repository) {
+    public OMRSConceptLookup(ConceptService conceptService, IdMappingsRepository repository) {
         this.conceptService = conceptService;
-        this.globalPropertyLookUpService = globalPropertyLookUpService;
         this.idMappingsRepository = repository;
     }
 
@@ -140,30 +138,6 @@ public class OMRSConceptLookup {
         concept.addName(new ConceptName(conceptName, ENGLISH));
         concept.addConceptMapping(new ConceptMap(refTerm, conceptService.getConceptMapTypeByUuid(SAME_AS_MAP_TYPE_UUID)));
         return conceptService.saveConcept(concept);
-    }
-
-    public Map<String, Concept> getConceptsConfiguredViaGlobalProperties(List<String> globalPropertyKeys) {
-        Map<String, Concept> conceptCache = new HashMap<>();
-
-        for (String globalProperty : globalPropertyKeys) {
-            addToCache(conceptCache, globalProperty, getConceptFromConfiguredGlobalProperty(globalProperty));
-        }
-
-        return conceptCache;
-    }
-
-    private void addToCache(Map<String, Concept> conceptCache, String key, Concept concept) {
-        if (concept != null) {
-            conceptCache.put(key, concept);
-        }
-    }
-
-    public Concept getConceptFromConfiguredGlobalProperty(String propertyName) {
-        Integer value = globalPropertyLookUpService.getGlobalPropertyValue(propertyName);
-        if(value != null){
-            return conceptService.getConcept(value);
-        }
-        return null;
     }
 
     private static String getUuid(String content) {

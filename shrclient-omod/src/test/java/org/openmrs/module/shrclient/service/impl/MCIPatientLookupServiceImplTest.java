@@ -6,10 +6,12 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.ServiceContext;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityToken;
 import org.openmrs.module.shrclient.service.MciPatientService;
@@ -41,10 +43,13 @@ public class MCIPatientLookupServiceImplTest {
     private IdentityStore identityStore;
     @Mock
     private AddressHierarchyService addressHierarchyService;
+    @Mock
+    private ConceptService conceptService;
+    @Mock
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(9997);
-
     private MCIPatientLookupServiceImpl lookupService;
 
     @Before
@@ -53,7 +58,7 @@ public class MCIPatientLookupServiceImplTest {
         when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:9997");
         when(propertiesReader.getMciPatientContext()).thenReturn("/api/default/patients");
 
-        lookupService = new MCIPatientLookupServiceImpl(mciPatientService, propertiesReader, identityStore, null);
+        lookupService = new MCIPatientLookupServiceImpl(mciPatientService, propertiesReader, identityStore, conceptService, globalPropertyLookUpService);
         Context context = new Context();
         ServiceContext serviceContext = ServiceContext.getInstance();
         serviceContext.setService(AddressHierarchyService.class, addressHierarchyService);

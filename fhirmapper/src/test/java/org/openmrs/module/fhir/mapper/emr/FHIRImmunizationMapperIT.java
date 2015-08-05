@@ -14,17 +14,20 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.ObsHelper;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
+import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
@@ -35,6 +38,9 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
 
     @Autowired
     private ConceptService conceptService;
+
+    @Autowired
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     private Resource resource;
     private AtomFeed feed;
@@ -63,30 +69,30 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
         DateTime dateTime = new DateTime(DateTimeZone.forTimeZone(TimeZone.getTimeZone("IST")));
         Date expectedDate = dateTime.withDate(2014, 12, 3).toDateMidnight().toDate();
 
-        Obs vaccineDateObs = obsHelper.findMemberObsByConceptName(obs, MRS_CONCEPT_VACCINATION_DATE);
+        Obs vaccineDateObs = obsHelper.findMemberObsByConceptName(obs, MRS_CONCEPT_VACCINATION_DATE, globalPropertyLookUpService);
         assertEquals(expectedDate, vaccineDateObs.getValueDate());
     }
 
     @Test
     public void shouldMapVaccinationReported() throws Exception {
-        Obs obs= mapImmunizationIncidentObs();
+        Obs obs = mapImmunizationIncidentObs();
 
-        Obs vaccinationReported= obsHelper.findMemberObsByConceptName(obs, MRS_CONCEPT_VACCINATION_REPORTED);
+        Obs vaccinationReported = obsHelper.findMemberObsByConceptName(obs, MRS_CONCEPT_VACCINATION_REPORTED, globalPropertyLookUpService);
         assertTrue(vaccinationReported.getValueAsBoolean());
     }
 
     @Test
     public void shouldMapRefusedIndicator() throws Exception {
-        Obs obs= mapImmunizationIncidentObs();
-        Obs refusedIndicator= obsHelper.findMemberObsByConceptName(obs, MRS_CONCEPT_VACCINATION_REFUSED);
+        Obs obs = mapImmunizationIncidentObs();
+        Obs refusedIndicator = obsHelper.findMemberObsByConceptName(obs, MRS_CONCEPT_VACCINATION_REFUSED, globalPropertyLookUpService);
         assertFalse(refusedIndicator.getValueAsBoolean());
 
     }
 
     @Test
     public void shouldMapQuantityUnits() throws Exception {
-        Obs obs= mapImmunizationIncidentObs();
-        Obs quantityUnits= obsHelper.findMemberObsByConceptName(obs, VALUESET_QUANTITY_UNITS);
+        Obs obs = mapImmunizationIncidentObs();
+        Obs quantityUnits = obsHelper.findMemberObsByConceptName(obs, VALUESET_QUANTITY_UNITS, globalPropertyLookUpService);
 
         int mgConceptCode = 50;
         assertEquals(quantityUnits.getValueCoded(), conceptService.getConcept(mgConceptCode));
@@ -94,16 +100,16 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
 
     @Test
     public void shouldMapDosage() throws Exception {
-        Obs obs= mapImmunizationIncidentObs();
-        Obs dosage= obsHelper.findMemberObsByConceptName(obs, MRS_CONCEPT_DOSAGE);
+        Obs obs = mapImmunizationIncidentObs();
+        Obs dosage = obsHelper.findMemberObsByConceptName(obs, MRS_CONCEPT_DOSAGE, globalPropertyLookUpService);
 
         assertTrue(dosage.getValueNumeric() == 100.0);
     }
 
     @Test
     public void shouldMapVaccineType() throws Exception {
-        Obs obs= mapImmunizationIncidentObs();
-        Obs vaccineType= obsHelper.findMemberObsByConceptName(obs, MRS_CONCEPT_VACCINE);
+        Obs obs = mapImmunizationIncidentObs();
+        Obs vaccineType = obsHelper.findMemberObsByConceptName(obs, MRS_CONCEPT_VACCINE, globalPropertyLookUpService);
 
         int paracetemol500 = 550;
         assertEquals(vaccineType.getValueCoded(), conceptService.getConcept(paracetemol500));
@@ -113,8 +119,8 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
 
     @Test
     public void shouldMapImmunizationReason() throws Exception {
-        Obs obs= mapImmunizationIncidentObs();
-        Obs immunizationReason= obsHelper.findMemberObsByConceptName(obs, VALUESET_IMMUNIZATION_REASON);
+        Obs obs = mapImmunizationIncidentObs();
+        Obs immunizationReason = obsHelper.findMemberObsByConceptName(obs, VALUESET_IMMUNIZATION_REASON, globalPropertyLookUpService);
 
         int travelVaccination = 501;
         assertEquals(immunizationReason.getValueCoded(), conceptService.getConcept(travelVaccination));
@@ -122,8 +128,8 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
 
     @Test
     public void shouldMapImmunizationRefusalReason() throws Exception {
-        Obs obs= mapImmunizationIncidentObs();
-        Obs immunizationReason= obsHelper.findMemberObsByConceptName(obs, VALUESET_IMMUNIZATION_REFUSAL_REASON);
+        Obs obs = mapImmunizationIncidentObs();
+        Obs immunizationReason = obsHelper.findMemberObsByConceptName(obs, VALUESET_IMMUNIZATION_REFUSAL_REASON, globalPropertyLookUpService);
 
         int patientObjection = 502;
         assertEquals(immunizationReason.getValueCoded(), conceptService.getConcept(patientObjection));
@@ -131,8 +137,8 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
 
     @Test
     public void shouldMapRoute() throws Exception {
-        Obs obs= mapImmunizationIncidentObs();
-        Obs route= obsHelper.findMemberObsByConceptName(obs,VALUESET_ROUTE);
+        Obs obs = mapImmunizationIncidentObs();
+        Obs route = obsHelper.findMemberObsByConceptName(obs, VALUESET_ROUTE, globalPropertyLookUpService);
 
         int oral = 503;
         assertEquals(route.getValueCoded(), conceptService.getConcept(oral));
@@ -142,13 +148,14 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
 
     private Obs mapImmunizationIncidentObs() {
         Encounter mrsEncounter = new Encounter();
-        mapper.map(feed, resource, null, mrsEncounter,new HashMap<String, List<String>>());
+        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
+        mapper.map(feed, resource, null, mrsEncounter, new HashMap<String, List<String>>(), conceptCache);
 
         Set<Obs> allObs = mrsEncounter.getAllObs();
-        assertEquals(1,allObs.size());
+        assertEquals(1, allObs.size());
         Obs obs = allObs.iterator().next();
         assertEquals(MRS_CONCEPT_IMMUNIZATION_INCIDENT, obs.getConcept().getName().getName());
-        
+
         return obs;
     }
 }

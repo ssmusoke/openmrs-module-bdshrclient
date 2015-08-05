@@ -7,12 +7,14 @@ import org.openmrs.module.shrclient.model.FacilityCatchment;
 import org.openmrs.module.shrclient.service.FacilityCatchmentService;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class FacilityCatchmentServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Autowired
     FacilityCatchmentRepository facilityCatchmentRepository;
@@ -45,6 +47,4 @@ public class FacilityCatchmentServiceImplIT extends BaseModuleWebContextSensitiv
         List<FacilityCatchment> facilityCatchments = facilityCatchmentService.getFacilitiesForCatchment("3020");
         assertEquals(2, facilityCatchments.size() );
     }
-
-
 }

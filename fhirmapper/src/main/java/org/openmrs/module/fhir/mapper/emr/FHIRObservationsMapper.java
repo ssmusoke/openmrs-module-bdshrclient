@@ -8,6 +8,7 @@ import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.util.ConceptCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,7 +40,7 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
+    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList, ConceptCache conceptCache) {
         Observation observation = (Observation) resource;
         if (isAlreadyProcessed(observation, processedList))
             return;

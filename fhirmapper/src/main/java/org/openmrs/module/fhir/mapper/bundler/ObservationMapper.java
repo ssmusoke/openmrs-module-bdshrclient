@@ -8,6 +8,7 @@ import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.RelatedObservation;
 import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,17 +27,19 @@ public class ObservationMapper implements EmrObsResourceHandler {
     private ObservationValueMapper observationValueMapper;
     private IdMappingsRepository idMappingsRepository;
     private final CodableConceptService codableConceptService;
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Autowired
-    public ObservationMapper(ObservationValueMapper observationValueMapper, IdMappingsRepository idMappingsRepository, CodableConceptService codableConceptService) {
+    public ObservationMapper(ObservationValueMapper observationValueMapper, IdMappingsRepository idMappingsRepository, CodableConceptService codableConceptService, GlobalPropertyLookUpService globalPropertyLookUpService) {
         this.observationValueMapper = observationValueMapper;
         this.idMappingsRepository = idMappingsRepository;
         this.codableConceptService = codableConceptService;
+        this.globalPropertyLookUpService = globalPropertyLookUpService;
     }
 
     @Override
     public boolean canHandle(Obs observation) {
-        CompoundObservation obs = new CompoundObservation(observation);
+        CompoundObservation obs = new CompoundObservation(observation, globalPropertyLookUpService);
         if (isNotOfKnownTypes(obs)) {
             return false;
         }

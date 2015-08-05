@@ -8,12 +8,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
-import org.openmrs.api.EncounterService;
-import org.openmrs.api.OrderService;
-import org.openmrs.api.PatientService;
-import org.openmrs.api.ProviderService;
+import org.openmrs.api.*;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
+import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -47,6 +46,12 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
+
+    @Autowired
+    private ConceptService conceptService;
+
     private AtomFeed bundle;
 
     public ParserBase.ResourceOrFeed loadSampleFHIREncounter() throws Exception {
@@ -79,7 +84,8 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         Encounter encounter = new Encounter();
         SimpleDateFormat dateFormat = new SimpleDateFormat();
         encounter.setEncounterDatetime(new Date());
-        diagnosticOrderMapper.map(bundle, resource, patientService.getPatient(1), encounter, new HashMap<String, List<String>>());
+        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
+        diagnosticOrderMapper.map(bundle, resource, patientService.getPatient(1), encounter, new HashMap<String, List<String>>(), conceptCache);
         return encounter;
     }
 }

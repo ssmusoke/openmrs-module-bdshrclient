@@ -9,6 +9,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.List;
 
@@ -16,6 +17,7 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class OMRSConceptLookupIT extends BaseModuleWebContextSensitiveTest {
 
     private static final String CONCEPT_URI = "http://www.bdshr-tr.com/concepts/";
@@ -23,6 +25,7 @@ public class OMRSConceptLookupIT extends BaseModuleWebContextSensitiveTest {
     private static final String VALUE_SET_URI = "http://www.bdshr-tr.com/tr/vs/";
     @Autowired
     private ConceptService conceptService;
+    
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
 
@@ -96,21 +99,6 @@ public class OMRSConceptLookupIT extends BaseModuleWebContextSensitiveTest {
                 "Value Set Answer 1",
                 "Value Set Answer 1")));
         assertEquals(conceptService.getConcept(401), mappedConcept);
-    }
-
-    @Test
-    public void shouldReturnConceptConfiguredViaGlobalProperty() throws Exception {
-        executeDataSet("testDataSets/omrsGlobalPropertyTestDS.xml");
-        Concept causeOfDeathConcept = omrsConceptLookup.getConceptFromConfiguredGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH);
-        assertNotNull(causeOfDeathConcept);
-        assertEquals("Cause Of Death",causeOfDeathConcept.getName().getName());
-
-    }
-
-    @Test
-    public void shouldNotReturnConceptIfNotConfigured() throws Exception {
-        Concept causeOfDeathConcept = omrsConceptLookup.getConceptFromConfiguredGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
-        assertNull(causeOfDeathConcept);
     }
 
     private Coding buildCoding(String uri, String externalId, String code, String display) {

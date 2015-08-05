@@ -9,11 +9,13 @@ import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.lang.Integer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -28,10 +30,12 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
     private IdMappingsRepository idMappingsRepository;
     @Autowired
     private CodableConceptService codableConceptService;
+    @Autowired
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Override
     public boolean canHandle(Obs observation) {
-        CompoundObservation obs = new CompoundObservation(observation);
+        CompoundObservation obs = new CompoundObservation(observation, globalPropertyLookUpService);
         if (obs.isOfType(HISTORY_AND_EXAMINATION)) {
             if (obs.findMember(CHIEF_COMPLAINT_DATA) != null) {
                 return true;
@@ -44,7 +48,7 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
     public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> chiefComplaints = new ArrayList<>();
         for (Obs member : obs.getGroupMembers()) {
-            if (member.getConcept().getName().getName().equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA)) {
+            if (member.getConcept().getId().equals(globalPropertyLookUpService.getGlobalPropertyValue(MRSProperties.GLOBAL_PROPERTY_CONCEPT_CHIEF_COMPLAINT_DATA))) {
                 chiefComplaints.add(createFHIRCondition(fhirEncounter, member, systemProperties));
             }
         }
@@ -65,17 +69,17 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
 
         final Set<Obs> obsMembers = obs.getGroupMembers(false);
         for (Obs member : obsMembers) {
-            final String memberConceptName = member.getConcept().getName().getName();
-            if (memberConceptName.equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT)) {
+            final Integer memberConceptId = member.getConcept().getId();
+            if (memberConceptId.equals(globalPropertyLookUpService.getGlobalPropertyValue(MRSProperties.GLOBAL_PROPERTY_CONCEPT_CHIEF_COMPLAINT))) {
                 final CodeableConcept complaintCode = codableConceptService.addTRCoding(member.getValueCoded(), idMappingsRepository);
                 if (CollectionUtils.isEmpty(complaintCode.getCoding())) {
                     Coding coding = complaintCode.addCoding();
                     coding.setDisplaySimple(member.getValueCoded().getName().getName());
                 }
                 condition.setCode(complaintCode);
-            } else if (memberConceptName.equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DURATION)) {
+            } else if (memberConceptId.equals(globalPropertyLookUpService.getGlobalPropertyValue(MRSProperties.GLOBAL_PROPERTY_CONCEPT_CHIEF_COMPLAINT_DURATION))) {
                 condition.setOnset(getOnsetDate(member));
-            } else if (memberConceptName.equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_NON_CODED_CHIEF_COMPLAINT)) {
+            } else if (memberConceptId.equals(globalPropertyLookUpService.getGlobalPropertyValue(MRSProperties.GLOBAL_PROPERTY_CONCEPT_NON_CODED_CHIEF_COMPLAINT))) {
                 //TODO : Put right Values
                 CodeableConcept nonCodedChiefComplaint = new CodeableConcept();
                 Coding coding = nonCodedChiefComplaint.addCoding();

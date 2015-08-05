@@ -15,6 +15,7 @@ import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.fhir.utils.VisitLookupService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.util.ConceptCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -47,7 +48,7 @@ public class FHIREncounterMapper {
     @Autowired
     private ProviderLookupService providerLookupService;
 
-    public org.openmrs.Encounter map(Encounter fhirEncounter, String date, Patient emrPatient, AtomFeed feed) throws ParseException {
+    public org.openmrs.Encounter map(Encounter fhirEncounter, String date, Patient emrPatient, AtomFeed feed, ConceptCache conceptCache) throws ParseException {
         Map<String, List<String>> processedList = new HashMap<>();
         org.openmrs.Encounter emrEncounter = new org.openmrs.Encounter();
         Date encounterDate = parseDate(date);
@@ -58,7 +59,7 @@ public class FHIREncounterMapper {
             final Resource resource = atomEntry.getResource();
             for (FHIRResourceMapper fhirResourceMapper : fhirResourceMappers) {
                 if (fhirResourceMapper.canHandle(resource)) {
-                    fhirResourceMapper.map(feed, resource, emrPatient, emrEncounter, processedList);
+                    fhirResourceMapper.map(feed, resource, emrPatient, emrEncounter, processedList, conceptCache);
                 }
             }
         }

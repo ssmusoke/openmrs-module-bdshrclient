@@ -10,6 +10,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -20,12 +21,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ObservationValueMapperTest extends BaseModuleWebContextSensitiveTest {
     @Autowired
-    ConceptService conceptService;
+    private ConceptService conceptService;
 
     @Autowired
-    ObservationValueMapper observationValueMapper;
+    private ObservationValueMapper observationValueMapper;
 
     @Test
     public void shouldMapDateValues() throws Exception {

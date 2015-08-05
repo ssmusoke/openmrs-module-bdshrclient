@@ -77,4 +77,10 @@
 
     <shr_id_mapping id="1" internal_id="baef67ac-b24e-4b04-ac83-c3b994132b85" external_id="5018b827-a67c-421f-a705-e5efe0e6a972" type="concept_reference_term" uri="http://172.18.46.53:9080/openmrs/ws/rest/v1/tr/referenceterms/5018b827-a67c-421f-a705-e5efe0e6a972"></shr_id_mapping>
     <shr_id_mapping id="1" internal_id="baef67ac-aaaa-4b04-ac83-c3b994132b85" external_id="5018b827-a67c-421f-a705-e5efe0e6a972" type="concept_reference_term" uri="http://172.18.46.53:9080/openmrs/ws/rest/v1/tr/referenceterms/5018b827-a67c-421f-a705-e5efe0e6a972"></shr_id_mapping>
+    
+    <global_property property="shr.concept.history.and.examination" property_value="500" uuid="04w4w3d3-a6d0-40dd-8ed3-3895edb62s4t"/>
+    <global_property property="shr.concept.chief.complaint.data" property_value="501" uuid="04w4w3d3-s50u-40dd-8ed3-3895edb62s4t"/>
+    <global_property property="shr.concept.chief.complaint" property_value="502" uuid="04w4w2e5-s50u-42ed-8ed3-3895edb62s4t"/>
+    <global_property property="shr.concept.non.coded.chief.complaint" property_value="505" uuid="04w4w2e5-s50u-40dd-8ed3-3895edb62s4t"/>
+    <global_property property="shr.concept.chief.complaint.duration" property_value="503" uuid="12q4w2e5-s50u-40dd-8ed3-3895edb62s4t"/>
 </dataset>

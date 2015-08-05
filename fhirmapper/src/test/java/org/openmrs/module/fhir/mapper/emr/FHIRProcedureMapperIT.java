@@ -15,9 +15,12 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.ObsHelper;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
+import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.*;
 
@@ -25,6 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
@@ -33,6 +37,8 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     ConceptService conceptService;
     @Autowired
     private ApplicationContext springContext;
+    @Autowired
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
     private Resource resource;
     private AtomFeed feed;
     private ObsHelper obsHelper;
@@ -55,7 +61,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldMapStartDate() throws Exception {
         Obs proceduresObs = mapProceduresObs();
-        Obs startDate = obsHelper.findMemberObsByConceptName(proceduresObs, MRS_CONCEPT_PROCEDURE_START_DATE);
+        Obs startDate = obsHelper.findMemberObsByConceptName(proceduresObs, MRS_CONCEPT_PROCEDURE_START_DATE, globalPropertyLookUpService);
         DateTime dateTime = new DateTime(DateTimeZone.forTimeZone(TimeZone.getTimeZone("IST")));
         Date expectedDate = dateTime.withDate(2014, 12, 31).toDateMidnight().toDate();
         assertEquals(expectedDate, startDate.getValueDatetime());
@@ -64,7 +70,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldMapEndDate() throws Exception {
         Obs proceduresObs = mapProceduresObs();
-        Obs endDate = obsHelper.findMemberObsByConceptName(proceduresObs, MRS_CONCEPT_PROCEDURE_END_DATE);
+        Obs endDate = obsHelper.findMemberObsByConceptName(proceduresObs, MRS_CONCEPT_PROCEDURE_END_DATE, globalPropertyLookUpService);
         DateTime dateTime = new DateTime(DateTimeZone.forTimeZone(TimeZone.getTimeZone("IST")));
         Date expectedDate = dateTime.withDate(2015, 1, 13).toDateMidnight().toDate();
         assertEquals(expectedDate, endDate.getValueDatetime());
@@ -75,7 +81,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldMapOutComeText() throws Exception {
 
         Obs proceduresObs = mapProceduresObs();
-        Obs outcomeObs = obsHelper.findMemberObsByConceptName(proceduresObs, MRS_CONCEPT_PROCEDURE_OUTCOME);
+        Obs outcomeObs = obsHelper.findMemberObsByConceptName(proceduresObs, MRS_CONCEPT_PROCEDURE_OUTCOME, globalPropertyLookUpService);
         assertEquals("Little johny wants to play", outcomeObs.getValueText());
 
     }
@@ -84,7 +90,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldMapFollowUpText() throws Exception {
 
         Obs proceduresObs = mapProceduresObs();
-        Obs followUpObs = obsHelper.findMemberObsByConceptName(proceduresObs, MRS_CONCEPT_PROCEDURE_FOLLOW_UP);
+        Obs followUpObs = obsHelper.findMemberObsByConceptName(proceduresObs, MRS_CONCEPT_PROCEDURE_FOLLOW_UP, globalPropertyLookUpService);
         assertEquals("Come again another day", followUpObs.getValueText());
 
     }
@@ -93,7 +99,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldMapProcedureType() throws Exception {
 
         Obs procedureObs= mapProceduresObs();
-        Obs procedureTypeObs= obsHelper.findMemberObsByConceptName(procedureObs, MRS_CONCEPT_PROCEDURE_TYPE);
+        Obs procedureTypeObs= obsHelper.findMemberObsByConceptName(procedureObs, MRS_CONCEPT_PROCEDURE_TYPE, globalPropertyLookUpService);
         Concept valueCoded = procedureTypeObs.getValueCoded();
         int procedureType= 601;
         assertEquals(valueCoded, conceptService.getConcept(procedureType));
@@ -103,17 +109,17 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldMapDiagnosticReport() throws  Exception {
 
         Obs procedureObs= mapProceduresObs();
-        Obs diagnosticStudyObs= obsHelper.findMemberObsByConceptName(procedureObs, MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_STUDY);
+        Obs diagnosticStudyObs= obsHelper.findMemberObsByConceptName(procedureObs, MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_STUDY, globalPropertyLookUpService);
 
-        Obs diagnosticTestName = obsHelper.findMemberObsByConceptName(diagnosticStudyObs, MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_TEST);
+        Obs diagnosticTestName = obsHelper.findMemberObsByConceptName(diagnosticStudyObs, MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_TEST, globalPropertyLookUpService);
         Concept diagnosticTestCode = diagnosticTestName.getValueCoded();
         int testAConceptId = 602;
         assertEquals(diagnosticTestCode, conceptService.getConcept(testAConceptId));
 
-        Obs result = obsHelper.findMemberObsByConceptName(diagnosticStudyObs, MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_RESULT);
+        Obs result = obsHelper.findMemberObsByConceptName(diagnosticStudyObs, MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_RESULT, globalPropertyLookUpService);
         assertEquals("positive", result.getValueText());
 
-        Obs diagnosis = obsHelper.findMemberObsByConceptName(diagnosticStudyObs, MRS_CONCEPT_PROCEDURE_DIAGNOSIS);
+        Obs diagnosis = obsHelper.findMemberObsByConceptName(diagnosticStudyObs, MRS_CONCEPT_PROCEDURE_DIAGNOSIS, globalPropertyLookUpService);
         Concept diagnosisConcept = diagnosis.getValueCoded();
         int diagnosisConceptId = 603;
         assertEquals(diagnosisConcept, conceptService.getConcept(diagnosisConceptId));
@@ -121,7 +127,8 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     private Obs mapProceduresObs() {
         Encounter mrsEncounter = new Encounter();
-        fhirProcedureMapper.map(feed, resource, null, mrsEncounter, new HashMap<String, List<String>>());
+        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
+        fhirProcedureMapper.map(feed, resource, null, mrsEncounter, new HashMap<String, List<String>>(), conceptCache);
 
         Set<Obs> allObs = mrsEncounter.getAllObs();
         assertEquals(1, allObs.size());
@@ -130,5 +137,4 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
         return obs;
     }
-
 }

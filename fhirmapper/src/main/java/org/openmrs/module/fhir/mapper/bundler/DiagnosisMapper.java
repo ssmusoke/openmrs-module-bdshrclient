@@ -16,6 +16,7 @@ import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,19 +37,19 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
     private IdMappingsRepository idMappingsRepository;
     @Autowired
     private CodableConceptService codableConceptService;
-
+    @Autowired
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
+    
     private final Map<String, Condition.ConditionStatus> diaConditionStatus = new HashMap<String, Condition.ConditionStatus>();
-    private final FHIRProperties fhirProperties;
 
     public DiagnosisMapper() {
-        fhirProperties = new FHIRProperties();
         diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_PRESUMED, Condition.ConditionStatus.provisional);
         diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_CONFIRMED, Condition.ConditionStatus.confirmed);
     }
 
     @Override
     public boolean canHandle(Obs observation) {
-        CompoundObservation obs = new CompoundObservation(observation);
+        CompoundObservation obs = new CompoundObservation(observation, globalPropertyLookUpService);
         return obs.isOfType(VISIT_DIAGNOSES);
     }
 
@@ -115,9 +116,9 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         Concept diagnosisStatus = member.getValueCoded();
         Condition.ConditionStatus status = diaConditionStatus.get(diagnosisStatus.getName().getName());
         if (status != null) {
-            return new Enumeration<Condition.ConditionStatus>(status);
+            return new Enumeration<>(status);
         } else {
-            return new Enumeration<Condition.ConditionStatus>(Condition.ConditionStatus.confirmed);
+            return new Enumeration<>(Condition.ConditionStatus.confirmed);
         }
     }
 
