@@ -34,7 +34,7 @@ public class PatientMapper {
 
     public Patient map(org.openmrs.Patient openMrsPatient, SystemProperties systemProperties) {
         Patient patient = new Patient();
-
+        patient.setActive(true);
         String nationalId = getAttributeValue(openMrsPatient, NATIONAL_ID_ATTRIBUTE);
         if (nationalId != null) {
             patient.setNationalId(nationalId);
