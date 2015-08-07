@@ -116,6 +116,4 @@ public class EncounterMapper {
             encounterParticipantComponent.setIndividual(new ResourceReference().setReferenceSimple(providerUrl));
         }
     }
-
-
 }

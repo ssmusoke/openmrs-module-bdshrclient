@@ -26,6 +26,9 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
 
+    @Autowired
+    private ConceptCache conceptCache;
+
     private static final int CONVERTION_PARAMETER_FOR_MINUTES = (60 * 1000);
 
     @Override
@@ -41,7 +44,7 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList, ConceptCache conceptCache) {
+    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
         Condition condition = (Condition) resource;
 
         if (isAlreadyProcessed(condition, processedList))

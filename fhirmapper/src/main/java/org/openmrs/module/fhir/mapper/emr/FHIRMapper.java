@@ -8,7 +8,6 @@ import org.openmrs.EncounterRole;
 import org.openmrs.Patient;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
-import org.openmrs.module.shrclient.util.ConceptCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,10 +29,10 @@ public class FHIRMapper {
     @Autowired
     private ProviderLookupService providerLookupService;
 
-    public Encounter map(Patient emrPatient, AtomFeed feed, ConceptCache conceptCache) throws ParseException {
+    public Encounter map(Patient emrPatient, AtomFeed feed) throws ParseException {
         Composition composition = getComposition(feed);
         final org.hl7.fhir.instance.model.Encounter encounter = getEncounter(feed);
-        org.openmrs.Encounter newEmrEncounter = fhirEncounterMapper.map(encounter, composition.getDateSimple().toString(), emrPatient, feed, conceptCache);
+        org.openmrs.Encounter newEmrEncounter = fhirEncounterMapper.map(encounter, composition.getDateSimple().toString(), emrPatient, feed);
         setEncounterProvider(newEmrEncounter, encounter);
         return newEmrEncounter;
     }

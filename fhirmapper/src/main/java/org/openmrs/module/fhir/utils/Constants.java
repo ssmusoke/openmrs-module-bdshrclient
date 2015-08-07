@@ -35,4 +35,5 @@ public class Constants {
 
     public final static String ORGANIZATION_ATTRIBUTE_TYPE_NAME = "Organization";
 
+    public final static int CACHE_TTL = 60 * 1000 * 5;
 }

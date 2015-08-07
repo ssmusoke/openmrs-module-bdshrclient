@@ -51,7 +51,7 @@ public class MciPatientServiceImplTest {
     public void setUp() throws Exception {
         initMocks(this);
         mciPatientService = new MciPatientServiceImpl(null, mockVisitService, mockFhirmapper, null, null,
-                null, mockIdMappingsRepository, mockPropertiesReader, mockSystemUserService, null);
+                null, mockIdMappingsRepository, mockPropertiesReader, mockSystemUserService, null, conceptCache);
     }
 
     @Test
@@ -66,9 +66,9 @@ public class MciPatientServiceImplTest {
         Patient emrPatient = new Patient();
 
         when(mockIdMappingsRepository.findByExternalId(any(String.class))).thenReturn(new IdMapping());
-        mciPatientService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id", null);
+        mciPatientService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
 
-        verify(mockFhirmapper, times(0)).map(emrPatient, feed, conceptCache);
+        verify(mockFhirmapper, times(0)).map(emrPatient, feed);
     }
 
     @Test
@@ -85,9 +85,9 @@ public class MciPatientServiceImplTest {
 
         when(mockIdMappingsRepository.findByExternalId(any(String.class))).thenReturn(null);
 
-        mciPatientService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id", null);
+        mciPatientService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
 
-        verify(mockFhirmapper, times(0)).map(emrPatient, feed, conceptCache);
+        verify(mockFhirmapper, times(0)).map(emrPatient, feed);
     }
 
     @Test
@@ -104,12 +104,12 @@ public class MciPatientServiceImplTest {
         Patient emrPatient = new Patient();
 
         when(mockIdMappingsRepository.findByExternalId(any(String.class))).thenReturn(null);
-        when(mockFhirmapper.map(emrPatient, feed, conceptCache)).thenReturn(new Encounter());
+        when(mockFhirmapper.map(emrPatient, feed)).thenReturn(new Encounter());
         when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://shr.com/");
 
-        mciPatientService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id", conceptCache);
+        mciPatientService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
 
-        verify(mockFhirmapper, times(1)).map(emrPatient, feed, conceptCache);
+        verify(mockFhirmapper, times(1)).map(emrPatient, feed);
     }
 
     @Test
@@ -123,7 +123,7 @@ public class MciPatientServiceImplTest {
         Patient patient = new Patient();
         patient.setDead(true);
         
-        mciPatientService.getCauseOfDeath(patient, conceptCache);
+        mciPatientService.getCauseOfDeath(patient);
     }
 
     @Test
@@ -136,6 +136,6 @@ public class MciPatientServiceImplTest {
 
         Patient patient = new Patient();
         patient.setDead(true);
-        mciPatientService.getCauseOfDeath(patient, conceptCache);
+        mciPatientService.getCauseOfDeath(patient);
     }
 }

@@ -58,7 +58,7 @@ public class MCIPatientLookupServiceImplTest {
         when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:9997");
         when(propertiesReader.getMciPatientContext()).thenReturn("/api/default/patients");
 
-        lookupService = new MCIPatientLookupServiceImpl(mciPatientService, propertiesReader, identityStore, conceptService, globalPropertyLookUpService);
+        lookupService = new MCIPatientLookupServiceImpl(mciPatientService, propertiesReader, identityStore);
         Context context = new Context();
         ServiceContext serviceContext = ServiceContext.getInstance();
         serviceContext.setService(AddressHierarchyService.class, addressHierarchyService);

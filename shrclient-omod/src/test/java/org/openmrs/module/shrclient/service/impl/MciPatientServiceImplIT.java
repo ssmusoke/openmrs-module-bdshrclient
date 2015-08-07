@@ -5,16 +5,18 @@ import org.hl7.fhir.instance.formats.XmlParser;
 import org.hl7.fhir.instance.model.Date;
 import org.junit.Before;
 import org.junit.Test;
-import org.openmrs.*;
-import org.openmrs.api.ConceptService;
+import org.openmrs.Concept;
+import org.openmrs.DrugOrder;
+import org.openmrs.Encounter;
+import org.openmrs.Order;
+import org.openmrs.Patient;
+import org.openmrs.TestOrder;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
-import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.service.MciPatientService;
-import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,13 +51,6 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Autowired
     private IdMappingsRepository idMappingsRepository;
 
-    @Autowired
-    private ConceptService conceptService;
-
-    @Autowired
-    private GlobalPropertyLookUpService globalPropertyLookUpService;
-
-
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/omrsGlobalPropertyTestDS.xml");
@@ -67,9 +62,8 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
         String healthId = "HIDA764177";
         String shrEncounterId = "shr-enc-id";
-        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "classpath:encounterBundles/testFHIREncounter.xml");
-        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId, conceptCache);
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
         assertNotNull(idMapping);
@@ -81,7 +75,6 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldProcessDeathInfoOfPatientAfterEncounterSave() throws Exception {
         executeDataSet("testDataSets/patientDeathNoteDS.xml");
-        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
 
         Patient patient = patientService.getPatient(1);
         List<EncounterBundle> bundles = getEncounterBundles("healthId", "shrEncounterId", "classpath:encounterBundles/encounterWithDiagnosticOrder.xml");
@@ -89,7 +82,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(true, patient.isDead());
         assertEquals("Unspecified Cause Of Death", patient.getCauseOfDeath().getName().getName());
 
-        mciPatientService.createOrUpdateEncounter(patient, bundles.get(0), "healthId", conceptCache);
+        mciPatientService.createOrUpdateEncounter(patient, bundles.get(0), "healthId");
 
         assertEquals(true, patient.isDead());
         assertEquals("HIV", patient.getCauseOfDeath().getName().getName());
@@ -100,11 +93,10 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/shrDiagnosticOrderSyncTestDS.xml");
         String healthId = "5915668841731457025";
         String shrEncounterId = "shr-enc-id";
-        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
 
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "classpath:encounterBundles/encounterWithDiagnosticOrder.xml");
         Patient emrPatient = patientService.getPatient(1);
-        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId, conceptCache);
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
         assertNotNull(idMapping);
@@ -120,13 +112,12 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/drugOrderDS.xml");
         String healthId = "5947482439084408833";
         String shrEncounterId = "shr-enc-id";
-        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
 
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/encounterWithMedicationPrescription.xml");
         Patient emrPatient = patientService.getPatient(110);
         assertEquals(0, encounterService.getEncountersByPatient(emrPatient).size());
 
-        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId, conceptCache);
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
         assertNotNull(idMapping);
@@ -140,10 +131,9 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldGetCauseOfDeathOfPatientIfAnyObservationCapturedCauseOfDeath() throws Exception {
         executeDataSet("testDataSets/patientDeathNoteDS.xml");
-        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
         Patient patient = patientService.getPatient(1);
 
-        Concept actualCauseOfDeath = mciPatientService.getCauseOfDeath(patient, conceptCache);
+        Concept actualCauseOfDeath = mciPatientService.getCauseOfDeath(patient);
 
         assertEquals("HIV", actualCauseOfDeath.getName().getName());
 
@@ -152,11 +142,10 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldReturnUnspecifiedCauseOfDeathIfThereIsNoObservationCapturedAndPatientIsToBeMarkedDead() throws Exception {
         executeDataSet("testDataSets/patientDeathNoteDS.xml");
-        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
         Patient patient = patientService.getPatient(4);
 
         patient.setDead(true);
-        Concept actualCauseOfDeath = mciPatientService.getCauseOfDeath(patient, conceptCache);
+        Concept actualCauseOfDeath = mciPatientService.getCauseOfDeath(patient);
 
         assertEquals("Unspecified Cause Of Death", actualCauseOfDeath.getName().getName());
     }
@@ -164,11 +153,10 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldReturnUnspecifiedCauseOfDeathIfThePatientIsNewAndPatientIsToBeMarkedDead() throws Exception {
         executeDataSet("testDataSets/patientDeathNoteDS.xml");
-        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
         Patient patient = new Patient();
 
         patient.setDead(true);
-        Concept actualCauseOfDeath = mciPatientService.getCauseOfDeath(patient, conceptCache);
+        Concept actualCauseOfDeath = mciPatientService.getCauseOfDeath(patient);
 
         assertEquals("Unspecified Cause Of Death", actualCauseOfDeath.getName().getName());
     }
@@ -176,10 +164,9 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldReturnCauseOfDeathIfCauseOfDeathAttributeIsOtherThanUnspecifiedCauseOfDeath() throws Exception {
         executeDataSet("testDataSets/patientDeathNoteDS.xml");
-        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
         Patient patient = patientService.getPatient(3);
 
-        Concept actualCauseOfDeath = mciPatientService.getCauseOfDeath(patient, conceptCache);
+        Concept actualCauseOfDeath = mciPatientService.getCauseOfDeath(patient);
 
         assertEquals("CANCER", actualCauseOfDeath.getName().getName());
 

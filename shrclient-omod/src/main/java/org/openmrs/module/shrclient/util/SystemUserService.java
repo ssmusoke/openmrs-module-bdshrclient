@@ -22,7 +22,6 @@ public class SystemUserService {
     private UserService userService;
     private Database database;
     private GlobalPropertyLookUpService globalPropertyLookUpService;
-    private User shrSystemUser;
 
     private Logger logger = Logger.getLogger(SystemUserService.class);
 
@@ -34,11 +33,8 @@ public class SystemUserService {
     }
 
     public User getOpenMRSShrSystemUser() {
-        if (shrSystemUser == null) {
-            Integer shrSystemUserId = globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY__SHR_SYSTEM_USER_TAG);
-            shrSystemUser = userService.getUser(shrSystemUserId);
-        }
-        return shrSystemUser;
+        Integer shrSystemUserId = globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY__SHR_SYSTEM_USER_TAG);
+        return userService.getUser(shrSystemUserId);
     }
 
     public boolean isUpdatedByOpenMRSShrSystemUser(BaseOpenmrsData openMrsEntity) {

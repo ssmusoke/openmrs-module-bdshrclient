@@ -14,8 +14,6 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
-import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
-import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -40,9 +38,6 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
     @Autowired
     private ConceptService conceptService;
     
-    @Autowired
-    private GlobalPropertyLookUpService globalPropertyLookUpService;
-
     private Resource resource;
     private AtomFeed feed;
 
@@ -95,8 +90,7 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
     public void shouldMapPatientToDrug(){
         Encounter mappedEncounter = new Encounter();
         Patient patient = new Patient();
-        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
-        mapper.map(feed, resource, patient, mappedEncounter,new HashMap<String, List<String>>(), conceptCache);
+        mapper.map(feed, resource, patient, mappedEncounter,new HashMap<String, List<String>>());
 
         assertEquals(1, mappedEncounter.getOrders().size());
         Order order = mappedEncounter.getOrders().iterator().next();
@@ -135,8 +129,7 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
     private Order getOrder() {
         Encounter mappedEncounter = new Encounter();
         Patient patient = new Patient();
-        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
-        mapper.map(feed, resource, patient, mappedEncounter,new HashMap<String, List<String>>(), conceptCache);
+        mapper.map(feed, resource, patient, mappedEncounter,new HashMap<String, List<String>>());
 
         assertEquals(1, mappedEncounter.getOrders().size());
         return mappedEncounter.getOrders().iterator().next();

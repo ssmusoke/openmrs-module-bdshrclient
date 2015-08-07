@@ -2,12 +2,17 @@ package org.openmrs.module.fhir.mapper.emr;
 
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.log4j.Logger;
-import org.hl7.fhir.instance.model.*;
+import org.hl7.fhir.instance.model.AtomEntry;
+import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.Encounter;
-import org.openmrs.*;
+import org.hl7.fhir.instance.model.Resource;
+import org.hl7.fhir.instance.model.ResourceReference;
+import org.openmrs.EncounterType;
 import org.openmrs.Location;
 import org.openmrs.Patient;
+import org.openmrs.Provider;
+import org.openmrs.ProviderAttribute;
+import org.openmrs.Visit;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.LocationService;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
@@ -15,22 +20,21 @@ import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.fhir.utils.VisitLookupService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.module.shrclient.util.ConceptCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
 import java.util.Date;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.openmrs.module.fhir.utils.Constants.ORGANIZATION_ATTRIBUTE_TYPE_NAME;
 import static org.openmrs.module.fhir.utils.DateUtil.parseDate;
 
 @Component
 public class FHIREncounterMapper {
-
-    private Logger logger = Logger.getLogger(FHIREncounterMapper.class);
-
     @Autowired
     private EncounterService encounterService;
 
@@ -48,7 +52,7 @@ public class FHIREncounterMapper {
     @Autowired
     private ProviderLookupService providerLookupService;
 
-    public org.openmrs.Encounter map(Encounter fhirEncounter, String date, Patient emrPatient, AtomFeed feed, ConceptCache conceptCache) throws ParseException {
+    public org.openmrs.Encounter map(Encounter fhirEncounter, String date, Patient emrPatient, AtomFeed feed) throws ParseException {
         Map<String, List<String>> processedList = new HashMap<>();
         org.openmrs.Encounter emrEncounter = new org.openmrs.Encounter();
         Date encounterDate = parseDate(date);
@@ -59,7 +63,7 @@ public class FHIREncounterMapper {
             final Resource resource = atomEntry.getResource();
             for (FHIRResourceMapper fhirResourceMapper : fhirResourceMappers) {
                 if (fhirResourceMapper.canHandle(resource)) {
-                    fhirResourceMapper.map(feed, resource, emrPatient, emrEncounter, processedList, conceptCache);
+                    fhirResourceMapper.map(feed, resource, emrPatient, emrEncounter, processedList);
                 }
             }
         }

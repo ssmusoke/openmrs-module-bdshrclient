@@ -9,7 +9,6 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
-import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -45,7 +44,7 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
 
         Patient patient = patientService.getPatient(1);
 
-        Encounter encounter = fhirMapper.map(patient, encounterBundle, new ConceptCache(conceptService,globalPropertyLookUpService));
+        Encounter encounter = fhirMapper.map(patient, encounterBundle);
         assertEquals(4, encounter.getAllObs().size());
 
         Set<Obs> topLevelObs = encounter.getObsAtTopLevel(false);

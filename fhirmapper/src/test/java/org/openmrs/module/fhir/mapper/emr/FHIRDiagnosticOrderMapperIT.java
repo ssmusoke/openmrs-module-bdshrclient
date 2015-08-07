@@ -8,17 +8,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
-import org.openmrs.api.*;
+import org.openmrs.api.OrderService;
+import org.openmrs.api.PatientService;
+import org.openmrs.api.ProviderService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
-import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
-import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -38,19 +37,10 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
     private PatientService patientService;
 
     @Autowired
-    private EncounterService encounterService;
-
-    @Autowired
     private ProviderService providerService;
 
     @Autowired
     private OrderService orderService;
-
-    @Autowired
-    private GlobalPropertyLookUpService globalPropertyLookUpService;
-
-    @Autowired
-    private ConceptService conceptService;
 
     private AtomFeed bundle;
 
@@ -82,10 +72,8 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
     private Encounter mapOrder() {
         Resource resource = FHIRFeedHelper.identifyResource(bundle.getEntryList(), ResourceType.DiagnosticOrder);
         Encounter encounter = new Encounter();
-        SimpleDateFormat dateFormat = new SimpleDateFormat();
         encounter.setEncounterDatetime(new Date());
-        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
-        diagnosticOrderMapper.map(bundle, resource, patientService.getPatient(1), encounter, new HashMap<String, List<String>>(), conceptCache);
+        diagnosticOrderMapper.map(bundle, resource, patientService.getPatient(1), encounter, new HashMap<String, List<String>>());
         return encounter;
     }
 }

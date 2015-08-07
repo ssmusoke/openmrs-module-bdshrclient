@@ -16,7 +16,6 @@ import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.ObsHelper;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
-import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -127,8 +126,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     private Obs mapProceduresObs() {
         Encounter mrsEncounter = new Encounter();
-        ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
-        fhirProcedureMapper.map(feed, resource, null, mrsEncounter, new HashMap<String, List<String>>(), conceptCache);
+        fhirProcedureMapper.map(feed, resource, null, mrsEncounter, new HashMap<String, List<String>>());
 
         Set<Obs> allObs = mrsEncounter.getAllObs();
         assertEquals(1, allObs.size());

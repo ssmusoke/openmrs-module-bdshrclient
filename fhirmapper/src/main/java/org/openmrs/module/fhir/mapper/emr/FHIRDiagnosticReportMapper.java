@@ -17,7 +17,6 @@ import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.module.shrclient.util.ConceptCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -49,7 +48,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList, ConceptCache conceptCache) {
+    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
         DiagnosticReport diagnosticReport = (DiagnosticReport) resource;
         if (processedList.containsKey(diagnosticReport.getIdentifier().getValueSimple()))
             return;

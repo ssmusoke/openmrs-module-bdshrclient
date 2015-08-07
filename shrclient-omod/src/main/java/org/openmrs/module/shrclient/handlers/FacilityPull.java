@@ -207,5 +207,4 @@ public class FacilityPull {
     private String getCurrentDateAndTime() {
         return DateUtil.toDateString(new Date(), DateUtil.SIMPLE_DATE_WITH_SECS_FORMAT);
     }
-
 }

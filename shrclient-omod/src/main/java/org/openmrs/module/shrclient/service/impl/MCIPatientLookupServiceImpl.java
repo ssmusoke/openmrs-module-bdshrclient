@@ -2,12 +2,10 @@ package org.openmrs.module.shrclient.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
-import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
@@ -16,7 +14,6 @@ import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.mci.api.MciPatientSearchResponse;
 import org.openmrs.module.shrclient.service.MCIPatientLookupService;
 import org.openmrs.module.shrclient.service.MciPatientService;
-import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.web.controller.MciPatientSearchRequest;
@@ -45,16 +42,12 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
     private MciPatientService mciPatientService;
     private PropertiesReader propertiesReader;
     private IdentityStore identityStore;
-    private ConceptService conceptService;
-    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Autowired
-    public MCIPatientLookupServiceImpl(MciPatientService mciPatientService, PropertiesReader propertiesReader, IdentityStore identityStore, ConceptService conceptService, GlobalPropertyLookUpService globalPropertyLookUpService) {
+    public MCIPatientLookupServiceImpl(MciPatientService mciPatientService, PropertiesReader propertiesReader, IdentityStore identityStore) {
         this.mciPatientService = mciPatientService;
         this.propertiesReader = propertiesReader;
         this.identityStore = identityStore;
-        this.conceptService = conceptService;
-        this.globalPropertyLookUpService = globalPropertyLookUpService;
         this.patientContext = propertiesReader.getMciPatientContext();
     }
 
@@ -106,10 +99,9 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
         Patient mciPatient = searchPatientByHealthId(healthId);
         if (mciPatient != null) {
             Map<String, String> downloadResponse = new HashMap<>();
-            ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
-            org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(mciPatient, conceptCache);
+            org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(mciPatient);
             if (emrPatient != null) {
-                createOrUpdateEncounters(healthId, emrPatient, conceptCache);
+                createOrUpdateEncounters(healthId, emrPatient);
             }
             downloadResponse.put("uuid", emrPatient.getUuid());
             return downloadResponse;
@@ -158,7 +150,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
         return entry.getName();
     }
 
-    private void createOrUpdateEncounters(String healthId, org.openmrs.Patient emrPatient, ConceptCache conceptCache) {
+    private void createOrUpdateEncounters(String healthId, org.openmrs.Patient emrPatient) {
         final String url = String.format("/patients/%s/encounters", healthId);
         List<EncounterBundle> bundles = null;
         try {
@@ -167,7 +159,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
             log.info("Clearing unauthorized identity token.");
             identityStore.clearToken();
         }
-        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId, conceptCache);
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
     }
 
     private Patient[] searchPatients(String searchParamKey, String searchParamValue) {

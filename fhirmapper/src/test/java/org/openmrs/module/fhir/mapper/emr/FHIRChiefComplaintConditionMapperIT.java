@@ -14,7 +14,6 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
-import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -60,8 +59,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         emrEncounter.setPatient(emrPatient);
         for (Resource condition : conditions) {
             if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
-                ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
-                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter, new HashMap<String, List<String>>(), conceptCache);
+                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter, new HashMap<String, List<String>>());
             }
         }
         final Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);
@@ -97,8 +95,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         emrEncounter.setPatient(emrPatient);
         for (Resource condition : conditions) {
             if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
-                ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
-                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter, new HashMap<String, List<String>>(), conceptCache);
+                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter, new HashMap<String, List<String>>());
             }
         }
         final Set<Obs> observations = emrEncounter.getAllObs();
@@ -115,8 +112,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         emrEncounter.setPatient(emrPatient);
         for (Resource condition : conditions) {
             if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
-                ConceptCache conceptCache = new ConceptCache(conceptService, globalPropertyLookUpService);
-                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter, new HashMap<String, List<String>>(), conceptCache);
+                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter, new HashMap<String, List<String>>());
             }
         }
         final Set<Obs> topLevelObs = emrEncounter.getObsAtTopLevel(false);

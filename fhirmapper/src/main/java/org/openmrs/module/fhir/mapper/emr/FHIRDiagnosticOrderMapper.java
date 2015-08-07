@@ -12,7 +12,6 @@ import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.OrderCareSettingLookupService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
-import org.openmrs.module.shrclient.util.ConceptCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +39,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter encounter, Map<String, List<String>> processedList, ConceptCache conceptCache) {
+    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter encounter, Map<String, List<String>> processedList) {
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) resource;
         if (processedList.containsKey(diagnosticOrder.getIdentifier().get(0).getValueSimple()))
             return;

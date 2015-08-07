@@ -3,10 +3,8 @@ package org.openmrs.module.shrclient.scheduler.tasks;
 import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.ict4h.atomfeed.client.service.FeedClient;
-import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
-import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.feeds.openmrs.OpenMRSFeedClientFactory;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.handlers.EncounterPush;
@@ -15,7 +13,6 @@ import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;
-import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.module.shrclient.util.PlatformUtil;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemUserService;
@@ -44,7 +41,6 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
     private EncounterPush getEncounterRegistry(PropertiesReader propertiesReader, SystemUserService systemUserService,
                                                ClientRegistry clientRegistry) {
         try {
-            GlobalPropertyLookUpService globalPropertyLookUpService = PlatformUtil.getRegisteredComponent(GlobalPropertyLookUpService.class);
             return new EncounterPush(Context.getEncounterService(),
                     propertiesReader,
                     PlatformUtil.getRegisteredComponent(CompositionBundle.class),
