@@ -22,6 +22,6 @@ public class GlobalPropertyLookupServiceIT extends BaseModuleWebContextSensitive
 
     @Test
     public void shouldReturnConfiguredGlobalPropertyValue() throws Exception {
-        assertEquals(555, globalPropertyLookUpService.getGlobalPropertyValue("concept.causeOfDeath").intValue());
+        assertEquals(555, Integer.parseInt(globalPropertyLookUpService.getGlobalPropertyValue("concept.causeOfDeath")));
     }
 }

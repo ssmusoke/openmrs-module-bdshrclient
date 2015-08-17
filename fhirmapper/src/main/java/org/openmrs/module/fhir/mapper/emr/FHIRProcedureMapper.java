@@ -43,7 +43,7 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
             return;
 
         Obs proceduresObs = new Obs();
-        proceduresObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_PROCEDURES));
+        proceduresObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_PROCEDURES_TEMPLATE));
 
         proceduresObs.addGroupMember(getStartDate(procedure));
         proceduresObs.addGroupMember(getEndDate(procedure));

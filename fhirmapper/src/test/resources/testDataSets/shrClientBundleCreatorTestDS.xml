@@ -55,22 +55,22 @@
 
     <!--Chief Complaint-->
     <concept concept_id="399" retired="false" datatype_id="4" class_id="11" is_set="true" creator="1" date_created="2004-08-12 00:00:00.0" version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4da3-bb88-d122ctrXdef"/>
-    <concept_name concept_id="399" concept_name_id="3981" name="History and Examination" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="lkiuy80f-1yz9-4da3-bb88-812dce88687h"/>
+    <concept_name concept_id="399" concept_name_id="3981" name="Condition Complaint Template" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="lkiuy80f-1yz9-4da3-bb88-812dce88687h"/>
 
     <concept concept_id="398" retired="false" datatype_id="4" class_id="11" is_set="true" creator="1" date_created="2004-08-12 00:00:00.0" version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4da3-bb88-d12ectrabcd"/>
-    <concept_name concept_id="398" concept_name_id="3982" name="Chief Complaint Data" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="lkiay80e-1fz9-fda3-2b88-8122ced8687h"/>
+    <concept_name concept_id="398" concept_name_id="3982" name="Condition Chief Complaint Data" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="lkiay80e-1fz9-fda3-2b88-8122ced8687h"/>
     <concept_set concept_set_id="303" concept_id="398" concept_set="399" creator="1" sort_weight="100"
                  date_created="2005-01-01 00:00:00.0"/>
 
 
     <concept concept_id="402" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1" date_created="2004-08-12 00:00:00.0" version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="74a4c3d3-e6d0-407d-ded3-3895e4b61f5b"/>
-    <concept_name concept_id="402" concept_name_id="1402" name="Chief Complaint" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="74a4c3d3-e6d0-407d-8ed3-3895e4b61f5d"/>
+    <concept_name concept_id="402" concept_name_id="1402" name="Condition Chief Complaint" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="74a4c3d3-e6d0-407d-8ed3-3895e4b61f5d"/>
     <concept_reference_term concept_reference_term_id="2" concept_source_id="1" code="Chief Complaint" creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_term>
     <concept_reference_map concept_map_id="2" concept_id="402" concept_reference_term_id="2" concept_map_type_id="1" creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_map>
     <concept_set concept_set_id="2" concept_id="402" concept_set="398" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
 
     <concept concept_id="408" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1" date_created="2004-08-12 00:00:00.0" version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="d102c80f-1yz9-4da3-db88-8122ce8868df"/>
-    <concept_name concept_id="408" concept_name_id="1408" name="Chief Complaint Duration" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="d102c80f-1yz9-4da3-bb88-81d2ce8868df"/>
+    <concept_name concept_id="408" concept_name_id="1408" name="Condition Chief Complaint Duration" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="d102c80f-1yz9-4da3-bb88-81d2ce8868df"/>
     <concept_set concept_set_id="3" concept_id="408" concept_set="398" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
 
     <concept concept_id="400" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1" date_created="2004-08-12 00:00:00.0" version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="baef67ac-b24e-4b04-dcd3-c3b994132b85"/>

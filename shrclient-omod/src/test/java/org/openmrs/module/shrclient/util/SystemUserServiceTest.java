@@ -33,7 +33,7 @@ public class SystemUserServiceTest {
         shrUser.setId(userId);
 
         openMrsPatient.setCreator(shrUser);
-        when(globalPropertyLookUpService.getGlobalPropertyValue("shr.system.user")).thenReturn(userId);
+        when(globalPropertyLookUpService.getGlobalPropertyValue("shr.system.user")).thenReturn("2");
         when(userService.getUser(userId)).thenReturn(shrUser);
         assertTrue(systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsPatient));
 

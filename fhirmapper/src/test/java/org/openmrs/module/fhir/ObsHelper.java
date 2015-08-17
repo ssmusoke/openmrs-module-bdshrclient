@@ -6,8 +6,7 @@ import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 
 public class ObsHelper {
     public Obs findMemberObsByConceptName(Obs observation, String conceptName, GlobalPropertyLookUpService globalPropertyLookUpService) {
-        CompoundObservation compoundObservation = new CompoundObservation(observation, globalPropertyLookUpService);
-
+        CompoundObservation compoundObservation = new CompoundObservation(observation);
         return compoundObservation.getMemberObsForConceptName(conceptName);
     }
 }

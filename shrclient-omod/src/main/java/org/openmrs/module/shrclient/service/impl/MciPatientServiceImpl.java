@@ -15,6 +15,7 @@ import org.openmrs.PersonAttribute;
 import org.openmrs.PersonAttributeType;
 import org.openmrs.PersonName;
 import org.openmrs.api.AdministrationService;
+import org.openmrs.api.ConceptService;
 import org.openmrs.api.ObsService;
 import org.openmrs.api.OrderService;
 import org.openmrs.api.PatientService;
@@ -26,8 +27,8 @@ import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.Confidentiality;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
@@ -38,7 +39,11 @@ import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.MciPatientService;
-import org.openmrs.module.shrclient.util.*;
+import org.openmrs.module.shrclient.util.AddressHelper;
+import org.openmrs.module.shrclient.util.PropertiesReader;
+import org.openmrs.module.shrclient.util.StringUtil;
+import org.openmrs.module.shrclient.util.SystemProperties;
+import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -46,8 +51,7 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.List;
 
-import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH;
-import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH;
+import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 import static org.openmrs.module.fhir.mapper.model.Confidentiality.getConfidentiality;
 import static org.openmrs.module.fhir.utils.Constants.*;
 
@@ -67,7 +71,8 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     private PropertiesReader propertiesReader;
     private SystemUserService systemUserService;
     private ObsService obsService;
-    private ConceptCache conceptCache;
+    private ConceptService conceptService;
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Autowired
     public MciPatientServiceImpl(BbsCodeService bbsCodeService,
@@ -79,7 +84,9 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
                                  IdMappingsRepository idMappingsRepository,
                                  PropertiesReader propertiesReader,
                                  SystemUserService systemUserService,
-                                 ObsService obsService, ConceptCache conceptCache) {
+                                 ObsService obsService,
+                                 ConceptService conceptService,
+                                 GlobalPropertyLookUpService globalPropertyLookUpService) {
         this.bbsCodeService = bbsCodeService;
         this.visitService = visitService;
         this.fhirMapper = fhirMapper;
@@ -90,7 +97,8 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         this.propertiesReader = propertiesReader;
         this.systemUserService = systemUserService;
         this.obsService = obsService;
-        this.conceptCache = conceptCache;
+        this.conceptService = conceptService;
+        this.globalPropertyLookUpService = globalPropertyLookUpService;
     }
 
     @Override
@@ -150,16 +158,18 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     @Override
     public Concept getCauseOfDeath(org.openmrs.Patient emrPatient) {
-        Concept unspecifiedCauseOfDeathConcept = conceptCache.getConceptFromGlobalProperty(GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
-        Concept causeOfDeathConcept = conceptCache.getConceptFromGlobalProperty(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH);
+        String causeOfDeathConceptId = globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
+        Concept unspecifiedCauseOfDeathConcept = causeOfDeathConceptId != null ? conceptService.getConcept(Integer.parseInt(causeOfDeathConceptId)) : conceptService.getConceptByName(TR_CONCEPT_CAUSE_OF_DEATH);
+        String unspecifiedCauseOfDeathConceptId = globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH);
+        Concept causeOfDeathConcept = unspecifiedCauseOfDeathConceptId != null ? conceptService.getConcept(Integer.parseInt(unspecifiedCauseOfDeathConceptId)) : conceptService.getConceptByName(TR_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
         String error = null;
         if (emrPatient.isDead() && unspecifiedCauseOfDeathConcept == null) {
-            error = String.format("Invalid configuration for Global Setting '%s',associate Unspecified Cause Of Death concept id to it.", GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
+            error = String.format("Global Property %s is not set & Concept with name %s is not found", GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH, TR_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
             logger.error(error);
             throw new RuntimeException(error);
         }
         if (emrPatient.isDead() && causeOfDeathConcept == null) {
-            error = String.format("Invalid configuration for Global Setting '%s',associate Cause Of Death concept id to it.", GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH);
+            error = String.format("Global Property %s is not set & Concept with name %s is not found", GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH, TR_CONCEPT_CAUSE_OF_DEATH);
             logger.error(error);
             throw new RuntimeException(error);
         }
@@ -289,7 +299,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         if (idMappingsRepository.findByExternalId(encounterId) != null) {
             return false;
         }
-        if(getEncounterConfidentiality(feed).ordinal() > Confidentiality.Normal.ordinal()) {
+        if (getEncounterConfidentiality(feed).ordinal() > Confidentiality.Normal.ordinal()) {
             return false;
         }
         return true;

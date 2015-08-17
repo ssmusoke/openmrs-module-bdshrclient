@@ -30,28 +30,28 @@
     <concept concept_id="301" retired="false" datatype_id="4" class_id="10" is_set="true" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4da3-bb88-8122ctdiast"/>
-    <concept_name concept_name_id="301" concept_id="301" name="Procedures" locale="en" creator="1"
+    <concept_name concept_name_id="301" concept_id="301" name="Procedure Template" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazzv9-e1v4-41d4-b2d6-bc4335835eaa"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
 
     <concept concept_id="302" retired="false" datatype_id="3" class_id="11" is_set="false" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg777-1yz9-4da3-bb88-8122ctdabcde"/>
-    <concept_name concept_name_id="302" concept_id="302" name="Outcome" locale="en" creator="1"
+    <concept_name concept_name_id="302" concept_id="302" name="Procedure Outcome" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazzv9-e1v4-41t6-b2d6-bc4335835ebbd"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
 
     <concept concept_id="303" retired="false" datatype_id="3" class_id="11" is_set="false" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg999-1yz9-4da3-bb88-8122ctdabcde"/>
-    <concept_name concept_name_id="303" concept_id="303" name="Follow up" locale="en" creator="1"
+    <concept_name concept_name_id="303" concept_id="303" name="Procedure Follow up" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zayyv9-e1v4-41t6-b2d6-bc4335835eaaa"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
 
     <concept concept_id="304" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg999-1yz7-4da3-oo88-8122ctdpqrst"/>
-    <concept_name concept_name_id="304" concept_id="304" name="Procedure" locale="en" creator="1"
+    <concept_name concept_name_id="304" concept_id="304" name="Procedure Type" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zaxxv9-e1v4-52t6-b2d6-bc4335835eqqq"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
 
@@ -82,16 +82,17 @@
     <concept concept_id="307" retired="false" datatype_id="4" class_id="10" is_set="true" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="judge999-1yz7-4da3-oo88-8122mujrim"/>
-    <concept_name concept_name_id="307" concept_id="307" name="Diagnostic Study" locale="en" creator="1"
+    <concept_name concept_name_id="307" concept_id="307" name="Procedure Diagnostic Study" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zseoul-e1v4-52t6-b2d6-4335835delhi"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
 
     <concept concept_id="308" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="test999-1yz7-4da3-oo88-8122zzzz"/>
-    <concept_name concept_name_id="308" concept_id="308" name="Diagnostic Test" locale="en" creator="1"
+    <concept_name concept_name_id="308" concept_id="308" name="Procedure Diagnostic Test" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="testxxv9-e1v4-52t6-b2d6-bc433583xxxx"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+
     <concept concept_id="602" retired="false" datatype_id="1" class_id="11" is_set="false" creator="1"
              date_created="2005-01-01 00:00:00.0" uuid="cbd43a8d-cf4f-4b13-8daf-89e54ad07afc"/>
     <concept_name concept_name_id="602" concept_id="602" name="Test A" locale="en" creator="1"
@@ -114,14 +115,14 @@
     <concept concept_id="309" retired="false" datatype_id="3" class_id="11" is_set="false" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="test999-1yz7-4da3-oo99-8122result"/>
-    <concept_name concept_name_id="309" concept_id="309" name="Result" locale="en" creator="1"
+    <concept_name concept_name_id="309" concept_id="309" name="Procedure Diagnostic Result" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="testppv9-e1v4-52t8-b2d6-bc433583name"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
 
     <concept concept_id="310" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="dia999-1yz7-4gno3-oo99-8122sis"/>
-    <concept_name concept_name_id="310" concept_id="310" name="Diagnosis" locale="en" creator="1"
+    <concept_name concept_name_id="310" concept_id="310" name="Procedure Diagnosis" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="diatppv9-e1v4-52g8-n2o6-bc433583sis"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
 

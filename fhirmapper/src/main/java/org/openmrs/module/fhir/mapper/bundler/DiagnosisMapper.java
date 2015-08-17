@@ -49,7 +49,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
 
     @Override
     public boolean canHandle(Obs observation) {
-        CompoundObservation obs = new CompoundObservation(observation, globalPropertyLookUpService);
+        CompoundObservation obs = new CompoundObservation(observation);
         return obs.isOfType(VISIT_DIAGNOSES);
     }
 

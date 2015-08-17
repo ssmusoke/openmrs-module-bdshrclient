@@ -131,7 +131,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         Set<Obs> allObs = mrsEncounter.getAllObs();
         assertEquals(1, allObs.size());
         Obs obs = allObs.iterator().next();
-        assertEquals(MRS_CONCEPT_PROCEDURES, obs.getConcept().getName().getName());
+        assertEquals(MRS_CONCEPT_PROCEDURES_TEMPLATE, obs.getConcept().getName().getName());
 
         return obs;
     }

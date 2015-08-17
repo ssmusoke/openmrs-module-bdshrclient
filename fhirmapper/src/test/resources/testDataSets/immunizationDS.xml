@@ -30,14 +30,14 @@
     <concept concept_id="301" retired="false" datatype_id="4" class_id="10" is_set="true" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4da3-bb88-8122ctdiast"/>
-    <concept_name concept_name_id="301" concept_id="301" name="Immunization Incident" locale="en" creator="1"
+    <concept_name concept_name_id="301" concept_id="301" name="Immunization Incident Template" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazzv9-e1v4-41d4-b2d6-bc4335835eaa"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
 
     <concept concept_id="302" retired="false" datatype_id="10" class_id="11" is_set="false" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4da3-bb88-8122abdfjkt"/>
-    <concept_name concept_name_id="302" concept_id="302" name="Vaccination Refused" locale="en" creator="1"
+    <concept_name concept_name_id="302" concept_id="302" name="Immunization Incident Vaccination Refused" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazzv9-e1v4-5000-69d6-bc4335835eaa"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
 
@@ -47,7 +47,7 @@
     <concept concept_id="303" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4da3-bb88-8122abdpqrt"/>
-    <concept_name concept_name_id="303" concept_id="303" name="Vaccine" locale="en" creator="1"
+    <concept_name concept_name_id="303" concept_id="303" name="Immunization Incident Vaccine" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazzv9-e1v4-5000-69d6-bc4335835abc"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
 
@@ -57,7 +57,7 @@
     <concept concept_id="304" retired="false" datatype_id="6" class_id="11" is_set="false" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4da3-bb88-8122abdxyzt"/>
-    <concept_name concept_name_id="304" concept_id="304" name="Vaccination Date" locale="en" creator="1"
+    <concept_name concept_name_id="304" concept_id="304" name="Immunization Incident Vaccination Date" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazzv9-e1v4-5000-69d6-bc433585qjki"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <concept_set concept_set_id="812" concept_id="304" concept_set="301" creator="1"
@@ -66,7 +66,7 @@
     <concept concept_id="305" retired="false" datatype_id="10" class_id="11" is_set="false" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4zz3-bz88-8z22abdxyzt"/>
-    <concept_name concept_name_id="305" concept_id="305" name="Vaccination Reported" locale="en" creator="1"
+    <concept_name concept_name_id="305" concept_id="305" name="Immunization Incident Vaccination Reported" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazzv9-e1v4-5zz0-z9z6-bc433585qjki"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <concept_set concept_set_id="813" concept_id="305" concept_set="301" creator="1"
@@ -75,7 +75,7 @@
     <concept concept_id="306" retired="false" datatype_id="1" class_id="11" is_set="false" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4xv3-bz88-8z22abdxyzt"/>
-    <concept_name concept_name_id="306" concept_id="306" name="Dosage" locale="en" creator="1"
+    <concept_name concept_name_id="306" concept_id="306" name="Immunization Incident Vaccination Dosage" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazhju-e1v4-5zz0-z9z6-bc433585qjki"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <concept_set concept_set_id="814" concept_id="306" concept_set="301" creator="1"

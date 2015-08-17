@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.ObsService;
+import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -181,7 +182,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
         assertTrue(fhirResources.get(1).getResource() instanceof Procedure);
         assertEquals("urn:ef4554cb-22gg-471a-lld7-1434552c337c1", fhirResources.get(1).getIdentifierList().get(0).getValueSimple());
-        assertEquals("Procedures", fhirResources.get(1).getResourceName());
+        assertEquals(MRSProperties.MRS_CONCEPT_PROCEDURES_TEMPLATE, fhirResources.get(1).getResourceName());
 
         return fhirResources;
     }

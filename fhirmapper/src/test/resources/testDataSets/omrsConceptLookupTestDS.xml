@@ -39,4 +39,17 @@
     <concept_reference_map concept_map_id="10" concept_id="401" concept_reference_term_id="10" concept_map_type_id="1" creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_map>
 
     <!--Value Set-->
+
+    <concept concept_id="402" retired="false" datatype_id="4" class_id="11" is_set="true" creator="1" date_created="2004-08-12 00:00:00.0" version=""
+             changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-adle-ald8-8o2eotrabcd"/>
+    <concept_name concept_id="402" concept_name_id="402" name="Route of Administration" locale="en" creator="1"
+                  date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1"
+                  voided="false" uuid="lkiay80e-1fz9-fda3-2b88-812oaloa687h"/>
+    <global_property property="shr.concept.routeOfAdministration" property_value="402" description="Route of Administration" uuid="lkiwy8w8-1fw9-fda3-2b99-812aalsa677h"/>
+
+    <concept concept_id="403" retired="false" datatype_id="4" class_id="11" is_set="true" creator="1" date_created="2004-08-12 00:00:00.0" version=""
+             changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-adle-ald8-8o2eotrabci"/>
+    <concept_name concept_id="403" concept_name_id="403" name="Relationship Type" locale="en" creator="1"
+                  date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1"
+                  voided="false" uuid="lkiay80e-1fi9-fda3-2b88-812oaloa687h"/>
 </dataset>

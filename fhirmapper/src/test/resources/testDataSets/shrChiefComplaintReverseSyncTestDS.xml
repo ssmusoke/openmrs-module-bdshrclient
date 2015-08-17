@@ -49,18 +49,18 @@
     <concept_reference_source concept_source_id="1" name="ICD10-BD" creator="1" date_created="2004-08-12 00:00:00.0" uuid="b5e44116-778f-11e2-ad73-903c7bb72694"/>
 
     <concept concept_id="500" retired="false" datatype_id="4" class_id="11" is_set="true" creator="1" date_created="2004-08-12 00:00:00.0" version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4da3-bb8l-8122etrXdgf"/>
-    <concept_name concept_id="500" concept_name_id="500" name="History and Examination" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="lkiuyl0f-dyz9-4da3-bb88-812gce88687h"/>
+    <concept_name concept_id="500" concept_name_id="500" name="Condition Complaint Template" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="lkiuyl0f-dyz9-4da3-bb88-812gce88687h"/>
 
     <concept concept_id="501" retired="false" datatype_id="4" class_id="11" is_set="true" creator="1" date_created="2004-08-12 00:00:00.0" version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4da3-bl88-81lectrabcd"/>
-    <concept_name concept_id="501" concept_name_id="501" name="Chief Complaint Data" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="lkiayl0e-1kzd-fda3-2b88-8122ceg8687h"/>
+    <concept_name concept_id="501" concept_name_id="501" name="Condition Chief Complaint Data" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="lkiayl0e-1kzd-fda3-2b88-8122ceg8687h"/>
     <concept_set concept_set_id="501" concept_id="501" concept_set="500" creator="1" sort_weight="100" date_created="2005-01-01 00:00:00.0"/>
 
     <concept concept_id="502" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1" date_created="2004-08-12 00:00:00.0" version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="74a4c3d3-edd0-4l7d-8ed3-3895e4b61f5b"/>
-    <concept_name concept_id="502" concept_name_id="1502" name="Chief Complaint" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="04a4l3d3-e6d0-40dd-8ed3-3895edb61f5b"/>
+    <concept_name concept_id="502" concept_name_id="1502" name="Condition Chief Complaint" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="04a4l3d3-e6d0-40dd-8ed3-3895edb61f5b"/>
     <concept_set concept_set_id="2" concept_id="502" concept_set="501" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
 
     <concept concept_id="503" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1" date_created="2004-08-12 00:00:00.0" version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="d102c80f-1yz9-4da3-bb88-81hdce8868hf"/>
-    <concept_name concept_id="503" concept_name_id="503" name="Chief Complaint Duration" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="dh02cd0h-1yz9-4dh3-bbd8-8122ce8868df"/>
+    <concept_name concept_id="503" concept_name_id="503" name="Condition Chief Complaint Duration" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="dh02cd0h-1yz9-4dh3-bbd8-8122ce8868df"/>
     <concept_set concept_set_id="503" concept_id="503" concept_set="501" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
 
     <concept concept_id="504" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1" date_created="2004-08-12 00:00:00.0" version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="baef67ac-b24e-4b04-ac83-d3b994a3aba5"/>
@@ -72,15 +72,9 @@
     <concept_reference_map concept_map_id="10" concept_id="504" concept_reference_term_id="10" concept_map_type_id="1" creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_map>
 
     <concept concept_id="505" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1" date_created="2004-08-12 00:00:00.0" version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="74a4c3d3-qdd0-4l7d-8ed3-3a9aeab61f5b"/>
-    <concept_name concept_id="505" concept_name_id="505" name="Non-Coded Chief Complaint" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="04w4w3d3-a6d0-40dd-8ed3-3895edb61f5b"/>
+    <concept_name concept_id="505" concept_name_id="505" name="Condition Non-Coded Chief Complaint" locale="en" creator="1" date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1" voided="false" uuid="04w4w3d3-a6d0-40dd-8ed3-3895edb61f5b"/>
     <concept_set concept_set_id="505" concept_id="505" concept_set="501" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="2"></concept_set>
 
     <shr_id_mapping id="1" internal_id="baef67ac-b24e-4b04-ac83-c3b994132b85" external_id="5018b827-a67c-421f-a705-e5efe0e6a972" type="concept_reference_term" uri="http://172.18.46.53:9080/openmrs/ws/rest/v1/tr/referenceterms/5018b827-a67c-421f-a705-e5efe0e6a972"></shr_id_mapping>
     <shr_id_mapping id="1" internal_id="baef67ac-aaaa-4b04-ac83-c3b994132b85" external_id="5018b827-a67c-421f-a705-e5efe0e6a972" type="concept_reference_term" uri="http://172.18.46.53:9080/openmrs/ws/rest/v1/tr/referenceterms/5018b827-a67c-421f-a705-e5efe0e6a972"></shr_id_mapping>
-    
-    <global_property property="shr.concept.history.and.examination" property_value="500" uuid="04w4w3d3-a6d0-40dd-8ed3-3895edb62s4t"/>
-    <global_property property="shr.concept.chief.complaint.data" property_value="501" uuid="04w4w3d3-s50u-40dd-8ed3-3895edb62s4t"/>
-    <global_property property="shr.concept.chief.complaint" property_value="502" uuid="04w4w2e5-s50u-42ed-8ed3-3895edb62s4t"/>
-    <global_property property="shr.concept.non.coded.chief.complaint" property_value="505" uuid="04w4w2e5-s50u-40dd-8ed3-3895edb62s4t"/>
-    <global_property property="shr.concept.chief.complaint.duration" property_value="503" uuid="12q4w2e5-s50u-40dd-8ed3-3895edb62s4t"/>
 </dataset>

@@ -6,7 +6,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
 import org.openmrs.api.ConceptService;
-import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -99,6 +98,18 @@ public class OMRSConceptLookupIT extends BaseModuleWebContextSensitiveTest {
                 "Value Set Answer 1",
                 "Value Set Answer 1")));
         assertEquals(conceptService.getConcept(401), mappedConcept);
+    }
+
+    @Test
+    public void shouldGetTrValueSetConceptFromGlobalProperty() throws Exception {
+        Concept routeOfAdministrationConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.ROUTE_OF_ADMINISTRATION);
+        assertEquals(conceptService.getConcept(402), routeOfAdministrationConcept);
+    }
+
+    @Test
+    public void shouldGetTrValueSetConceptFromNameIfGlobalPropertyNotPresent() throws Exception {
+        Concept relationshipTypeConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.RELATIONSHIP_TYPE);
+        assertEquals(conceptService.getConcept(403), relationshipTypeConcept);
     }
 
     private Coding buildCoding(String uri, String externalId, String code, String display) {

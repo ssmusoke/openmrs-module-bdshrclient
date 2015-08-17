@@ -37,6 +37,7 @@ public class OMRSLocationService {
     }
 
     public Integer getHIEFacilityLocationTag() {
-        return globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_CONCEPT_SHR_HIE_FACILITY_LOCATION_TAG);
+        String hieFacilityLocationTag = globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_CONCEPT_SHR_HIE_FACILITY_LOCATION_TAG);
+        return hieFacilityLocationTag != null ? Integer.parseInt(hieFacilityLocationTag) : null;
     }
 }

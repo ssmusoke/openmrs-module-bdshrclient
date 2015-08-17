@@ -40,7 +40,7 @@ public class OMRSLocationServiceTest {
             HIEFacilityTag.setId(10);
             add(HIEFacilityTag);
         }});
-        when(globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_CONCEPT_SHR_HIE_FACILITY_LOCATION_TAG)).thenReturn(10);
+        when(globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_CONCEPT_SHR_HIE_FACILITY_LOCATION_TAG)).thenReturn("10");
 
         assertTrue(omrsLocationService.isLocationHIEFacility(HIELocation));
     }
@@ -48,7 +48,7 @@ public class OMRSLocationServiceTest {
     @Test
     public void shouldNotMarkLocationAsHIEFacilityIfNotTaggedAsHIEFacility() throws Exception {
         Location someOtherLocation = new Location();
-        when(globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_CONCEPT_SHR_HIE_FACILITY_LOCATION_TAG)).thenReturn(10);
+        when(globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_CONCEPT_SHR_HIE_FACILITY_LOCATION_TAG)).thenReturn("10");
 
         assertFalse(omrsLocationService.isLocationHIEFacility(someOtherLocation));
     }

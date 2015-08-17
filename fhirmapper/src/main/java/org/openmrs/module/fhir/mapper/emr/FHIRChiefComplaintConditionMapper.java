@@ -1,15 +1,19 @@
 package org.openmrs.module.fhir.mapper.emr;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.*;
+import org.hl7.fhir.instance.model.AtomFeed;
+import org.hl7.fhir.instance.model.Coding;
+import org.hl7.fhir.instance.model.Condition;
+import org.hl7.fhir.instance.model.DateTime;
+import org.hl7.fhir.instance.model.Resource;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
+import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
-import org.openmrs.module.shrclient.util.ConceptCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +31,7 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
     private OMRSConceptLookup omrsConceptLookup;
 
     @Autowired
-    private ConceptCache conceptCache;
+    private ConceptService conceptService;
 
     private static final int CONVERTION_PARAMETER_FOR_MINUTES = (60 * 1000);
 
@@ -49,10 +53,9 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
 
         if (isAlreadyProcessed(condition, processedList))
             return;
-
-        Concept historyAndExaminationConcept = conceptCache.getConceptFromGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_HISTORY_AND_EXAMINATION);
-        Concept chiefComplaintDataConcept = conceptCache.getConceptFromGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_CHIEF_COMPLAINT_DATA);
-        Concept chiefComplaintDurationConcept = conceptCache.getConceptFromGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_CHIEF_COMPLAINT_DURATION);
+        Concept historyAndExaminationConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_COMPLAINT_CONDITION_TEMPLATE);
+        Concept chiefComplaintDataConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA);
+        Concept chiefComplaintDurationConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DURATION);
 
         Obs chiefComplaintObs = new Obs();
         List<Coding> conditionCoding = condition.getCode().getCoding();
@@ -60,14 +63,14 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
         if (conceptAnswer == null) {
             if (CollectionUtils.isNotEmpty(conditionCoding)) {
                 String displayName = conditionCoding.get(0).getDisplaySimple();
-                Concept nonCodedChiefComplaintConcept = conceptCache.getConceptFromGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_NON_CODED_CHIEF_COMPLAINT);
+                Concept nonCodedChiefComplaintConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_NON_CODED_CHIEF_COMPLAINT);
                 chiefComplaintObs.setConcept(nonCodedChiefComplaintConcept);
                 chiefComplaintObs.setValueText(displayName);
             } else {
                 return;
             }
         } else {
-            Concept chiefComplaintConcept = conceptCache.getConceptFromGlobalProperty(MRSProperties.GLOBAL_PROPERTY_CONCEPT_CHIEF_COMPLAINT);
+            Concept chiefComplaintConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT);
             chiefComplaintObs.setConcept(chiefComplaintConcept);
             chiefComplaintObs.setValueCoded(conceptAnswer);
         }

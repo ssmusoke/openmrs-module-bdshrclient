@@ -7,7 +7,6 @@ import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
-import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,24 +20,23 @@ import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 @Component
 public class ProcedureMapper implements EmrObsResourceHandler {
 
+    private static String DIAGNOSTIC_REPORT_RESOURCE_NAME = "Diagnostic Report";
+
     @Autowired
     private ObservationValueMapper obsValueMapper;
 
     @Autowired
     private DiagnosticReportBuilder diagnosticReportBuilder;
-    
-    @Autowired
-    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Override
     public boolean canHandle(Obs observation) {
-        CompoundObservation obs = new CompoundObservation(observation, globalPropertyLookUpService);
+        CompoundObservation obs = new CompoundObservation(observation);
         return obs.isOfType(ObservationType.PROCEDURES);
     }
 
     @Override
     public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
-        CompoundObservation compoundObservationProcedure = new CompoundObservation(obs, globalPropertyLookUpService);
+        CompoundObservation compoundObservationProcedure = new CompoundObservation(obs);
 
         return mapProcedure(obs, fhirEncounter, systemProperties, compoundObservationProcedure);
     }
@@ -61,7 +59,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
                 resources.add(procedureReportResource);
             }
 
-            FHIRResource procedureResource = new FHIRResource(MRS_CONCEPT_PROCEDURES, procedure.getIdentifier(), procedure);
+            FHIRResource procedureResource = new FHIRResource(MRS_CONCEPT_PROCEDURES_TEMPLATE, procedure.getIdentifier(), procedure);
             resources.add(procedureResource);
         }
 
@@ -72,7 +70,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         DiagnosticReport diagnosticReport = buildDiagnosticReport(compoundObservationProcedure, fhirEncounter, systemProperties);
         FHIRResource diagnosticReportResource = null;
         if (diagnosticReport != null) {
-            diagnosticReportResource = new FHIRResource(MRS_DIAGNOSIS_REPORT_RESOURCE_NAME, Arrays.asList(diagnosticReport.getIdentifier()), diagnosticReport);
+            diagnosticReportResource = new FHIRResource(DIAGNOSTIC_REPORT_RESOURCE_NAME, Arrays.asList(diagnosticReport.getIdentifier()), diagnosticReport);
             ResourceReference diagnosticResourceRef = procedure.addReport();
             diagnosticResourceRef.setReferenceSimple(diagnosticReportResource.getIdentifier().getValueSimple());
             diagnosticResourceRef.setDisplaySimple(diagnosticReportResource.getResourceName());
@@ -146,7 +144,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     private DiagnosticReport buildDiagnosticReport(CompoundObservation compoundObservationProcedure, Encounter fhirEncounter, SystemProperties systemProperties) {
         DiagnosticReport diagnosticReport = null;
         Obs diagnosticStudyObs = compoundObservationProcedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_STUDY);
-        CompoundObservation compoundDiagnosticStudyObs = new CompoundObservation(diagnosticStudyObs, globalPropertyLookUpService);
+        CompoundObservation compoundDiagnosticStudyObs = new CompoundObservation(diagnosticStudyObs);
         CodeableConcept diagnosisTestName = getNameToDiagnosticReport(compoundDiagnosticStudyObs);
         if (diagnosisTestName != null) {
             diagnosticReport = diagnosticReportBuilder.build(diagnosticStudyObs, fhirEncounter, systemProperties);

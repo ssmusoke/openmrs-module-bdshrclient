@@ -12,11 +12,12 @@ import org.mockito.Mock;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
+import org.openmrs.api.ConceptService;
 import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.module.shrclient.util.ConceptCache;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
@@ -24,8 +25,7 @@ import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH;
-import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH;
+import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
 public class MciPatientServiceImplTest {
     @Mock
@@ -39,10 +39,12 @@ public class MciPatientServiceImplTest {
     @Mock
     private PropertiesReader mockPropertiesReader;
     @Mock
-    private ConceptCache conceptCache;
-    
+    private GlobalPropertyLookUpService mockGlobalPropertyLookUpService;
+    @Mock
+    private ConceptService mockConceptService;
+
     private MciPatientServiceImpl mciPatientService;
-    
+
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
@@ -51,7 +53,7 @@ public class MciPatientServiceImplTest {
     public void setUp() throws Exception {
         initMocks(this);
         mciPatientService = new MciPatientServiceImpl(null, mockVisitService, mockFhirmapper, null, null,
-                null, mockIdMappingsRepository, mockPropertiesReader, mockSystemUserService, null, conceptCache);
+                null, mockIdMappingsRepository, mockPropertiesReader, mockSystemUserService, null, mockConceptService, mockGlobalPropertyLookUpService);
     }
 
     @Test
@@ -115,24 +117,28 @@ public class MciPatientServiceImplTest {
     @Test
     public void shouldThrowRunTimeExceptionIfUnspecifiedCauseOfDeathConceptNotConfiguredInGlobalSettings() throws Exception {
         expectedEx.expect(RuntimeException.class);
-        expectedEx.expectMessage("Invalid configuration for Global Setting 'concept.unspecifiedCauseOfDeath',associate Unspecified Cause Of Death concept id to it.");
-        
-        when(conceptCache.getConceptFromGlobalProperty(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH)).thenReturn(new Concept());
-        when(conceptCache.getConceptFromGlobalProperty(GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH)).thenReturn(null);
+        expectedEx.expectMessage(String.format("Global Property %s is not set & Concept with name %s is not found", GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH, TR_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH));
+
+        Concept causeOfDeathConcept = new Concept(1001);
+        when(mockGlobalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH)).thenReturn("1001");
+        when(mockConceptService.getConcept(causeOfDeathConcept.getId())).thenReturn(causeOfDeathConcept);
+        when(mockGlobalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH)).thenReturn(null);
 
         Patient patient = new Patient();
         patient.setDead(true);
-        
+
         mciPatientService.getCauseOfDeath(patient);
     }
 
     @Test
     public void shouldThrowRunTimeExceptionIfCauseOfDeathConceptNotConfiguredInGlobalSettings() throws Exception {
         expectedEx.expect(RuntimeException.class);
-        expectedEx.expectMessage("Invalid configuration for Global Setting 'concept.causeOfDeath',associate Cause Of Death concept id to it.");
+        expectedEx.expectMessage(String.format("Global Property %s is not set & Concept with name %s is not found", GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH, TR_CONCEPT_CAUSE_OF_DEATH));
 
-        when(conceptCache.getConceptFromGlobalProperty(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH)).thenReturn(null);
-        when(conceptCache.getConceptFromGlobalProperty(GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH)).thenReturn(new Concept());
+        Concept unspecifiedCauseOfDeathConcept = new Concept(1002);
+        when(mockGlobalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH)).thenReturn(null);
+        when(mockGlobalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH)).thenReturn("1002");
+        when(mockConceptService.getConcept(unspecifiedCauseOfDeathConcept.getId())).thenReturn(unspecifiedCauseOfDeathConcept);
 
         Patient patient = new Patient();
         patient.setDead(true);

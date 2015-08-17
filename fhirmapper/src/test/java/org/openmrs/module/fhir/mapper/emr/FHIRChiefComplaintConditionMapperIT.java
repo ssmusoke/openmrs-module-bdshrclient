@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.*;
+import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -65,22 +66,22 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         final Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);
         assertEquals(1, visitObs.size());
         Obs historyAndExaminationObs = visitObs.iterator().next();
-        assertTrue(historyAndExaminationObs.getConcept().getName().getName().equalsIgnoreCase("History and Examination"));
+        assertTrue(historyAndExaminationObs.getConcept().getName().getName().equalsIgnoreCase(MRS_CONCEPT_NAME_COMPLAINT_CONDITION_TEMPLATE));
         Set<Obs> historyAndExaminationMembers = historyAndExaminationObs.getGroupMembers();
         assertEquals(1, historyAndExaminationMembers.size());
         final Obs chiefComplaintDataObs = historyAndExaminationMembers.iterator().next();
-        assertTrue(chiefComplaintDataObs.getConcept().getName().getName().equalsIgnoreCase("Chief Complaint Data"));
+        assertTrue(chiefComplaintDataObs.getConcept().getName().getName().equalsIgnoreCase(MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA));
         final Set<Obs> chiefComplaintDataMembers = chiefComplaintDataObs.getGroupMembers();
         assertEquals(2, chiefComplaintDataMembers.size());
         for (Obs groupMember : chiefComplaintDataMembers) {
-            if (groupMember.getConcept().getName().getName().equalsIgnoreCase("Chief Complaint")) {
+            if (groupMember.getConcept().getName().getName().equalsIgnoreCase(MRS_CONCEPT_NAME_CHIEF_COMPLAINT)) {
                 final Concept valueCoded = groupMember.getValueCoded();
                 assertNotNull(valueCoded);
                 assertEquals(valueCoded, conceptService.getConceptByName("Pain in left leg"));
-            } else if (groupMember.getConcept().getName().getName().equalsIgnoreCase("Non-Coded Chief Complaint")) {
+            } else if (groupMember.getConcept().getName().getName().equalsIgnoreCase(MRS_CONCEPT_NAME_NON_CODED_CHIEF_COMPLAINT)) {
                 String valueText = groupMember.getValueText();
                 assertNotNull(valueText);
-            } else if (groupMember.getConcept().getName().getName().equalsIgnoreCase("Chief Complaint Duration")) {
+            } else if (groupMember.getConcept().getName().getName().equalsIgnoreCase(MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DURATION)) {
                 assertEquals(120, groupMember.getValueNumeric(), 0);
             }
         }
@@ -99,7 +100,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
             }
         }
         final Set<Obs> observations = emrEncounter.getAllObs();
-        Concept durationConcept = conceptService.getConceptByName("Chief Complaint Duration");
+        Concept durationConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DURATION);
         assertNull(identifyObsByConcept(observations, durationConcept));
     }
 
@@ -117,7 +118,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         }
         final Set<Obs> topLevelObs = emrEncounter.getObsAtTopLevel(false);
         assertEquals(1, topLevelObs.size());
-        assertNotNull(identifyObsByConcept(topLevelObs, conceptService.getConceptByName("History and Examination")));
+        assertNotNull(identifyObsByConcept(topLevelObs, conceptService.getConceptByName(MRS_CONCEPT_NAME_COMPLAINT_CONDITION_TEMPLATE)));
     }
 
     private Obs identifyObsByConcept(Set<Obs> observations, Concept concept) {

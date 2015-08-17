@@ -3,7 +3,12 @@ package org.openmrs.module.fhir.utils;
 import org.apache.commons.collections4.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.hl7.fhir.instance.model.Coding;
-import org.openmrs.*;
+import org.openmrs.Concept;
+import org.openmrs.ConceptAnswer;
+import org.openmrs.ConceptMap;
+import org.openmrs.ConceptName;
+import org.openmrs.ConceptReferenceTerm;
+import org.openmrs.Drug;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -17,18 +22,21 @@ import java.util.Map;
 import static java.util.Locale.ENGLISH;
 import static org.apache.commons.collections4.CollectionUtils.exists;
 import static org.openmrs.ConceptMapType.SAME_AS_MAP_TYPE_UUID;
-import static org.openmrs.module.fhir.utils.Constants.*;
+import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_CONCEPT_TYPE;
+import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_REFERENCE_TERM_TYPE;
 
 @Component
 public class OMRSConceptLookup {
 
     private ConceptService conceptService;
     private IdMappingsRepository idMappingsRepository;
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Autowired
-    public OMRSConceptLookup(ConceptService conceptService, IdMappingsRepository repository) {
+    public OMRSConceptLookup(ConceptService conceptService, IdMappingsRepository repository, GlobalPropertyLookUpService globalPropertyLookUpService) {
         this.conceptService = conceptService;
         this.idMappingsRepository = repository;
+        this.globalPropertyLookUpService = globalPropertyLookUpService;
     }
 
     public Concept findConcept(List<Coding> codings) {
@@ -54,12 +62,12 @@ public class OMRSConceptLookup {
         return findConceptByReferenceTermMapping(referenceTermMap);
     }
 
-    public Drug findDrug(List<Coding> codings){
+    public Drug findDrug(List<Coding> codings) {
         Drug drug = null;
         for (Coding coding : codings) {
-            if(isDrugSet(coding.getSystemSimple())){
+            if (isDrugSet(coding.getSystemSimple())) {
                 drug = findDrug(coding.getCodeSimple());
-                if(drug != null) return drug;
+                if (drug != null) return drug;
             }
         }
         return drug;
@@ -69,7 +77,7 @@ public class OMRSConceptLookup {
         return StringUtils.contains(systemSimple, "tr/vs/");
     }
 
-    private boolean isDrugSet(String systemSimple){
+    private boolean isDrugSet(String systemSimple) {
         return StringUtils.contains(systemSimple, "tr/drugs/");
     }
 
@@ -114,6 +122,15 @@ public class OMRSConceptLookup {
                 return conceptName.getName().equals(code);
             }
         });
+    }
+
+    public Concept findTRConceptOfType(TrValueSetType type) {
+        String globalPropertyValue = globalPropertyLookUpService.getGlobalPropertyValue(type.getGlobalPropertyKey());
+        if (globalPropertyValue != null) {
+            return conceptService.getConcept(Integer.parseInt(globalPropertyValue));
+        } else {
+            return conceptService.getConceptByName(type.getDefaultConceptName());
+        }
     }
 
     private Concept findConceptByReferenceTermMapping(Map<ConceptReferenceTerm, String> referenceTermMapping) {

@@ -39,7 +39,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
 
     @Override
     public boolean canHandle(Obs observation) {
-        CompoundObservation obs = new CompoundObservation(observation, globalPropertyLookUpService);
+        CompoundObservation obs = new CompoundObservation(observation);
         if (isNotOfKnownTypes(obs)) {
             return false;
         }
@@ -48,7 +48,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
     }
 
     private boolean isNotOfKnownTypes(CompoundObservation obs) {
-        return obs.isOfType(HISTORY_AND_EXAMINATION)
+        return obs.isOfType(COMPLAINT_CONDITION_TEMPLATE)
                 || obs.isOfType(VISIT_DIAGNOSES)
                 || obs.isOfType(FAMILY_HISTORY)
                 || obs.isOfType(IMMUNIZATION)

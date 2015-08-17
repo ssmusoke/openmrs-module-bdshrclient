@@ -1,11 +1,13 @@
 package org.openmrs.module.fhir.mapper.emr;
 
 import org.hl7.fhir.instance.model.*;
+import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
+import org.openmrs.module.fhir.utils.TrValueSetType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +42,7 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
             return;
 
         Obs immunizationIncidentObs = new Obs();
-        immunizationIncidentObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_IMMUNIZATION_INCIDENT));
+        immunizationIncidentObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_IMMUNIZATION_INCIDENT_TEMPLATE));
 
 
         immunizationIncidentObs.addGroupMember(getVaccinationDate(immunization));
@@ -67,7 +69,10 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
         if (explanation != null) {
             List<CodeableConcept> reason = explanation.getReason();
             if (!reason.isEmpty()) {
-                return resourceValueMapper.mapObservationForConcept(reason.get(0), VALUESET_IMMUNIZATION_REASON);
+                Concept immunizationReasonConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.IMMUNIZATION_REASON);
+                Obs immunizationReasonObs = new Obs();
+                immunizationReasonObs.setConcept(immunizationReasonConcept);
+                return resourceValueMapper.map(reason.get(0), immunizationReasonObs);
             }
         }
         return null;
@@ -78,14 +83,20 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
         if (explanation != null) {
             List<CodeableConcept> reason = explanation.getRefusalReason();
             if (!reason.isEmpty()) {
-                return resourceValueMapper.mapObservationForConcept(reason.get(0), VALUESET_IMMUNIZATION_REFUSAL_REASON);
+                Concept immunizationRefusalReasonConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.IMMUNIZATION_REFUSAL_REASON);
+                Obs immunizationRefusalReasonObs = new Obs();
+                immunizationRefusalReasonObs.setConcept(immunizationRefusalReasonConcept);
+                return resourceValueMapper.map(reason.get(0), immunizationRefusalReasonObs);
             }
         }
         return null;
     }
 
     private Obs getRoute(Immunization immunization) {
-        return resourceValueMapper.mapObservationForConcept(immunization.getRoute(), VALUESET_ROUTE);
+        Concept routeOfAdministrationConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.ROUTE_OF_ADMINISTRATION);
+        Obs routeOfObservationObs = new Obs();
+        routeOfObservationObs.setConcept(routeOfAdministrationConcept);
+        return resourceValueMapper.map(immunization.getRoute(), routeOfObservationObs);
     }
 
     private Obs getVaccineType(Immunization immunization) {
@@ -97,7 +108,8 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
         Obs quantityUnitsObs = null;
         if (doseQuantity != null) {
             quantityUnitsObs = new Obs();
-            quantityUnitsObs.setConcept(conceptService.getConceptByName(VALUESET_QUANTITY_UNITS));
+            Concept quantityUnitsConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.QUANTITY_UNITS);
+            quantityUnitsObs.setConcept(quantityUnitsConcept);
             quantityUnitsObs.setValueCoded(omrsConceptLookup.findConceptFromValueSetCode(doseQuantity.getSystemSimple(), doseQuantity.getCodeSimple()));
 
         }

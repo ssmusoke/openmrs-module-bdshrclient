@@ -15,6 +15,8 @@ import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.utils.DateUtil;
+import org.openmrs.module.fhir.utils.OMRSConceptLookup;
+import org.openmrs.module.fhir.utils.TrValueSetType;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +32,12 @@ import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
     @Autowired
     private IdMappingsRepository idMappingsRepository;
+
     @Autowired
     private ConceptService conceptService;
+
+    @Autowired
+    private OMRSConceptLookup conceptLookup;
 
     @Override
     public boolean canHandle(Resource resource) {
@@ -144,7 +150,7 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
     private Obs mapRelationship(String code) {
         if (StringUtils.isNotBlank(code)) {
             Obs result = new Obs();
-            result.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_RELATIONSHIP));
+            result.setConcept(conceptLookup.findTRConceptOfType(TrValueSetType.RELATIONSHIP_TYPE));
             result.setValueCoded(conceptService.getConceptByName(code));
             return result;
         } else {
@@ -155,10 +161,9 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
     private Obs setBornOnObs(FamilyHistory.FamilyHistoryRelationComponent relation) {
         if (null != relation.getBorn() && relation.getBorn() instanceof Date) {
             Obs bornOnObs = new Obs();
-            java.util.Date observationValue = null;
             Concept bornOnConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_BORN_ON);
             String bornOnDate = ((Date) relation.getBorn()).getValue().toString();
-            observationValue = DateUtil.parseDate(bornOnDate);
+            java.util.Date observationValue = DateUtil.parseDate(bornOnDate);
             bornOnObs.setValueDate(observationValue);
             bornOnObs.setConcept(bornOnConcept);
             return bornOnObs;

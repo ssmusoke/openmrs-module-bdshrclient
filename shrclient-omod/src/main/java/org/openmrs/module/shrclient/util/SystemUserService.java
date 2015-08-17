@@ -15,7 +15,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY__SHR_SYSTEM_USER_TAG;
+import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_SHR_SYSTEM_USER_TAG;
 
 @Component
 public class SystemUserService {
@@ -33,7 +33,7 @@ public class SystemUserService {
     }
 
     public User getOpenMRSShrSystemUser() {
-        Integer shrSystemUserId = globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY__SHR_SYSTEM_USER_TAG);
+        Integer shrSystemUserId = Integer.parseInt(globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_SHR_SYSTEM_USER_TAG));
         return userService.getUser(shrSystemUserId);
     }
 

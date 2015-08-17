@@ -498,73 +498,73 @@
             <column name="last_sync_datetime" type="datetime" defaultValueComputed="now()"></column>
         </addColumn>
     </changeSet>
-    <changeSet id="bdshrclient-050815-1606" author="Dubey" context="setup">
+    <changeSet id="bdshrclient-13082015-1755" author="Neha" context="setup">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 select count(*) from global_property where
-                property='shr.concept.history.and.examination';
+                property='shr.concept.relationshipType';
             </sqlCheck>
         </preConditions>
-        <comment>Adding a global property which saves the concept id for History And Examination</comment>
+        <comment>Adding a global property which saves the concept id for Relationship Type</comment>
         <insert tableName="global_property">
-            <column name="property" value="shr.concept.history.and.examination"/>
-            <column name="description" value="Concept Id for History And Examination"/>
+            <column name="property" value="shr.concept.relationshipType"/>
+            <column name="description" value="Concept Id for Relationship Type"/>
             <column name="uuid" valueComputed="uuid()"/>
         </insert>
     </changeSet>
-    <changeSet id="bdshrclient-050815-1609" author="Dubey" context="setup">
+    <changeSet id="bdshrclient-13082015-1756" author="Neha" context="setup">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 select count(*) from global_property where
-                property='shr.concept.chief.complaint.data';
+                property='shr.concept.quantityUnits';
             </sqlCheck>
         </preConditions>
-        <comment>Adding a global property which saves the concept id for Chief Complaint Data</comment>
+        <comment>Adding a global property which saves the concept id for Quantity Units</comment>
         <insert tableName="global_property">
-            <column name="property" value="shr.concept.chief.complaint.data"/>
-            <column name="description" value="Concept Id for Chief Complaint Data"/>
+            <column name="property" value="shr.concept.quantityUnits"/>
+            <column name="description" value="Concept Id for Quantity Units"/>
             <column name="uuid" valueComputed="uuid()"/>
         </insert>
     </changeSet>
-    <changeSet id="bdshrclient-050815-1610" author="Dubey" context="setup">
+    <changeSet id="bdshrclient-13082015-1757" author="Neha" context="setup">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 select count(*) from global_property where
-                property='shr.concept.chief.complaint';
+                property='shr.concept.immunizationReason';
             </sqlCheck>
         </preConditions>
-        <comment>Adding a global property which saves the concept id for Chief Complaint</comment>
+        <comment>Adding a global property which saves the concept id for Immunization Reason</comment>
         <insert tableName="global_property">
-            <column name="property" value="shr.concept.chief.complaint"/>
-            <column name="description" value="Concept Id for Chief Complaint"/>
+            <column name="property" value="shr.concept.immunizationReason"/>
+            <column name="description" value="Concept Id for Immunization Reason"/>
             <column name="uuid" valueComputed="uuid()"/>
         </insert>
     </changeSet>
-    <changeSet id="bdshrclient-050815-1612" author="Dubey" context="setup">
+    <changeSet id="bdshrclient-13082015-1758" author="Neha" context="setup">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 select count(*) from global_property where
-                property='shr.concept.non.coded.chief.complaint';
+                property='shr.concept.immunizationRefusalReason';
             </sqlCheck>
         </preConditions>
-        <comment>Adding a global property which saves the concept id for Non Coded Chief Complaint</comment>
+        <comment>Adding a global property which saves the concept id for Immunization Refusal Reason</comment>
         <insert tableName="global_property">
-            <column name="property" value="shr.concept.non.coded.chief.complaint"/>
-            <column name="description" value="Concept Id for Non Coded Chief Complaint"/>
+            <column name="property" value="shr.concept.immunizationRefusalReason"/>
+            <column name="description" value="Concept Id for Immunization Refusal Reason"/>
             <column name="uuid" valueComputed="uuid()"/>
         </insert>
     </changeSet>
-    <changeSet id="bdshrclient-050815-1615" author="Dubey" context="setup">
+    <changeSet id="bdshrclient-13082015-1759" author="Neha" context="setup">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 select count(*) from global_property where
-                property='shr.concept.chief.complaint.duration';
+                property='shr.concept.routeOfAdministration';
             </sqlCheck>
         </preConditions>
-        <comment>Adding a global property which saves the concept id for Chief Complaint Duration</comment>
+        <comment>Adding a global property which saves the concept id for Route of Administration</comment>
         <insert tableName="global_property">
-            <column name="property" value="shr.concept.chief.complaint.duration"/>
-            <column name="description" value="Concept Id for Chief Complaint Duration"/>
+            <column name="property" value="shr.concept.routeOfAdministration"/>
+            <column name="description" value="Concept Id for Route Of Administration"/>
             <column name="uuid" valueComputed="uuid()"/>
         </insert>
     </changeSet>

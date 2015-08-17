@@ -1,7 +1,14 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.*;
+import org.hl7.fhir.instance.model.Age;
+import org.hl7.fhir.instance.model.CodeableConcept;
+import org.hl7.fhir.instance.model.Coding;
+import org.hl7.fhir.instance.model.Date;
+import org.hl7.fhir.instance.model.DateAndTime;
+import org.hl7.fhir.instance.model.Decimal;
+import org.hl7.fhir.instance.model.Encounter;
+import org.hl7.fhir.instance.model.FamilyHistory;
 import org.openmrs.Concept;
 import org.openmrs.ConceptName;
 import org.openmrs.Obs;
@@ -10,7 +17,8 @@ import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
 import org.openmrs.module.fhir.utils.CodableConceptService;
-import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
+import org.openmrs.module.fhir.utils.OMRSConceptLookup;
+import org.openmrs.module.fhir.utils.TrValueSetType;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,11 +43,11 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
     private CodableConceptService codableConceptService;
 
     @Autowired
-    private GlobalPropertyLookUpService globalPropertyLookUpService;
+    private OMRSConceptLookup omrsConceptLookup;
 
     @Override
     public boolean canHandle(Obs observation) {
-        CompoundObservation obs = new CompoundObservation(observation, globalPropertyLookUpService);
+        CompoundObservation obs = new CompoundObservation(observation);
         return obs.isOfType(ObservationType.FAMILY_HISTORY);
     }
 
@@ -58,8 +66,9 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
         familyHistory.setSubject(fhirEncounter.getSubject());
         familyHistory.addIdentifier().setValueSimple(new EntityReference().build(Obs.class, systemProperties, person.getUuid()));
         FamilyHistory.FamilyHistoryRelationComponent familyHistoryRelationComponent = familyHistory.addRelation();
+        Concept relationshipTypeConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.RELATIONSHIP_TYPE);
         for (Obs member : person.getGroupMembers()) {
-            if (MRS_CONCEPT_NAME_RELATIONSHIP.equalsIgnoreCase(member.getConcept().getName().getName())) {
+            if (member.getConcept().equals(relationshipTypeConcept)) {
                 mapRelationship(familyHistoryRelationComponent, member);
             } else if (MRS_CONCEPT_NAME_BORN_ON.equalsIgnoreCase(member.getConcept().getName().getName())) {
                 mapBornDate(familyHistoryRelationComponent, member);
@@ -127,15 +136,6 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
                 coding.setDisplaySimple(valueCoded.getName().getName());
             }
             return concept;
-        }
-        return null;
-    }
-
-    //TODO : how do we identify this individual?
-    protected ResourceReference getParticipant(Encounter encounter) {
-        List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
-        if ((participants != null) && !participants.isEmpty()) {
-            return participants.get(0).getIndividual();
         }
         return null;
     }

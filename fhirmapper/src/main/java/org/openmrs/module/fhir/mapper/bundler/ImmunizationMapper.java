@@ -3,6 +3,7 @@ package org.openmrs.module.fhir.mapper.bundler;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hl7.fhir.instance.model.Boolean;
 import org.hl7.fhir.instance.model.*;
+import org.openmrs.Concept;
 import org.openmrs.Drug;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
@@ -11,8 +12,9 @@ import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
 import org.openmrs.module.fhir.utils.CodableConceptService;
-import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
+import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
+import org.openmrs.module.fhir.utils.TrValueSetType;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.SystemProperties;
@@ -36,19 +38,19 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     @Autowired
     private CodableConceptService codableConceptService;
     @Autowired
-    private GlobalPropertyLookUpService globalPropertyLookUpService;
+    private OMRSConceptLookup omrsConceptLookup;
 
     @Override
     public boolean canHandle(Obs observation) {
-        CompoundObservation obs = new CompoundObservation(observation, globalPropertyLookUpService);
+        CompoundObservation obs = new CompoundObservation(observation);
         return obs.isOfType(ObservationType.IMMUNIZATION);
     }
 
     @Override
     public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> resources = new ArrayList<>();
-        Immunization immunization = mapObservation(new CompoundObservation(obs, globalPropertyLookUpService), fhirEncounter, systemProperties);
-        if(immunization != null) {
+        Immunization immunization = mapObservation(new CompoundObservation(obs), fhirEncounter, systemProperties);
+        if (immunization != null) {
             FHIRResource immunizationResource = new FHIRResource("Immunization", immunization.getIdentifier(), immunization);
             resources.add(immunizationResource);
         }
@@ -78,7 +80,8 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     }
 
     private CodeableConcept getRoute(CompoundObservation immunizationIncidentObs, SystemProperties systemProperties) {
-        Obs routeObs = immunizationIncidentObs.getMemberObsForConceptName(VALUESET_ROUTE);
+        Concept routeOfAdministrationConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.ROUTE_OF_ADMINISTRATION);
+        Obs routeObs = immunizationIncidentObs.getMemberObsForConceptName(routeOfAdministrationConcept.getName().getName());
         if (routeObs != null) {
             return codableConceptService.getTRValueSetCodeableConcept(routeObs.getValueCoded(),
                     systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_ROUTE));
@@ -88,29 +91,30 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
 
     private Immunization.ImmunizationExplanationComponent getExplation(CompoundObservation immunizationIncidentObs, SystemProperties systemProperties) {
         Immunization.ImmunizationExplanationComponent explanationComponent = new Immunization.ImmunizationExplanationComponent();
-        populateReason(immunizationIncidentObs, systemProperties, explanationComponent, VALUESET_IMMUNIZATION_REASON, PropertyKeyConstants.TR_VALUESET_IMMUNIZATION_REASON);
-        populateReason(immunizationIncidentObs, systemProperties, explanationComponent, VALUESET_IMMUNIZATION_REFUSAL_REASON, PropertyKeyConstants.TR_VALUESET_REFUSAL_REASON);
+        populateReason(immunizationIncidentObs, systemProperties, explanationComponent, TrValueSetType.IMMUNIZATION_REASON, PropertyKeyConstants.TR_VALUESET_IMMUNIZATION_REASON);
+        populateReason(immunizationIncidentObs, systemProperties, explanationComponent, TrValueSetType.IMMUNIZATION_REFUSAL_REASON, PropertyKeyConstants.TR_VALUESET_REFUSAL_REASON);
         return hasNoReasons(explanationComponent) ? null : explanationComponent;
     }
 
-    private boolean hasNoReasons(Immunization.ImmunizationExplanationComponent explanationComponent){
+    private boolean hasNoReasons(Immunization.ImmunizationExplanationComponent explanationComponent) {
         return CollectionUtils.isEmpty(explanationComponent.getReason()) && CollectionUtils.isEmpty(explanationComponent.getRefusalReason());
     }
 
     private void populateReason(CompoundObservation immunizationIncidentObs, SystemProperties systemProperties,
                                 Immunization.ImmunizationExplanationComponent explanationComponent,
-                                String reasonConceptName, String valueSetKeyName) {
-        Obs immunizationReasonObs = immunizationIncidentObs.getMemberObsForConceptName(reasonConceptName);
+                                TrValueSetType trValueSetType, String valueSetKeyName) {
+        Concept reasonConcept = omrsConceptLookup.findTRConceptOfType(trValueSetType);
+        Obs immunizationReasonObs = immunizationIncidentObs.getMemberObsForConceptName(reasonConcept.getName().getName());
         if (immunizationReasonObs != null && idMappingsRepository.findByInternalId(immunizationReasonObs.getValueCoded().getUuid()) != null) {
-            CodeableConcept reason = getReason(reasonConceptName, explanationComponent);
+            CodeableConcept reason = getReason(trValueSetType, explanationComponent);
             codableConceptService.getTRValueSetCodeableConcept(immunizationReasonObs.getValueCoded(),
                     systemProperties.getTrValuesetUrl(valueSetKeyName),
                     reason);
         }
     }
 
-    private CodeableConcept getReason(String reasonConceptName, Immunization.ImmunizationExplanationComponent explanationComponent) {
-        return VALUESET_IMMUNIZATION_REFUSAL_REASON.equals(reasonConceptName) ? explanationComponent.addRefusalReason() : explanationComponent.addReason();
+    private CodeableConcept getReason(TrValueSetType trValueSetType, Immunization.ImmunizationExplanationComponent explanationComponent) {
+        return TrValueSetType.IMMUNIZATION_REFUSAL_REASON.equals(trValueSetType) ? explanationComponent.addRefusalReason() : explanationComponent.addReason();
     }
 
     private Quantity getDosage(CompoundObservation immunizationIncidentObs, SystemProperties systemProperties) {
@@ -123,7 +127,8 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     }
 
     private void populateQuantityUnits(CompoundObservation immunizationIncidentObs, SystemProperties systemProperties, Quantity dose) {
-        Obs quantityUnitsObs = immunizationIncidentObs.getMemberObsForConceptName(VALUESET_QUANTITY_UNITS);
+        Concept quantityUnitsConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.QUANTITY_UNITS);
+        Obs quantityUnitsObs = immunizationIncidentObs.getMemberObsForConceptName(quantityUnitsConcept.getName().getName());
         if (quantityUnitsObs != null) {
             dose.setCodeSimple(codableConceptService.getTRValueSetCode(quantityUnitsObs.getValueCoded()));
             if (idMappingsRepository.findByInternalId(quantityUnitsObs.getValueCoded().getUuid()) != null)
@@ -164,7 +169,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
 
     private Boolean getIndicator(CompoundObservation immunizationIncidentObs, String conceptName) {
         Obs indicatorObs = immunizationIncidentObs.getMemberObsForConceptName(conceptName);
-        if(indicatorObs != null) {
+        if (indicatorObs != null) {
             return (Boolean) obsValueMapper.map(indicatorObs);
         }
         return null;
