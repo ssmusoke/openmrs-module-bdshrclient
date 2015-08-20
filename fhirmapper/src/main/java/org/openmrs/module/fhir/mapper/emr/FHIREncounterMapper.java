@@ -1,12 +1,11 @@
 package org.openmrs.module.fhir.mapper.emr;
 
 
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hl7.fhir.instance.model.AtomEntry;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.Resource;
-import org.hl7.fhir.instance.model.ResourceReference;
 import org.openmrs.EncounterType;
 import org.openmrs.Location;
 import org.openmrs.Patient;
@@ -31,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.openmrs.module.fhir.utils.Constants.ORGANIZATION_ATTRIBUTE_TYPE_NAME;
-import static org.openmrs.module.fhir.utils.DateUtil.parseDate;
 
 @Component
 public class FHIREncounterMapper {
@@ -52,43 +50,42 @@ public class FHIREncounterMapper {
     @Autowired
     private ProviderLookupService providerLookupService;
 
-    public org.openmrs.Encounter map(Encounter fhirEncounter, String date, Patient emrPatient, AtomFeed feed) throws ParseException {
+    public org.openmrs.Encounter map(Encounter fhirEncounter, Date encounterDate, Patient emrPatient, Bundle bundle) throws ParseException {
         Map<String, List<String>> processedList = new HashMap<>();
         org.openmrs.Encounter emrEncounter = new org.openmrs.Encounter();
-        Date encounterDate = parseDate(date);
         emrEncounter.setEncounterDatetime(encounterDate);
 
         emrEncounter.setPatient(emrPatient);
-        for (AtomEntry<? extends Resource> atomEntry : feed.getEntryList()) {
-            final Resource resource = atomEntry.getResource();
+        for (Bundle.Entry bundleEntry : bundle.getEntry()) {
+            final IResource resource = bundleEntry.getResource();
             for (FHIRResourceMapper fhirResourceMapper : fhirResourceMappers) {
                 if (fhirResourceMapper.canHandle(resource)) {
-                    fhirResourceMapper.map(feed, resource, emrPatient, emrEncounter, processedList);
+                    fhirResourceMapper.map(bundle, resource, emrPatient, emrEncounter, processedList);
                 }
             }
         }
 
-        final String encounterTypeName = fhirEncounter.getType().get(0).getTextSimple();
+        final String encounterTypeName = fhirEncounter.getType().get(0).getText();
         final EncounterType encounterType = encounterService.getEncounterType(encounterTypeName);
         emrEncounter.setEncounterType(encounterType);
 
-        ResourceReference serviceProvider = fhirEncounter.getServiceProvider();
+        ResourceReferenceDt serviceProvider = fhirEncounter.getServiceProvider();
         if (serviceProvider != null) {
-            setInternalFacilityId(emrEncounter, new EntityReference().parse(Location.class, serviceProvider.getReferenceSimple()));
+            setInternalFacilityId(emrEncounter, new EntityReference().parse(Location.class, serviceProvider.getReference().getValue()));
         } else {
             setFacilityIdFromProvider(fhirEncounter, emrEncounter);
         }
-        Visit visit = visitLookupService.findOrInitializeVisit(emrPatient, encounterDate, fhirEncounter.getClass_());
+        Visit visit = visitLookupService.findOrInitializeVisit(emrPatient, encounterDate, fhirEncounter.getClassElement());
         emrEncounter.setVisit(visit);
         visit.addEncounter(emrEncounter);
         return emrEncounter;
     }
 
     private void setFacilityIdFromProvider(Encounter fhirEncounter, org.openmrs.Encounter emrEncounter) {
-        List<Encounter.EncounterParticipantComponent> participant = fhirEncounter.getParticipant();
+        List<Encounter.Participant> participant = fhirEncounter.getParticipant();
         if (CollectionUtils.isEmpty(participant)) return;
 
-        String providerUrl = participant.get(0).getIndividual().getReferenceSimple();
+        String providerUrl = participant.get(0).getIndividual().getReference().getValue();
         Provider provider = providerLookupService.getProviderByReferenceUrl(providerUrl);
         Set<ProviderAttribute> attributes = provider.getAttributes();
         for (ProviderAttribute attribute : attributes) {

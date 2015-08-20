@@ -1,11 +1,16 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
+import ca.uhn.fhir.model.dstu2.valueset.EncounterClassEnum;
+import ca.uhn.fhir.model.dstu2.valueset.EncounterStateEnum;
 import org.apache.log4j.Logger;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.Enumeration;
-import org.hl7.fhir.instance.model.ResourceReference;
-import org.openmrs.*;
+import org.openmrs.EncounterProvider;
+import org.openmrs.Location;
+import org.openmrs.Patient;
+import org.openmrs.PersonAttribute;
+import org.openmrs.Provider;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.fhir.utils.OMRSLocationService;
@@ -26,10 +31,9 @@ public class EncounterMapper {
     private Logger logger = Logger.getLogger(EncounterMapper.class);
     public Encounter map(org.openmrs.Encounter openMrsEncounter, SystemProperties systemProperties) {
         Encounter encounter = new Encounter();
-        encounter.setStatus(new Enumeration<>(Encounter.EncounterState.finished));
-        setEncounterReference(openMrsEncounter, encounter, systemProperties);
+        encounter.setStatus(EncounterStateEnum.FINISHED);
         setClass(openMrsEncounter, encounter);
-        setSubject(openMrsEncounter, encounter, systemProperties);
+        setPatientReference(openMrsEncounter, encounter, systemProperties);
         setParticipant(openMrsEncounter, encounter, systemProperties);
         encounter.setServiceProvider(getServiceProvider(openMrsEncounter, systemProperties));
         setIdentifiers(encounter, openMrsEncounter, systemProperties);
@@ -37,62 +41,54 @@ public class EncounterMapper {
         return encounter;
     }
 
-    private void setEncounterReference(org.openmrs.Encounter openMrsEncounter, Encounter encounter,
-                                       SystemProperties systemProperties) {
-        final ResourceReference encounterRef = new ResourceReference();
-        String encounterId = openMrsEncounter.getUuid();
-        encounterRef.setReferenceSimple(getReference(org.openmrs.Encounter.class, systemProperties, encounterId));
-        encounterRef.setDisplaySimple("Encounter");
-        encounter.setIndication(encounterRef);
-    }
-
     private void setType(Encounter encounter, org.openmrs.Encounter openMrsEncounter) {
-        encounter.addType().setTextSimple(openMrsEncounter.getEncounterType().getName());
+        encounter.addType().setText(openMrsEncounter.getEncounterType().getName());
     }
 
     private void setIdentifiers(Encounter encounter, org.openmrs.Encounter openMrsEncounter, SystemProperties systemProperties) {
-        encounter.addIdentifier().setValueSimple(getReference(org.openmrs.Encounter.class, systemProperties, openMrsEncounter.getUuid()));
+        String encounterId = getReference(org.openmrs.Encounter.class, systemProperties, openMrsEncounter.getUuid());
+        encounter.setId(encounterId);
+        encounter.addIdentifier().setValue(encounterId);
     }
 
-    public ResourceReference getServiceProvider(org.openmrs.Encounter openMrsEncounter, SystemProperties systemProperties) {
-
+    public ResourceReferenceDt getServiceProvider(org.openmrs.Encounter openMrsEncounter, SystemProperties systemProperties) {
         boolean isHIEFacility = omrsLocationService.isLocationHIEFacility(openMrsEncounter.getLocation());
         String serviceProviderId = null;
         serviceProviderId = isHIEFacility ? omrsLocationService.getLocationHIEIdentifier(openMrsEncounter.getLocation()) : systemProperties.getFacilityId();
-        return new ResourceReference().setReferenceSimple(
+        return new ResourceReferenceDt().setReference(
                 getReference(Location.class, systemProperties, serviceProviderId));
     }
 
     private void setClass(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {
         String visitType = openMrsEncounter.getVisit().getVisitType().getName().toLowerCase();
-        Encounter.EncounterClass encClass = identifyEncounterClass(visitType);
+        EncounterClassEnum encClass = identifyEncounterClass(visitType);
         if (encClass != null) {
-            encounter.setClass_(new Enumeration<>(encClass));
+            encounter.setClassElement(encClass);
         } else if (visitType.contains("ipd")) {
-            encounter.setClass_(new Enumeration<>(Encounter.EncounterClass.inpatient));
+            encounter.setClassElement(EncounterClassEnum.INPATIENT);
         } else if (visitType.contains("emergency")) {
-            encounter.setClass_(new Enumeration<>(Encounter.EncounterClass.emergency));
+            encounter.setClassElement(EncounterClassEnum.EMERGENCY);
         } else {
-            encounter.setClass_(new Enumeration<>(Encounter.EncounterClass.outpatient));
+            encounter.setClassElement(EncounterClassEnum.OUTPATIENT);
         }
     }
 
-    private Encounter.EncounterClass identifyEncounterClass(final String visitType) {
+    private EncounterClassEnum identifyEncounterClass(final String visitType) {
         try {
-            return Encounter.EncounterClass.fromCode(visitType);
+            return EncounterClassEnum.valueOf(visitType);
         } catch (Exception e) {
             logger.warn("Could not identify FHIR Encounter.class for MRS visitType:" + visitType);
         }
         return null;
     }
 
-    private void setSubject(org.openmrs.Encounter openMrsEncounter, Encounter encounter, SystemProperties systemProperties) {
+    private void setPatientReference(org.openmrs.Encounter openMrsEncounter, Encounter encounter, SystemProperties systemProperties) {
         PersonAttribute healthId = openMrsEncounter.getPatient().getAttribute(Constants.HEALTH_ID_ATTRIBUTE);
         if (null != healthId) {
-            ResourceReference subject = new ResourceReference()
-                    .setDisplaySimple(healthId.getValue())
-                    .setReferenceSimple(getReference(Patient.class, systemProperties, healthId.getValue()));
-            encounter.setSubject(subject);
+            ResourceReferenceDt subject = new ResourceReferenceDt()
+                    .setDisplay(healthId.getValue())
+                    .setReference(getReference(Patient.class, systemProperties, healthId.getValue()));
+            encounter.setPatient(subject);
         } else {
             throw new RuntimeException("The patient has not been synced yet");
         }
@@ -104,16 +100,26 @@ public class EncounterMapper {
 
     private void setParticipant(org.openmrs.Encounter openMrsEncounter, Encounter encounter, SystemProperties systemProperties) {
         final Set<EncounterProvider> encounterProviders = openMrsEncounter.getEncounterProviders();
-        if (!encounterProviders.isEmpty()) {
-            EncounterProvider encounterProvider = encounterProviders.iterator().next();
+        for (EncounterProvider encounterProvider : encounterProviders) {
             Provider provider = encounterProvider.getProvider();
             if (provider == null) return;
             String identifier = provider.getIdentifier();
+            if (!isHIEProvider(identifier)) continue;
             String providerUrl = getReference(Provider.class, systemProperties, identifier);
             if (providerUrl == null)
-                return;
-            Encounter.EncounterParticipantComponent encounterParticipantComponent = encounter.addParticipant();
-            encounterParticipantComponent.setIndividual(new ResourceReference().setReferenceSimple(providerUrl));
+                continue;
+            Encounter.Participant participant = encounter.addParticipant();
+            participant.setIndividual(new ResourceReferenceDt().setReference(providerUrl));
         }
+    }
+
+    private boolean isHIEProvider(String identifier) {
+        try {
+            Integer.parseInt(identifier);
+        } catch (Exception e) {
+            logger.warn("Provider is not an HIE provider.");
+            return false;
+        }
+        return true;
     }
 }

@@ -1,14 +1,13 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
+import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
+import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.Condition;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
+import ca.uhn.fhir.model.dstu2.valueset.ConditionClinicalStatusEnum;
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.CodeableConcept;
-import org.hl7.fhir.instance.model.Condition;
-import org.hl7.fhir.instance.model.Date;
-import org.hl7.fhir.instance.model.DateAndTime;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.Enumeration;
-import org.hl7.fhir.instance.model.Identifier;
-import org.hl7.fhir.instance.model.ResourceReference;
 import org.openmrs.Concept;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
@@ -16,7 +15,6 @@ import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodableConceptService;
-import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,14 +35,12 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
     private IdMappingsRepository idMappingsRepository;
     @Autowired
     private CodableConceptService codableConceptService;
-    @Autowired
-    private GlobalPropertyLookUpService globalPropertyLookUpService;
-    
-    private final Map<String, Condition.ConditionStatus> diaConditionStatus = new HashMap<String, Condition.ConditionStatus>();
+
+    private final Map<String, ConditionClinicalStatusEnum> diaConditionStatus = new HashMap<String, ConditionClinicalStatusEnum>();
 
     public DiagnosisMapper() {
-        diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_PRESUMED, Condition.ConditionStatus.provisional);
-        diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_CONFIRMED, Condition.ConditionStatus.confirmed);
+        diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_PRESUMED, ConditionClinicalStatusEnum.PROVISIONAL);
+        diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_CONFIRMED, ConditionClinicalStatusEnum.CONFIRMED);
     }
 
     @Override
@@ -66,9 +62,9 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
 
     private FHIRResource createFHIRCondition(Encounter encounter, Obs obs, SystemProperties systemProperties) {
         Condition condition = new Condition();
-        condition.setEncounter(encounter.getIndication());
-        condition.setSubject(encounter.getSubject());
-        ResourceReference participant = getParticipant(encounter);
+        condition.setEncounter(new ResourceReferenceDt().setReference(new EntityReference().build(Encounter.class, systemProperties, encounter.getId().getValueAsString())));
+        condition.setPatient(encounter.getPatient());
+        ResourceReferenceDt participant = getParticipant(encounter);
         if (null != participant) {
             condition.setAsserter(participant);
         }
@@ -78,26 +74,25 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         for (Obs member : obsMembers) {
             Concept memberConcept = member.getConcept();
             if (isCodedDiagnosisObservation(memberConcept)) {
-                CodeableConcept diagnosisCode = codableConceptService.addTRCoding(member.getValueCoded(), idMappingsRepository);
+                CodeableConceptDt diagnosisCode = codableConceptService.addTRCoding(member.getValueCoded(), idMappingsRepository);
                 if (CollectionUtils.isEmpty(diagnosisCode.getCoding())) {
                     return null;
                 }
                 condition.setCode(diagnosisCode);
             } else if (isDiagnosisCertaintyObservation(memberConcept)) {
-                condition.setStatus(getConditionStatus(member));
+                condition.setClinicalStatus(getConditionStatus(member));
             }
         }
-
-        Date onsetDate = new Date();
-        onsetDate.setValue(new DateAndTime(obs.getObsDatetime()));
-        condition.setDateAsserted(onsetDate);
-
-        Identifier identifier = condition.addIdentifier();
-        identifier.setValueSimple(new EntityReference().build(Obs.class, systemProperties, obs.getUuid()));
-
         if (condition.getCode() == null || CollectionUtils.isEmpty(condition.getCode().getCoding())) {
             return null;
         }
+
+        condition.setDateAsserted(obs.getObsDatetime(), TemporalPrecisionEnum.MILLI);
+        IdentifierDt identifier = condition.addIdentifier();
+        String obsId = new EntityReference().build(Condition.class, systemProperties, obs.getUuid());
+        identifier.setValue(obsId);
+        condition.setId(obsId);
+
         return new FHIRResource("Diagnosis", condition.getIdentifier(), condition);
     }
 
@@ -112,24 +107,19 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
     }
 
 
-    private Enumeration<Condition.ConditionStatus> getConditionStatus(Obs member) {
+    private ConditionClinicalStatusEnum getConditionStatus(Obs member) {
         Concept diagnosisStatus = member.getValueCoded();
-        Condition.ConditionStatus status = diaConditionStatus.get(diagnosisStatus.getName().getName());
-        if (status != null) {
-            return new Enumeration<>(status);
-        } else {
-            return new Enumeration<>(Condition.ConditionStatus.confirmed);
-        }
+        ConditionClinicalStatusEnum status = diaConditionStatus.get(diagnosisStatus.getName().getName());
+        return status != null ? status : ConditionClinicalStatusEnum.CONFIRMED;
     }
 
-    private CodeableConcept getDiagnosisCategory() {
+    private CodeableConceptDt getDiagnosisCategory() {
         return codableConceptService.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS,
                 FHIRProperties.FHIR_CONDITION_CATEGORY_URL, FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS_DISPLAY);
     }
 
-    //TODO : how do we identify this individual?
-    protected ResourceReference getParticipant(Encounter encounter) {
-        List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
+    protected ResourceReferenceDt getParticipant(Encounter encounter) {
+        List<Encounter.Participant> participants = encounter.getParticipant();
         if ((participants != null) && !participants.isEmpty()) {
             return participants.get(0).getIndividual();
         }

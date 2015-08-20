@@ -31,7 +31,7 @@ public class EncounterBundleTest {
         assertNotNull(bundle.getEncounterId());
         assertNotNull(bundle.getHealthId());
 
-        final AtomFeed feed = bundle.getFeed();
+        final AtomFeed feed = bundle.getBundle();
         assertEquals("urn:38052a8c-c5ad-4821-9e38-b49432a2ccc4", feed.getId());
         assertNotNull(feed);
         assertNotNull(feed.getEntryList());

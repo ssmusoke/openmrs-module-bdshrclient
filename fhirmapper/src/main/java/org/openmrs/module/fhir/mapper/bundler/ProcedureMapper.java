@@ -1,7 +1,14 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 
-import org.hl7.fhir.instance.model.*;
+import ca.uhn.fhir.model.api.IDatatype;
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
+import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
+import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
+import ca.uhn.fhir.model.dstu2.resource.Procedure;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
@@ -12,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
@@ -37,7 +44,6 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     @Override
     public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
         CompoundObservation compoundObservationProcedure = new CompoundObservation(obs);
-
         return mapProcedure(obs, fhirEncounter, systemProperties, compoundObservationProcedure);
     }
 
@@ -45,15 +51,16 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         List<FHIRResource> resources = new ArrayList<>();
         Procedure procedure = new Procedure();
 
-        procedure.setSubject(fhirEncounter.getSubject());
-        CodeableConcept procedureType = getProcedure(compoundObservationProcedure);
+        procedure.setPatient(fhirEncounter.getPatient());
+        procedure.setEncounter(new ResourceReferenceDt().setReference(new EntityReference().build(Encounter.class, systemProperties, fhirEncounter.getId().getValueAsString())));
+        CodeableConceptDt procedureType = getProcedure(compoundObservationProcedure);
         if (procedureType != null) {
             procedure.setType(procedureType);
             setIdentifier(obs, systemProperties, procedure);
-            procedure.setOutcomeSimple(getProcedureOutcomeText(compoundObservationProcedure));
-            procedure.setFollowUpSimple(getProcedureFollowUp(compoundObservationProcedure));
-            procedure.setDate(getProcedurePeriod(compoundObservationProcedure));
-
+            //TODO : how do we set follow up and outcome
+//            procedure.setOutcome(getProcedureOutcomeText(compoundObservationProcedure));
+//            procedure.setFollowUp(getProcedureFollowUp(compoundObservationProcedure));
+            procedure.setPerformed(getProcedurePeriod(compoundObservationProcedure));
             FHIRResource procedureReportResource = addReportToProcedure(compoundObservationProcedure, fhirEncounter, systemProperties, procedure);
             if (procedureReportResource != null) {
                 resources.add(procedureReportResource);
@@ -70,82 +77,74 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         DiagnosticReport diagnosticReport = buildDiagnosticReport(compoundObservationProcedure, fhirEncounter, systemProperties);
         FHIRResource diagnosticReportResource = null;
         if (diagnosticReport != null) {
-            diagnosticReportResource = new FHIRResource(DIAGNOSTIC_REPORT_RESOURCE_NAME, Arrays.asList(diagnosticReport.getIdentifier()), diagnosticReport);
-            ResourceReference diagnosticResourceRef = procedure.addReport();
-            diagnosticResourceRef.setReferenceSimple(diagnosticReportResource.getIdentifier().getValueSimple());
-            diagnosticResourceRef.setDisplaySimple(diagnosticReportResource.getResourceName());
+            diagnosticReportResource = new FHIRResource(DIAGNOSTIC_REPORT_RESOURCE_NAME, diagnosticReport.getIdentifier(), diagnosticReport);
+            ResourceReferenceDt diagnosticResourceRef = procedure.addReport();
+            diagnosticResourceRef.setReference(diagnosticReportResource.getIdentifier().getValue());
+            diagnosticResourceRef.setDisplay(diagnosticReportResource.getResourceName());
         }
         return diagnosticReportResource;
     }
 
 
-    private CodeableConcept getProcedure(CompoundObservation compoundObservationProcedure) {
-        CodeableConcept procedureType = null;
+    private CodeableConceptDt getProcedure(CompoundObservation compoundObservationProcedure) {
+        CodeableConceptDt procedureType = null;
         Obs procedureTypeObs = compoundObservationProcedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_TYPE);
         if (procedureTypeObs != null) {
-            Type codeableType = obsValueMapper.map(procedureTypeObs);
-            if (codeableType != null && codeableType instanceof CodeableConcept) {
-                procedureType = (CodeableConcept) codeableType;
+            IDatatype codeableType = obsValueMapper.map(procedureTypeObs);
+            if (codeableType != null && codeableType instanceof CodeableConceptDt) {
+                procedureType = (CodeableConceptDt) codeableType;
             }
         }
         return procedureType;
     }
 
     private void setIdentifier(Obs obs, SystemProperties systemProperties, Procedure procedure) {
-        Identifier identifier = procedure.addIdentifier();
-        identifier.setValueSimple(new EntityReference().build(Obs.class, systemProperties, obs.getUuid()));
+        String id = new EntityReference().build(Obs.class, systemProperties, obs.getUuid());
+        procedure.addIdentifier().setValue(id);
+        procedure.setId(id);
     }
 
+    //DO NOT REMOVE this unused method
     private String getProcedureOutcomeText(CompoundObservation compoundObservationProcedure) {
         Obs outcomeObs = compoundObservationProcedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_OUTCOME);
         if (outcomeObs != null) {
-            return ((String_) obsValueMapper.map(outcomeObs)).getValue();
+            return outcomeObs.getValueText();
         }
         return null;
     }
 
+    //DO NOT REMOVE this unused method
     private String getProcedureFollowUp(CompoundObservation compoundObservationProcedure) {
         Obs followupObs = compoundObservationProcedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_FOLLOW_UP);
         if (followupObs != null) {
-            return ((String_) obsValueMapper.map(followupObs)).getValue();
+            return followupObs.getValueText();
         }
         return null;
     }
 
 
-    private Period getProcedurePeriod(CompoundObservation compoundObservationProcedure) {
+    private PeriodDt getProcedurePeriod(CompoundObservation compoundObservationProcedure) {
         Obs startDateObs = compoundObservationProcedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_START_DATE);
         Obs endDateObs = compoundObservationProcedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_END_DATE);
-        DateTime startDate = getDate(startDateObs);
-        DateTime endDate = getDate(endDateObs);
-        return getPeriod(startDate, endDate);
+        return getPeriod(startDateObs.getValueDate(), endDateObs.getValueDate());
     }
 
-    private Period getPeriod(DateTime startDate, DateTime endDate) {
+    private PeriodDt getPeriod(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) {
             return null;
         }
-        Period period = new Period();
-        period.setStart(startDate);
-        period.setEnd(endDate);
+        PeriodDt period = new PeriodDt();
+        period.setStart(startDate, TemporalPrecisionEnum.MILLI);
+        period.setEnd(endDate, TemporalPrecisionEnum.MILLI);
 
         return period;
-    }
-
-    private DateTime getDate(Obs dateObs) {
-        if (dateObs != null) {
-            DateTime date = new DateTime();
-            date.setValue(((Date) obsValueMapper.map(dateObs)).getValue());
-            return date;
-        }
-        return null;
     }
 
     private DiagnosticReport buildDiagnosticReport(CompoundObservation compoundObservationProcedure, Encounter fhirEncounter, SystemProperties systemProperties) {
         DiagnosticReport diagnosticReport = null;
         Obs diagnosticStudyObs = compoundObservationProcedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_STUDY);
         CompoundObservation compoundDiagnosticStudyObs = new CompoundObservation(diagnosticStudyObs);
-        CodeableConcept diagnosisTestName = getNameToDiagnosticReport(compoundDiagnosticStudyObs);
+        CodeableConceptDt diagnosisTestName = getNameToDiagnosticReport(compoundDiagnosticStudyObs);
         if (diagnosisTestName != null) {
             diagnosticReport = diagnosticReportBuilder.build(diagnosticStudyObs, fhirEncounter, systemProperties);
             diagnosticReport.setName(diagnosisTestName);
@@ -157,29 +156,29 @@ public class ProcedureMapper implements EmrObsResourceHandler {
 
     private void setDiagnosisToDiagnosticReport(DiagnosticReport diagnosticReport, CompoundObservation compoundDiagnosticStudyObs) {
         Obs diagnosisObs = compoundDiagnosticStudyObs.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSIS);
-        Type codeableType = diagnosisObs != null ? obsValueMapper.map(diagnosisObs) : null;
-        if (codeableType != null && codeableType instanceof CodeableConcept) {
-            CodeableConcept codedDiagnosis = diagnosticReport.addCodedDiagnosis();
-            CodeableConcept codeableConcept = (CodeableConcept) codeableType;
+        IDatatype codeableType = diagnosisObs != null ? obsValueMapper.map(diagnosisObs) : null;
+        if (codeableType != null && codeableType instanceof CodeableConceptDt) {
+            CodeableConceptDt codedDiagnosis = diagnosticReport.addCodedDiagnosis();
+            CodeableConceptDt codeableConcept = (CodeableConceptDt) codeableType;
             codedDiagnosis.getCoding().addAll(codeableConcept.getCoding());
         }
     }
 
     private void setResultToDiagnosticReport(DiagnosticReport diagnosticReport, CompoundObservation compoundDiagnosticStudyObs) {
         Obs diagnosticResultObs = compoundDiagnosticStudyObs.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_RESULT);
-        Type result = diagnosticResultObs != null ? obsValueMapper.map(diagnosticResultObs) : null;
-        if (result != null && result instanceof String_) {
-            ResourceReference resultReference = diagnosticReport.addResult();
-            resultReference.setDisplaySimple(((String_) result).getValue());
+        String result = diagnosticResultObs != null ? diagnosticResultObs.getValueText() : null;
+        if (result != null) {
+            ResourceReferenceDt resultReference = diagnosticReport.addResult();
+            resultReference.setDisplay(result);
         }
     }
 
-    private CodeableConcept getNameToDiagnosticReport(CompoundObservation compoundDiagnosticStudyObs) {
+    private CodeableConceptDt getNameToDiagnosticReport(CompoundObservation compoundDiagnosticStudyObs) {
         if (compoundDiagnosticStudyObs.getRawObservation() != null) {
             Obs diagnosticTestObs = compoundDiagnosticStudyObs.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_TEST);
-            Type name = diagnosticTestObs != null ? obsValueMapper.map(diagnosticTestObs) : null;
-            if (name != null && name instanceof CodeableConcept) {
-                return (CodeableConcept) name;
+            IDatatype name = diagnosticTestObs != null ? obsValueMapper.map(diagnosticTestObs) : null;
+            if (name != null && name instanceof CodeableConceptDt) {
+                return (CodeableConceptDt) name;
             }
         }
         return null;

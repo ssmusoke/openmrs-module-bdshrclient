@@ -1,8 +1,8 @@
 package org.openmrs.module.shrclient.feeds.shr;
 
 
-import org.hl7.fhir.instance.formats.ParserBase;
-import org.hl7.fhir.instance.formats.XmlParser;
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import org.ict4h.atomfeed.client.AtomFeedProperties;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.repository.AllFailedEvents;
@@ -17,10 +17,10 @@ import org.ict4h.atomfeed.transaction.AFTransactionManager;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.atomfeed.transaction.support.AtomFeedSpringTransactionManager;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
+import org.openmrs.module.shrclient.util.PlatformUtil;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -92,16 +92,17 @@ public class ShrEncounterFeedProcessor {
         @Override
         public void process(Event event) {
             String content = event.getContent();
-            ParserBase.ResourceOrFeed resource;
+            FhirContext fhirContext = PlatformUtil.getFhirContext().getFhirContext();
+            Bundle bundle;
             try {
-                resource = new XmlParser(true).parseGeneral(new ByteArrayInputStream(content.getBytes()));
+                bundle = fhirContext.newXmlParser().parseResource(Bundle.class, content);
             } catch (Exception e) {
                 throw new RuntimeException("Unable to parse XML", e);
             }
             EncounterBundle encounterBundle = new EncounterBundle();
             encounterBundle.setEncounterId(event.getId());
             encounterBundle.setTitle(event.getTitle());
-            encounterBundle.addContent(resource.getFeed());
+            encounterBundle.addContent(bundle);
             shrEventWorker.process(encounterBundle);
         }
 

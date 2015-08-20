@@ -1,20 +1,19 @@
 package org.openmrs.module.fhir.mapper.emr;
 
+import ca.uhn.fhir.model.api.IDatatype;
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.AgeDt;
+import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.FamilyMemberHistory;
+import ca.uhn.fhir.model.primitive.DateDt;
 import org.apache.commons.lang.StringUtils;
-import org.hl7.fhir.instance.model.Age;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.CodeableConcept;
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Date;
-import org.hl7.fhir.instance.model.FamilyHistory;
-import org.hl7.fhir.instance.model.Resource;
-import org.hl7.fhir.instance.model.Type;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
-import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.TrValueSetType;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -40,85 +39,83 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
     private OMRSConceptLookup conceptLookup;
 
     @Override
-    public boolean canHandle(Resource resource) {
-        return (resource instanceof FamilyHistory);
+    public boolean canHandle(IResource resource) {
+        return (resource instanceof FamilyMemberHistory);
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
-        FamilyHistory familyHistory = (FamilyHistory) resource;
-        if (isAlreadyProcessed(familyHistory, processedList))
+    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
+        FamilyMemberHistory familyMemberHistory = (FamilyMemberHistory) resource;
+        if (isAlreadyProcessed(familyMemberHistory, processedList))
             return;
         Obs familyHistoryObs = new Obs();
         familyHistoryObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_FAMILY_HISTORY));
-        mapRelationships(familyHistoryObs, familyHistory.getRelation());
+        mapRelationships(familyHistoryObs, familyMemberHistory);
         newEmrEncounter.addObs(familyHistoryObs);
 
-        processedList.put(familyHistory.getIdentifier().get(0).getValueSimple(), Arrays.asList(familyHistoryObs.getUuid()));
+        processedList.put(familyMemberHistory.getId().getValue(), Arrays.asList(familyHistoryObs.getUuid()));
     }
 
 
-    private boolean isAlreadyProcessed(FamilyHistory familyHistory, Map<String, List<String>> processedList) {
-        return processedList.containsKey(familyHistory.getIdentifier().get(0).getValueSimple());
+    private boolean isAlreadyProcessed(FamilyMemberHistory familyMemberHistory, Map<String, List<String>> processedList) {
+        return processedList.containsKey(familyMemberHistory.getId().getValue());
     }
 
-    private void mapRelationships(Obs familyHistoryObs, List<FamilyHistory.FamilyHistoryRelationComponent> relations) {
-        for (FamilyHistory.FamilyHistoryRelationComponent relation : relations) {
-            Obs personObs = new Obs();
-            personObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_PERSON));
-            mapRelation(personObs, relation);
-            familyHistoryObs.addGroupMember(personObs);
+    private void mapRelationships(Obs familyHistoryObs, FamilyMemberHistory familyMemberHistory) {
+        Obs personObs = new Obs();
+        personObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_PERSON));
+        mapRelation(personObs, familyMemberHistory);
+        familyHistoryObs.addGroupMember(personObs);
+    }
+
+    private void mapRelation(Obs personObs, FamilyMemberHistory familyMemberHistory) {
+        personObs.addGroupMember(setBornOnObs(familyMemberHistory));
+        mapRelationship(personObs, familyMemberHistory);
+        for (FamilyMemberHistory.Condition condition : familyMemberHistory.getCondition()) {
+            personObs.addGroupMember(mapRelationCondition(condition));
         }
     }
 
-    private void mapRelation(Obs personObs, FamilyHistory.FamilyHistoryRelationComponent relation) {
-        personObs.addGroupMember(setBornOnObs(relation));
-        mapRelationship(personObs, relation);
-        for (FamilyHistory.FamilyHistoryRelationConditionComponent component : relation.getCondition()) {
-            personObs.addGroupMember(mapRelationCondition(component));
-        }
-    }
-
-    private void mapRelationship(Obs personObs, FamilyHistory.FamilyHistoryRelationComponent relation) {
-        Obs relationship = mapRelationship(getCodeSimple(relation));
+    private void mapRelationship(Obs personObs, FamilyMemberHistory familyMemberHistory) {
+        Obs relationship = mapRelationship(getCodeSimple(familyMemberHistory));
         if (null != relationship) {
             personObs.addGroupMember(relationship);
         }
     }
 
-    private String getCodeSimple(FamilyHistory.FamilyHistoryRelationComponent relation) {
-        CodeableConcept relationship = relation.getRelationship();
+    private String getCodeSimple(FamilyMemberHistory relation) {
+        CodeableConceptDt relationship = relation.getRelationship();
         if (null == relationship) {
             return null;
         }
-        List<Coding> coding = relationship.getCoding();
+        List<CodingDt> coding = relationship.getCoding();
         if (null == coding) {
             return null;
         }
-        return coding.get(0).getCodeSimple();
+        return coding.get(0).getCode();
     }
 
-    private Obs mapRelationCondition(FamilyHistory.FamilyHistoryRelationConditionComponent component) {
+    private Obs mapRelationCondition(FamilyMemberHistory.Condition conditon) {
         Obs result = new Obs();
         result.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION));
-        mapOnsetDate(result, component.getOnset());
-        mapNotes(result, component);
-        mapCondition(component, result);
+        mapOnsetDate(result, conditon.getOnset());
+        mapNotes(result, conditon);
+        mapCondition(conditon, result);
         return result;
     }
 
-    private void mapCondition(FamilyHistory.FamilyHistoryRelationConditionComponent component, Obs result) {
+    private void mapCondition(FamilyMemberHistory.Condition condition, Obs result) {
         Obs value = new Obs();
-        Concept answerConcept = getAnswer(component);
+        Concept answerConcept = getAnswer(condition);
         value.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS));
         value.setValueCoded(answerConcept);
         result.addGroupMember(value);
     }
 
-    private Concept getAnswer(FamilyHistory.FamilyHistoryRelationConditionComponent component) {
-        List<Coding> coding = component.getType().getCoding();
-        for (Coding code : coding) {
-            IdMapping mapping = idMappingsRepository.findByExternalId(code.getCodeSimple());
+    private Concept getAnswer(FamilyMemberHistory.Condition condition) {
+        List<CodingDt> coding = condition.getType().getCoding();
+        for (CodingDt code : coding) {
+            IdMapping mapping = idMappingsRepository.findByExternalId(code.getCode());
             if (null != mapping) {
                 return conceptService.getConceptByUuid(mapping.getInternalId());
             }
@@ -126,22 +123,22 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
         return null;
     }
 
-    private void mapNotes(Obs result, FamilyHistory.FamilyHistoryRelationConditionComponent component) {
-        if (null != component.getNote()) {
+    private void mapNotes(Obs result, FamilyMemberHistory.Condition condition) {
+        if (null != condition.getNote()) {
             Obs notes = new Obs();
             Concept onsetDateConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_RELATIONSHIP_NOTES);
             notes.setConcept(onsetDateConcept);
-            notes.setValueText(component.getNoteSimple());
+            notes.setValueText(condition.getNote());
             result.addGroupMember(notes);
         }
     }
 
-    private void mapOnsetDate(Obs result, Type onset) {
-        if (null != onset && onset instanceof Age) {
+    private void mapOnsetDate(Obs result, IDatatype onset) {
+        if (null != onset && onset instanceof AgeDt) {
             Obs ageValue = new Obs();
             Concept onsetDateConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_ONSET_AGE);
             ageValue.setConcept(onsetDateConcept);
-            ageValue.setValueNumeric(((Age) onset).getValue().getValue().doubleValue());
+            ageValue.setValueNumeric(((AgeDt) onset).getValue().doubleValue());
             result.addGroupMember(ageValue);
         }
     }
@@ -158,12 +155,11 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
         }
     }
 
-    private Obs setBornOnObs(FamilyHistory.FamilyHistoryRelationComponent relation) {
-        if (null != relation.getBorn() && relation.getBorn() instanceof Date) {
+    private Obs setBornOnObs(FamilyMemberHistory familyMemberHistory) {
+        if (null != familyMemberHistory.getBorn() && familyMemberHistory.getBorn() instanceof DateDt) {
             Obs bornOnObs = new Obs();
             Concept bornOnConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_BORN_ON);
-            String bornOnDate = ((Date) relation.getBorn()).getValue().toString();
-            java.util.Date observationValue = DateUtil.parseDate(bornOnDate);
+            java.util.Date observationValue = ((DateDt) familyMemberHistory.getBorn()).getValue();
             bornOnObs.setValueDate(observationValue);
             bornOnObs.setConcept(bornOnConcept);
             return bornOnObs;

@@ -31,7 +31,6 @@
     <modules>
         <module>shrclient-api</module>
         <module>shrclient-omod</module>
-        <module>fhir</module>
         <module>fhirmapper</module>
     </modules>
 

@@ -1,7 +1,14 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import org.hl7.fhir.instance.model.*;
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
+import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
+import ca.uhn.fhir.model.primitive.DateTimeDt;
 import org.openmrs.Obs;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -9,9 +16,7 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.lang.Boolean;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
@@ -59,7 +64,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
         for (Obs observation : obs.getGroupMembers()) {
             DiagnosticReport diagnosticReport = build(observation, fhirEncounter, FHIRResourceList, systemProperties);
             if (diagnosticReport != null) {
-                FHIRResource FHIRResource = new FHIRResource("Diagnostic Report", Arrays.asList(diagnosticReport.getIdentifier()), diagnosticReport);
+                FHIRResource FHIRResource = new FHIRResource("Diagnostic Report", diagnosticReport.getIdentifier(), diagnosticReport);
                 FHIRResourceList.add(FHIRResource);
             }
         }
@@ -67,7 +72,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
 
     private DiagnosticReport build(Obs obs, Encounter fhirEncounter, List<FHIRResource> fHIRResourceList, SystemProperties systemProperties) {
         DiagnosticReport report = diagnosticReportBuilder.build(obs, fhirEncounter, systemProperties);
-        CodeableConcept name = codableConceptService.addTRCoding(obs.getConcept(), idMappingsRepository);
+        CodeableConceptDt name = codableConceptService.addTRCoding(obs.getConcept(), idMappingsRepository);
         if (name.getCoding().isEmpty()) {
             return null;
         }
@@ -81,26 +86,25 @@ public class TestResultMapper implements EmrObsResourceHandler {
             throw new RuntimeException("Encounter id [" + uuid + "] doesn't have id mapping.");
         }
 
-        ResourceReference requestDetail = report.addRequestDetail();
-        requestDetail.setReferenceSimple(encounterIdMapping.getUri());
+        report.addRequestDetail().setReference(encounterIdMapping.getUri());
 
         for (Obs member : obs.getGroupMembers()) {
             if (member.getConcept().equals(obs.getConcept())) {
                 List<FHIRResource> observationResources = observationMapper.map(member, fhirEncounter, systemProperties);
-                ResourceReference resourceReference = report.addResult();
+                ResourceReferenceDt resourceReference = report.addResult();
                 // TODO: how do we identify this observation?
-                resourceReference.setReferenceSimple(observationResources.get(0).getIdentifier().getValueSimple());
+                resourceReference.setReference(new EntityReference().build(IResource.class, systemProperties, observationResources.get(0).getIdentifier().getValue()));
                 fHIRResourceList.addAll(observationResources);
             } else if (MRS_CONCEPT_NAME_LAB_NOTES.equals(member.getConcept().getName().getName())) {
-                report.setConclusionSimple(member.getValueText());
+                report.setConclusion(member.getValueText());
             }
         }
         return report;
     }
 
-    private DateTime getOrderTime(org.openmrs.Order obsOrder) {
-        DateTime diagnostic = new DateTime();
-        diagnostic.setValue(new DateAndTime(obsOrder.getDateActivated()));
+    private DateTimeDt getOrderTime(org.openmrs.Order obsOrder) {
+        DateTimeDt diagnostic = new DateTimeDt();
+        diagnostic.setValue(obsOrder.getDateActivated(), TemporalPrecisionEnum.MILLI);
         return diagnostic;
     }
 }

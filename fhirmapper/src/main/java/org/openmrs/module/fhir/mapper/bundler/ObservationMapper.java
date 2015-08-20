@@ -1,7 +1,15 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import ca.uhn.fhir.model.api.IDatatype;
+import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
+import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
+import ca.uhn.fhir.model.dstu2.resource.Observation;
+import ca.uhn.fhir.model.dstu2.valueset.ObservationReliabilityEnum;
+import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.*;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
@@ -17,7 +25,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.Arrays.asList;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_ENC_TYPE_LAB_RESULT;
 import static org.openmrs.module.fhir.mapper.model.ObservationType.*;
 
@@ -27,14 +34,12 @@ public class ObservationMapper implements EmrObsResourceHandler {
     private ObservationValueMapper observationValueMapper;
     private IdMappingsRepository idMappingsRepository;
     private final CodableConceptService codableConceptService;
-    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Autowired
     public ObservationMapper(ObservationValueMapper observationValueMapper, IdMappingsRepository idMappingsRepository, CodableConceptService codableConceptService, GlobalPropertyLookUpService globalPropertyLookUpService) {
         this.observationValueMapper = observationValueMapper;
         this.idMappingsRepository = idMappingsRepository;
         this.codableConceptService = codableConceptService;
-        this.globalPropertyLookUpService = globalPropertyLookUpService;
     }
 
     @Override
@@ -59,13 +64,9 @@ public class ObservationMapper implements EmrObsResourceHandler {
     public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> result = new ArrayList<>();
         if (null != obs) {
-            result  = mapToFhirObservation(obs, fhirEncounter, systemProperties);
+            result = mapToFhirObservation(obs, fhirEncounter, systemProperties);
         }
         return result;
-    }
-
-    private FHIRResource buildResource(Observation observation, Obs obs) {
-        return new FHIRResource(obs.getConcept().getName().getName(), asList(observation.getIdentifier()), observation);
     }
 
     public List<FHIRResource> mapToFhirObservation(Obs observation, Encounter fhirEncounter, SystemProperties systemProperties) {
@@ -79,63 +80,60 @@ public class ObservationMapper implements EmrObsResourceHandler {
         return result;
     }
 
+    private FHIRResource buildResource(Observation observation, Obs obs) {
+        return new FHIRResource(obs.getConcept().getName().getName(), observation.getIdentifier(), observation);
+    }
+
     private void mapGroupMember(Obs obs, Encounter fhirEncounter, Observation parentObservation, List<FHIRResource> result, SystemProperties systemProperties) {
         Observation observation = createObservation(obs, fhirEncounter, systemProperties);
         FHIRResource entry = buildResource(observation, obs);
-        mapRelatedObservation(observation).mergeWith(parentObservation);
+        mapRelatedObservation(observation).mergeWith(parentObservation, systemProperties);
         for (Obs member : obs.getGroupMembers()) {
             mapGroupMember(member, fhirEncounter, observation, result, systemProperties);
         }
         result.add(entry);
     }
 
-    private Observation createObservation(Obs observation, Encounter fhirEncounter, SystemProperties systemProperties) {
-        Observation entry = new Observation();
-        entry.setSubject(fhirEncounter.getSubject());
-        mapName(observation, entry);
-        entry.setStatusSimple(Observation.ObservationStatus.final_);
-        entry.setReliabilitySimple(Observation.ObservationReliability.ok);
-        entry.setIdentifier(new Identifier().setValueSimple(new EntityReference().build(Obs.class, systemProperties, observation.getUuid())));
-        mapValue(observation, entry);
-        return entry;
+    private Observation createObservation(Obs openmrsObs, Encounter fhirEncounter, SystemProperties systemProperties) {
+        Observation fhirObservation = new Observation();
+        fhirObservation.setSubject(fhirEncounter.getPatient());
+        fhirObservation.setEncounter(new ResourceReferenceDt().setReference(new EntityReference().build(Encounter.class, systemProperties, fhirEncounter.getId().getValueAsString())));
+        mapName(openmrsObs, fhirObservation);
+        fhirObservation.setStatus(ObservationStatusEnum.FINAL);
+        fhirObservation.setReliability(ObservationReliabilityEnum.OK);
+        fhirObservation.addIdentifier(new IdentifierDt().setValue(openmrsObs.getUuid()));
+        fhirObservation.setId(openmrsObs.getUuid());
+        mapValue(openmrsObs, fhirObservation);
+        return fhirObservation;
     }
 
-    private void mapValue(Obs observation, Observation entry) {
-        Type value = observationValueMapper.map(observation);
+    private void mapValue(Obs openmrsObs, Observation fhirObservation) {
+        IDatatype value = observationValueMapper.map(openmrsObs);
         if (null != value) {
-            entry.setValue(value);
+            fhirObservation.setValue(value);
         }
     }
 
-    private void mapName(Obs observation, Observation entry) {
-        CodeableConcept name = buildName(observation);
+    private void mapName(Obs openmrsObs, Observation fhirObservation) {
+        CodeableConceptDt name = buildName(openmrsObs);
         if (null != name) {
-            entry.setName(name);
+            fhirObservation.setCode(name);
         }
     }
 
-    private CodeableConcept buildName(Obs observation) {
+    private CodeableConceptDt buildName(Obs observation) {
         if (null == observation.getConcept()) {
             return null;
         }
-        CodeableConcept observationName = codableConceptService.addTRCoding(observation.getConcept(), idMappingsRepository);
+        CodeableConceptDt observationName = codableConceptService.addTRCoding(observation.getConcept(), idMappingsRepository);
         if (CollectionUtils.isEmpty(observationName.getCoding())) {
-            Coding coding = observationName.addCoding();
-            coding.setDisplaySimple(observation.getConcept().getName().getName());
+            CodingDt coding = observationName.addCoding();
+            coding.setDisplay(observation.getConcept().getName().getName());
         }
         return observationName;
     }
 
     private RelatedObservation mapRelatedObservation(Observation observation) {
         return new RelatedObservation(observation);
-    }
-
-    //TODO : how do we identify this individual?
-    protected ResourceReference getParticipant(Encounter encounter) {
-        List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
-        if ((participants != null) && !participants.isEmpty()) {
-            return participants.get(0).getIndividual();
-        }
-        return null;
     }
 }

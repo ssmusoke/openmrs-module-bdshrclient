@@ -1,18 +1,17 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import ca.uhn.fhir.model.dstu2.composite.AgeDt;
+import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
+import ca.uhn.fhir.model.dstu2.resource.FamilyMemberHistory;
+import ca.uhn.fhir.model.primitive.DateDt;
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.Age;
-import org.hl7.fhir.instance.model.CodeableConcept;
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Date;
-import org.hl7.fhir.instance.model.DateAndTime;
-import org.hl7.fhir.instance.model.Decimal;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.FamilyHistory;
 import org.openmrs.Concept;
 import org.openmrs.ConceptName;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
+import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
@@ -24,7 +23,6 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -55,56 +53,67 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
     public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> FHIRResources = new ArrayList<>();
         for (Obs person : obs.getGroupMembers()) {
-            FamilyHistory familyHistory = createFamilyHistory(person, fhirEncounter, systemProperties);
-            FHIRResources.add(new FHIRResource(obs.getConcept().getName().getName(), familyHistory.getIdentifier(), familyHistory));
+            FamilyMemberHistory familyMemberHistory = createFamilyMemberHistory(person, fhirEncounter, systemProperties);
+            FHIRResources.add(new FHIRResource(obs.getConcept().getName().getName(), familyMemberHistory.getIdentifier(), familyMemberHistory));
         }
         return FHIRResources;
     }
 
-    private FamilyHistory createFamilyHistory(Obs person, Encounter fhirEncounter, SystemProperties systemProperties) {
-        FamilyHistory familyHistory = new FamilyHistory();
-        familyHistory.setSubject(fhirEncounter.getSubject());
-        familyHistory.addIdentifier().setValueSimple(new EntityReference().build(Obs.class, systemProperties, person.getUuid()));
-        FamilyHistory.FamilyHistoryRelationComponent familyHistoryRelationComponent = familyHistory.addRelation();
-        Concept relationshipTypeConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.RELATIONSHIP_TYPE);
-        for (Obs member : person.getGroupMembers()) {
-            if (member.getConcept().equals(relationshipTypeConcept)) {
-                mapRelationship(familyHistoryRelationComponent, member);
-            } else if (MRS_CONCEPT_NAME_BORN_ON.equalsIgnoreCase(member.getConcept().getName().getName())) {
-                mapBornDate(familyHistoryRelationComponent, member);
-            } else if (MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION.equalsIgnoreCase(member.getConcept().getName().getName())) {
-                mapRelationshipCondition(familyHistoryRelationComponent, member);
-            }
-        }
-        return familyHistory;
+    private FamilyMemberHistory createFamilyMemberHistory(Obs person, Encounter fhirEncounter, SystemProperties systemProperties) {
+        FamilyMemberHistory familyMemberHistory = new FamilyMemberHistory();
+        familyMemberHistory.setPatient(fhirEncounter.getPatient());
+        String familyMemberHistoryId = new EntityReference().build(Obs.class, systemProperties, person.getUuid());
+        familyMemberHistory.addIdentifier().setValue(familyMemberHistoryId);
+        familyMemberHistory.setId(familyMemberHistoryId);
+
+        mapRelationship(familyMemberHistory, person);
+        mapBornDate(familyMemberHistory, person);
+        mapRelationshipConditions(familyMemberHistory, person);
+        return familyMemberHistory;
     }
 
-    private void mapRelationshipCondition(FamilyHistory.FamilyHistoryRelationComponent familyHistoryRelationComponent, Obs relationCondition) {
-        FamilyHistory.FamilyHistoryRelationConditionComponent conditionComponent = familyHistoryRelationComponent.addCondition();
-        for (Obs member : relationCondition.getGroupMembers()) {
-            if (MRS_CONCEPT_NAME_ONSET_AGE.equalsIgnoreCase(member.getConcept().getName().getName())) {
-                Age age = new Age();
-                Decimal decimal = new Decimal();
-                decimal.setValue(new BigDecimal(member.getValueNumeric()));
-                age.setValue(decimal);
-                age.setUnitsSimple(UCUM_UNIT_FOR_YEARS);
-                age.setSystemSimple(UCUM_URL);
-                conditionComponent.setOnset(age);
-            } else if (MRS_CONCEPT_NAME_RELATIONSHIP_NOTES.equalsIgnoreCase(member.getConcept().getName().getName())) {
-                conditionComponent.setNoteSimple(member.getValueText());
-            } else if (MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS.equalsIgnoreCase(member.getConcept().getName().getName())) {
-                final CodeableConcept codeableConcept = readValue(member);
-                if (null != codeableConcept) {
-                    conditionComponent.setType(codeableConcept);
-                }
-            }
+    private void mapRelationshipConditions(FamilyMemberHistory familyMemberHistory, Obs person) {
+        List<Obs> familyMemberConditionObservations = new CompoundObservation(person).findAllMemberObsForConceptName(MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION);
+        for (Obs familyMemberConditionObs : familyMemberConditionObservations) {
+            FamilyMemberHistory.Condition familyMemberCondition = familyMemberHistory.addCondition();
+            CompoundObservation familyMemberConditonCompoundObs = new CompoundObservation(familyMemberConditionObs);
+            mapConditionOnsetAge(familyMemberCondition, familyMemberConditonCompoundObs);
+            mapConditionNotes(familyMemberCondition, familyMemberConditonCompoundObs);
+            mapConditionDiagnosis(familyMemberCondition, familyMemberConditonCompoundObs);
         }
     }
 
-    private void mapBornDate(FamilyHistory.FamilyHistoryRelationComponent relationComponent, Obs member) {
-        Date bornOn = new Date();
-        bornOn.setValue(new DateAndTime(member.getValueDate()));
-        relationComponent.setBorn(bornOn);
+    private void mapConditionDiagnosis(FamilyMemberHistory.Condition familyMemberCondition, CompoundObservation familyMemberConditonCompoundObs) {
+        Obs familyMemberConditionDiagnosisObs = familyMemberConditonCompoundObs.getMemberObsForConceptName(MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS);
+        final CodeableConceptDt codeableConcept = getCodeableConceptFromObs(familyMemberConditionDiagnosisObs);
+        if (null != codeableConcept) {
+            familyMemberCondition.setType(codeableConcept);
+        }
+    }
+
+    private void mapConditionNotes(FamilyMemberHistory.Condition familyMemberCondition, CompoundObservation familyMemberConditonCompoundObs) {
+        Obs familyMemberConditionNotes = familyMemberConditonCompoundObs.getMemberObsForConceptName(MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_NOTES);
+        if (familyMemberConditionNotes != null) {
+            familyMemberCondition.setNote(familyMemberConditionNotes.getValueText());
+        }
+    }
+
+    private void mapConditionOnsetAge(FamilyMemberHistory.Condition familyMemberCondition, CompoundObservation familyMemberConditonCompoundObs) {
+        Obs onsetAgeObs = familyMemberConditonCompoundObs.getMemberObsForConceptName(MRS_CONCEPT_NAME_ONSET_AGE);
+        AgeDt age = new AgeDt();
+        age.setValue(onsetAgeObs.getValueNumeric());
+        age.setUnits(UCUM_UNIT_FOR_YEARS);
+        age.setSystem(UCUM_URL);
+        familyMemberCondition.setOnset(age);
+    }
+
+    private void mapBornDate(FamilyMemberHistory familyMemberHistory, Obs person) {
+        Obs bornOnObs = new CompoundObservation(person).getMemberObsForConceptName(MRS_CONCEPT_NAME_BORN_ON);
+        if (bornOnObs != null) {
+            DateDt bornOn = new DateDt();
+            bornOn.setValue(bornOnObs.getValueDate());
+            familyMemberHistory.setBorn(bornOn);
+        }
     }
 
     private String getConceptCode(Concept mrsConcept) {
@@ -116,24 +125,26 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
         return mrsConcept.getName().getName().toLowerCase();
     }
 
-    private void mapRelationship(FamilyHistory.FamilyHistoryRelationComponent relationComponent, Obs relationship) {
-        CodeableConcept codeableConcept = new CodeableConcept();
-        Concept relationshipConcept = relationship.getValueCoded();
+    private void mapRelationship(FamilyMemberHistory familyMemberHistory, Obs person) {
+        Concept relationshipTypeConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.RELATIONSHIP_TYPE);
+        Obs relationshipTypeObs = new CompoundObservation(person).getMemberObsForConcept(relationshipTypeConcept);
+        CodeableConceptDt codeableConcept = new CodeableConceptDt();
+        Concept relationshipConcept = relationshipTypeObs.getValueCoded();
         codableConceptService.addFHIRCoding(
                 codeableConcept,
                 getConceptCode(relationshipConcept),
                 FHIRProperties.FHIR_SYSTEM_RELATIONSHIP_ROLE,
                 getConceptDisplay(relationshipConcept));
-        relationComponent.setRelationship(codeableConcept);
+        familyMemberHistory.setRelationship(codeableConcept);
     }
 
-    private CodeableConcept readValue(Obs obs) {
+    private CodeableConceptDt getCodeableConceptFromObs(Obs obs) {
         Concept valueCoded = obs.getValueCoded();
         if (null != valueCoded) {
-            CodeableConcept concept = codableConceptService.addTRCoding(valueCoded, idMappingsRepository);
+            CodeableConceptDt concept = codableConceptService.addTRCoding(valueCoded, idMappingsRepository);
             if (CollectionUtils.isEmpty(concept.getCoding())) {
-                Coding coding = concept.addCoding();
-                coding.setDisplaySimple(valueCoded.getName().getName());
+                CodingDt coding = concept.addCoding();
+                coding.setDisplay(valueCoded.getName().getName());
             }
             return concept;
         }

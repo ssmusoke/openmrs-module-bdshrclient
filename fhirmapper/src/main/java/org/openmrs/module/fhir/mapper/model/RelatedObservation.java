@@ -1,7 +1,9 @@
 package org.openmrs.module.fhir.mapper.model;
 
-import org.hl7.fhir.instance.model.Observation;
-import org.hl7.fhir.instance.model.ResourceReference;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.Observation;
+import ca.uhn.fhir.model.dstu2.valueset.ObservationRelationshipTypeEnum;
+import org.openmrs.module.shrclient.util.SystemProperties;
 
 public class RelatedObservation implements PartOf<Observation> {
 
@@ -12,10 +14,10 @@ public class RelatedObservation implements PartOf<Observation> {
     }
 
     @Override
-    public Observation mergeWith(Observation observation) {
-        Observation.ObservationRelatedComponent related = observation.addRelated();
-        related.setTarget(new ResourceReference().setReference(relatedObservation.getIdentifier().getValue()));
-        related.setTypeSimple(Observation.ObservationRelationshiptypes.hascomponent);
+    public Observation mergeWith(Observation observation, SystemProperties systemProperties) {
+        Observation.Related related = observation.addRelated();
+        related.setTarget(new ResourceReferenceDt().setReference(new EntityReference().build(Observation.class, systemProperties, relatedObservation.getId().getValue())));
+        related.setType(ObservationRelationshipTypeEnum.HAS_COMPONENT);
         return observation;
     }
 

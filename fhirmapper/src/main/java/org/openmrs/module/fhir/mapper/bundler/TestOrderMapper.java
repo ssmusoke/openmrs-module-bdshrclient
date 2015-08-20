@@ -1,7 +1,16 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
+import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
+import ca.uhn.fhir.model.dstu2.resource.Specimen;
+import ca.uhn.fhir.model.dstu2.valueset.DiagnosticOrderStatusEnum;
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.*;
 import org.openmrs.Concept;
 import org.openmrs.ConceptMap;
 import org.openmrs.ConceptReferenceTerm;
@@ -19,7 +28,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-import static org.hl7.fhir.instance.model.DiagnosticOrder.DiagnosticOrderStatus.requested;
 import static org.openmrs.module.fhir.mapper.FHIRProperties.LOINC_SOURCE_NAME;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_LAB_ORDER_TYPE;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
@@ -43,56 +51,53 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
     }
 
     @Override
-    public List<FHIRResource> map(Order order, Encounter fhirEncounter, AtomFeed feed, SystemProperties systemProperties) {
+    public List<FHIRResource> map(Order order, Encounter fhirEncounter, Bundle bundle, SystemProperties systemProperties) {
         resources = new ArrayList<>();
         DiagnosticOrder diagnosticOrder;
-        Resource resource = identifyResource(feed.getEntryList(), ResourceType.DiagnosticOrder);
+        IResource resource = identifyResource(bundle.getEntry(), new DiagnosticOrder().getResourceName());
         if (resource != null) {
             diagnosticOrder = (DiagnosticOrder) resource;
         } else {
             diagnosticOrder = createDiagnosticOrder(order, fhirEncounter, systemProperties);
             resources.add(new FHIRResource("Diagnostic Order", diagnosticOrder.getIdentifier(), diagnosticOrder));
         }
-        addItemsToDiagnosticOrder(order, diagnosticOrder, feed, systemProperties);
+        addItemsToDiagnosticOrder(order, diagnosticOrder, bundle, systemProperties);
         if (CollectionUtils.isEmpty(diagnosticOrder.getItem())) {
             return null;
         }
         return resources;
     }
 
-    private void addItemsToDiagnosticOrder(Order order, DiagnosticOrder diagnosticOrder, AtomFeed feed, SystemProperties systemProperties) {
-        DiagnosticOrder.DiagnosticOrderItemComponent orderItem = diagnosticOrder.addItem();
-        CodeableConcept orderCode = findOrderName(order);
+    private void addItemsToDiagnosticOrder(Order order, DiagnosticOrder diagnosticOrder, Bundle bundle, SystemProperties systemProperties) {
+        DiagnosticOrder.Item orderItem = diagnosticOrder.addItem();
+        CodeableConceptDt orderCode = findOrderName(order);
         if (orderCode == null) return;
         orderItem.setCode(orderCode);
-        orderItem.setStatusSimple(requested);
+        orderItem.setStatus(DiagnosticOrderStatusEnum.REQUESTED);
 
-        addSpecimenToDiagnosticOrder(order, diagnosticOrder, orderItem, feed, systemProperties);
+        addSpecimenToDiagnosticOrder(order, diagnosticOrder, orderItem, bundle, systemProperties);
     }
 
-    private void addSpecimenToDiagnosticOrder(Order order, DiagnosticOrder diagnosticOrder, DiagnosticOrder.DiagnosticOrderItemComponent orderItem, AtomFeed feed, SystemProperties systemProperties) {
-        Specimen specimen = getIfSpecimenExists(feed, diagnosticOrder.getSpecimen(), order, systemProperties);
+    private void addSpecimenToDiagnosticOrder(Order order, DiagnosticOrder diagnosticOrder, DiagnosticOrder.Item orderItem, Bundle bundle, SystemProperties systemProperties) {
+        Specimen specimen = getIfSpecimenExists(bundle, diagnosticOrder.getSpecimen(), order, systemProperties);
         if (specimen == null) {
             specimen = createSpecimen(order, diagnosticOrder, systemProperties);
             if (specimen == null) {
                 return;
             }
             resources.add(new FHIRResource("Specimen", specimen.getIdentifier(), specimen));
+            diagnosticOrder.addSpecimen().setReference(new EntityReference().build(IResource.class, systemProperties, specimen.getId().getValue()));
         }
-        String specimenIdentifier = specimen.getIdentifier().get(0).getValueSimple();
-        ResourceReference orderItemSpecimenReference = orderItem.addSpecimen();
-        orderItemSpecimenReference.setReferenceSimple(specimenIdentifier);
-        ResourceReference diagnosticOrderSpecimenReference = diagnosticOrder.addSpecimen();
-        diagnosticOrderSpecimenReference.setReferenceSimple(specimenIdentifier);
+        orderItem.addSpecimen().setReference(new EntityReference().build(IResource.class, systemProperties, specimen.getId().getValue()));
     }
 
-    private Specimen getIfSpecimenExists(AtomFeed feed, List<ResourceReference> specimenList, Order order, SystemProperties systemProperties) {
-        for (ResourceReference resourceReference : specimenList) {
-            Resource resource = findResourceByReference(feed, resourceReference);
+    private Specimen getIfSpecimenExists(Bundle bundle, List<ResourceReferenceDt> specimenList, Order order, SystemProperties systemProperties) {
+        for (ResourceReferenceDt resourceReference : specimenList) {
+            IResource resource = findResourceByReference(bundle, resourceReference);
             if (resource != null) {
                 Specimen specimenResource = (Specimen) resource;
 
-                String type = specimenResource.getType().getCoding().get(0).getDisplaySimple();
+                String type = specimenResource.getType().getCoding().get(0).getDisplay();
                 //TODO find based for all Loinc sources
                 String specimen = findLoincReferenceTerm(order);
                 if (shouldUseSameSpecimen(order, specimenResource, type, specimen, systemProperties)) {
@@ -106,7 +111,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
     private boolean shouldUseSameSpecimen(Order order, Specimen specimenResource, String type, String specimen, SystemProperties systemProperties) {
         if (specimen != null && specimen.equalsIgnoreCase(type)) {
             if (order.getAccessionNumber() != null && specimenResource.getAccessionIdentifier() != null) {
-                return specimenResource.getAccessionIdentifier().getValueSimple().equalsIgnoreCase(new EntityReference().build(Order.class, systemProperties, order.getAccessionNumber()));
+                return specimenResource.getAccessionIdentifier().getValue().equalsIgnoreCase(new EntityReference().build(Order.class, systemProperties, order.getAccessionNumber()));
             }
             return true;
         }
@@ -139,34 +144,32 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         specimen.setSubject(diagnosticOrder.getSubject());
 
         if (order.getAccessionNumber() != null) {
-            Identifier accessionIdentifier = new Identifier();
-            accessionIdentifier.setValueSimple(new EntityReference().build(Order.class, systemProperties, order.getAccessionNumber()));
+            IdentifierDt accessionIdentifier = new IdentifierDt().setValue(new EntityReference().build(Order.class, systemProperties, order.getAccessionNumber()));
             specimen.setAccessionIdentifier(accessionIdentifier);
         }
 
-        Identifier identifier = specimen.addIdentifier();
-        identifier.setValueSimple(new EntityReference().build(Order.class, systemProperties, UUID.randomUUID().toString()));
-//        Sending order date activated as only ELIS - MRS sync is done. Needs to be changed when we order from MRS
-        specimen.setReceivedTimeSimple(new DateAndTime(order.getDateActivated()));
-        CodeableConcept codeableConcept = new CodeableConcept();
-        Coding coding = codeableConcept.addCoding();
+        String id = new EntityReference().build(Order.class, systemProperties, UUID.randomUUID().toString());
+        specimen.addIdentifier().setValue(id);
+        specimen.setId(id);
+        CodeableConceptDt codeableConcept = new CodeableConceptDt();
+        CodingDt coding = codeableConcept.addCoding();
         String loincSystem = findLoincReferenceTerm(order);
         if (loincSystem == null) {
             return null;
         }
-        coding.setDisplaySimple(loincSystem);
+        coding.setDisplay(loincSystem);
         specimen.setType(codeableConcept);
         return specimen;
     }
 
-    private CodeableConcept findOrderName(Order order) {
+    private CodeableConceptDt findOrderName(Order order) {
         if (null == order.getConcept()) {
             return null;
         }
-        CodeableConcept result = codableConceptService.addTRCoding(order.getConcept(), idMappingsRepository);
+        CodeableConceptDt result = codableConceptService.addTRCoding(order.getConcept(), idMappingsRepository);
         if (result.getCoding().isEmpty()) {
-            Coding coding = result.addCoding();
-            coding.setDisplaySimple(order.getConcept().getName().getName());
+            CodingDt coding = result.addCoding();
+            coding.setDisplay(order.getConcept().getName().getName());
         }
         return result;
     }
@@ -174,23 +177,24 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
     private DiagnosticOrder createDiagnosticOrder(Order order, Encounter fhirEncounter, SystemProperties systemProperties) {
         DiagnosticOrder diagnosticOrder;
         diagnosticOrder = new DiagnosticOrder();
-        diagnosticOrder.setSubject(fhirEncounter.getSubject());
+        diagnosticOrder.setSubject(fhirEncounter.getPatient());
         diagnosticOrder.setOrderer(getOrdererReference(order, fhirEncounter, systemProperties));
-        Identifier identifier = diagnosticOrder.addIdentifier();
-        identifier.setValueSimple(new EntityReference().build(Order.class, systemProperties, UUID.randomUUID().toString()));
-        diagnosticOrder.setEncounter(fhirEncounter.getIndication());
-        diagnosticOrder.setStatusSimple(requested);
+        String id = new EntityReference().build(Order.class, systemProperties, UUID.randomUUID().toString());
+        diagnosticOrder.addIdentifier().setValue(id);
+        diagnosticOrder.setId(id);
+        diagnosticOrder.setEncounter(new ResourceReferenceDt().setReference(new EntityReference().build(Encounter.class, systemProperties, fhirEncounter.getId().getValueAsString())));
+        diagnosticOrder.setStatus(DiagnosticOrderStatusEnum.REQUESTED);
         return diagnosticOrder;
     }
 
-    private ResourceReference getOrdererReference(Order order, Encounter encounter, SystemProperties systemProperties) {
+    private ResourceReferenceDt getOrdererReference(Order order, Encounter encounter, SystemProperties systemProperties) {
         if (order.getOrderer() != null) {
             String providerUrl = new EntityReference().build(Provider.class, systemProperties, order.getOrderer().getIdentifier());
             if (providerUrl != null) {
-                return new ResourceReference().setReferenceSimple(providerUrl);
+                return new ResourceReferenceDt().setReference(providerUrl);
             }
         }
-        List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
+        List<Encounter.Participant> participants = encounter.getParticipant();
         if (!CollectionUtils.isEmpty(participants)) {
             return participants.get(0).getIndividual();
         }

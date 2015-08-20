@@ -1,11 +1,11 @@
 package org.openmrs.module.fhir.mapper.emr;
 
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.Condition;
+import ca.uhn.fhir.model.primitive.DateTimeDt;
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Condition;
-import org.hl7.fhir.instance.model.DateTime;
-import org.hl7.fhir.instance.model.Resource;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
@@ -17,10 +17,7 @@ import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -36,19 +33,19 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
     private static final int CONVERTION_PARAMETER_FOR_MINUTES = (60 * 1000);
 
     @Override
-    public boolean canHandle(Resource resource) {
+    public boolean canHandle(IResource resource) {
         if (resource instanceof Condition) {
-            final List<Coding> resourceCoding = ((Condition) resource).getCategory().getCoding();
+            final List<CodingDt> resourceCoding = ((Condition) resource).getCategory().getCoding();
             if (resourceCoding == null || resourceCoding.isEmpty()) {
                 return false;
             }
-            return resourceCoding.get(0).getCodeSimple().equalsIgnoreCase(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT);
+            return resourceCoding.get(0).getCode().equalsIgnoreCase(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT);
         }
         return false;
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
+    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
         Condition condition = (Condition) resource;
 
         if (isAlreadyProcessed(condition, processedList))
@@ -58,11 +55,11 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
         Concept chiefComplaintDurationConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DURATION);
 
         Obs chiefComplaintObs = new Obs();
-        List<Coding> conditionCoding = condition.getCode().getCoding();
+        List<CodingDt> conditionCoding = condition.getCode().getCoding();
         Concept conceptAnswer = omrsConceptLookup.findConcept(conditionCoding);
         if (conceptAnswer == null) {
             if (CollectionUtils.isNotEmpty(conditionCoding)) {
-                String displayName = conditionCoding.get(0).getDisplaySimple();
+                String displayName = conditionCoding.get(0).getDisplay();
                 Concept nonCodedChiefComplaintConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_NON_CODED_CHIEF_COMPLAINT);
                 chiefComplaintObs.setConcept(nonCodedChiefComplaintConcept);
                 chiefComplaintObs.setValueText(displayName);
@@ -91,7 +88,7 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
         historyExaminationObs.addGroupMember(chiefComplaintDataObs);
         newEmrEncounter.addObs(historyExaminationObs);
 
-        processedList.put(condition.getIdentifier().get(0).getValueSimple(), Arrays.asList(chiefComplaintDataObs.getUuid()));
+        processedList.put(condition.getIdentifier().get(0).getValue(), Arrays.asList(chiefComplaintDataObs.getUuid()));
     }
 
     public Obs getHistoryAndExaminationObservation(Encounter newEmrEncounter, Concept historyAndExaminationConcept) {
@@ -116,21 +113,12 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
     }
 
     private boolean isAlreadyProcessed(Condition condition, Map<String, List<String>> processedList) {
-        return processedList.containsKey(condition.getIdentifier().get(0).getValueSimple());
+        return processedList.containsKey(condition.getIdentifier().get(0).getValue());
     }
 
     private Double getComplaintDuration(Condition condition) {
-        final SimpleDateFormat ISODateFomat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
-        DateTime onsetDateTime = (DateTime) condition.getOnset();
-        Date onsetDate = null;
-        Date dateAsserted = null;
-        try {
-            onsetDate = ISODateFomat.parse(onsetDateTime.getValue().toString());
-            dateAsserted = ISODateFomat.parse(condition.getDateAsserted().getValue().toString());
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        long differenceInMinutes = (dateAsserted.getTime() - onsetDate.getTime()) / CONVERTION_PARAMETER_FOR_MINUTES;
+        DateTimeDt onsetDateTime = (DateTimeDt) condition.getOnset();
+        long differenceInMinutes = (condition.getDateAsserted().getTime() - onsetDateTime.getValue().getTime()) / CONVERTION_PARAMETER_FOR_MINUTES;
         return Double.valueOf(differenceInMinutes);
     }
 }

@@ -1,46 +1,50 @@
 package org.openmrs.module.fhir.utils;
 
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.Composition;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import org.apache.commons.lang.StringUtils;
-import org.hl7.fhir.instance.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class FHIRFeedHelper {
 
-    public static Composition getComposition(AtomFeed bundle) {
-        Resource resource = identifyResource(bundle.getEntryList(), ResourceType.Composition);
+    public static Composition getComposition(Bundle bundle) {
+        IResource resource = identifyResource(bundle.getEntry(), "Composition");
         return resource != null ? (Composition) resource : null;
     }
 
-    public static Resource identifyResource(List<AtomEntry<? extends Resource>> encounterBundleEntryList, ResourceType resourceType) {
-        for (AtomEntry<? extends org.hl7.fhir.instance.model.Resource> atomEntry : encounterBundleEntryList) {
-            if (atomEntry.getResource().getResourceType().equals(resourceType)) {
-                return atomEntry.getResource();
+    public static IResource identifyResource(List<Bundle.Entry> bundleEntryList, String resourceName) {
+        for (Bundle.Entry bundleEntry : bundleEntryList) {
+            if (bundleEntry.getResource().getResourceName().equals(resourceName)) {
+                return bundleEntry.getResource();
             }
         }
         return null;
     }
 
-    public static List<Resource> identifyResources(List<AtomEntry<? extends Resource>> encounterBundleEntryList, ResourceType resourceType) {
-        List<Resource> resources = new ArrayList<>();
-        for (AtomEntry<? extends org.hl7.fhir.instance.model.Resource> atomEntry : encounterBundleEntryList) {
-            if (atomEntry.getResource().getResourceType().equals(resourceType)) {
-                resources.add(atomEntry.getResource());
+    public static List<IResource> identifyResources(List<Bundle.Entry> bundleEntryList, String resourceName) {
+        List<IResource> resources = new ArrayList<>();
+        for (Bundle.Entry bundleEntry : bundleEntryList) {
+            if (bundleEntry.getResource().getResourceName().equals(resourceName)) {
+                resources.add(bundleEntry.getResource());
             }
         }
         return resources;
     }
 
-    public static Encounter getEncounter(AtomFeed bundle) {
-        Resource resource = findResourceByReference(bundle, getComposition(bundle).getEncounter());
+    public static Encounter getEncounter(Bundle bundle) {
+        IResource resource = findResourceByReference(bundle, getComposition(bundle).getEncounter());
         return resource != null ? (Encounter) resource : null;
     }
 
-    public static Resource findResourceByReference(AtomFeed bundle, ResourceReference reference) {
-        for (AtomEntry<? extends Resource> atomEntry : bundle.getEntryList()) {
-            if (StringUtils.equals(atomEntry.getId(), reference.getReferenceSimple())) {
-                return atomEntry.getResource();
+    public static IResource findResourceByReference(Bundle bundle, ResourceReferenceDt reference) {
+        for (Bundle.Entry bundleEntry : bundle.getEntry()) {
+            if (StringUtils.equals(bundleEntry.getResource().getId().getValue(), reference.getReference().getValue())) {
+                return bundleEntry.getResource();
             }
         }
         return null;

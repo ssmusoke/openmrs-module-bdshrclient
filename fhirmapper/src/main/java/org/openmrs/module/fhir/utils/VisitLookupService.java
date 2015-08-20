@@ -1,7 +1,7 @@
 package org.openmrs.module.fhir.utils;
 
+import ca.uhn.fhir.model.dstu2.valueset.EncounterClassEnum;
 import org.apache.commons.lang.time.DateUtils;
-import org.hl7.fhir.instance.model.Enumeration;
 import org.joda.time.DateTime;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
@@ -32,7 +32,7 @@ public class VisitLookupService {
         this.visitService = visitService;
     }
 
-    public Visit findOrInitializeVisit(Patient patient, Date visitDate, Enumeration<org.hl7.fhir.instance.model.Encounter.EncounterClass> fhirEncounterClass) {
+    public Visit findOrInitializeVisit(Patient patient, Date visitDate, String fhirEncounterClass) {
         Visit applicableVisit = getVisitForPatientWithinDates(patient, visitDate);
         if (applicableVisit != null) {
             return applicableVisit;
@@ -88,17 +88,16 @@ public class VisitLookupService {
         return visits.get(0);
     }
 
-    public VisitType getVisitType(Enumeration<org.hl7.fhir.instance.model.Encounter.EncounterClass> cls) {
+    public VisitType getVisitType(String encounterClass) {
         List<VisitType> allVisitTypes = visitService.getAllVisitTypes();
-        org.hl7.fhir.instance.model.Encounter.EncounterClass encounterClass = cls.getValue();
-        VisitType encVisitType = identifyVisitTypeByName(allVisitTypes, encounterClass.toString());
+        VisitType encVisitType = identifyVisitTypeByName(allVisitTypes, encounterClass);
         if (encVisitType != null) {
             return encVisitType;
         }
 
-        if (encounterClass.equals(org.hl7.fhir.instance.model.Encounter.EncounterClass.inpatient)) {
+        if (EncounterClassEnum.valueOf(encounterClass).equals(EncounterClassEnum.INPATIENT)) {
             return identifyVisitTypeByName(allVisitTypes, MRS_IN_PATIENT_VISIT_TYPE);
-        } else if (encounterClass.equals(org.hl7.fhir.instance.model.Encounter.EncounterClass.outpatient)) {
+        } else if (EncounterClassEnum.valueOf(encounterClass).equals(EncounterClassEnum.OUTPATIENT)) {
             return identifyVisitTypeByName(allVisitTypes, MRS_OUT_PATIENT_VISIT_TYPE);
         }
 

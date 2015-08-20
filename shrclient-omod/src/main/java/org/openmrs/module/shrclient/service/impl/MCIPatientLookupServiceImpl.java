@@ -14,6 +14,7 @@ import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.mci.api.MciPatientSearchResponse;
 import org.openmrs.module.shrclient.service.MCIPatientLookupService;
 import org.openmrs.module.shrclient.service.MciPatientService;
+import org.openmrs.module.shrclient.util.FhirBundleUtil;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.web.controller.MciPatientSearchRequest;
@@ -42,12 +43,14 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
     private MciPatientService mciPatientService;
     private PropertiesReader propertiesReader;
     private IdentityStore identityStore;
+    private FhirBundleUtil fhirBundleUtil;
 
     @Autowired
-    public MCIPatientLookupServiceImpl(MciPatientService mciPatientService, PropertiesReader propertiesReader, IdentityStore identityStore) {
+    public MCIPatientLookupServiceImpl(MciPatientService mciPatientService, PropertiesReader propertiesReader, IdentityStore identityStore, FhirBundleUtil fhirBundleUtil) {
         this.mciPatientService = mciPatientService;
         this.propertiesReader = propertiesReader;
         this.identityStore = identityStore;
+        this.fhirBundleUtil = fhirBundleUtil;
         this.patientContext = propertiesReader.getMciPatientContext();
     }
 
@@ -154,7 +157,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
         final String url = String.format("/patients/%s/encounters", healthId);
         List<EncounterBundle> bundles = null;
         try {
-            bundles = new ClientRegistry(propertiesReader, identityStore).getSHRClient().getEncounters(url);
+            bundles = new ClientRegistry(propertiesReader, identityStore).getSHRClient().getEncounters(url, fhirBundleUtil);
         } catch (IdentityUnauthorizedException e) {
             log.info("Clearing unauthorized identity token.");
             identityStore.clearToken();

@@ -1,5 +1,7 @@
 package org.openmrs.module.shrclient.util;
 
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.parser.IParser;
 import com.sun.syndication.feed.atom.Content;
 import com.sun.syndication.feed.atom.Entry;
 import com.sun.syndication.feed.atom.Feed;
@@ -7,15 +9,9 @@ import com.sun.syndication.io.FeedException;
 import com.sun.syndication.io.WireFeedInput;
 import org.apache.http.entity.StringEntity;
 import org.apache.log4j.Logger;
-import org.hl7.fhir.instance.formats.ParserBase;
-import org.hl7.fhir.instance.formats.XmlComposer;
-import org.hl7.fhir.instance.formats.XmlParser;
-import org.hl7.fhir.instance.model.AtomFeed;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,7 +31,7 @@ public class SHRClient {
     }
 
     @SuppressWarnings("unchecked")
-    public List<EncounterBundle> getEncounters(final String url) throws IdentityUnauthorizedException {
+    public List<EncounterBundle> getEncounters(final String url, FhirBundleUtil fhirBundleUtil) throws IdentityUnauthorizedException {
         try {
             Map<String, String> requestHeaders = new HashMap<>(headers);
             requestHeaders.put("accept", "application/atom+xml");
@@ -50,7 +46,7 @@ public class SHRClient {
                 EncounterBundle bundle = new EncounterBundle();
                 bundle.setEncounterId(entry.getId());
                 bundle.setTitle(entry.getTitle());
-                bundle.addContent(getResourceOrFeed(entryContent).getFeed());
+                bundle.addContent(getBundle(entryContent, fhirBundleUtil));
                 encounterBundles.add(bundle);
             }
             return encounterBundles;
@@ -61,14 +57,9 @@ public class SHRClient {
         }
     }
 
-    private ParserBase.ResourceOrFeed getResourceOrFeed(String entryContent) {
-        ParserBase.ResourceOrFeed resource;
-        try {
-            resource = new XmlParser(true).parseGeneral(new ByteArrayInputStream(entryContent.getBytes()));
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to parse XML", e);
-        }
-        return resource;
+    private Bundle getBundle(String entryContent, FhirBundleUtil fhirBundleUtil) {
+        IParser xmlParser = fhirBundleUtil.getFhirContext().newXmlParser();
+        return xmlParser.parseResource(Bundle.class, entryContent);
     }
 
     private String getEntryContent(Entry entry) {
@@ -79,9 +70,9 @@ public class SHRClient {
         return value.replaceFirst("^<!\\[CDATA\\[", "").replaceFirst("\\]\\]>$", "");
     }
 
-    public String post(final String url, AtomFeed bundle) throws IdentityUnauthorizedException {
+    public String post(final String url, Bundle bundle, FhirBundleUtil fhirBundleUtil) throws IdentityUnauthorizedException {
         try {
-            StringEntity entity = getPayload(bundle);
+            StringEntity entity = getPayload(bundle, fhirBundleUtil);
             WebClient webClient = new WebClient(baseUrl, headers);
             log.debug(String.format("Posting data %s to url %s", bundle, url));
             return webClient.post(url, entity);
@@ -94,9 +85,9 @@ public class SHRClient {
         }
     }
 
-    public String put(final String url, AtomFeed bundle) throws IdentityUnauthorizedException {
+    public String put(final String url, Bundle bundle, FhirBundleUtil fhirBundleUtil) throws IdentityUnauthorizedException {
         try {
-            StringEntity entity = getPayload(bundle);
+            StringEntity entity = getPayload(bundle, fhirBundleUtil);
             WebClient webClient = new WebClient(baseUrl, headers);
             log.debug(String.format("Put request %s to url %s", bundle, url));
             return webClient.put(url, entity);
@@ -109,11 +100,10 @@ public class SHRClient {
         }
     }
 
-    private StringEntity getPayload(AtomFeed bundle) throws Exception {
-        XmlComposer composer = new XmlComposer();
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        composer.compose(byteArrayOutputStream, bundle, true);
-        StringEntity entity = new StringEntity(byteArrayOutputStream.toString());
+    private StringEntity getPayload(Bundle bundle, FhirBundleUtil fhirBundleUtil) throws Exception {
+        IParser xmlParser = fhirBundleUtil.getFhirContext().newXmlParser();
+        String bundleXML = xmlParser.encodeResourceToString(bundle);
+        StringEntity entity = new StringEntity(bundleXML);
         entity.setContentType("application/xml;charset=UTF-8");
         return entity;
     }

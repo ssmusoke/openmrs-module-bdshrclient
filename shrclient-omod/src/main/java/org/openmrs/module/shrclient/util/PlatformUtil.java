@@ -2,7 +2,6 @@ package org.openmrs.module.shrclient.util;
 
 
 import org.openmrs.api.context.Context;
-import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.shrclient.dao.FacilityCatchmentRepository;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityStore;
@@ -26,7 +25,6 @@ public class PlatformUtil {
         return getRegisteredComponent(IdMappingsRepository.class);
     }
 
-
     public static FacilityCatchmentRepository getFacilityCatchmentRepository() {
         return getRegisteredComponent(FacilityCatchmentRepository.class);
     }
@@ -35,7 +33,7 @@ public class PlatformUtil {
         return getRegisteredComponent(IdentityStore.class);
     }
 
-    public static OMRSConceptLookup getOMRSConceptLookup(){
-        return getRegisteredComponent(OMRSConceptLookup.class);
+    public static FhirBundleUtil getFhirContext() {
+        return getRegisteredComponent(FhirBundleUtil.class);
     }
 }

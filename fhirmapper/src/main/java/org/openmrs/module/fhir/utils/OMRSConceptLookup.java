@@ -1,8 +1,8 @@
 package org.openmrs.module.fhir.utils;
 
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import org.apache.commons.collections4.Predicate;
 import org.apache.commons.lang.StringUtils;
-import org.hl7.fhir.instance.model.Coding;
 import org.openmrs.Concept;
 import org.openmrs.ConceptAnswer;
 import org.openmrs.ConceptMap;
@@ -39,21 +39,21 @@ public class OMRSConceptLookup {
         this.globalPropertyLookUpService = globalPropertyLookUpService;
     }
 
-    public Concept findConcept(List<Coding> codings) {
+    public Concept findConcept(List<CodingDt> codings) {
         Map<ConceptReferenceTerm, String> referenceTermMap = new HashMap<>();
-        for (Coding coding : codings) {
-            if (isValueSetUrl(coding.getSystemSimple())) {
-                Concept concept = findConceptFromValueSetCode(coding.getSystemSimple(), coding.getCodeSimple());
+        for (CodingDt coding : codings) {
+            if (isValueSetUrl(coding.getSystem())) {
+                Concept concept = findConceptFromValueSetCode(coding.getSystem(), coding.getCode());
                 if (concept != null) return concept;
             } else {
-                String uuid = getUuid(coding.getSystemSimple());
+                String uuid = getUuid(coding.getSystem());
                 if (StringUtils.isNotBlank(uuid)) {
                     IdMapping idMapping = idMappingsRepository.findByExternalId(uuid);
                     if (idMapping != null) {
                         if (ID_MAPPING_CONCEPT_TYPE.equalsIgnoreCase(idMapping.getType())) {
                             return conceptService.getConceptByUuid(idMapping.getInternalId());
                         } else if (ID_MAPPING_REFERENCE_TERM_TYPE.equalsIgnoreCase(idMapping.getType())) {
-                            referenceTermMap.put(conceptService.getConceptReferenceTermByUuid(idMapping.getInternalId()), coding.getDisplaySimple());
+                            referenceTermMap.put(conceptService.getConceptReferenceTermByUuid(idMapping.getInternalId()), coding.getDisplay());
                         }
                     }
                 }
@@ -62,11 +62,11 @@ public class OMRSConceptLookup {
         return findConceptByReferenceTermMapping(referenceTermMap);
     }
 
-    public Drug findDrug(List<Coding> codings) {
+    public Drug findDrug(List<CodingDt> codings) {
         Drug drug = null;
-        for (Coding coding : codings) {
-            if (isDrugSet(coding.getSystemSimple())) {
-                drug = findDrug(coding.getCodeSimple());
+        for (CodingDt coding : codings) {
+            if (isDrugSet(coding.getSystem())) {
+                drug = findDrug(coding.getCode());
                 if (drug != null) return drug;
             }
         }

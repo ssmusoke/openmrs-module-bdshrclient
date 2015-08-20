@@ -1,9 +1,9 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.DiagnosticOrder;
-import org.hl7.fhir.instance.model.Resource;
-import org.hl7.fhir.instance.model.ResourceReference;
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
@@ -34,35 +34,35 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     private OrderCareSettingLookupService orderCareSettingLookupService;
 
     @Override
-    public boolean canHandle(Resource resource) {
+    public boolean canHandle(IResource resource) {
         return resource instanceof DiagnosticOrder;
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter encounter, Map<String, List<String>> processedList) {
+    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter encounter, Map<String, List<String>> processedList) {
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) resource;
-        if (processedList.containsKey(diagnosticOrder.getIdentifier().get(0).getValueSimple()))
+        if (processedList.containsKey(diagnosticOrder.getIdentifier().get(0).getValue()))
             return;
-        createTestOrders(feed, diagnosticOrder, emrPatient, encounter, processedList);
+        createTestOrders(bundle, diagnosticOrder, emrPatient, encounter, processedList);
     }
 
-    private void createTestOrders(AtomFeed feed, DiagnosticOrder diagnosticOrder, Patient patient, Encounter encounter, Map<String, List<String>> processedList) {
-        List<DiagnosticOrder.DiagnosticOrderItemComponent> item = diagnosticOrder.getItem();
+    private void createTestOrders(Bundle bundle, DiagnosticOrder diagnosticOrder, Patient patient, Encounter encounter, Map<String, List<String>> processedList) {
+        List<DiagnosticOrder.Item> item = diagnosticOrder.getItem();
         ArrayList<String> processedTestOrderUuids = new ArrayList<>();
-        for (DiagnosticOrder.DiagnosticOrderItemComponent diagnosticOrderItemComponent : item) {
+        for (DiagnosticOrder.Item diagnosticOrderItemComponent : item) {
             Concept testOrderConcept = omrsConceptLookup.findConcept(diagnosticOrderItemComponent.getCode().getCoding());
             if (testOrderConcept != null) {
-                Order testOrder = createTestOrder(feed, diagnosticOrder, patient, encounter, testOrderConcept);
+                Order testOrder = createTestOrder(bundle, diagnosticOrder, patient, encounter, testOrderConcept);
                 encounter.addOrder(testOrder);
                 processedTestOrderUuids.add(testOrder.getUuid());
             }
         }
         if (!processedTestOrderUuids.isEmpty()) {
-            processedList.put(diagnosticOrder.getIdentifier().get(0).getValueSimple(), processedTestOrderUuids);
+            processedList.put(diagnosticOrder.getIdentifier().get(0).getValue(), processedTestOrderUuids);
         }
     }
 
-    private Order createTestOrder(AtomFeed feed, DiagnosticOrder diagnosticOrder, Patient patient, Encounter encounter, Concept testOrderConcept) {
+    private Order createTestOrder(Bundle bundle, DiagnosticOrder diagnosticOrder, Patient patient, Encounter encounter, Concept testOrderConcept) {
         Order testOrder = new Order();
         testOrder.setOrderType(orderService.getOrderTypeByName("Lab Order"));
         testOrder.setConcept(testOrderConcept);
@@ -70,14 +70,14 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         testOrder.setEncounter(encounter);
         setOrderer(testOrder, diagnosticOrder);
         testOrder.setDateActivated(encounter.getEncounterDatetime());
-        testOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(feed));
+        testOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(bundle));
         return testOrder;
     }
 
     private void setOrderer(Order testOrder, DiagnosticOrder diagnosticOrder) {
-        ResourceReference orderer = diagnosticOrder.getOrderer();
+        ResourceReferenceDt orderer = diagnosticOrder.getOrderer();
         if (orderer != null) {
-            String practitionerReferenceUrl = orderer.getReferenceSimple();
+            String practitionerReferenceUrl = orderer.getReference().getValue();
             testOrder.setOrderer(providerLookupService.getProviderByReferenceUrl(practitionerReferenceUrl));
         }
     }

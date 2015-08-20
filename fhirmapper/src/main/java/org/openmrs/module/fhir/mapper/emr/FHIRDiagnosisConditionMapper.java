@@ -1,9 +1,10 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Condition;
-import org.hl7.fhir.instance.model.Resource;
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.Condition;
+import ca.uhn.fhir.model.dstu2.valueset.ConditionClinicalStatusEnum;
 import org.openmrs.Concept;
 import org.openmrs.ConceptAnswer;
 import org.openmrs.Encounter;
@@ -26,7 +27,7 @@ import java.util.Map;
 @Component
 public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
 
-    private final Map<Condition.ConditionStatus, String> diaConditionStatus = new HashMap<Condition.ConditionStatus, String>();
+    private final Map<ConditionClinicalStatusEnum, String> diaConditionStatus = new HashMap<>();
     @Autowired
     private ConceptService conceptService;
     @Autowired
@@ -34,24 +35,24 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
 
 
     public FHIRDiagnosisConditionMapper() {
-        diaConditionStatus.put(Condition.ConditionStatus.provisional, MRSProperties.MRS_DIAGNOSIS_STATUS_PRESUMED);
-        diaConditionStatus.put(Condition.ConditionStatus.confirmed, MRSProperties.MRS_DIAGNOSIS_STATUS_CONFIRMED);
+        diaConditionStatus.put(ConditionClinicalStatusEnum.PROVISIONAL, MRSProperties.MRS_DIAGNOSIS_STATUS_PRESUMED);
+        diaConditionStatus.put(ConditionClinicalStatusEnum.CONFIRMED, MRSProperties.MRS_DIAGNOSIS_STATUS_CONFIRMED);
     }
 
     @Override
-    public boolean canHandle(Resource resource) {
+    public boolean canHandle(IResource resource) {
         if (resource instanceof Condition) {
-            final List<Coding> resourceCoding = ((Condition) resource).getCategory().getCoding();
+            final List<CodingDt> resourceCoding = ((Condition) resource).getCategory().getCoding();
             if (resourceCoding == null || resourceCoding.isEmpty()) {
                 return false;
             }
-            return resourceCoding.get(0).getCodeSimple().equalsIgnoreCase(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS);
+            return resourceCoding.get(0).getCode().equalsIgnoreCase(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS);
         }
         return false;
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
+    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
         Condition condition = (Condition) resource;
 
         if (isAlreadyProcessed(condition, processedList))
@@ -98,12 +99,12 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
 
         newEmrEncounter.addObs(visitDiagnosisObs);
 
-        processedList.put(condition.getIdentifier().get(0).getValueSimple(), Arrays.asList(visitDiagnosisObs.getUuid()));
+        processedList.put(condition.getIdentifier().get(0).getValue(), Arrays.asList(visitDiagnosisObs.getUuid()));
     }
 
 
     private boolean isAlreadyProcessed(Condition condition, Map<String, List<String>> processedList) {
-        return processedList.containsKey(condition.getIdentifier().get(0).getValueSimple());
+        return processedList.containsKey(condition.getIdentifier().get(0).getValue());
     }
 
     private Obs addToObsGroup(Patient emrPatient, Obs visitDiagnosisObs, Concept obsConcept) {
@@ -115,7 +116,7 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
     }
 
     private Concept identifyDiagnosisCertainty(Condition condition, Concept diagnosisCertainty) {
-        Condition.ConditionStatus conditionStatus = condition.getStatus().getValue();
+        ConditionClinicalStatusEnum conditionStatus = condition.getClinicalStatusElement().getValueAsEnum();
         String status = diaConditionStatus.get(conditionStatus);
 
         Concept certaintyAnswerConcept = null;

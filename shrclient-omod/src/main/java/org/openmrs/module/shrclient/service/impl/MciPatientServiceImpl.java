@@ -1,10 +1,9 @@
 package org.openmrs.module.shrclient.service.impl;
 
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.Composition;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Composition;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
@@ -27,7 +26,6 @@ import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.Confidentiality;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
@@ -228,11 +226,11 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     @Override
     public void createOrUpdateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId) throws Exception {
         String fhirEncounterId = StringUtils.substringAfter(encounterBundle.getTitle(), "Encounter:");
-        AtomFeed feed = encounterBundle.getFeed();
+        Bundle bundle = encounterBundle.getBundle();
         logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), fhirEncounterId));
 
-        if (!shouldSyncEncounter(fhirEncounterId, feed)) return;
-        org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, feed);
+        if (!shouldSyncEncounter(fhirEncounterId, bundle)) return;
+        org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, bundle);
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
         systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter);
@@ -303,24 +301,23 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         idMappingsRepository.saveMapping(new IdMapping(internalUuid, externalUuid, ID_MAPPING_ENCOUNTER_TYPE, url));
     }
 
-    private boolean shouldSyncEncounter(String encounterId, AtomFeed feed) {
+    private boolean shouldSyncEncounter(String encounterId, Bundle bundle) {
         if (idMappingsRepository.findByExternalId(encounterId) != null) {
             return false;
         }
-        if (getEncounterConfidentiality(feed).ordinal() > Confidentiality.Normal.ordinal()) {
+        if (getEncounterConfidentiality(bundle).ordinal() > Confidentiality.Normal.ordinal()) {
             return false;
         }
         return true;
     }
 
-    private Confidentiality getEncounterConfidentiality(AtomFeed feed) {
-        Composition composition = FHIRFeedHelper.getComposition(feed);
-        Coding confidentiality = composition.getConfidentiality();
-        if (null == confidentiality) {
+    private Confidentiality getEncounterConfidentiality(Bundle bundle) {
+        Composition composition = bundle.getAllPopulatedChildElementsOfType(Composition.class).get(0);
+        String confidentialityCode = composition.getConfidentiality();
+        if (null == confidentialityCode) {
             return Confidentiality.Normal;
-        }
-        String code = confidentiality.getCodeSimple();
-        return getConfidentiality(code);
+        };
+        return getConfidentiality(confidentialityCode);
     }
 
 

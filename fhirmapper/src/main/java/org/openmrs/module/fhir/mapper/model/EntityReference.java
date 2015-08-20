@@ -37,7 +37,7 @@ public class EntityReference {
     }
 
     protected String create(String id, SystemProperties systemProperties) {
-        return "urn:" + id;
+        return "urn:uuid:" + id;
     }
 
     private static class PatientReference extends EntityReference {

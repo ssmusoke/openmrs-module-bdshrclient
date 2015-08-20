@@ -2,16 +2,14 @@ package org.openmrs.module.fhir.mapper.model;
 
 public class FHIRIdentifier {
 
-    private static String prefix = "urn:";
+    private String prefix = "";
 
     private String internalForm;
 
-    public FHIRIdentifier(String identifier) {
+    @Deprecated
+    public FHIRIdentifier(String identifier, String prefix) {
+        this.prefix = prefix;
         this.internalForm = sanitize(identifier);
-    }
-
-    public String getInternalForm() {
-        return internalForm;
     }
 
     public String getExternalForm() {

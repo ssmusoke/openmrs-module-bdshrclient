@@ -1,14 +1,15 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
+import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
+import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.Condition;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
+import ca.uhn.fhir.model.dstu2.valueset.ConditionClinicalStatusEnum;
+import ca.uhn.fhir.model.primitive.DateTimeDt;
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.CodeableConcept;
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Condition;
-import org.hl7.fhir.instance.model.DateAndTime;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.Enumeration;
-import org.hl7.fhir.instance.model.Identifier;
-import org.hl7.fhir.instance.model.ResourceReference;
 import org.joda.time.DateTime;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.FHIRProperties;
@@ -44,71 +45,66 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
     @Override
     public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> chiefComplaints = new ArrayList<>();
-        for (Obs member : obs.getGroupMembers()) {
-            if (member.getConcept().getName().getName().equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA)) {
-                chiefComplaints.add(createFHIRCondition(fhirEncounter, member, systemProperties));
-            }
+        CompoundObservation conditionTemplateObs = new CompoundObservation(obs);
+        List<Obs> chiefComplaintDataObsList = conditionTemplateObs.findAllMemberObsForConceptName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA);
+        for (Obs chiefComplaintDataObs : chiefComplaintDataObsList) {
+                chiefComplaints.add(createFHIRCondition(fhirEncounter, chiefComplaintDataObs, systemProperties));
         }
         return chiefComplaints;
     }
 
     private FHIRResource createFHIRCondition(Encounter encounter, Obs obs, SystemProperties systemProperties) {
         Condition condition = new Condition();
-        condition.setEncounter(encounter.getIndication());
-        condition.setSubject(encounter.getSubject());
+        condition.setEncounter(new ResourceReferenceDt().setReference(new EntityReference().build(Encounter.class, systemProperties, encounter.getId().getValueAsString())));
+        condition.setPatient(encounter.getPatient());
         condition.setAsserter(getParticipant(encounter));
         condition.setCategory(getChiefComplaintCategory());
-        condition.setStatus(new Enumeration<>(Condition.ConditionStatus.confirmed));
-
-        org.hl7.fhir.instance.model.Date assertedDate = new org.hl7.fhir.instance.model.Date();
-        assertedDate.setValue(new DateAndTime(obs.getObsDatetime()));
-        condition.setDateAsserted(assertedDate);
+        condition.setClinicalStatus(ConditionClinicalStatusEnum.CONFIRMED);
+        condition.setDateAsserted(obs.getObsDatetime(), TemporalPrecisionEnum.MILLI);
 
         final Set<Obs> obsMembers = obs.getGroupMembers(false);
         for (Obs member : obsMembers) {
             final String memberConceptName = member.getConcept().getName().getName();
             if (memberConceptName.equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT)) {
-                final CodeableConcept complaintCode = codableConceptService.addTRCoding(member.getValueCoded(), idMappingsRepository);
+                final CodeableConceptDt complaintCode = codableConceptService.addTRCoding(member.getValueCoded(), idMappingsRepository);
                 if (CollectionUtils.isEmpty(complaintCode.getCoding())) {
-                    Coding coding = complaintCode.addCoding();
-                    coding.setDisplaySimple(member.getValueCoded().getName().getName());
+                    CodingDt coding = complaintCode.addCoding();
+                    coding.setDisplay(member.getValueCoded().getName().getName());
                 }
                 condition.setCode(complaintCode);
             } else if (memberConceptName.equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DURATION)) {
                 condition.setOnset(getOnsetDate(member));
             } else if (memberConceptName.equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_NON_CODED_CHIEF_COMPLAINT)) {
-                //TODO : Put right Values
-                CodeableConcept nonCodedChiefComplaint = new CodeableConcept();
-                Coding coding = nonCodedChiefComplaint.addCoding();
-                coding.setDisplaySimple(member.getValueText());
-                condition.setCode(nonCodedChiefComplaint);
+                CodeableConceptDt nonCodedChiefComplaintCode = new CodeableConceptDt();
+                CodingDt coding = nonCodedChiefComplaintCode.addCoding();
+                coding.setDisplay(member.getValueText());
+                condition.setCode(nonCodedChiefComplaintCode);
             }
         }
 
-        Identifier identifier = condition.addIdentifier();
-        identifier.setValueSimple(new EntityReference().build(Obs.class, systemProperties, obs.getUuid()));
+        IdentifierDt identifier = condition.addIdentifier();
+        String conditionId = new EntityReference().build(Obs.class, systemProperties, obs.getUuid());
+        identifier.setValue(conditionId);
+        condition.setId(conditionId);
 
         return new FHIRResource(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT, condition.getIdentifier(), condition);
     }
 
-    private org.hl7.fhir.instance.model.DateTime getOnsetDate(Obs member) {
+    private DateTimeDt getOnsetDate(Obs member) {
         Double durationInMinutes = member.getValueNumeric();
         final java.util.Date obsDatetime = member.getObsDatetime();
         org.joda.time.DateTime obsTime = new DateTime(obsDatetime);
         final java.util.Date assertedDateTime = obsTime.minusMinutes(durationInMinutes.intValue()).toDate();
-        org.hl7.fhir.instance.model.DateTime assertedDate = new org.hl7.fhir.instance.model.DateTime();
-        assertedDate.setValue(new DateAndTime(assertedDateTime));
-        return assertedDate;
+        return new DateTimeDt(assertedDateTime, TemporalPrecisionEnum.MILLI);
     }
 
-    private CodeableConcept getChiefComplaintCategory() {
+    private CodeableConceptDt getChiefComplaintCategory() {
         return codableConceptService.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT,
                 FHIRProperties.FHIR_CONDITION_CATEGORY_URL, FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT_DISPLAY);
     }
 
-    //TODO : how do we identify this individual?
-    protected ResourceReference getParticipant(Encounter encounter) {
-        List<Encounter.EncounterParticipantComponent> participants = encounter.getParticipant();
+    protected ResourceReferenceDt getParticipant(Encounter encounter) {
+        List<Encounter.Participant> participants = encounter.getParticipant();
         if ((participants != null) && !participants.isEmpty()) {
             return participants.get(0).getIndividual();
         }

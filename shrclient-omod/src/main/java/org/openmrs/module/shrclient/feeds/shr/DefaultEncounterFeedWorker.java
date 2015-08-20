@@ -1,7 +1,8 @@
 package org.openmrs.module.shrclient.feeds.shr;
 
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import org.apache.log4j.Logger;
-import org.hl7.fhir.instance.model.AtomFeed;
 import org.ict4h.atomfeed.client.exceptions.AtomFeedClientException;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
@@ -31,8 +32,8 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
     @Override
     public void process(EncounterBundle encounterBundle) {
         logger.info("Processing bundle with encounter id: " + encounterBundle.getEncounterId());
-        AtomFeed feed = encounterBundle.getFeed();
-        String healthId = identifyPatientHealthId(feed);
+        Bundle bundle = encounterBundle.getBundle();
+        String healthId = identifyPatientHealthId(bundle);
         try {
             RestClient mciClient = new ClientRegistry(propertiesReader, identityStore).getMCIClient();
             Patient patient = mciClient.get(propertiesReader.getMciPatientContext() + "/" + healthId, Patient.class);
@@ -52,8 +53,8 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
         }
     }
 
-    private String identifyPatientHealthId(AtomFeed feed) {
-        final org.hl7.fhir.instance.model.Encounter shrEncounter = getEncounter(feed);
-        return new EntityReference().parse(org.openmrs.Patient.class, shrEncounter.getSubject().getReferenceSimple());
+    private String identifyPatientHealthId(Bundle bundle) {
+        final Encounter shrEncounter = getEncounter(bundle);
+        return new EntityReference().parse(org.openmrs.Patient.class, shrEncounter.getPatient().getReference().getValue());
     }
 }

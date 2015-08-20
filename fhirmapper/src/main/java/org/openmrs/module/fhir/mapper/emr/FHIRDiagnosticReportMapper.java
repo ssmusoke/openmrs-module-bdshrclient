@@ -1,11 +1,11 @@
 package org.openmrs.module.fhir.mapper.emr;
 
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
+import ca.uhn.fhir.model.dstu2.resource.Observation;
 import org.apache.commons.lang3.StringUtils;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.DiagnosticReport;
-import org.hl7.fhir.instance.model.Observation;
-import org.hl7.fhir.instance.model.Resource;
-import org.hl7.fhir.instance.model.ResourceReference;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
@@ -43,14 +43,14 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     private IdMappingsRepository idMappingsRepository;
 
     @Override
-    public boolean canHandle(Resource resource) {
+    public boolean canHandle(IResource resource) {
         return resource instanceof DiagnosticReport;
     }
 
     @Override
-    public void map(AtomFeed feed, Resource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
+    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
         DiagnosticReport diagnosticReport = (DiagnosticReport) resource;
-        if (processedList.containsKey(diagnosticReport.getIdentifier().getValueSimple()))
+        if (processedList.containsKey(diagnosticReport.getIdentifier().get(0).getValue()))
             return;
         Concept concept = omrsConceptLookup.findConcept(diagnosticReport.getName().getCoding());
         if (concept == null) {
@@ -65,7 +65,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
         Obs secondLevelObs = buildObs(concept, order);
         topLevelObs.addGroupMember(secondLevelObs);
 
-        Obs resultObs = buildResultObs(feed, newEmrEncounter, processedList, diagnosticReport, concept);
+        Obs resultObs = buildResultObs(bundle, newEmrEncounter, processedList, diagnosticReport, concept);
         resultObs.setOrder(order);
         secondLevelObs.addGroupMember(resultObs);
 
@@ -81,13 +81,13 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
             newEmrEncounter.addObs(panelObs);
         }
         newEmrEncounter.addObs(topLevelObs);
-        processedList.put(diagnosticReport.getIdentifier().getValueSimple(), Arrays.asList(topLevelObs.getUuid()));
+        processedList.put(diagnosticReport.getId().getValue(), Arrays.asList(topLevelObs.getUuid()));
     }
 
     private Order getOrder(DiagnosticReport diagnosticReport, Concept concept) {
-        List<ResourceReference> requestDetail = diagnosticReport.getRequestDetail();
-        for (ResourceReference reference : requestDetail) {
-            String requestDetailReference = reference.getReferenceSimple();
+        List<ResourceReferenceDt> requestDetail = diagnosticReport.getRequestDetail();
+        for (ResourceReferenceDt reference : requestDetail) {
+            String requestDetailReference = reference.getReference().getValue();
             if (requestDetailReference.startsWith("http://") || requestDetailReference.startsWith("https://")) {
                 String shrEncounterId = new EntityReference().parse(Encounter.class, requestDetailReference);
                 IdMapping orderEncounterIdMapping = idMappingsRepository.findByExternalId(shrEncounterId);
@@ -115,7 +115,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     }
 
     private Obs addNotes(DiagnosticReport diagnosticReport, Order order) {
-        String conclusion = diagnosticReport.getConclusionSimple();
+        String conclusion = diagnosticReport.getConclusion();
         if (StringUtils.isNotBlank(conclusion)) {
             Concept labNotesConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_LAB_NOTES);
             Obs notesObs = buildObs(labNotesConcept, order);
@@ -125,10 +125,10 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
         return null;
     }
 
-    private Obs buildResultObs(AtomFeed feed, Encounter newEmrEncounter, Map<String, List<String>> processedList, DiagnosticReport diagnosticReport, Concept concept) {
-        Observation observationResource = (Observation) findResourceByReference(feed, diagnosticReport.getResult().get(0));
-        if (processedList.containsKey(observationResource.getIdentifier().getValueSimple())) {
-            List<String> uuids = processedList.get(observationResource.getIdentifier().getValueSimple());
+    private Obs buildResultObs(Bundle bundle, Encounter newEmrEncounter, Map<String, List<String>> processedList, DiagnosticReport diagnosticReport, Concept concept) {
+        Observation observationResource = (Observation) findResourceByReference(bundle, diagnosticReport.getResult().get(0));
+        if (processedList.containsKey(observationResource.getId().getValue())) {
+            List<String> uuids = processedList.get(observationResource.getId().getValue());
             for (String uuid : uuids) {
                 Obs obs = findObsByUUid(newEmrEncounter, uuid);
                 if (obs.getConcept().equals(concept)) {
@@ -136,7 +136,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
                 }
             }
         }
-        return observationsMapper.mapObs(feed, newEmrEncounter, observationResource, processedList);
+        return observationsMapper.mapObs(bundle, newEmrEncounter, observationResource, processedList);
     }
 
     private Obs findObsByUUid(Encounter newEmrEncounter, String obsUuid) {

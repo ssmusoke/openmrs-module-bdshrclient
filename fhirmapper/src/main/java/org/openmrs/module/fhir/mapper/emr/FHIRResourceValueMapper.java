@@ -1,12 +1,17 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.model.Boolean;
-import org.hl7.fhir.instance.model.*;
+import ca.uhn.fhir.model.api.IDatatype;
+import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
+import ca.uhn.fhir.model.primitive.BooleanDt;
+import ca.uhn.fhir.model.primitive.DateDt;
+import ca.uhn.fhir.model.primitive.DateTimeDt;
+import ca.uhn.fhir.model.primitive.DecimalDt;
+import ca.uhn.fhir.model.primitive.StringDt;
 import org.openmrs.Concept;
 import org.openmrs.Drug;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
-import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,26 +27,21 @@ public class FHIRResourceValueMapper {
     @Autowired
     private ConceptService conceptService;
 
-    public Obs map(Type value, Obs obs) {
+    public Obs map(IDatatype value, Obs obs) {
         if (null != value) {
             try {
-                if (value instanceof String_) {
-                    obs.setValueAsString(((String_) value).getValue());
-                } else if (value instanceof Decimal) {
-                    obs.setValueNumeric(((Decimal) value).getValue().doubleValue());
-                } else if (value instanceof Date) {
-                    DateAndTime date = ((Date) value).getValue();
-                    java.util.Date parsedDate = DateUtil.parseDate(date.toString());
-                    obs.setValueDate(parsedDate);
-                } else if (value instanceof DateTime) {
-                    DateAndTime date = ((DateTime) value).getValue();
-                    java.util.Date parsedDate = DateUtil.parseDate(date.toString());
-                    obs.setValueDate(parsedDate);
-                } else if (value instanceof Boolean){
-                    java.lang.Boolean bool = ((Boolean) value).getValue();
-                    obs.setValueBoolean(bool);
-                } else if (value instanceof CodeableConcept) {
-                    List<Coding> codings = ((CodeableConcept) value).getCoding();
+                if (value instanceof StringDt) {
+                    obs.setValueAsString(((StringDt) value).getValue());
+                } else if (value instanceof DecimalDt) {
+                    obs.setValueNumeric(((DecimalDt) value).getValue().doubleValue());
+                } else if (value instanceof DateDt) {
+                    obs.setValueDate(((DateDt) value).getValue());
+                } else if (value instanceof DateTimeDt) {
+                    obs.setValueDate(((DateTimeDt) value).getValue());
+                } else if (value instanceof BooleanDt){
+                    obs.setValueBoolean(((BooleanDt) value).getValue());
+                } else if (value instanceof CodeableConceptDt) {
+                    List<CodingDt> codings = ((CodeableConceptDt) value).getCoding();
                 /* TODO: The last element of codings is the concept. Make this more explicit*/
                     Drug drug = omrsConceptLookup.findDrug(codings);
                     if(drug != null){
@@ -58,13 +58,13 @@ public class FHIRResourceValueMapper {
         return null;
     }
 
-    private Concept findConcept(List<Coding> codings) {
+    private Concept findConcept(List<CodingDt> codings) {
         Concept concept = omrsConceptLookup.findConcept(codings);
         if (concept != null) return concept;
-        return conceptService.getConceptByName(codings.get(codings.size() - 1).getDisplaySimple());
+        return conceptService.getConceptByName(codings.get(0).getDisplay());
     }
 
-    public Obs mapObservationForConcept(Type value, String conceptName) {
+    public Obs mapObservationForConcept(IDatatype value, String conceptName) {
         Obs obs = new Obs();
         obs.setConcept(conceptService.getConceptByName(conceptName));
         return map(value, obs);

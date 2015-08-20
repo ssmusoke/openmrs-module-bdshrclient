@@ -1,17 +1,17 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 
-import org.hl7.fhir.instance.model.Identifier;
-import org.hl7.fhir.instance.model.Resource;
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
 
 import java.util.List;
 
 public class FHIRResource {
     private String resourceName;
-    private List<Identifier> identifierList;
-    private Resource resource;
+    private List<IdentifierDt> identifierList;
+    private IResource resource;
 
-    public FHIRResource(String resourceName, List<Identifier> identifierList, Resource resource) {
+    public FHIRResource(String resourceName, List<IdentifierDt> identifierList, IResource resource) {
         this.resourceName = resourceName;
         this.identifierList = identifierList;
         this.resource = resource;
@@ -21,15 +21,15 @@ public class FHIRResource {
         return resourceName;
     }
 
-    public List<Identifier> getIdentifierList() {
+    public List<IdentifierDt> getIdentifierList() {
         return identifierList;
     }
 
-    public Resource getResource() {
+    public IResource getResource() {
         return resource;
     }
 
-    public Identifier getIdentifier() {
+    public IdentifierDt getIdentifier() {
         if ((identifierList != null) && !identifierList.isEmpty()) {
             return identifierList.get(0);
         }

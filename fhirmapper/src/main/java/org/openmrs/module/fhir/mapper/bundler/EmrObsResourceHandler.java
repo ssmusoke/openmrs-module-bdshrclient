@@ -1,7 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 
-import org.hl7.fhir.instance.model.Encounter;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.module.shrclient.util.SystemProperties;
 

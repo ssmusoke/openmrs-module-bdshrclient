@@ -1,18 +1,19 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.api.ResourceMetadataKeyEnum;
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
+import ca.uhn.fhir.model.base.resource.ResourceMetadataMap;
+import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.Composition;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
+import ca.uhn.fhir.model.dstu2.valueset.BundleTypeEnum;
+import ca.uhn.fhir.model.dstu2.valueset.CompositionStatusEnum;
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.AtomEntry;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Composition;
-import org.hl7.fhir.instance.model.DateAndTime;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.Enumeration;
-import org.hl7.fhir.instance.model.Identifier;
-import org.hl7.fhir.instance.model.ResourceReference;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.mapper.model.FHIRIdentifier;
 import org.openmrs.module.fhir.utils.CodableConceptService;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,18 +45,20 @@ public class CompositionBundle {
     @Autowired
     private CodableConceptService codableConceptService;
 
-    public AtomFeed create(org.openmrs.Encounter emrEncounter, SystemProperties systemProperties) {
-        AtomFeed atomFeed = new AtomFeed();
+    public Bundle create(org.openmrs.Encounter emrEncounter, SystemProperties systemProperties) {
+        Bundle bundle = new Bundle();
         Encounter fhirEncounter = encounterMapper.map(emrEncounter, systemProperties);
         Composition composition = createComposition(emrEncounter.getEncounterDatetime(), fhirEncounter, systemProperties);
-        atomFeed.setTitle("Encounter");
-        atomFeed.setAuthorUri(fhirEncounter.getServiceProvider().getReferenceSimple());
-        atomFeed.setUpdated(composition.getDateSimple());
-        atomFeed.setId(new FHIRIdentifier(UUID.randomUUID().toString()).getExternalForm());
+        bundle.setType(BundleTypeEnum.DOCUMENT);
+        //TODO: bundle.setBase("urn:uuid:");
+        bundle.setId(UUID.randomUUID().toString());
+        ResourceMetadataMap metadataMap = new ResourceMetadataMap();
+        metadataMap.put(ResourceMetadataKeyEnum.UPDATED, composition.getDate());
+        bundle.setResourceMetadata(metadataMap);
         final FHIRResource encounterResource = new FHIRResource("Encounter", fhirEncounter.getIdentifier(), fhirEncounter);
-        addResourceSectionToComposition(composition, encounterResource);
-        addAtomEntry(atomFeed, new FHIRResource("Composition", asList(composition.getIdentifier()), composition), systemProperties);
-        addAtomEntry(atomFeed, encounterResource, systemProperties);
+        addResourceSectionToComposition(composition, encounterResource, systemProperties);
+        addBundleEntry(bundle, new FHIRResource("Composition", asList(composition.getIdentifier()), composition));
+        addBundleEntry(bundle, encounterResource);
 
         final Set<Obs> observations = emrEncounter.getObsAtTopLevel(false);
         for (Obs obs : observations) {
@@ -63,7 +66,7 @@ public class CompositionBundle {
                 if (handler.canHandle(obs)) {
                     List<FHIRResource> mappedResources = handler.map(obs, fhirEncounter, systemProperties);
                     if (CollectionUtils.isNotEmpty(mappedResources)) {
-                        addResourcesToBundle(mappedResources, composition, atomFeed, systemProperties);
+                        addResourcesToBundle(mappedResources, composition, bundle, systemProperties);
                     }
                 }
             }
@@ -73,62 +76,52 @@ public class CompositionBundle {
         for (org.openmrs.Order order : orders) {
             for (EmrOrderResourceHandler handler : orderResourceHandlers) {
                 if (handler.canHandle(order)) {
-                    List<FHIRResource> mappedResources = handler.map(order, fhirEncounter, atomFeed, systemProperties);
+                    List<FHIRResource> mappedResources = handler.map(order, fhirEncounter, bundle, systemProperties);
                     if (CollectionUtils.isNotEmpty(mappedResources)) {
-                        addResourcesToBundle(mappedResources, composition, atomFeed, systemProperties);
+                        addResourcesToBundle(mappedResources, composition, bundle, systemProperties);
                     }
                 }
             }
         }
 
-        return atomFeed;
+        return bundle;
     }
 
-    private void addResourcesToBundle(List<FHIRResource> mappedResources, Composition composition, AtomFeed atomFeed, SystemProperties systemProperties) {
+    private void addResourcesToBundle(List<FHIRResource> mappedResources, Composition composition, Bundle bundle, SystemProperties systemProperties) {
         for (FHIRResource mappedResource : mappedResources) {
-            addResourceSectionToComposition(composition, mappedResource);
-            addAtomEntry(atomFeed, mappedResource, systemProperties);
+            addResourceSectionToComposition(composition, mappedResource, systemProperties);
+            addBundleEntry(bundle, mappedResource);
         }
     }
 
     //TODO: reference should be a relative URL
-    private void addResourceSectionToComposition(Composition composition, FHIRResource resource) {
-        String resourceId = resource.getIdentifier().getValueSimple();
-        ResourceReference conditionRef = new ResourceReference();
-        conditionRef.setReferenceSimple(resourceId);
-        conditionRef.setDisplaySimple(resource.getResourceName());
-        composition.addSection().setContent(conditionRef);
+    private void addResourceSectionToComposition(Composition composition, FHIRResource resource, SystemProperties systemProperties) {
+        String resourceId = new EntityReference().build(IResource.class, systemProperties, resource.getIdentifier().getValue());
+        ResourceReferenceDt resourceReference = new ResourceReferenceDt();
+        resourceReference.setReference(resourceId);
+        resourceReference.setDisplay(resource.getResourceName());
+        composition.addSection().setContent(resourceReference);
     }
 
     @SuppressWarnings("unchecked")
-    private void addAtomEntry(AtomFeed atomFeed, FHIRResource resource, SystemProperties systemProperties) {
-        AtomEntry resourceEntry = new AtomEntry();
-        resourceEntry.setId(new FHIRIdentifier(resource.getIdentifier().getValueSimple()
-        ).getExternalForm());
-        resourceEntry.setUpdated(new DateAndTime(new Date()));
-        resourceEntry.setTitle(resource.getResourceName());
+    private void addBundleEntry(Bundle bundle, FHIRResource resource) {
+        Bundle.Entry resourceEntry = new Bundle.Entry();
         resourceEntry.setResource(resource.getResource());
-        atomFeed.addEntry(resourceEntry);
+        bundle.addEntry(resourceEntry);
     }
 
     private Composition createComposition(Date encounterDateTime, Encounter encounter, SystemProperties systemProperties) {
-        DateAndTime encounterDateAndTime = new DateAndTime(encounterDateTime);
-        Composition composition = new Composition().setDateSimple(encounterDateAndTime);
-        composition.setEncounter(encounter.getIndication());
-        composition.setStatus(new Enumeration<>(Composition.CompositionStatus.final_));
-        composition.setIdentifier(new Identifier().setValueSimple(new EntityReference().build(Composition.class, systemProperties, UUID.randomUUID().toString())));
-        composition.setSubject(encounter.getSubject());
-        ResourceReference resourceReferenceAuthor = composition.addAuthor();
-        resourceReferenceAuthor.setReferenceSimple(encounter.getServiceProvider().getReferenceSimple());
-        composition.setConfidentiality(getConfidentialityCoding());
+        Composition composition = new Composition().setDate(encounterDateTime, TemporalPrecisionEnum.MILLI);
+        ResourceReferenceDt encounterReference = new ResourceReferenceDt(encounter);
+        composition.setEncounter(encounterReference);
+        composition.setStatus(CompositionStatusEnum.FINAL);
+        // TODO : remove creating the identifier if necessary. We can use resource Id to identify resources now.
+        composition.setIdentifier(new IdentifierDt().setValue(new EntityReference().build(Composition.class, systemProperties, UUID.randomUUID().toString())));
+        composition.setSubject(encounter.getPatient());
+        ResourceReferenceDt resourceReferenceAuthor = composition.addAuthor();
+        resourceReferenceAuthor.setReference(encounter.getServiceProvider().getReference());
+        composition.setConfidentiality(CONFIDENTIALITY_NORMAL);
         composition.setType(codableConceptService.getFHIRCodeableConcept(LOINC_CODE_DETAILS_NOTE, FHIR_DOC_TYPECODES_URL, LOINC_DETAILS_NOTE_DISPLAY));
         return composition;
-    }
-
-    private Coding getConfidentialityCoding() {
-        Coding coding = new Coding();
-        coding.setCodeSimple(CONFIDENTIALITY_NORMAL);
-        coding.setSystemSimple(FHIR_CONFIDENTIALITY_SYSTEM);
-        return coding;
     }
 }

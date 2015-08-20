@@ -13,6 +13,7 @@ import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;
+import org.openmrs.module.shrclient.util.FhirBundleUtil;
 import org.openmrs.module.shrclient.util.PlatformUtil;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemUserService;
@@ -46,7 +47,8 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
                     PlatformUtil.getRegisteredComponent(CompositionBundle.class),
                     PlatformUtil.getIdMappingsRepository(),
                     clientRegistry,
-                    systemUserService);
+                    systemUserService,
+                    PlatformUtil.getRegisteredComponent(FhirBundleUtil.class));
         } catch (IdentityUnauthorizedException e) {
             throw handleInvalidIdentity(clientRegistry, e);
 

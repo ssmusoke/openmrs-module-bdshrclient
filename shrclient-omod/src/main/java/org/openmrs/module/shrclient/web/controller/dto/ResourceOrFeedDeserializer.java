@@ -1,21 +1,21 @@
 package org.openmrs.module.shrclient.web.controller.dto;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.node.TextNode;
-import org.hl7.fhir.instance.formats.XmlParser;
-import org.hl7.fhir.instance.model.AtomFeed;
+import org.openmrs.module.shrclient.util.PlatformUtil;
 
-import java.io.ByteArrayInputStream;
-
-public class ResourceOrFeedDeserializer extends JsonDeserializer<AtomFeed> {
+public class ResourceOrFeedDeserializer extends JsonDeserializer<Bundle> {
 
     @Override
-    public AtomFeed deserialize(JsonParser jp, DeserializationContext ctx) {
+    public Bundle deserialize(JsonParser jp, DeserializationContext ctx) {
         try {
             final String xml = ((TextNode) jp.readValueAsTree()).textValue();
-            return new XmlParser(true).parseGeneral(new ByteArrayInputStream(xml.getBytes())).getFeed();
+            FhirContext fhirContext = PlatformUtil.getFhirContext().getFhirContext();
+            return fhirContext.newXmlParser().parseResource(Bundle.class, xml);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

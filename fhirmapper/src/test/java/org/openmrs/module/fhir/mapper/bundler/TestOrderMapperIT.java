@@ -10,7 +10,6 @@ import org.junit.Test;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.api.EncounterService;
-import org.openmrs.api.ProviderService;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
 import org.openmrs.module.fhir.mapper.model.FHIRIdentifier;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -118,8 +117,6 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     private void addToAtomFeed(AtomFeed feed, List<FHIRResource> mappedResources) {
         for (FHIRResource resource : mappedResources) {
             AtomEntry resourceEntry = new AtomEntry();
-            resourceEntry.setId(new FHIRIdentifier(resource.getIdentifier().getValueSimple()).getExternalForm());
-            resourceEntry.setTitle(resource.getResourceName());
             resourceEntry.setResource(resource.getResource());
             feed.addEntry(resourceEntry);
         }

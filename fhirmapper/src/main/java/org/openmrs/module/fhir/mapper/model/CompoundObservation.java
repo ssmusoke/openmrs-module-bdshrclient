@@ -1,6 +1,10 @@
 package org.openmrs.module.fhir.mapper.model;
 
+import org.openmrs.Concept;
 import org.openmrs.Obs;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CompoundObservation {
     private Obs observation;
@@ -20,6 +24,25 @@ public class CompoundObservation {
             }
         }
         return null;
+    }
+
+    public Obs getMemberObsForConcept(Concept concept) {
+        for (Obs groupMember : this.observation.getGroupMembers()) {
+            if (concept.equals(groupMember.getConcept())) {
+                return groupMember;
+            }
+        }
+        return null;
+    }
+
+    public List<Obs> findAllMemberObsForConceptName(String conceptName) {
+        List<Obs> memberObsList = new ArrayList<Obs>();
+        for (Obs groupMember : this.observation.getGroupMembers()) {
+            if (conceptName.equals(groupMember.getConcept().getName().getName())) {
+                memberObsList.add(groupMember);
+            }
+        }
+        return memberObsList;
     }
 
     public String getUuid() {
