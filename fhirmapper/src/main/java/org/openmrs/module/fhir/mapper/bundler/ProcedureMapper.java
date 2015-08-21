@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
@@ -126,16 +125,16 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     private PeriodDt getProcedurePeriod(CompoundObservation compoundObservationProcedure) {
         Obs startDateObs = compoundObservationProcedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_START_DATE);
         Obs endDateObs = compoundObservationProcedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_END_DATE);
-        return getPeriod(startDateObs.getValueDate(), endDateObs.getValueDate());
+        return getPeriod(startDateObs, endDateObs);
     }
 
-    private PeriodDt getPeriod(Date startDate, Date endDate) {
-        if (startDate == null && endDate == null) {
+    private PeriodDt getPeriod(Obs startDateObs, Obs endDateObs) {
+        if (startDateObs == null && endDateObs == null) {
             return null;
         }
         PeriodDt period = new PeriodDt();
-        period.setStart(startDate, TemporalPrecisionEnum.MILLI);
-        period.setEnd(endDate, TemporalPrecisionEnum.MILLI);
+        period.setStart(startDateObs.getValueDate(), TemporalPrecisionEnum.MILLI);
+        period.setEnd(endDateObs.getValueDate(), TemporalPrecisionEnum.MILLI);
 
         return period;
     }

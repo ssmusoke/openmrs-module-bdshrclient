@@ -1,7 +1,6 @@
 package org.openmrs.module.fhir;
 
-import org.hl7.fhir.instance.formats.ParserBase;
-import org.hl7.fhir.instance.formats.XmlParser;
+import ca.uhn.fhir.model.api.IResource;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.context.ApplicationContext;
@@ -13,11 +12,10 @@ import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_ID;
 import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_REFERENCE_PATH;
 
 public class MapperTestHelper {
-    public ParserBase.ResourceOrFeed loadSampleFHIREncounter(String filePath, ApplicationContext springContext) throws Exception {
+    public IResource loadSampleFHIREncounter(String filePath, ApplicationContext springContext) throws Exception {
         org.springframework.core.io.Resource resource = springContext.getResource(filePath);
-        ParserBase.ResourceOrFeed parsedResource =
-                new XmlParser().parseGeneral(resource.getInputStream());
-        return parsedResource;
+        String bundleXML = org.apache.commons.io.IOUtils.toString(resource.getInputStream());
+        return (IResource) FhirContextHelper.getFhirContext().newXmlParser().parseResource(bundleXML);
     }
 
     public static SystemProperties getSystemProperties(String facilityId) {

@@ -1,6 +1,5 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
@@ -8,7 +7,6 @@ import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
 import org.openmrs.Obs;
-import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -93,7 +91,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
                 List<FHIRResource> observationResources = observationMapper.map(member, fhirEncounter, systemProperties);
                 ResourceReferenceDt resourceReference = report.addResult();
                 // TODO: how do we identify this observation?
-                resourceReference.setReference(new EntityReference().build(IResource.class, systemProperties, observationResources.get(0).getIdentifier().getValue()));
+                resourceReference.setReference(observationResources.get(0).getIdentifier().getValue());
                 fHIRResourceList.addAll(observationResources);
             } else if (MRS_CONCEPT_NAME_LAB_NOTES.equals(member.getConcept().getName().getName())) {
                 report.setConclusion(member.getValueText());

@@ -1,7 +1,11 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
+import ca.uhn.fhir.model.dstu2.resource.Immunization;
 import org.apache.commons.collections.CollectionUtils;
-import org.hl7.fhir.instance.model.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,7 +16,8 @@ import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -47,13 +52,13 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldMapSubjectToImmunizationAndSetIdentifier() throws Exception {
         Encounter fhirEncounter = new Encounter();
-        ResourceReference subject = new ResourceReference();
-        subject.setReferenceSimple("Hid");
-        fhirEncounter.setSubject(subject);
+        ResourceReferenceDt patient = new ResourceReferenceDt();
+        patient.setReference("Hid");
+        fhirEncounter.setPatient(patient);
 
         Immunization immunization = mapImmunization(11, fhirEncounter);
 
-        assertEquals(subject, immunization.getSubject());
+        assertEquals(patient, immunization.getPatient());
         assertTrue(CollectionUtils.isNotEmpty(immunization.getIdentifier()));
     }
 
@@ -61,40 +66,38 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldMapRefusedIndicator() throws Exception {
         Immunization immunization = mapImmunization(11, new Encounter());
-        assertTrue(immunization.getRefusedIndicator().getValue());
+        assertTrue(immunization.getWasNotGiven());
     }
 
     @Test
     public void shouldMapVaccine() throws Exception {
         Immunization immunization = mapImmunization(11, new Encounter());
 
-        Coding vaccineTypeCoding = immunization.getVaccineType().getCoding().get(0);
-        assertEquals("Paracetamol 500", vaccineTypeCoding.getDisplaySimple());
-        assertEquals("ABC", vaccineTypeCoding.getCodeSimple());
-        assertEquals("http://tr.com/ABC", vaccineTypeCoding.getSystemSimple());
+        CodingDt vaccineTypeCoding = immunization.getVaccineType().getCoding().get(0);
+        assertEquals("Paracetamol 500", vaccineTypeCoding.getDisplay());
+        assertEquals("ABC", vaccineTypeCoding.getCode());
+        assertEquals("http://tr.com/ABC", vaccineTypeCoding.getSystem());
     }
 
 
     @Test
     public void shouldMapVaccinationDate() throws Exception {
         Immunization immunization = mapImmunization(11, new Encounter());
-        DateTime vaccinationDate = immunization.getDate();
-        java.util.Date date = DateUtil.parseDate("2014-01-02 00:00:00");
-        DateAndTime expectedDate = new DateAndTime(date);
-        assertEquals(expectedDate.toString(), vaccinationDate.getValue().toString());
+        Date vaccinationDate = immunization.getDate();
+        assertEquals(DateUtil.parseDate("2014-01-02 00:00:00"), vaccinationDate);
     }
 
     @Test
     public void shouldMapReported() throws Exception {
         Immunization immunization = mapImmunization(11, new Encounter());
-        assertTrue(immunization.getReported().getValue());
+        assertTrue(immunization.getReported());
     }
 
     @Test
     public void shouldSetTheRequesterOfTheImmunization() throws Exception {
         Encounter fhirEncounter = new Encounter();
-        Encounter.EncounterParticipantComponent requester = fhirEncounter.addParticipant();
-        ResourceReference doctor = new ResourceReference().setReferenceSimple("Life Saver");
+        Encounter.Participant requester = fhirEncounter.addParticipant();
+        ResourceReferenceDt doctor = new ResourceReferenceDt().setReference("Life Saver");
         requester.setIndividual(doctor);
 
         Immunization immunization = mapImmunization(11, fhirEncounter);
@@ -106,39 +109,39 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldSetDosageUnits() throws Exception {
         Immunization immunization = mapImmunization(11, new Encounter());
-        assertTrue(immunization.getDoseQuantity().getValue().getValue().doubleValue() == 10);
-        assertEquals("mg", immunization.getDoseQuantity().getCodeSimple());
-        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Quantity-Units", immunization.getDoseQuantity().getSystemSimple());
+        assertTrue(immunization.getDoseQuantity().getValue().doubleValue() == 10);
+        assertEquals("mg", immunization.getDoseQuantity().getCode());
+        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Quantity-Units", immunization.getDoseQuantity().getSystem());
     }
 
     @Test
     public void shouldMapImmunizationReason() throws Exception {
         Immunization immunization = mapImmunization(11, new Encounter());
-        CodeableConcept immunizationReason = immunization.getExplanation().getReason().get(0);
+        CodeableConceptDt immunizationReason = immunization.getExplanation().getReason().get(0);
 
-        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Immunization-Reason",immunizationReason.getCoding().get(0).getSystemSimple());
-        assertEquals("Travel vaccinations",immunizationReason.getCoding().get(0).getCodeSimple());
-        assertEquals("Travel vaccinations",immunizationReason.getCoding().get(0).getDisplaySimple());
+        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Immunization-Reason",immunizationReason.getCoding().get(0).getSystem());
+        assertEquals("Travel vaccinations",immunizationReason.getCoding().get(0).getCode());
+        assertEquals("Travel vaccinations",immunizationReason.getCoding().get(0).getDisplay());
     }
 
     @Test
     public void shouldMapImmunizationRefusalReason() throws Exception {
         Immunization immunization = mapImmunization(11, new Encounter());
-        CodeableConcept immunizationRefusalReason = immunization.getExplanation().getRefusalReason().get(0);
+        CodeableConceptDt immunizationRefusalReason = immunization.getExplanation().getReasonNotGiven().get(0);
 
-        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/No-Immunization-Reason", immunizationRefusalReason.getCoding().get(0).getSystemSimple());
-        assertEquals("patient objection", immunizationRefusalReason.getCoding().get(0).getCodeSimple());
-        assertEquals("patient objection",immunizationRefusalReason.getCoding().get(0).getDisplaySimple());
+        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/No-Immunization-Reason", immunizationRefusalReason.getCoding().get(0).getSystem());
+        assertEquals("patient objection", immunizationRefusalReason.getCoding().get(0).getCode());
+        assertEquals("patient objection",immunizationRefusalReason.getCoding().get(0).getDisplay());
     }
 
     @Test
     public void shouldMapRouteOfAdministration() throws Exception {
         Immunization immunization = mapImmunization(11, new Encounter());
-        CodeableConcept route = immunization.getRoute();
+        CodeableConceptDt route = immunization.getRoute();
 
-        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Route-of-Administration", route.getCoding().get(0).getSystemSimple());
-        assertEquals("Oral", route.getCoding().get(0).getCodeSimple());
-        assertEquals("Oral",route.getCoding().get(0).getDisplaySimple());
+        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Route-of-Administration", route.getCoding().get(0).getSystem());
+        assertEquals("Oral", route.getCoding().get(0).getCode());
+        assertEquals("Oral",route.getCoding().get(0).getDisplay());
     }
 
     private Immunization mapImmunization(int observationId, Encounter fhirEncounter) {

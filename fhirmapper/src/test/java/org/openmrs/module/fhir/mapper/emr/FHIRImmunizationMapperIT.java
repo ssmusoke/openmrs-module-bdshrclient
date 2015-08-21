@@ -1,9 +1,8 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.formats.ParserBase;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Resource;
-import org.hl7.fhir.instance.model.ResourceType;
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.Immunization;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
@@ -46,18 +45,16 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
     @Autowired
     private GlobalPropertyLookUpService globalPropertyLookUpService;
 
-    private Resource resource;
-    private AtomFeed feed;
+    private IResource resource;
+    private Bundle bundle;
     private ObsHelper obsHelper;
 
 
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/immunizationDS.xml");
-
-        ParserBase.ResourceOrFeed resourceOrFeed = new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/encounterWithImmunization.xml", springContext);
-        feed = resourceOrFeed.getFeed();
-        resource = FHIRFeedHelper.identifyResource(feed.getEntryList(), ResourceType.Immunization);
+        bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/encounterWithImmunization.xml", springContext);
+        resource = FHIRFeedHelper.identifyResource(bundle.getEntry(), new Immunization().getResourceName());
         obsHelper = new ObsHelper();
     }
 
@@ -156,7 +153,7 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
 
     private Obs mapImmunizationIncidentObs() {
         Encounter mrsEncounter = new Encounter();
-        mapper.map(feed, resource, null, mrsEncounter, new HashMap<String, List<String>>());
+        mapper.map(bundle, resource, null, mrsEncounter, new HashMap<String, List<String>>());
 
         Set<Obs> allObs = mrsEncounter.getAllObs();
         assertEquals(1, allObs.size());

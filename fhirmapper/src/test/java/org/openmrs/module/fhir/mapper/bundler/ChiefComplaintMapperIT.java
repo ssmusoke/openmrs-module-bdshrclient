@@ -1,7 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.ResourceReference;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,9 +35,8 @@ public class ChiefComplaintMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldCreateFHIRConditionFromChiefComplaint() throws Exception {
         executeDataSet("testDataSets/shrClientChiefComplaintTestDS.xml");
         Encounter encounter = new Encounter();
-        encounter.setIndication(new ResourceReference());
-        encounter.setSubject(new ResourceReference());
-        encounter.addParticipant().setIndividual(new ResourceReference());
+        encounter.setPatient(new ResourceReferenceDt());
+        encounter.addParticipant().setIndividual(new ResourceReferenceDt());
         org.openmrs.Encounter openMrsEncounter = encounterService.getEncounter(36);
 
         List<FHIRResource> complaintResources = chiefComplaintMapper.map(openMrsEncounter.getObsAtTopLevel(false).iterator().next(), encounter, getSystemProperties("1"));

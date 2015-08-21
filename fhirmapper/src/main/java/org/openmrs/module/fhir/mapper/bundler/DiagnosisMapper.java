@@ -87,7 +87,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
             return null;
         }
 
-        condition.setDateAsserted(obs.getObsDatetime(), TemporalPrecisionEnum.MILLI);
+        condition.setDateAsserted(obs.getObsDatetime(), TemporalPrecisionEnum.DAY);
         IdentifierDt identifier = condition.addIdentifier();
         String obsId = new EntityReference().build(Condition.class, systemProperties, obs.getUuid());
         identifier.setValue(obsId);

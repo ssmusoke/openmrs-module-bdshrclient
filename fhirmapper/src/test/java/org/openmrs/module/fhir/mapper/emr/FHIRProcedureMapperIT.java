@@ -1,9 +1,8 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.formats.ParserBase;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Resource;
-import org.hl7.fhir.instance.model.ResourceType;
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.Procedure;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
@@ -22,7 +21,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
 
 import static org.junit.Assert.assertEquals;
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
@@ -39,17 +42,16 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     private ApplicationContext springContext;
     @Autowired
     private GlobalPropertyLookUpService globalPropertyLookUpService;
-    private Resource resource;
-    private AtomFeed feed;
+    private IResource resource;
+    private Bundle bundle;
     private ObsHelper obsHelper;
 
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/procedureDS.xml");
 
-        ParserBase.ResourceOrFeed resourceOrFeed = new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/encounterWithProcedure.xml", springContext);
-        feed = resourceOrFeed.getFeed();
-        resource = FHIRFeedHelper.identifyResource(feed.getEntryList(), ResourceType.Procedure);
+        bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/encounterWithProcedure.xml", springContext);
+        resource = FHIRFeedHelper.identifyResource(bundle.getEntry(), new Procedure().getResourceName());
         obsHelper = new ObsHelper();
     }
 
@@ -133,7 +135,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     private Obs mapProceduresObs() {
         Encounter mrsEncounter = new Encounter();
-        fhirProcedureMapper.map(feed, resource, null, mrsEncounter, new HashMap<String, List<String>>());
+        fhirProcedureMapper.map(bundle, resource, null, mrsEncounter, new HashMap<String, List<String>>());
 
         Set<Obs> allObs = mrsEncounter.getAllObs();
         assertEquals(1, allObs.size());

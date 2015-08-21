@@ -1,8 +1,9 @@
 package org.openmrs.module.shrclient.service.impl;
 
-import org.hl7.fhir.instance.formats.ParserBase;
-import org.hl7.fhir.instance.formats.XmlParser;
-import org.hl7.fhir.instance.model.Date;
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.parser.XmlParser;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +18,7 @@ import org.openmrs.api.ProviderService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.service.MciPatientService;
+import org.openmrs.module.shrclient.util.FhirBundleUtil;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -180,21 +183,21 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         bundle.setHealthId(healthId);
         bundle.setLink("http://shr.com/patients/" + healthId + "/encounters/" + shrEncounterId);
         bundle.setTitle("Encounter:" + shrEncounterId);
-        bundle.addContent(loadSampleFHIREncounter(encounterBundleFilePath, springContext).getFeed());
+        bundle.addContent(loadSampleFHIREncounter(encounterBundleFilePath, springContext));
         bundles.add(bundle);
         return bundles;
     }
 
-    private ParserBase.ResourceOrFeed loadSampleFHIREncounter(String filePath, ApplicationContext springContext) throws Exception {
+    private Bundle loadSampleFHIREncounter(String filePath, ApplicationContext springContext) throws Exception {
         org.springframework.core.io.Resource resource = springContext.getResource(filePath);
-        ParserBase.ResourceOrFeed parsedResource =
-                new XmlParser().parseGeneral(resource.getInputStream());
-        return parsedResource;
+        String bundleXML = org.apache.commons.io.IOUtils.toString(resource.getInputStream());
+        Bundle parsedBundle = (Bundle) FhirBundleUtil.getFhirContext().newXmlParser()
+                    .parseResource(bundleXML);
+        return parsedBundle;
     }
 
     @After
     public void tearDown() throws Exception {
         deleteAllData();
     }
-
 }

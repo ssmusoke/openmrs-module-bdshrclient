@@ -1,14 +1,17 @@
 package org.openmrs.module.fhir.mapper.bundler.condition;
 
-import org.hl7.fhir.instance.model.*;
-import org.hl7.fhir.instance.model.Boolean;
+import ca.uhn.fhir.model.api.IDatatype;
+import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
+import ca.uhn.fhir.model.primitive.BooleanDt;
+import ca.uhn.fhir.model.primitive.DateDt;
+import ca.uhn.fhir.model.primitive.DecimalDt;
+import ca.uhn.fhir.model.primitive.StringDt;
 import org.junit.After;
 import org.junit.Test;
 import org.openmrs.Concept;
 import org.openmrs.ConceptName;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
-import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -17,9 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import static java.lang.Boolean.FALSE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -44,10 +45,9 @@ public class ObservationValueMapperTest extends BaseModuleWebContextSensitiveTes
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date obsDate = dateFormat.parse("2014-03-12");
         obs.setValueDate(obsDate);
-        Type value = observationValueMapper.map(obs);
-        assertTrue(value instanceof org.hl7.fhir.instance.model.Date);
-        DateAndTime date = ((org.hl7.fhir.instance.model.Date) value).getValue();
-        java.util.Date actualDate = DateUtil.parseDate(date.toString());
+        IDatatype value = observationValueMapper.map(obs);
+        assertTrue(value instanceof DateDt);
+        java.util.Date actualDate = ((DateDt) value).getValue();
         assertEquals(obsDate, actualDate);
     }
 
@@ -59,9 +59,9 @@ public class ObservationValueMapperTest extends BaseModuleWebContextSensitiveTes
         obs.setConcept(concept);
         double valueNumeric = 10.0;
         obs.setValueNumeric(valueNumeric);
-        Type value = observationValueMapper.map(obs);
-        assertTrue(value instanceof Decimal);
-        double mappedValue = ((Decimal) value).getValue().doubleValue();
+        IDatatype value = observationValueMapper.map(obs);
+        assertTrue(value instanceof DecimalDt);
+        double mappedValue = ((DecimalDt) value).getValue().doubleValue();
         assertTrue(mappedValue == valueNumeric);
     }
 
@@ -73,9 +73,9 @@ public class ObservationValueMapperTest extends BaseModuleWebContextSensitiveTes
         obs.setConcept(concept);
         String valueText = "Hello";
         obs.setValueText(valueText);
-        Type value = observationValueMapper.map(obs);
-        assertTrue(value instanceof String_);
-        assertEquals(valueText, ((String_) value).getValue());
+        IDatatype value = observationValueMapper.map(obs);
+        assertTrue(value instanceof StringDt);
+        assertEquals(valueText, ((StringDt) value).getValue());
     }
 
     @Test
@@ -88,9 +88,9 @@ public class ObservationValueMapperTest extends BaseModuleWebContextSensitiveTes
         String conceptName = "Concept";
         codedConcept.addName(new ConceptName(conceptName, conceptService.getLocalesOfConceptNames().iterator().next()));
         obs.setValueCoded(codedConcept);
-        Type value = observationValueMapper.map(obs);
-        assertTrue(value instanceof CodeableConcept);
-        assertEquals(conceptName, ((CodeableConcept) value).getCoding().get(0).getDisplaySimple());
+        IDatatype value = observationValueMapper.map(obs);
+        assertTrue(value instanceof CodeableConceptDt);
+        assertEquals(conceptName, ((CodeableConceptDt) value).getCoding().get(0).getDisplay());
     }
 
     @Test
@@ -100,8 +100,8 @@ public class ObservationValueMapperTest extends BaseModuleWebContextSensitiveTes
         concept.setDatatype(conceptService.getConceptDatatypeByName("Boolean"));
         obs.setConcept(concept);
         obs.setValueBoolean(FALSE);
-        Type value = observationValueMapper.map(obs);
-        assertTrue(value instanceof org.hl7.fhir.instance.model.Boolean);
-        assertFalse(((Boolean) value).getValue());
+        IDatatype value = observationValueMapper.map(obs);
+        assertTrue(value instanceof BooleanDt);
+        assertFalse(((BooleanDt) value).getValue());
     }
 }

@@ -86,7 +86,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
                 return;
             }
             resources.add(new FHIRResource("Specimen", specimen.getIdentifier(), specimen));
-            diagnosticOrder.addSpecimen().setReference(new EntityReference().build(IResource.class, systemProperties, specimen.getId().getValue()));
+            diagnosticOrder.addSpecimen().setReference(specimen.getId().getValue());
         }
         orderItem.addSpecimen().setReference(new EntityReference().build(IResource.class, systemProperties, specimen.getId().getValue()));
     }

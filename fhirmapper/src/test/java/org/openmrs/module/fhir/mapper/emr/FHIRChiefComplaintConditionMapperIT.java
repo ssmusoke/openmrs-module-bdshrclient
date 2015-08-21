@@ -1,9 +1,8 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.formats.ParserBase;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Resource;
-import org.hl7.fhir.instance.model.ResourceType;
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.Condition;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +13,6 @@ import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
-import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -40,11 +38,8 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
     @Autowired
     private FHIRChiefComplaintConditionMapper fhirChiefComplaintConditionMapper;
 
-    @Autowired
-    private GlobalPropertyLookUpService globalPropertyLookUpService;
-
-    public ParserBase.ResourceOrFeed loadSampleFHIREncounter(String filePath) throws Exception {
-        return new MapperTestHelper().loadSampleFHIREncounter(filePath, springContext);
+    public Bundle loadSampleFHIREncounter(String filePath) throws Exception {
+        return (Bundle) new MapperTestHelper().loadSampleFHIREncounter(filePath, springContext);
     }
 
     @Before
@@ -60,12 +55,12 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
 
     @Test
     public void shouldMapFHIRComplaint() throws Exception {
-        final AtomFeed bundle = loadSampleFHIREncounter("classpath:encounterBundles/testFHIREncounter.xml").getFeed();
-        final List<Resource> conditions = TestFhirFeedHelper.getResourceByType(bundle, ResourceType.Condition);
+        final Bundle bundle = loadSampleFHIREncounter("classpath:encounterBundles/testFHIREncounter.xml");
+        final List<IResource> conditions = TestFhirFeedHelper.getResourceByType(bundle, new Condition().getResourceName());
         Patient emrPatient = new Patient();
         Encounter emrEncounter = new Encounter();
         emrEncounter.setPatient(emrPatient);
-        for (Resource condition : conditions) {
+        for (IResource condition : conditions) {
             if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
                 fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter, new HashMap<String, List<String>>());
             }
@@ -96,12 +91,12 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
 
     @Test
     public void shouldNotCreateDurationObsIfDurationNotGiven() throws Exception {
-        final AtomFeed bundle = loadSampleFHIREncounter("classpath:encounterBundles/chiefComplaintWithoutDuration.xml").getFeed();
-        final List<Resource> conditions = TestFhirFeedHelper.getResourceByType(bundle, ResourceType.Condition);
+        final Bundle bundle = loadSampleFHIREncounter("classpath:encounterBundles/chiefComplaintWithoutDuration.xml");
+        final List<IResource> conditions = TestFhirFeedHelper.getResourceByType(bundle, new Condition().getResourceName());
         Patient emrPatient = new Patient();
         Encounter emrEncounter = new Encounter();
         emrEncounter.setPatient(emrPatient);
-        for (Resource condition : conditions) {
+        for (IResource condition : conditions) {
             if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
                 fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter, new HashMap<String, List<String>>());
             }
@@ -113,12 +108,12 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
 
     @Test
     public void shouldCreateOneHistoryAndExaminationObsForAllComplaints() throws Exception {
-        final AtomFeed bundle = loadSampleFHIREncounter("classpath:encounterBundles/encounterWithMultipleChiefComplaints.xml").getFeed();
-        final List<Resource> conditions = TestFhirFeedHelper.getResourceByType(bundle, ResourceType.Condition);
+        final Bundle bundle = loadSampleFHIREncounter("classpath:encounterBundles/encounterWithMultipleChiefComplaints.xml");
+        final List<IResource> conditions = TestFhirFeedHelper.getResourceByType(bundle, new Condition().getResourceName());
         Patient emrPatient = new Patient();
         Encounter emrEncounter = new Encounter();
         emrEncounter.setPatient(emrPatient);
-        for (Resource condition : conditions) {
+        for (IResource condition : conditions) {
             if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
                 fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter, new HashMap<String, List<String>>());
             }

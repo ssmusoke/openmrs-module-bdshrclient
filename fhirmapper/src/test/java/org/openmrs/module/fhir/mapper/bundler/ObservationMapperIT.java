@@ -1,9 +1,9 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Decimal;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.Observation;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
+import ca.uhn.fhir.model.dstu2.resource.Observation;
+import ca.uhn.fhir.model.primitive.DecimalDt;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,7 +50,7 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(4, FHIRResources.size());
         for (FHIRResource FHIRResource : FHIRResources) {
             Observation observation = (Observation) FHIRResource.getResource();
-            assertTrue(isNotEmpty(observation.getName().getCoding()));
+            assertTrue(isNotEmpty(observation.getCode().getCoding()));
             if (FHIRResource.getResourceName().equals("Vitals")) {
                 assertVitalsObservation(observation);
             } else if (FHIRResource.getResourceName().equals("Blood Pressure")) {
@@ -64,43 +64,43 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     private void assertPulseObservation(Observation observation) {
-        List<Coding> coding = observation.getName().getCoding();
+        List<CodingDt> coding = observation.getCode().getCoding();
         assertEquals(2, coding.size());
         int flag = 0;
-        for (Coding code : coding) {
+        for (CodingDt code : coding) {
             if (assertCoding(code, "103", "/concepts/103")) flag ++;
             if(assertCoding(code, "M54.418965", "referenceterms/201")) flag ++;
         }
         assertEquals(2, flag);
-        assertTrue(133 == ((Decimal) observation.getValue()).getValue().doubleValue());
+        assertTrue(133 == ((DecimalDt) observation.getValue()).getValue().doubleValue());
         assertTrue(isEmpty(observation.getRelated()));
     }
 
     private void assertDiastolicObservation(Observation observation) {
-        List<Coding> coding = observation.getName().getCoding();
+        List<CodingDt> coding = observation.getCode().getCoding();
         assertEquals(1, coding.size());
         assertTrue(assertCoding(coding.get(0), "105", "/concepts/105"));
-        assertTrue(120 == ((Decimal) observation.getValue()).getValue().doubleValue());
+        assertTrue(120 == ((DecimalDt) observation.getValue()).getValue().doubleValue());
         assertTrue(isEmpty(observation.getRelated()));
     }
 
     private void assertBloodPressureObservation(Observation observation) {
-        List<Coding> coding = observation.getName().getCoding();
+        List<CodingDt> coding = observation.getCode().getCoding();
         assertEquals(1, coding.size());
-        assertTrue(null == coding.get(0).getCodeSimple());
-        assertTrue(null == coding.get(0).getSystemSimple());
-        assertEquals("Blood Pressure", coding.get(0).getDisplaySimple());
+        assertTrue(null == coding.get(0).getCode());
+        assertTrue(null == coding.get(0).getSystem());
+        assertEquals("Blood Pressure", coding.get(0).getDisplay());
         assertEquals(1, observation.getRelated().size());
     }
 
     private void assertVitalsObservation(Observation observation) {
-        List<Coding> coding = observation.getName().getCoding();
+        List<CodingDt> coding = observation.getCode().getCoding();
         assertEquals(1, coding.size());
         assertTrue(assertCoding(coding.get(0), "101", "/concepts/101"));
         assertEquals(2, observation.getRelated().size());
     }
 
-    private boolean assertCoding(Coding code, String expectedCode, String expectedSystem) {
-        return ((expectedCode.equals(code.getCodeSimple())) && (expectedSystem.equals(code.getSystemSimple())));
+    private boolean assertCoding(CodingDt code, String expectedCode, String expectedSystem) {
+        return ((expectedCode.equals(code.getCode())) && (expectedSystem.equals(code.getSystem())));
     }
 }

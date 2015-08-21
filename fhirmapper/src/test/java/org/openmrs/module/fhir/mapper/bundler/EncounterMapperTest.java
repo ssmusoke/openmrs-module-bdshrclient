@@ -1,11 +1,17 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import org.hl7.fhir.instance.model.ResourceReference;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.openmrs.*;
+import org.openmrs.Encounter;
+import org.openmrs.EncounterType;
+import org.openmrs.Patient;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
+import org.openmrs.Visit;
+import org.openmrs.VisitType;
 import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.fhir.utils.OMRSLocationService;
 
@@ -33,16 +39,10 @@ public class EncounterMapperTest {
         encounter.setPatient(getPatient("1234"));
         encounter.setVisit(getVisit());
 
-        String encounterId = encounter.getUuid();
-
-        org.hl7.fhir.instance.model.Encounter fhirEncounter = encounterMapper.map(encounter, getSystemProperties("1"));
-        ResourceReference subject = fhirEncounter.getSubject();
-        assertEquals("1234", subject.getDisplaySimple());
-        //The subject URL must be the public url reference.
-        assertEquals("http://public.com/api/default/patients/1234", subject.getReferenceSimple());
-        assertEquals("Encounter", fhirEncounter.getIndication().getDisplaySimple());
-        assertEquals("urn:" + encounterId, fhirEncounter.getIndication().getReferenceSimple());
-
+        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = encounterMapper.map(encounter, getSystemProperties("1"));
+        ResourceReferenceDt subject = fhirEncounter.getPatient();
+        assertEquals("1234", subject.getDisplay().getValue());
+        assertEquals("http://public.com/api/default/patients/1234", subject.getReference().getValue());
     }
 
     private Visit getVisit() {

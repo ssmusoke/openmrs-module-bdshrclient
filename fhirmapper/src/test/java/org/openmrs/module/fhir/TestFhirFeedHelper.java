@@ -1,10 +1,8 @@
 package org.openmrs.module.fhir;
 
-import org.hl7.fhir.instance.model.AtomEntry;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Resource;
-import org.hl7.fhir.instance.model.ResourceReference;
-import org.hl7.fhir.instance.model.ResourceType;
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import org.openmrs.module.fhir.mapper.bundler.FHIRResource;
 
 import java.util.ArrayList;
@@ -12,30 +10,30 @@ import java.util.List;
 
 public class TestFhirFeedHelper {
 
-    public static List<Resource> getResourceByType(AtomFeed bundle, ResourceType resourceType) {
-        List<Resource> resources = new ArrayList<>();
-        List<AtomEntry<? extends Resource>> entryList = bundle.getEntryList();
-        for (AtomEntry<? extends org.hl7.fhir.instance.model.Resource> atomEntry : entryList) {
-            Resource resource = atomEntry.getResource();
-            if (resource.getResourceType().equals(resourceType)) {
+    public static List<IResource> getResourceByType(Bundle bundle, String resourceName) {
+        List<IResource> resources = new ArrayList<>();
+        List<Bundle.Entry> entryList = bundle.getEntry();
+        for (Bundle.Entry bundleEntry : entryList) {
+            IResource resource = bundleEntry.getResource();
+            if (resource.getResourceName().equals(resourceName)) {
                 resources.add(resource);
             }
         }
         return resources;
     }
 
-    public static FHIRResource getResourceByReference(ResourceReference reference, List<FHIRResource> FHIRResources) {
+    public static FHIRResource getResourceByReference(ResourceReferenceDt reference, List<FHIRResource> FHIRResources) {
         for (FHIRResource FHIRResource : FHIRResources) {
-            if(FHIRResource.getIdentifier().getValueSimple().equals(reference.getReferenceSimple())) {
+            if(FHIRResource.getIdentifier().getValue().equals(reference.getReference().getValue())) {
                 return FHIRResource;
             }
         }
         return null;
     }
 
-    public static FHIRResource getResourceByType(ResourceType type, List<FHIRResource> FHIRResources) {
+    public static FHIRResource getResourceByType(String resourceName, List<FHIRResource> FHIRResources) {
         for (FHIRResource FHIRResource : FHIRResources) {
-            if(type.equals(FHIRResource.getResource().getResourceType())) {
+            if(resourceName.equals(FHIRResource.getResource().getResourceName())) {
                 return FHIRResource;
             }
         }

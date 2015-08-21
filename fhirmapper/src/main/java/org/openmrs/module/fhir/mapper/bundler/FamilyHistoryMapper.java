@@ -1,5 +1,6 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.AgeDt;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
@@ -111,7 +112,7 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
         Obs bornOnObs = new CompoundObservation(person).getMemberObsForConceptName(MRS_CONCEPT_NAME_BORN_ON);
         if (bornOnObs != null) {
             DateDt bornOn = new DateDt();
-            bornOn.setValue(bornOnObs.getValueDate());
+            bornOn.setValue(bornOnObs.getValueDate(), TemporalPrecisionEnum.DAY);
             familyMemberHistory.setBorn(bornOn);
         }
     }

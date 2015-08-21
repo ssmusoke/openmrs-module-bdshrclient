@@ -5,13 +5,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class FhirBundleUtil {
-    private FhirContext fhirContext;
+    private static FhirContext fhirContext;
 
-    public FhirBundleUtil() {
-        fhirContext = FhirContext.forDstu2();
-    }
 
-    public FhirContext getFhirContext() {
+    public static FhirContext getFhirContext() {
+        if(fhirContext == null) {
+            fhirContext = FhirContext.forDstu2();
+        }
         return fhirContext;
     }
 }

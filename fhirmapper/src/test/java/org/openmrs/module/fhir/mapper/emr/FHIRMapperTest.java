@@ -1,15 +1,14 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.model.AtomFeed;
 import org.junit.After;
 import org.junit.Test;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.MapperTestHelper;
-import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -34,9 +33,6 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     private ConceptService conceptService;
-    
-    @Autowired
-    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @After
     public void tearDown() throws Exception {
@@ -47,7 +43,7 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldMapObservations() throws Exception {
         executeDataSet("testDataSets/shrClientObservationsTestDs.xml");
-        AtomFeed encounterBundle = new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/testFHIRObservation.xml", springContext).getFeed();
+        Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/testFHIRObservation.xml", springContext);
 
         Patient patient = patientService.getPatient(1);
 

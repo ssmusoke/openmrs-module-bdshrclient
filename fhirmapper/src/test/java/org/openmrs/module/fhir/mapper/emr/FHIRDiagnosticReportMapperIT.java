@@ -1,9 +1,9 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.DiagnosticReport;
-import org.hl7.fhir.instance.model.Observation;
-import org.hl7.fhir.instance.model.Resource;
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
+import ca.uhn.fhir.model.dstu2.resource.Observation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,8 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import static org.hl7.fhir.instance.model.ResourceType.DiagnosticReport;
-import static org.hl7.fhir.instance.model.ResourceType.Observation;
 import static org.junit.Assert.*;
 
 @ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -58,16 +56,15 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
 
     @Test
     public void shouldMapDiagnosticReportForTestResult() throws Exception {
-        AtomFeed bundle = new MapperTestHelper()
-                .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticReport.xml", springContext)
-                .getFeed();
-        DiagnosticReport report = (org.hl7.fhir.instance.model.DiagnosticReport) FHIRFeedHelper.identifyResource(bundle.getEntryList(), DiagnosticReport);
+        Bundle bundle = (Bundle) new MapperTestHelper()
+                .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticReport.xml", springContext);
+        DiagnosticReport report = (DiagnosticReport) FHIRFeedHelper.identifyResource(bundle.getEntry(), new DiagnosticReport().getResourceName());
         Encounter encounter = new Encounter();
         encounter.setPatient(patientService.getPatient(1));
         HashMap<String, List<String>> processedList = new HashMap<>();
         diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter, processedList);
         assertEquals(2, processedList.size());
-        assertTrue(processedList.containsKey(report.getIdentifier().getValueSimple()));
+        assertTrue(processedList.containsKey(report.getId().getValue()));
         Set<Obs> obsSet = encounter.getObsAtTopLevel(false);
         assertEquals(1, obsSet.size());
         Obs topLevelObs = obsSet.iterator().next();
@@ -95,20 +92,19 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
 
     @Test
     public void shouldAddAlreadyProcessedObservationResultToTestResults() throws Exception {
-        AtomFeed bundle = new MapperTestHelper()
-                .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticReport.xml", springContext)
-                .getFeed();
-        DiagnosticReport report = (org.hl7.fhir.instance.model.DiagnosticReport) FHIRFeedHelper.identifyResource(bundle.getEntryList(), DiagnosticReport);
-        org.hl7.fhir.instance.model.Observation observation = (Observation) FHIRFeedHelper.identifyResource(bundle.getEntryList(), Observation);
+        Bundle bundle = (Bundle) new MapperTestHelper()
+                .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticReport.xml", springContext);
+        DiagnosticReport report = (DiagnosticReport) FHIRFeedHelper.identifyResource(bundle.getEntry(), new DiagnosticReport().getResourceName());
+        Observation observation = (Observation) FHIRFeedHelper.identifyResource(bundle.getEntry(), new Observation().getResourceName());
         Encounter encounter = new Encounter();
         encounter.setPatient(patientService.getPatient(1));
         HashMap<String, List<String>> processedList = new HashMap<>();
         observationsMapper.map(bundle, observation, encounter.getPatient(), encounter, processedList);
-        assertTrue(processedList.containsKey(observation.getIdentifier().getValueSimple()));
+        assertTrue(processedList.containsKey(observation.getId().getValue()));
 
         diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter, processedList);
         assertEquals(2, processedList.size());
-        assertTrue(processedList.containsKey(report.getIdentifier().getValueSimple()));
+        assertTrue(processedList.containsKey(report.getId().getValue()));
         Set<Obs> obsSet = encounter.getObsAtTopLevel(false);
         assertEquals(1, obsSet.size());
         Concept concept = conceptService.getConcept(303);
@@ -117,17 +113,16 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
 
     @Test
     public void shouldAddAlreadyProcessedObservationResultToPanelResults() throws Exception {
-        AtomFeed bundle = new MapperTestHelper()
-                .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithPanelReport.xml", springContext)
-                .getFeed();
-        List<Resource> resources = FHIRFeedHelper.identifyResources(bundle.getEntryList(), DiagnosticReport);
+        Bundle bundle = (Bundle) new MapperTestHelper()
+                .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithPanelReport.xml", springContext);
+        List<IResource> resources = FHIRFeedHelper.identifyResources(bundle.getEntry(), new DiagnosticReport().getResourceName());
         Encounter encounter = new Encounter();
         encounter.setPatient(patientService.getPatient(1));
         HashMap<String, List<String>> processedList = new HashMap<>();
-        for (Resource resource : resources) {
-            org.hl7.fhir.instance.model.DiagnosticReport report = (org.hl7.fhir.instance.model.DiagnosticReport) resource;
+        for (IResource resource : resources) {
+            DiagnosticReport report = (DiagnosticReport) resource;
             diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter, processedList);
-            assertTrue(processedList.containsKey(report.getIdentifier().getValueSimple()));
+            assertTrue(processedList.containsKey(report.getId().getValue()));
         }
         assertEquals(4, processedList.size());
         Set<Obs> obsSet = encounter.getObsAtTopLevel(false);

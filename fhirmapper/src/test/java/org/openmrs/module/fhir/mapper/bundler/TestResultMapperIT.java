@@ -1,24 +1,27 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import org.hl7.fhir.instance.model.*;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
+import ca.uhn.fhir.model.dstu2.resource.Observation;
+import ca.uhn.fhir.model.dstu2.valueset.DiagnosticReportStatusEnum;
+import ca.uhn.fhir.model.primitive.DateTimeDt;
+import ca.uhn.fhir.model.primitive.DecimalDt;
 import org.junit.After;
 import org.junit.Test;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.ObsService;
 import org.openmrs.api.OrderService;
+import org.openmrs.module.fhir.TestFhirFeedHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
 
-import static org.hl7.fhir.instance.model.DiagnosticReport.DiagnosticReportStatus.final_;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 import static org.openmrs.module.fhir.TestFhirFeedHelper.getResourceByReference;
-import static org.openmrs.module.fhir.TestFhirFeedHelper.getResourceByType;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -42,68 +45,68 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldMapLabTestResults() throws Exception {
         executeDataSet("testDataSets/labResultDS.xml");
         Encounter fhirEncounter = buildEncounter();
-        ResourceReference patientHid = new ResourceReference();
-        patientHid.setReferenceSimple("patientHid");
-        fhirEncounter.setSubject(patientHid);
-        List<FHIRResource> FHIRResources = testResultMapper.map(obsService.getObs(1), fhirEncounter, getSystemProperties("1"));
-        assertNotNull(FHIRResources);
-        assertEquals(2, FHIRResources.size());
-        FHIRResource diagnosticReportResource = getResourceByType(ResourceType.DiagnosticReport, FHIRResources);
+        ResourceReferenceDt patientHid = new ResourceReferenceDt();
+        patientHid.setReference("patientHid");
+        fhirEncounter.setPatient(patientHid);
+        List<FHIRResource> fhirResources = testResultMapper.map(obsService.getObs(1), fhirEncounter, getSystemProperties("1"));
+        assertNotNull(fhirResources);
+        assertEquals(2, fhirResources.size());
+        FHIRResource diagnosticReportResource = TestFhirFeedHelper.getResourceByType(new DiagnosticReport().getResourceName(), fhirResources);
         DiagnosticReport report = (DiagnosticReport) diagnosticReportResource.getResource();
-        assertEquals(fhirEncounter.getSubject(), report.getSubject());
+        assertEquals(fhirEncounter.getPatient(), report.getSubject());
         assertEquals(fhirEncounter.getParticipant().get(0).getIndividual(), report.getPerformer());
-        assertDiagnosticReport(report, FHIRResources);
-        assertEquals(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(obsService.getObs(2).getObsDatetime()), report.getIssuedSimple().toString());
-        assertEquals(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(orderService.getOrder(17).getDateActivated()), ((DateTime) report.getDiagnostic()).getValue().toString());
-        assertEquals(conceptService.getConcept(107).getName().getName(), report.getName().getCoding().get(0).getDisplaySimple());
+        assertDiagnosticReport(report, fhirResources);
+        assertEquals(obsService.getObs(2).getObsDatetime(), report.getIssued());
+        assertEquals(orderService.getOrder(17).getDateActivated(), ((DateTimeDt) report.getDiagnostic()).getValue());
+        assertEquals(conceptService.getConcept(107).getName().getName(), report.getName().getCoding().get(0).getDisplay());
     }
 
     @Test
     public void shouldMapLabPanelResults() throws Exception {
         executeDataSet("testDataSets/labResultDS.xml");
         Encounter fhirEncounter = buildEncounter();
-        ResourceReference patientHid = new ResourceReference();
-        patientHid.setReferenceSimple("patientHid");
-        fhirEncounter.setSubject(patientHid);
+        ResourceReferenceDt patientHid = new ResourceReferenceDt();
+        patientHid.setReference("patientHid");
+        fhirEncounter.setPatient(patientHid);
         List<FHIRResource> FHIRResources = testResultMapper.map(obsService.getObs(11), fhirEncounter, getSystemProperties("1"));
         assertNotNull(FHIRResources);
         assertEquals(6, FHIRResources.size());
         for (FHIRResource FHIRResource : FHIRResources) {
-            if(FHIRResource.getResource() instanceof DiagnosticReport) {
+            if (FHIRResource.getResource() instanceof DiagnosticReport) {
                 DiagnosticReport report = (DiagnosticReport) FHIRResource.getResource();
-                assertEquals(fhirEncounter.getSubject(), report.getSubject());
+                assertEquals(fhirEncounter.getPatient(), report.getSubject());
                 assertEquals(fhirEncounter.getParticipant().get(0).getIndividual(), report.getPerformer());
                 assertDiagnosticReport(report, FHIRResources);
             }
         }
     }
 
-    private void assertDiagnosticReport(DiagnosticReport report, List<FHIRResource> FHIRResources) {
-        FHIRResource observationResource = getResourceByReference(report.getResult().get(0), FHIRResources);
+    private void assertDiagnosticReport(DiagnosticReport report, List<FHIRResource> fhirResources) {
+        FHIRResource observationResource = getResourceByReference(report.getResult().get(0), fhirResources);
         assertNotNull(observationResource);
         assertFalse(report.getResult().isEmpty());
         assertNotNull(report.getIdentifier());
 
-        assertEquals(final_, report.getStatus().getValue());
+        assertEquals(DiagnosticReportStatusEnum.FINAL.getCode(), report.getStatus());
         assertFalse(report.getRequestDetail().isEmpty());
-        assertTrue(report.getRequestDetail().get(0).getReferenceSimple().startsWith("http://172.18.46.57:8081/patients/hid/encounters/shrEncounterId"));
-        assertEquals(observationResource.getIdentifier().getValueSimple(), report.getResult().get(0).getReferenceSimple());
+        assertTrue(report.getRequestDetail().get(0).getReference().getValue().startsWith("http://172.18.46.57:8081/patients/hid/encounters/shrEncounterId"));
+        assertEquals(observationResource.getIdentifier().getValue(), report.getResult().get(0).getReference().getValue());
         Observation observation = (Observation) observationResource.getResource();
         assertNotNull(observation.getValue());
-        if(observation.getValue() instanceof Decimal) {
-            assertEquals("120.0", ((Decimal) observation.getValue()).getStringValue());
+        if (observation.getValue() instanceof DecimalDt) {
+            assertTrue(120.0 == ((DecimalDt) observation.getValue()).getValue().doubleValue());
         }
-        assertEquals(obsService.getObs(4).getValueText(), report.getConclusionSimple());
+        assertEquals(obsService.getObs(4).getValueText(), report.getConclusion());
     }
 
     private Encounter buildEncounter() {
         Encounter fhirEncounter = new Encounter();
-        ResourceReference subject = new ResourceReference();
-        subject.setReferenceSimple("patient 1");
-        fhirEncounter.setSubject(subject);
-        Encounter.EncounterParticipantComponent participant = fhirEncounter.addParticipant();
-        ResourceReference individual = new ResourceReference();
-        individual.setReferenceSimple("Provider 1");
+        ResourceReferenceDt subject = new ResourceReferenceDt();
+        subject.setReference("patient 1");
+        fhirEncounter.setPatient(subject);
+        Encounter.Participant participant = fhirEncounter.addParticipant();
+        ResourceReferenceDt individual = new ResourceReferenceDt();
+        individual.setReference("Provider 1");
         participant.setIndividual(individual);
         return fhirEncounter;
     }

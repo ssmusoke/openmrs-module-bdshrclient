@@ -1,11 +1,9 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.formats.ParserBase;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.FamilyHistory;
-import org.hl7.fhir.instance.model.ResourceType;
 import org.junit.After;
 import org.junit.Test;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.FamilyMemberHistory;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
@@ -47,11 +45,10 @@ public class FHIRFamilyHistoryMapperIT extends BaseModuleWebContextSensitiveTest
     @Test
     public void shouldMapFamilyHistoryResource() throws Exception {
         executeDataSet("testDataSets/shrClientFamilyHistoryTestDS.xml");
-        ParserBase.ResourceOrFeed resourceOrFeed = new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/encounterWithFamilyHistory.xml", springContext);
-        AtomFeed feed = resourceOrFeed.getFeed();
-        FamilyHistory familyHistory = (FamilyHistory) FHIRFeedHelper.identifyResource(feed.getEntryList(), ResourceType.FamilyHistory);
+        Bundle bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/encounterWithFamilyHistory.xml", springContext);
+        FamilyMemberHistory familyHistory = (FamilyMemberHistory) FHIRFeedHelper.identifyResource(bundle.getEntry(), new FamilyMemberHistory().getResourceName());
         Encounter newEmrEncounter = new Encounter();
-        familyHistoryMapper.map(feed, familyHistory, new Patient(), newEmrEncounter, new HashMap<String, List<String>>());
+        familyHistoryMapper.map(bundle, familyHistory, new Patient(), newEmrEncounter, new HashMap<String, List<String>>());
 
         assertEquals(1, newEmrEncounter.getObsAtTopLevel(false).size());
         Obs familyHistoryObs = newEmrEncounter.getObsAtTopLevel(false).iterator().next();

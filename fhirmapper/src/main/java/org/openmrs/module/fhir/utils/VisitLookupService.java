@@ -95,13 +95,11 @@ public class VisitLookupService {
             return encVisitType;
         }
 
-        if (EncounterClassEnum.valueOf(encounterClass).equals(EncounterClassEnum.INPATIENT)) {
+        if (encounterClass.equals(EncounterClassEnum.INPATIENT.getCode())) {
             return identifyVisitTypeByName(allVisitTypes, MRS_IN_PATIENT_VISIT_TYPE);
-        } else if (EncounterClassEnum.valueOf(encounterClass).equals(EncounterClassEnum.OUTPATIENT)) {
+        } else {
             return identifyVisitTypeByName(allVisitTypes, MRS_OUT_PATIENT_VISIT_TYPE);
         }
-
-        return null;
     }
 
     private Visit getVisitForPatientWithinDates(Patient patient, Date startTime) {

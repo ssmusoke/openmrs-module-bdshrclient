@@ -1,6 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler.condition;
 
 import ca.uhn.fhir.model.api.IDatatype;
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.primitive.BooleanDt;
@@ -47,7 +48,7 @@ public class ObservationValueMapper {
             @Override
             public IDatatype readValue(Obs obs, IdMappingsRepository idMappingsRepository, CodableConceptService codableConceptService) {
                 if (obs.getConcept().getDatatype().isBoolean() && obs.getValueAsBoolean() != null) {
-                    new BooleanDt(obs.getValueAsBoolean());
+                    return new BooleanDt(obs.getValueAsBoolean());
                 }
                 return null;
             }
@@ -57,7 +58,7 @@ public class ObservationValueMapper {
             @Override
             public IDatatype readValue(Obs obs, IdMappingsRepository idMappingsRepository, CodableConceptService codableConceptService) {
                 if (obs.getConcept().getDatatype().isDate() && obs.getValueDate() != null) {
-                    return new DateDt(obs.getValueDate());
+                    return new DateDt(obs.getValueDate(), TemporalPrecisionEnum.DAY);
                 }
                 return null;
             }

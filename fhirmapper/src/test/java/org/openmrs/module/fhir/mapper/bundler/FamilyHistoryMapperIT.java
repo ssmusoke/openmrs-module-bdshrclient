@@ -1,12 +1,11 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import org.hl7.fhir.instance.model.Age;
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Date;
-import org.hl7.fhir.instance.model.Encounter;
-import org.hl7.fhir.instance.model.FamilyHistory;
-import org.hl7.fhir.instance.model.ResourceReference;
-import org.hl7.fhir.instance.model.ResourceType;
+import ca.uhn.fhir.model.dstu2.composite.AgeDt;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
+import ca.uhn.fhir.model.dstu2.resource.FamilyMemberHistory;
+import ca.uhn.fhir.model.primitive.DateDt;
 import org.junit.After;
 import org.junit.Test;
 import org.openmrs.api.EncounterService;
@@ -17,6 +16,7 @@ import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -43,61 +43,57 @@ public class FamilyHistoryMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldCreateFHIRFamilyHistoryFromOpenMrsFamilyHistory() throws Exception {
         executeDataSet("testDataSets/shrClientFamilyHistoryTestDS.xml");
         Encounter encounter = new Encounter();
-        encounter.setIndication(new ResourceReference());
-        ResourceReference subject = new ResourceReference();
-        subject.setReferenceSimple("http://mci.com/patient/hid");
-        encounter.setSubject(subject);
-        encounter.addParticipant().setIndividual(new ResourceReference());
+        ResourceReferenceDt subject = new ResourceReferenceDt();
+        subject.setReference("http://mci.com/patient/hid");
+        encounter.setPatient(subject);
+        encounter.addParticipant().setIndividual(new ResourceReferenceDt());
         org.openmrs.Encounter openMrsEncounter = encounterService.getEncounter(36);
 
         List<FHIRResource> familyHistoryResources = familyHistoryMapper.map(openMrsEncounter.getObsAtTopLevel(false).iterator().next(), encounter, getSystemProperties("1"));
         assertFalse(familyHistoryResources.isEmpty());
         assertEquals(1, familyHistoryResources.size());
 
-        FamilyHistory familyHistoryResource = (FamilyHistory) TestFhirFeedHelper.getResourceByType(ResourceType.FamilyHistory, familyHistoryResources).getResource();
-        assertEquals(subject, familyHistoryResource.getSubject());
-        assertFalse(familyHistoryResource.getIdentifier().isEmpty());
+        FamilyMemberHistory familyMemberHistoryResource = (FamilyMemberHistory) TestFhirFeedHelper.getResourceByType(new FamilyMemberHistory().getResourceName(), familyHistoryResources).getResource();
+        assertEquals(subject, familyMemberHistoryResource.getPatient());
+        assertFalse(familyMemberHistoryResource.getIdentifier().isEmpty());
 
-        assertEquals(1, familyHistoryResource.getRelation().size());
-        FamilyHistory.FamilyHistoryRelationComponent familyHistoryRelationComponent = familyHistoryResource.getRelation().get(0);
-
-        assertRelationship(familyHistoryRelationComponent);
-        assertBornOn(familyHistoryRelationComponent);
-        assertRelationshipCondition(familyHistoryRelationComponent);
+        assertRelationship(familyMemberHistoryResource);
+        assertBornOn(familyMemberHistoryResource);
+        assertRelationshipCondition(familyMemberHistoryResource);
     }
 
-    private void assertRelationshipCondition(FamilyHistory.FamilyHistoryRelationComponent familyHistoryRelationComponent) {
-        assertEquals(1, familyHistoryRelationComponent.getCondition().size());
-        FamilyHistory.FamilyHistoryRelationConditionComponent familyHistoryRelationConditionComponent = familyHistoryRelationComponent.getCondition().get(0);
-        assertEquals("some notes", familyHistoryRelationConditionComponent.getNoteSimple());
-        assertOnsetAge(familyHistoryRelationConditionComponent);
-        assertConditionType(familyHistoryRelationConditionComponent);
+    private void assertRelationshipCondition(FamilyMemberHistory familyMemberHistory) {
+        assertEquals(1, familyMemberHistory.getCondition().size());
+        FamilyMemberHistory.Condition familyMemberCondition = familyMemberHistory.getCondition().get(0);
+        assertEquals("some notes", familyMemberCondition.getNote());
+        assertOnsetAge(familyMemberCondition);
+        assertConditionType(familyMemberCondition);
     }
 
-    private void assertConditionType(FamilyHistory.FamilyHistoryRelationConditionComponent familyHistoryRelationConditionComponent) {
-        assertEquals(1, familyHistoryRelationConditionComponent.getType().getCoding().size());
-        Coding type = familyHistoryRelationConditionComponent.getType().getCoding().get(0);
-        assertEquals("3", type.getCodeSimple());
-        assertEquals("http://tr.com/openmrs/ws/rest/v1/tr/concept/3", type.getSystemSimple());
+    private void assertConditionType(FamilyMemberHistory.Condition familyMemberCondition) {
+        assertEquals(1, familyMemberCondition.getType().getCoding().size());
+        CodingDt type = familyMemberCondition.getType().getCoding().get(0);
+        assertEquals("3", type.getCode());
+        assertEquals("http://tr.com/openmrs/ws/rest/v1/tr/concept/3", type.getSystem());
     }
 
-    private void assertOnsetAge(FamilyHistory.FamilyHistoryRelationConditionComponent familyHistoryRelationConditionComponent) {
-        Age onset = (Age) familyHistoryRelationConditionComponent.getOnset();
-        assertEquals(12, onset.getValueSimple().intValue());
-        assertEquals(UCUM_UNIT_FOR_YEARS, onset.getUnitsSimple());
-        assertEquals(UCUM_URL, onset.getSystemSimple());
+    private void assertOnsetAge(FamilyMemberHistory.Condition familyMemberCondition) {
+        AgeDt onset = (AgeDt) familyMemberCondition.getOnset();
+        assertEquals(12, onset.getValue().intValue());
+        assertEquals(UCUM_UNIT_FOR_YEARS, onset.getUnits());
+        assertEquals(UCUM_URL, onset.getSystem());
     }
 
-    private void assertBornOn(FamilyHistory.FamilyHistoryRelationComponent familyHistoryRelationComponent) {
-        Date bornOn = (Date) familyHistoryRelationComponent.getBorn();
-        assertEquals(DateUtil.parseDate("1978-02-15 00:00:00"), DateUtil.parseDate(bornOn.getValue().toString()));
+    private void assertBornOn(FamilyMemberHistory familyMemberHistory) {
+        Date bornOn = ((DateDt) familyMemberHistory.getBorn()).getValue();
+        assertEquals(DateUtil.parseDate("1978-02-15 00:00:00"), bornOn);
     }
 
-    private void assertRelationship(FamilyHistory.FamilyHistoryRelationComponent familyHistoryRelationComponent) {
-        assertEquals(1, familyHistoryRelationComponent.getRelationship().getCoding().size());
+    private void assertRelationship(FamilyMemberHistory familyMemberHistory) {
+        assertEquals(1, familyMemberHistory.getRelationship().getCoding().size());
 
-        Coding relationship = familyHistoryRelationComponent.getRelationship().getCoding().get(0);
-        assertEquals("FTH", relationship.getCodeSimple());
-        assertEquals(FHIRProperties.FHIR_SYSTEM_RELATIONSHIP_ROLE, relationship.getSystemSimple());
+        CodingDt relationship = familyMemberHistory.getRelationship().getCoding().get(0);
+        assertEquals("FTH", relationship.getCode());
+        assertEquals(FHIRProperties.FHIR_SYSTEM_RELATIONSHIP_ROLE, relationship.getSystem());
     }
 }

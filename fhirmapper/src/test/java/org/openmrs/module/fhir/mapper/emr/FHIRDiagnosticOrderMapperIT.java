@@ -1,9 +1,8 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.formats.ParserBase;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Resource;
-import org.hl7.fhir.instance.model.ResourceType;
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,17 +42,16 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
     @Autowired
     private OrderService orderService;
 
-    private AtomFeed bundle;
+    private Bundle bundle;
 
-    public ParserBase.ResourceOrFeed loadSampleFHIREncounter() throws Exception {
-        ParserBase.ResourceOrFeed parsedResource = new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticOrder.xml", springContext);
-        return parsedResource;
+    public Bundle loadSampleFHIREncounter() throws Exception {
+        return (Bundle) new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticOrder.xml", springContext);
     }
 
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/labOrderDS.xml");
-        bundle = loadSampleFHIREncounter().getFeed();
+        bundle = loadSampleFHIREncounter();
     }
 
     @After
@@ -77,7 +75,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
     }
 
     private Encounter mapOrder() {
-        Resource resource = FHIRFeedHelper.identifyResource(bundle.getEntryList(), ResourceType.DiagnosticOrder);
+        IResource resource = FHIRFeedHelper.identifyResource(bundle.getEntry(), new DiagnosticOrder().getResourceName());
         Encounter encounter = new Encounter();
         encounter.setEncounterDatetime(new Date());
         diagnosticOrderMapper.map(bundle, resource, patientService.getPatient(1), encounter, new HashMap<String, List<String>>());

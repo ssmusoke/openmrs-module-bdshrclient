@@ -1,9 +1,8 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.hl7.fhir.instance.formats.ParserBase;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Resource;
-import org.hl7.fhir.instance.model.ResourceType;
+import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.MedicationPrescription;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,16 +38,15 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
     @Autowired
     private ConceptService conceptService;
     
-    private Resource resource;
-    private AtomFeed feed;
+    private IResource resource;
+    private Bundle bundle;
 
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/drugOrderDS.xml");
 
-        ParserBase.ResourceOrFeed resourceOrFeed = new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/encounterWithMedicationPrescription.xml", springContext);
-        feed = resourceOrFeed.getFeed();
-        resource = FHIRFeedHelper.identifyResource(feed.getEntryList(), ResourceType.MedicationPrescription);
+        bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/encounterWithMedicationPrescription.xml", springContext);
+        resource = FHIRFeedHelper.identifyResource(bundle.getEntry(), new MedicationPrescription().getResourceName());
     }
 
     @After
@@ -97,7 +95,7 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
     public void shouldMapPatientToDrug(){
         Encounter mappedEncounter = new Encounter();
         Patient patient = new Patient();
-        mapper.map(feed, resource, patient, mappedEncounter,new HashMap<String, List<String>>());
+        mapper.map(bundle, resource, patient, mappedEncounter,new HashMap<String, List<String>>());
 
         assertEquals(1, mappedEncounter.getOrders().size());
         Order order = mappedEncounter.getOrders().iterator().next();
@@ -136,7 +134,7 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
     private Order getOrder() {
         Encounter mappedEncounter = new Encounter();
         Patient patient = new Patient();
-        mapper.map(feed, resource, patient, mappedEncounter,new HashMap<String, List<String>>());
+        mapper.map(bundle, resource, patient, mappedEncounter,new HashMap<String, List<String>>());
 
         assertEquals(1, mappedEncounter.getOrders().size());
         return mappedEncounter.getOrders().iterator().next();

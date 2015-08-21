@@ -60,7 +60,7 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
         condition.setAsserter(getParticipant(encounter));
         condition.setCategory(getChiefComplaintCategory());
         condition.setClinicalStatus(ConditionClinicalStatusEnum.CONFIRMED);
-        condition.setDateAsserted(obs.getObsDatetime(), TemporalPrecisionEnum.MILLI);
+        condition.setDateAsserted(obs.getObsDatetime(), TemporalPrecisionEnum.DAY);
 
         final Set<Obs> obsMembers = obs.getGroupMembers(false);
         for (Obs member : obsMembers) {
