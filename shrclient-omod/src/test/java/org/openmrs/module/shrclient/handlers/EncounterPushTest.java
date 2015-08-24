@@ -1,6 +1,6 @@
 package org.openmrs.module.shrclient.handlers;
 
-import org.hl7.fhir.instance.model.AtomFeed;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -83,7 +83,7 @@ public class EncounterPushTest {
         final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + uuid
                 + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
         org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter(uuid);
-        final AtomFeed atomFeed = new AtomFeed();
+        final Bundle bundle = new Bundle();
 
         when(propertiesReader.getBaseUrls()).thenReturn(getBaseUrls());
         when(propertiesReader.getShrProperties()).thenReturn(getShrProperties(facilityId));
@@ -92,14 +92,14 @@ public class EncounterPushTest {
 
 
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
-        when(shrClient.post(anyString(), eq(atomFeed))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
-        when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(atomFeed);
+        when(shrClient.post(anyString(), eq(bundle))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
+        when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(bundle);
         when(idMappingsRepository.findByExternalId(facilityId)).thenReturn(null);
 
         encounterPush.process(event);
 
         verify(encounterService).getEncounterByUuid(uuid);
-        verify(shrClient).post("patients/1234567890123/encounters", atomFeed);
+        verify(shrClient).post("patients/1234567890123/encounters", bundle);
         ArgumentCaptor<IdMapping> idMappingArgumentCaptor = ArgumentCaptor.forClass(IdMapping.class);
         verify(idMappingsRepository).saveMapping(idMappingArgumentCaptor.capture());
 
@@ -119,17 +119,17 @@ public class EncounterPushTest {
         org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter(uuid);
         DateTime dateCreated = new DateTime(openMrsEncounter.getDateCreated());
         openMrsEncounter.setDateChanged(dateCreated.plusMinutes(10).toDate());
-        final AtomFeed atomFeed = new AtomFeed();
+        final Bundle bundle = new Bundle();
 
         when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
         when(propertiesReader.getShrBaseUrl()).thenReturn("http://172.18.46.54:8080");
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid", "encounter", null, openMrsEncounter.getDateCreated()));
-        when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(atomFeed);
+        when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(bundle);
 
         encounterPush.process(event);
 
-        verify(shrClient).put("patients/1234567890123/encounters/shr-uuid", atomFeed);
+        verify(shrClient).put("patients/1234567890123/encounters/shr-uuid", bundle);
         verify(idMappingsRepository, times(1)).saveMapping(any(IdMapping.class));
 
     }
@@ -141,19 +141,19 @@ public class EncounterPushTest {
         final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + uuid
                 + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
         org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter(uuid);
-        final AtomFeed atomFeed = new AtomFeed();
+        final Bundle bundle = new Bundle();
 
         when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
 
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid", "encounter", null));
-        when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(atomFeed);
+        when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(bundle);
         when(systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsEncounter)).thenReturn(true);
 
         encounterPush.process(event);
 
-        verify(shrClient, never()).put("patients/1234567890123/encounters/shr-uuid", atomFeed);
-        verify(shrClient, never()).post("patients/1234567890123/encounters/shr-uuid", atomFeed);
+        verify(shrClient, never()).put("patients/1234567890123/encounters/shr-uuid", bundle);
+        verify(shrClient, never()).post("patients/1234567890123/encounters/shr-uuid", bundle);
         verify(idMappingsRepository, never()).saveMapping(any(IdMapping.class));
     }
 

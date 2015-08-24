@@ -1,6 +1,5 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.api.ResourceMetadataKeyEnum;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.base.resource.ResourceMetadataMap;
@@ -11,6 +10,7 @@ import ca.uhn.fhir.model.dstu2.resource.Composition;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.valueset.BundleTypeEnum;
 import ca.uhn.fhir.model.dstu2.valueset.CompositionStatusEnum;
+import ca.uhn.fhir.model.primitive.InstantDt;
 import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
@@ -53,7 +53,7 @@ public class CompositionBundle {
         //TODO: bundle.setBase("urn:uuid:");
         bundle.setId(UUID.randomUUID().toString());
         ResourceMetadataMap metadataMap = new ResourceMetadataMap();
-        metadataMap.put(ResourceMetadataKeyEnum.UPDATED, composition.getDate());
+        metadataMap.put(ResourceMetadataKeyEnum.UPDATED, new InstantDt(composition.getDate(), TemporalPrecisionEnum.MILLI));
         bundle.setResourceMetadata(metadataMap);
         final FHIRResource encounterResource = new FHIRResource("Encounter", fhirEncounter.getIdentifier(), fhirEncounter);
         addResourceSectionToComposition(composition, encounterResource, systemProperties);
@@ -96,9 +96,9 @@ public class CompositionBundle {
 
     //TODO: reference should be a relative URL
     private void addResourceSectionToComposition(Composition composition, FHIRResource resource, SystemProperties systemProperties) {
-        String resourceId = new EntityReference().build(IResource.class, systemProperties, resource.getIdentifier().getValue());
+//        String resourceId = new EntityReference().build(IResource.class, systemProperties, resource.getIdentifier().getValue());
         ResourceReferenceDt resourceReference = new ResourceReferenceDt();
-        resourceReference.setReference(resourceId);
+        resourceReference.setReference(resource.getIdentifier().getValue());
         resourceReference.setDisplay(resource.getResourceName());
         composition.addSection().setContent(resourceReference);
     }
@@ -112,8 +112,7 @@ public class CompositionBundle {
 
     private Composition createComposition(Date encounterDateTime, Encounter encounter, SystemProperties systemProperties) {
         Composition composition = new Composition().setDate(encounterDateTime, TemporalPrecisionEnum.MILLI);
-        ResourceReferenceDt encounterReference = new ResourceReferenceDt(encounter);
-        composition.setEncounter(encounterReference);
+        composition.setEncounter(new ResourceReferenceDt().setReference(encounter.getId()));
         composition.setStatus(CompositionStatusEnum.FINAL);
         // TODO : remove creating the identifier if necessary. We can use resource Id to identify resources now.
         composition.setIdentifier(new IdentifierDt().setValue(new EntityReference().build(Composition.class, systemProperties, UUID.randomUUID().toString())));

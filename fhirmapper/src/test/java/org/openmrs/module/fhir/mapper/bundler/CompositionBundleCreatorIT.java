@@ -6,6 +6,7 @@ import ca.uhn.fhir.model.dstu2.resource.Composition;
 import org.junit.After;
 import org.junit.Test;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.fhir.FhirContextHelper;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,8 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
         String facilityId = "10000036";
         Bundle bundle = compositionBundle.create(Context.getEncounterService().getEncounter(36), getSystemProperties(facilityId));
         assertNotNull(bundle);
+        String bundleXml = FhirContextHelper.getFhirContext().newXmlParser().encodeResourceToString(bundle);
+        assertNotNull(bundleXml);
     }
 
     @Test

@@ -56,7 +56,7 @@ public class EntityReference {
     private static class EncounterReference extends EntityReference {
         @Override
         protected String create(String id, SystemProperties systemProperties) {
-            return "urn:" +  id;
+            return id;
         }
 
         @Override

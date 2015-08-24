@@ -32,8 +32,4 @@ public class PlatformUtil {
     public static IdentityStore getIdentityStore() {
         return getRegisteredComponent(IdentityStore.class);
     }
-
-    public static FhirBundleUtil getFhirContext() {
-        return getRegisteredComponent(FhirBundleUtil.class);
-    }
 }

@@ -1,6 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 
+import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.valueset.EncounterClassEnum;
@@ -46,9 +47,9 @@ public class EncounterMapper {
     }
 
     private void setIdentifiers(Encounter encounter, org.openmrs.Encounter openMrsEncounter, SystemProperties systemProperties) {
-        String encounterId = getReference(org.openmrs.Encounter.class, systemProperties, openMrsEncounter.getUuid());
-        encounter.setId(encounterId);
-        encounter.addIdentifier().setValue(encounterId);
+        String id = new EntityReference().build(IResource.class, systemProperties, openMrsEncounter.getUuid());
+        encounter.setId(id);
+        encounter.addIdentifier().setValue(id);
     }
 
     public ResourceReferenceDt getServiceProvider(org.openmrs.Encounter openMrsEncounter, SystemProperties systemProperties) {

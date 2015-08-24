@@ -17,7 +17,6 @@ import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.EncounterResponse;
 import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.module.shrclient.util.FhirBundleUtil;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SHRClient;
 import org.openmrs.module.shrclient.util.StringUtil;
@@ -43,17 +42,15 @@ public class EncounterPush implements EventWorker {
     private SHRClient shrClient;
     private List<String> encounterUuidsProcessed;
     private SystemUserService systemUserService;
-    private FhirBundleUtil fhirBundleUtil;
 
     public EncounterPush(EncounterService encounterService, PropertiesReader propertiesReader,
                          CompositionBundle compositionBundle, IdMappingsRepository idMappingsRepository,
                          ClientRegistry clientRegistry,
-                         SystemUserService systemUserService, FhirBundleUtil fhirBundleUtil) throws IdentityUnauthorizedException {
+                         SystemUserService systemUserService) throws IdentityUnauthorizedException {
         this.encounterService = encounterService;
         this.propertiesReader = propertiesReader;
         this.clientRegistry = clientRegistry;
         this.systemUserService = systemUserService;
-        this.fhirBundleUtil = fhirBundleUtil;
         this.shrClient = clientRegistry.getSHRClient();
         this.compositionBundle = compositionBundle;
         this.idMappingsRepository = idMappingsRepository;
@@ -130,7 +127,7 @@ public class EncounterPush implements EventWorker {
                                     propertiesReader.getPrProperties(),
                                     propertiesReader.getFacilityInstanceProperties(),
                                     propertiesReader.getMciProperties()
-                            )), fhirBundleUtil);
+                            )));
             return getEncounterIdFromResponse(shrEncounterCreateResponse);
         } catch (IdentityUnauthorizedException e) {
             log.error("Clearing unauthorized identity token.");
@@ -151,7 +148,7 @@ public class EncounterPush implements EventWorker {
                                     propertiesReader.getTrProperties(),
                                     propertiesReader.getPrProperties(),
                                     propertiesReader.getFacilityInstanceProperties(),
-                                    propertiesReader.getMciProperties())), fhirBundleUtil);
+                                    propertiesReader.getMciProperties())));
         } catch (IdentityUnauthorizedException e) {
             log.error("Clearing unauthorized identity token.");
             clientRegistry.clearIdentityToken();
@@ -200,5 +197,4 @@ public class EncounterPush implements EventWorker {
     public void cleanUp(Event event) {
 
     }
-
 }

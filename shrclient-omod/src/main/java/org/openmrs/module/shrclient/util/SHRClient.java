@@ -31,7 +31,7 @@ public class SHRClient {
     }
 
     @SuppressWarnings("unchecked")
-    public List<EncounterBundle> getEncounters(final String url, FhirBundleUtil fhirBundleUtil) throws IdentityUnauthorizedException {
+    public List<EncounterBundle> getEncounters(final String url) throws IdentityUnauthorizedException {
         try {
             Map<String, String> requestHeaders = new HashMap<>(headers);
             requestHeaders.put("accept", "application/atom+xml");
@@ -46,7 +46,7 @@ public class SHRClient {
                 EncounterBundle bundle = new EncounterBundle();
                 bundle.setEncounterId(entry.getId());
                 bundle.setTitle(entry.getTitle());
-                bundle.addContent(getBundle(entryContent, fhirBundleUtil));
+                bundle.addContent(getBundle(entryContent));
                 encounterBundles.add(bundle);
             }
             return encounterBundles;
@@ -57,8 +57,8 @@ public class SHRClient {
         }
     }
 
-    private Bundle getBundle(String entryContent, FhirBundleUtil fhirBundleUtil) {
-        IParser xmlParser = fhirBundleUtil.getFhirContext().newXmlParser();
+    private Bundle getBundle(String entryContent) {
+        IParser xmlParser = FhirBundleContextHolder.getFhirContext().newXmlParser();
         return xmlParser.parseResource(Bundle.class, entryContent);
     }
 
@@ -70,9 +70,9 @@ public class SHRClient {
         return value.replaceFirst("^<!\\[CDATA\\[", "").replaceFirst("\\]\\]>$", "");
     }
 
-    public String post(final String url, Bundle bundle, FhirBundleUtil fhirBundleUtil) throws IdentityUnauthorizedException {
+    public String post(final String url, Bundle bundle) throws IdentityUnauthorizedException {
         try {
-            StringEntity entity = getPayload(bundle, fhirBundleUtil);
+            StringEntity entity = getPayload(bundle);
             WebClient webClient = new WebClient(baseUrl, headers);
             log.debug(String.format("Posting data %s to url %s", bundle, url));
             return webClient.post(url, entity);
@@ -85,9 +85,9 @@ public class SHRClient {
         }
     }
 
-    public String put(final String url, Bundle bundle, FhirBundleUtil fhirBundleUtil) throws IdentityUnauthorizedException {
+    public String put(final String url, Bundle bundle) throws IdentityUnauthorizedException {
         try {
-            StringEntity entity = getPayload(bundle, fhirBundleUtil);
+            StringEntity entity = getPayload(bundle);
             WebClient webClient = new WebClient(baseUrl, headers);
             log.debug(String.format("Put request %s to url %s", bundle, url));
             return webClient.put(url, entity);
@@ -100,8 +100,8 @@ public class SHRClient {
         }
     }
 
-    private StringEntity getPayload(Bundle bundle, FhirBundleUtil fhirBundleUtil) throws Exception {
-        IParser xmlParser = fhirBundleUtil.getFhirContext().newXmlParser();
+    private StringEntity getPayload(Bundle bundle) throws Exception {
+        IParser xmlParser = FhirBundleContextHolder.getFhirContext().newXmlParser();
         String bundleXML = xmlParser.encodeResourceToString(bundle);
         StringEntity entity = new StringEntity(bundleXML);
         entity.setContentType("application/xml;charset=UTF-8");

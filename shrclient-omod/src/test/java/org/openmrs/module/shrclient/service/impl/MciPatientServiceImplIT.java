@@ -1,10 +1,8 @@
 package org.openmrs.module.shrclient.service.impl;
 
-import ca.uhn.fhir.context.FhirContext;
+import org.junit.After;
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
-import ca.uhn.fhir.parser.XmlParser;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
@@ -18,6 +16,7 @@ import org.openmrs.api.ProviderService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.service.MciPatientService;
+import org.openmrs.module.shrclient.util.FhirBundleContextHolder;
 import org.openmrs.module.shrclient.util.FhirBundleUtil;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -65,8 +64,8 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
         String healthId = "HIDA764177";
         String shrEncounterId = "shr-enc-id";
-        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "classpath:encounterBundles/testFHIREncounter.xml");
-            mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "classpath:encounterBundles/dstu2/testFHIREncounter.xml");
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
         assertNotNull(idMapping);
@@ -80,7 +79,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/patientDeathNoteDS.xml");
 
         Patient patient = patientService.getPatient(1);
-        List<EncounterBundle> bundles = getEncounterBundles("healthId", "shrEncounterId", "classpath:encounterBundles/encounterWithDiagnosticOrder.xml");
+        List<EncounterBundle> bundles = getEncounterBundles("healthId", "shrEncounterId", "classpath:encounterBundles/dstu2/encounterWithDiagnosticOrder.xml");
 
         assertEquals(true, patient.isDead());
         assertEquals("Unspecified Cause Of Death", patient.getCauseOfDeath().getName().getName());
@@ -94,10 +93,10 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldSaveTestOrders() throws Exception {
         executeDataSet("testDataSets/shrDiagnosticOrderSyncTestDS.xml");
-        String healthId = "5915668841731457025";
+        String healthId = "HIDA764177";
         String shrEncounterId = "shr-enc-id";
 
-        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "classpath:encounterBundles/encounterWithDiagnosticOrder.xml");
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "classpath:encounterBundles/dstu2/encounterWithDiagnosticOrder.xml");
         Patient emrPatient = patientService.getPatient(1);
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
@@ -183,21 +182,19 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         bundle.setHealthId(healthId);
         bundle.setLink("http://shr.com/patients/" + healthId + "/encounters/" + shrEncounterId);
         bundle.setTitle("Encounter:" + shrEncounterId);
-        bundle.addContent(loadSampleFHIREncounter(encounterBundleFilePath, springContext));
+        bundle.addContent((Bundle) loadSampleFHIREncounter(encounterBundleFilePath, springContext));
         bundles.add(bundle);
         return bundles;
-    }
-
-    private Bundle loadSampleFHIREncounter(String filePath, ApplicationContext springContext) throws Exception {
-        org.springframework.core.io.Resource resource = springContext.getResource(filePath);
-        String bundleXML = org.apache.commons.io.IOUtils.toString(resource.getInputStream());
-        Bundle parsedBundle = (Bundle) FhirBundleUtil.getFhirContext().newXmlParser()
-                    .parseResource(bundleXML);
-        return parsedBundle;
     }
 
     @After
     public void tearDown() throws Exception {
         deleteAllData();
+    }
+
+    public IResource loadSampleFHIREncounter(String filePath, ApplicationContext springContext) throws Exception {
+        org.springframework.core.io.Resource resource = springContext.getResource(filePath);
+        String bundleXML = org.apache.commons.io.IOUtils.toString(resource.getInputStream());
+        return (IResource) FhirBundleContextHolder.getFhirContext().newXmlParser().parseResource(bundleXML);
     }
 }

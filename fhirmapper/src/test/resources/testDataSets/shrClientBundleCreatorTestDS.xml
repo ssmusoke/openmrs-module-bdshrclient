@@ -71,11 +71,12 @@
     <concept_set concept_set_id="3" concept_id="408" concept_set="398" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
 
     <!--Chief Complaint-->
-    <obs obs_id="1" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
-         uuid="ef4554cb-2225-471a-9cd7-1434552c337c" creator="1" concept_id="399" voided="0" />
-    <obs obs_id="2" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
-         uuid="eee554cb-2225-471a-9cd7-1434552c337c" creator="1" obs_group_id="1" concept_id="398" voided="0" />
-    <obs obs_id="4" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
-         uuid="eeea54cb-2a25-471a-9cd7-1434a5aa337a" creator="1" obs_group_id="2" value_numeric="120" concept_id="408" voided="0" />
-
+    <!--<obs obs_id="1" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"-->
+         <!--uuid="ef4554cb-2225-471a-9cd7-1434552c337c" creator="1" concept_id="399" voided="0" />-->
+    <!--<obs obs_id="2" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"-->
+         <!--uuid="eee554cb-2225-471a-9cd7-1434552c337c" creator="1" obs_group_id="1" concept_id="398" voided="0" />-->
+    <!--<obs obs_id="3" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"-->
+         <!--uuid="eee554cb-2s25-471a-9sd7-1s34552c337c" creator="1" obs_group_id="2" value_coded="400" concept_id="402" voided="0" />-->
+    <!--<obs obs_id="4" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"-->
+         <!--uuid="eeea54cb-2a25-471a-9cd7-1434a5aa337a" creator="1" obs_group_id="2" value_numeric="120" concept_id="408" voided="0" />-->
 </dataset>

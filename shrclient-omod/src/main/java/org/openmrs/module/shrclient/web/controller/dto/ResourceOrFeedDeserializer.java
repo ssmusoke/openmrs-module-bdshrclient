@@ -6,7 +6,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.node.TextNode;
-import org.openmrs.module.shrclient.util.PlatformUtil;
+import org.openmrs.module.shrclient.util.FhirBundleContextHolder;
 
 public class ResourceOrFeedDeserializer extends JsonDeserializer<Bundle> {
 
@@ -14,7 +14,7 @@ public class ResourceOrFeedDeserializer extends JsonDeserializer<Bundle> {
     public Bundle deserialize(JsonParser jp, DeserializationContext ctx) {
         try {
             final String xml = ((TextNode) jp.readValueAsTree()).textValue();
-            FhirContext fhirContext = PlatformUtil.getFhirContext().getFhirContext();
+            FhirContext fhirContext = FhirBundleContextHolder.getFhirContext();
             return fhirContext.newXmlParser().parseResource(Bundle.class, xml);
         } catch (Exception e) {
             throw new RuntimeException(e);

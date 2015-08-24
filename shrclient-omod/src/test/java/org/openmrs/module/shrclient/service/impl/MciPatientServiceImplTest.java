@@ -1,9 +1,7 @@
 package org.openmrs.module.shrclient.service.impl;
 
-import org.hl7.fhir.instance.model.AtomEntry;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.Coding;
-import org.hl7.fhir.instance.model.Composition;
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.Composition;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -59,59 +57,59 @@ public class MciPatientServiceImplTest {
     @Test
     public void shouldNotSyncAlreadyProcessedEncounter() throws Exception {
         EncounterBundle encounterBundle = new EncounterBundle();
-        AtomFeed feed = new AtomFeed();
+        Bundle bundle = new Bundle();
         Composition composition = new Composition();
-        AtomEntry atomEntry = new AtomEntry();
+        Bundle.Entry atomEntry = new Bundle.Entry();
         atomEntry.setResource(composition);
-        feed.addEntry(atomEntry);
-        encounterBundle.addContent(feed);
+        bundle.addEntry(atomEntry);
+        encounterBundle.addContent(bundle);
         Patient emrPatient = new Patient();
 
         when(mockIdMappingsRepository.findByExternalId(any(String.class))).thenReturn(new IdMapping());
         mciPatientService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
 
-        verify(mockFhirmapper, times(0)).map(emrPatient, feed);
+        verify(mockFhirmapper, times(0)).map(emrPatient, bundle);
     }
 
     @Test
     public void shouldNotSyncConfidentialEncounter() throws Exception {
         EncounterBundle encounterBundle = new EncounterBundle();
-        AtomFeed feed = new AtomFeed();
+        Bundle bundle = new Bundle();
         Composition composition = new Composition();
-        composition.setConfidentiality(new Coding().setCodeSimple("R"));
-        AtomEntry atomEntry = new AtomEntry();
+        composition.setConfidentiality("R");
+        Bundle.Entry atomEntry = new Bundle.Entry();
         atomEntry.setResource(composition);
-        feed.addEntry(atomEntry);
-        encounterBundle.addContent(feed);
+        bundle.addEntry(atomEntry);
+        encounterBundle.addContent(bundle);
         Patient emrPatient = new Patient();
 
         when(mockIdMappingsRepository.findByExternalId(any(String.class))).thenReturn(null);
 
         mciPatientService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
 
-        verify(mockFhirmapper, times(0)).map(emrPatient, feed);
+        verify(mockFhirmapper, times(0)).map(emrPatient, bundle);
     }
 
     @Test
     public void shouldSyncNonConfidentialEncounter() throws Exception {
         EncounterBundle encounterBundle = new EncounterBundle();
-        AtomFeed feed = new AtomFeed();
+        Bundle bundle = new Bundle();
         Composition composition = new Composition();
-        composition.setConfidentiality(new Coding().setCodeSimple("N"));
-        AtomEntry atomEntry = new AtomEntry();
+        composition.setConfidentiality("N");
+        Bundle.Entry atomEntry = new Bundle.Entry();
         atomEntry.setResource(composition);
-        feed.addEntry(atomEntry);
-        encounterBundle.addContent(feed);
+        bundle.addEntry(atomEntry);
+        encounterBundle.addContent(bundle);
         encounterBundle.setTitle("Encounter:shr_encounter_id");
         Patient emrPatient = new Patient();
 
         when(mockIdMappingsRepository.findByExternalId(any(String.class))).thenReturn(null);
-        when(mockFhirmapper.map(emrPatient, feed)).thenReturn(new Encounter());
+        when(mockFhirmapper.map(emrPatient, bundle)).thenReturn(new Encounter());
         when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://shr.com/");
 
         mciPatientService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
 
-        verify(mockFhirmapper, times(1)).map(emrPatient, feed);
+        verify(mockFhirmapper, times(1)).map(emrPatient, bundle);
     }
 
     @Test

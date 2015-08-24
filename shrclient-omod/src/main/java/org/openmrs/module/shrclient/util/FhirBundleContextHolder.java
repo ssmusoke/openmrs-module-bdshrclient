@@ -4,7 +4,7 @@ import ca.uhn.fhir.context.FhirContext;
 import org.springframework.stereotype.Component;
 
 @Component
-public class FhirBundleUtil {
+public class FhirBundleContextHolder {
     private static FhirContext fhirContext;
 
 

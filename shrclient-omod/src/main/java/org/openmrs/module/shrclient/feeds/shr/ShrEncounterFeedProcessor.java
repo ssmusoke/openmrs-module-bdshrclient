@@ -17,7 +17,7 @@ import org.ict4h.atomfeed.transaction.AFTransactionManager;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.atomfeed.transaction.support.AtomFeedSpringTransactionManager;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
-import org.openmrs.module.shrclient.util.PlatformUtil;
+import org.openmrs.module.shrclient.util.FhirBundleContextHolder;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -92,7 +92,7 @@ public class ShrEncounterFeedProcessor {
         @Override
         public void process(Event event) {
             String content = event.getContent();
-            FhirContext fhirContext = PlatformUtil.getFhirContext().getFhirContext();
+            FhirContext fhirContext = FhirBundleContextHolder.getFhirContext();
             Bundle bundle;
             try {
                 bundle = fhirContext.newXmlParser().parseResource(Bundle.class, content);

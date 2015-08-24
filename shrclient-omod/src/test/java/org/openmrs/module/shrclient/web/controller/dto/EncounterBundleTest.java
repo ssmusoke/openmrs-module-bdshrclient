@@ -1,10 +1,11 @@
 package org.openmrs.module.shrclient.web.controller.dto;
 
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.Composition;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
-import org.hl7.fhir.instance.model.AtomFeed;
-import org.hl7.fhir.instance.model.ResourceType;
 import org.junit.Test;
 
 import java.io.File;
@@ -27,16 +28,16 @@ public class EncounterBundleTest {
         });
         assertEquals(1, bundles.size());
 
-        EncounterBundle bundle = bundles.get(0);
-        assertNotNull(bundle.getEncounterId());
-        assertNotNull(bundle.getHealthId());
+        EncounterBundle encounterBundle = bundles.get(0);
+        assertNotNull(encounterBundle.getEncounterId());
+        assertNotNull(encounterBundle.getHealthId());
 
-        final AtomFeed feed = bundle.getBundle();
-        assertEquals("urn:38052a8c-c5ad-4821-9e38-b49432a2ccc4", feed.getId());
-        assertNotNull(feed);
-        assertNotNull(feed.getEntryList());
-        assertEquals(2, feed.getEntryList().size());
-        assertEquals(ResourceType.Composition, feed.getEntryList().get(0).getResource().getResourceType());
-        assertEquals(ResourceType.Encounter, feed.getEntryList().get(1).getResource().getResourceType());
+        final Bundle bundle = encounterBundle.getBundle();
+        assertEquals("urn:38052a8c-c5ad-4821-9e38-b49432a2ccc4", bundle.getId().getValue());
+        assertNotNull(bundle);
+        assertNotNull(bundle.getEntry());
+        assertEquals(2, bundle.getEntry().size());
+        assertEquals(new Composition().getResourceName(), bundle.getEntry().get(0).getResource().getResourceName());
+        assertEquals(new Encounter().getResourceName(), bundle.getEntry().get(1).getResource().getResourceName());
     }
 }

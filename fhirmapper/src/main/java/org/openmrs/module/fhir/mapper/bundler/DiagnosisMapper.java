@@ -1,5 +1,6 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
@@ -89,7 +90,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
 
         condition.setDateAsserted(obs.getObsDatetime(), TemporalPrecisionEnum.DAY);
         IdentifierDt identifier = condition.addIdentifier();
-        String obsId = new EntityReference().build(Condition.class, systemProperties, obs.getUuid());
+        String obsId = new EntityReference().build(IResource.class, systemProperties, obs.getUuid());
         identifier.setValue(obsId);
         condition.setId(obsId);
 

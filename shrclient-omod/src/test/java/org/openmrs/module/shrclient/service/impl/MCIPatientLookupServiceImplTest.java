@@ -160,7 +160,7 @@ public class MCIPatientLookupServiceImplTest {
         assertPatient((Map<String, Object>) patients[2], "11408953847", "house 3", "M");
 
     }
-    
+
     @Test
     public void shouldSearchPatientsByPhoneNumber() throws Exception {
         String xAuthToken = "xyz";
@@ -193,7 +193,7 @@ public class MCIPatientLookupServiceImplTest {
         assertPatient((Map<String, Object>) patients[2], "98001000341", "A89 560325", "M");
 
     }
-    
+
     @Test
     public void shouldIgnoreInactivePatients() throws Exception {
         String xAuthToken = "xyz";
