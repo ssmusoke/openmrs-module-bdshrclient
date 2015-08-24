@@ -7,7 +7,6 @@ import org.openmrs.ConceptMap;
 import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.Order;
 import org.openmrs.Provider;
-import org.openmrs.TestOrder;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -40,7 +39,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
 
     @Override
     public boolean canHandle(Order order) {
-        return (order instanceof TestOrder) && order.getOrderType().getName().equalsIgnoreCase(MRS_LAB_ORDER_TYPE);
+        return order.getOrderType().getName().equalsIgnoreCase(MRS_LAB_ORDER_TYPE);
     }
 
     @Override
