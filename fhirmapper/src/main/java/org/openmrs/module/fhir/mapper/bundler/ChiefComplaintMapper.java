@@ -55,7 +55,7 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
 
     private FHIRResource createFHIRCondition(Encounter encounter, Obs obs, SystemProperties systemProperties) {
         Condition condition = new Condition();
-        condition.setEncounter(new ResourceReferenceDt().setReference(new EntityReference().build(Encounter.class, systemProperties, encounter.getId().getValueAsString())));
+        condition.setEncounter(new ResourceReferenceDt().setReference(encounter.getId().getValue()));
         condition.setPatient(encounter.getPatient());
         condition.setAsserter(getParticipant(encounter));
         condition.setCategory(getChiefComplaintCategory());

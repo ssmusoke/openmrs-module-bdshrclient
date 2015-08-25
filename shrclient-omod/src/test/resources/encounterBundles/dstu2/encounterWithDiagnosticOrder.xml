@@ -95,7 +95,7 @@
                     <value value="urn:uuid:453b7b24-7847-49f7-8a33-2fc339e5c4c7"/>
                 </identifier>
                 <encounter>
-                    <reference value="urn:uuid:urn:uuid:4d2f9872-4df1-438e-9d72-0a8b161d409b"/>
+                    <reference value="urn:uuid:4d2f9872-4df1-438e-9d72-0a8b161d409b"/>
                 </encounter>
                 <specimen>
                     <reference value="urn:uuid:a0848743-e6ae-40c7-a271-4117e46d43cd"/>

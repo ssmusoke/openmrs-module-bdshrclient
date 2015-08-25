@@ -51,7 +51,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         Procedure procedure = new Procedure();
 
         procedure.setPatient(fhirEncounter.getPatient());
-        procedure.setEncounter(new ResourceReferenceDt().setReference(new EntityReference().build(Encounter.class, systemProperties, fhirEncounter.getId().getValueAsString())));
+        procedure.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValue()));
         CodeableConceptDt procedureType = getProcedure(compoundObservationProcedure);
         if (procedureType != null) {
             procedure.setType(procedureType);

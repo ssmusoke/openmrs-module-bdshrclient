@@ -55,7 +55,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
 
     @Test
     public void shouldMapFHIRComplaint() throws Exception {
-        final Bundle bundle = loadSampleFHIREncounter("classpath:encounterBundles/testFHIREncounter.xml");
+        final Bundle bundle = loadSampleFHIREncounter("classpath:encounterBundles/dstu2/testFHIREncounter.xml");
         final List<IResource> conditions = TestFhirFeedHelper.getResourceByType(bundle, new Condition().getResourceName());
         Patient emrPatient = new Patient();
         Encounter emrEncounter = new Encounter();

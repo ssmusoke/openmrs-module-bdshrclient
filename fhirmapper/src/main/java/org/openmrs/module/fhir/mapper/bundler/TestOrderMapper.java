@@ -88,7 +88,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
             resources.add(new FHIRResource("Specimen", specimen.getIdentifier(), specimen));
             diagnosticOrder.addSpecimen().setReference(specimen.getId().getValue());
         }
-        orderItem.addSpecimen().setReference(new EntityReference().build(IResource.class, systemProperties, specimen.getId().getValue()));
+        orderItem.addSpecimen().setReference(specimen.getId().getValue());
     }
 
     private Specimen getIfSpecimenExists(Bundle bundle, List<ResourceReferenceDt> specimenList, Order order, SystemProperties systemProperties) {
@@ -182,7 +182,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         String id = new EntityReference().build(Order.class, systemProperties, UUID.randomUUID().toString());
         diagnosticOrder.addIdentifier().setValue(id);
         diagnosticOrder.setId(id);
-        diagnosticOrder.setEncounter(new ResourceReferenceDt().setReference(new EntityReference().build(Encounter.class, systemProperties, fhirEncounter.getId().getValueAsString())));
+        diagnosticOrder.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValue()));
         diagnosticOrder.setStatus(DiagnosticOrderStatusEnum.REQUESTED);
         return diagnosticOrder;
     }

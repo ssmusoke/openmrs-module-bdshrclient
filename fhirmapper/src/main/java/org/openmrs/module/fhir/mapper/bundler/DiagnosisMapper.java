@@ -63,7 +63,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
 
     private FHIRResource createFHIRCondition(Encounter encounter, Obs obs, SystemProperties systemProperties) {
         Condition condition = new Condition();
-        condition.setEncounter(new ResourceReferenceDt().setReference(new EntityReference().build(Encounter.class, systemProperties, encounter.getId().getValueAsString())));
+        condition.setEncounter(new ResourceReferenceDt().setReference(encounter.getId().getValueAsString()));
         condition.setPatient(encounter.getPatient());
         ResourceReferenceDt participant = getParticipant(encounter);
         if (null != participant) {

@@ -24,8 +24,7 @@ public class EncounterBundleTest {
         final URL resource = URLClassLoader.getSystemResource("sample_encounter_bundle.json");
         final String json = FileUtils.readFileToString(new File(resource.getPath()));
         ObjectMapper mapper = new ObjectMapper();
-        List<EncounterBundle> bundles = mapper.readValue(json, new TypeReference<List<EncounterBundle>>() {
-        });
+        List<EncounterBundle> bundles = mapper.readValue(json, new TypeReference<List<EncounterBundle>>() {});
         assertEquals(1, bundles.size());
 
         EncounterBundle encounterBundle = bundles.get(0);
@@ -33,7 +32,7 @@ public class EncounterBundleTest {
         assertNotNull(encounterBundle.getHealthId());
 
         final Bundle bundle = encounterBundle.getBundle();
-        assertEquals("urn:38052a8c-c5ad-4821-9e38-b49432a2ccc4", bundle.getId().getValue());
+        assertEquals("Bundle/4fe6f9e2-d10a-4956-aae5-091e810090e1", bundle.getId().getValue());
         assertNotNull(bundle);
         assertNotNull(bundle.getEntry());
         assertEquals(2, bundle.getEntry().size());

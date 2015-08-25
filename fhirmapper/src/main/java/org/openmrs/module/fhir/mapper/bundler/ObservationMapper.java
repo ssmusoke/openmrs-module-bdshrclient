@@ -13,7 +13,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
-import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.RelatedObservation;
 import org.openmrs.module.fhir.utils.CodableConceptService;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
@@ -71,7 +70,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
 
     public List<FHIRResource> mapToFhirObservation(Obs observation, Encounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> result = new ArrayList<>();
-        Observation fhirObservation = createObservation(observation, fhirEncounter, systemProperties);
+        Observation fhirObservation = createObservation(observation, fhirEncounter);
         FHIRResource entry = buildResource(fhirObservation, observation);
         for (Obs member : observation.getGroupMembers()) {
             mapGroupMember(member, fhirEncounter, fhirObservation, result, systemProperties);
@@ -85,7 +84,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
     }
 
     private void mapGroupMember(Obs obs, Encounter fhirEncounter, Observation parentObservation, List<FHIRResource> result, SystemProperties systemProperties) {
-        Observation observation = createObservation(obs, fhirEncounter, systemProperties);
+        Observation observation = createObservation(obs, fhirEncounter);
         FHIRResource entry = buildResource(observation, obs);
         mapRelatedObservation(observation).mergeWith(parentObservation, systemProperties);
         for (Obs member : obs.getGroupMembers()) {
@@ -94,10 +93,10 @@ public class ObservationMapper implements EmrObsResourceHandler {
         result.add(entry);
     }
 
-    private Observation createObservation(Obs openmrsObs, Encounter fhirEncounter, SystemProperties systemProperties) {
+    private Observation createObservation(Obs openmrsObs, Encounter fhirEncounter) {
         Observation fhirObservation = new Observation();
         fhirObservation.setSubject(fhirEncounter.getPatient());
-        fhirObservation.setEncounter(new ResourceReferenceDt().setReference(new EntityReference().build(Encounter.class, systemProperties, fhirEncounter.getId().getValueAsString())));
+        fhirObservation.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValue()));
         mapName(openmrsObs, fhirObservation);
         fhirObservation.setStatus(ObservationStatusEnum.FINAL);
         fhirObservation.setReliability(ObservationReliabilityEnum.OK);

@@ -16,6 +16,7 @@ import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.Date;
@@ -26,6 +27,7 @@ import java.util.Set;
 import static org.junit.Assert.*;
 
 @ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     @Autowired
     private ApplicationContext springContext;
@@ -45,7 +47,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
     private Bundle bundle;
 
     public Bundle loadSampleFHIREncounter() throws Exception {
-        return (Bundle) new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticOrder.xml", springContext);
+        return (Bundle) new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/dstu2/encounterWithDiagnosticOrder.xml", springContext);
     }
 
     @Before

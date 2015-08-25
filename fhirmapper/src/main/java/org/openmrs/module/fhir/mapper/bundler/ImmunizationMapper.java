@@ -66,7 +66,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     private Immunization createImmunizationResource(CompoundObservation immunizationIncidentObs, Encounter fhirEncounter, SystemProperties systemProperties) {
         Immunization immunization = new Immunization();
         immunization.setPatient(fhirEncounter.getPatient());
-        immunization.setEncounter(new ResourceReferenceDt().setReference(new EntityReference().build(Encounter.class, systemProperties, fhirEncounter.getId().getValueAsString())));
+        immunization.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValue()));
         Obs vaccineObs = immunizationIncidentObs.getMemberObsForConceptName(MRS_CONCEPT_VACCINE);
         List<Drug> drugs = conceptService.getDrugsByConcept(vaccineObs.getValueCoded());
         if (CollectionUtils.isEmpty(drugs)) {

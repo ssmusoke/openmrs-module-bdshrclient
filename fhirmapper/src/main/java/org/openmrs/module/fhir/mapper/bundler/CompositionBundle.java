@@ -115,7 +115,9 @@ public class CompositionBundle {
         composition.setEncounter(new ResourceReferenceDt().setReference(encounter.getId()));
         composition.setStatus(CompositionStatusEnum.FINAL);
         // TODO : remove creating the identifier if necessary. We can use resource Id to identify resources now.
-        composition.setIdentifier(new IdentifierDt().setValue(new EntityReference().build(Composition.class, systemProperties, UUID.randomUUID().toString())));
+        String id = new EntityReference().build(Composition.class, systemProperties, UUID.randomUUID().toString());
+        composition.setId(id);
+        composition.setIdentifier(new IdentifierDt().setValue(id));
         composition.setSubject(encounter.getPatient());
         ResourceReferenceDt resourceReferenceAuthor = composition.addAuthor();
         resourceReferenceAuthor.setReference(encounter.getServiceProvider().getReference());

@@ -45,7 +45,7 @@ public class FHIRFamilyHistoryMapperIT extends BaseModuleWebContextSensitiveTest
     @Test
     public void shouldMapFamilyHistoryResource() throws Exception {
         executeDataSet("testDataSets/shrClientFamilyHistoryTestDS.xml");
-        Bundle bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/encounterWithFamilyHistory.xml", springContext);
+        Bundle bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithFamilyHistory.xml", springContext);
         FamilyMemberHistory familyHistory = (FamilyMemberHistory) FHIRFeedHelper.identifyResource(bundle.getEntry(), new FamilyMemberHistory().getResourceName());
         Encounter newEmrEncounter = new Encounter();
         familyHistoryMapper.map(bundle, familyHistory, new Patient(), newEmrEncounter, new HashMap<String, List<String>>());
@@ -60,26 +60,26 @@ public class FHIRFamilyHistoryMapperIT extends BaseModuleWebContextSensitiveTest
         assertEquals(3, personObs.getGroupMembers().size());
 
         assertEquals(3, personObs.getGroupMembers().size());
-        Obs relationshipTypeObs = identifyObsFromGlobalPropertyValue(TR_VALUESET_RELATIONSHIP_TYPE, personObs.getGroupMembers());
+        Obs relationshipTypeObs = identifyObsFromConceptName(TR_VALUESET_RELATIONSHIP_TYPE, personObs.getGroupMembers());
         assertEquals(conceptService.getConcept(400), relationshipTypeObs.getValueCoded());
 
-        Obs bornOnObs = identifyObsFromGlobalPropertyValue(MRS_CONCEPT_NAME_BORN_ON, personObs.getGroupMembers());
+        Obs bornOnObs = identifyObsFromConceptName(MRS_CONCEPT_NAME_BORN_ON, personObs.getGroupMembers());
         assertEquals(DateUtil.parseDate("2074-12-01T00:00:00+05:30"), bornOnObs.getValueDate());
 
-        Obs relationshipConditionObs = identifyObsFromGlobalPropertyValue(MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION, personObs.getGroupMembers());
+        Obs relationshipConditionObs = identifyObsFromConceptName(MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION, personObs.getGroupMembers());
         assertEquals(3, relationshipConditionObs.getGroupMembers().size());
 
-        Obs relationshipNotesObs = identifyObsFromGlobalPropertyValue(MRS_CONCEPT_NAME_RELATIONSHIP_NOTES, relationshipConditionObs.getGroupMembers());
+        Obs relationshipNotesObs = identifyObsFromConceptName(MRS_CONCEPT_NAME_RELATIONSHIP_NOTES, relationshipConditionObs.getGroupMembers());
         assertEquals("Some notes", relationshipNotesObs.getValueText());
 
-        Obs relationshipDiagnosisObs = identifyObsFromGlobalPropertyValue(MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS, relationshipConditionObs.getGroupMembers());
+        Obs relationshipDiagnosisObs = identifyObsFromConceptName(MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS, relationshipConditionObs.getGroupMembers());
         assertEquals(conceptService.getConcept(301), relationshipDiagnosisObs.getValueCoded());
 
-        Obs onsetAgeObs = identifyObsFromGlobalPropertyValue(MRS_CONCEPT_NAME_ONSET_AGE, relationshipConditionObs.getGroupMembers());
+        Obs onsetAgeObs = identifyObsFromConceptName(MRS_CONCEPT_NAME_ONSET_AGE, relationshipConditionObs.getGroupMembers());
         assertTrue(5 == onsetAgeObs.getValueNumeric());
     }
 
-    private Obs identifyObsFromGlobalPropertyValue(String conceptName, Set<Obs> groupMembers) {
+    private Obs identifyObsFromConceptName(String conceptName, Set<Obs> groupMembers) {
         for (Obs groupMember : groupMembers) {
             if(groupMember.getConcept().getName().getName().equals(conceptName)) {
                 return groupMember;

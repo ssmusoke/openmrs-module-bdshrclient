@@ -24,6 +24,7 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -42,7 +43,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
     ConceptService conceptService;
 
     public Bundle loadSampleFHIREncounter() throws Exception {
-        return (Bundle) new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/testFHIREncounter.xml", springContext);
+        return (Bundle) new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/dstu2/testFHIREncounter.xml", springContext);
     }
 
     @After
@@ -55,7 +56,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
     public void shouldMapFhirEncounter() throws Exception {
         executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
         final Bundle encounterBundle = loadSampleFHIREncounter();
-        assertEquals("urn:dc1f5f99-fb2f-4ba8-bf24-14ccdee498f9", encounterBundle.getId().getValue());
+        assertEquals("Bundle/4fe6f9e2-d10a-4956-aae5-091e810090e1", encounterBundle.getId().getValue());
 
         FHIRFeedHelper.getComposition(encounterBundle);
         final Composition composition = FHIRFeedHelper.getComposition(encounterBundle);
@@ -64,7 +65,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         assertEquals(DateUtil.parseDate("2014-07-10T16:05:09+05:30"), composition.getDate());
         final Encounter encounter = FHIRFeedHelper.getEncounter(encounterBundle);
         assertNotNull(encounter);
-        assertEquals("urn:26504add-2d96-44d0-a2f6-d849dc090254", encounter.getId().getValue());
+        assertEquals("urn:uuid:4d2f9872-4df1-438e-9d72-0a8b161d409b", encounter.getId().getValue());
 
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
         org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map(encounter, composition.getDate(), emrPatient, encounterBundle);
@@ -106,22 +107,13 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
     @Test
     public void shouldMapAnEncounterWhichDoesNotHaveServiceProvider() throws Exception {
         executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
-        Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/testFHIREncounterWithExternalProvider.xml", springContext);
+        Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/dstu2/testFHIREncounterWithoutServiceProvider.xml", springContext);
         Composition composition = FHIRFeedHelper.getComposition(encounterBundle);
         Encounter encounter = FHIRFeedHelper.getEncounter(encounterBundle);
-        encounter.setServiceProvider(null);
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
         org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map(encounter, composition.getDate(), emrPatient, encounterBundle);
 
         assertNotNull(emrEncounter);
-        assertEquals(emrPatient, emrEncounter.getPatient());
-        assertEquals(DateUtil.parseDate("2014-07-10T16:05:09+05:30"), emrEncounter.getEncounterDatetime());
-        assertEquals(encounter.getType().get(0).getText(), emrEncounter.getEncounterType().getName());
-        assertNotNull(emrEncounter.getEncounterProviders());
-
-        assertNotNull(emrEncounter.getVisit());
-        assertNotNull(emrEncounter.getLocation());
-        assertEquals("ad41fb41-a41a-4ad6-8835-2f59099acf5a", emrEncounter.getVisit().getUuid());
-        assertEquals("50ab30be-98af-4dfd-bd04-5455937c443f", emrEncounter.getLocation().getUuid());
+        assertTrue(3 == emrEncounter.getLocation().getId());
     }
 }

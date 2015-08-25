@@ -18,7 +18,7 @@ import java.util.List;
 public class DiagnosticReportBuilder {
     public DiagnosticReport build(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
         DiagnosticReport report = new DiagnosticReport();
-        report.setEncounter(new ResourceReferenceDt().setReference(new EntityReference().build(Encounter.class, systemProperties, fhirEncounter.getId().getValueAsString())));
+        report.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValue()));
         report.setStatus(DiagnosticReportStatusEnum.FINAL);
         report.setIssued(obs.getObsDatetime(), TemporalPrecisionEnum.MILLI);
         report.setSubject(fhirEncounter.getPatient());

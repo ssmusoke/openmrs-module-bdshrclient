@@ -19,9 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Locale.ENGLISH;
 import static org.apache.commons.collections4.CollectionUtils.exists;
-import static org.openmrs.ConceptMapType.SAME_AS_MAP_TYPE_UUID;
 import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_CONCEPT_TYPE;
 import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_REFERENCE_TERM_TYPE;
 
@@ -148,13 +146,7 @@ public class OMRSConceptLookup {
                 }
             }
         }
-
-        // TODO: This mapping is incomplete
-        final String conceptName = referenceTermMapping.get(refTerm);
-        Concept concept = new Concept();
-        concept.addName(new ConceptName(conceptName, ENGLISH));
-        concept.addConceptMapping(new ConceptMap(refTerm, conceptService.getConceptMapTypeByUuid(SAME_AS_MAP_TYPE_UUID)));
-        return conceptService.saveConcept(concept);
+        return null;
     }
 
     private static String getUuid(String content) {
