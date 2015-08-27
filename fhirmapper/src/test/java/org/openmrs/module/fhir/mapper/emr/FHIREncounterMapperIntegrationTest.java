@@ -43,7 +43,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
     ConceptService conceptService;
 
     public Bundle loadSampleFHIREncounter() throws Exception {
-        return (Bundle) new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/dstu2/testFHIREncounter.xml", springContext);
+        return (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/testFHIREncounter.xml", springContext);
     }
 
     @After

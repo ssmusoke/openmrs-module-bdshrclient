@@ -31,7 +31,6 @@ import static org.openmrs.module.fhir.mapper.FHIRProperties.*;
 @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 public class CompositionBundle {
 
-    public static final String FHIR_CONFIDENTIALITY_SYSTEM = "http://hl7.org/fhir/v3/Confidentiality";
     public static final String CONFIDENTIALITY_NORMAL = "N";
     @Autowired
     private EncounterMapper encounterMapper;

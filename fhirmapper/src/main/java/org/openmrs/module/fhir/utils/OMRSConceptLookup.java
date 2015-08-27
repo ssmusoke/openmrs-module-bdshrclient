@@ -37,7 +37,12 @@ public class OMRSConceptLookup {
         this.globalPropertyLookUpService = globalPropertyLookUpService;
     }
 
-    public Concept findConcept(List<CodingDt> codings) {
+    public Concept findConceptByCodeOrDisplay(List<CodingDt> codings) {
+        Concept conceptByCode = findConceptByCode(codings);
+        return conceptByCode != null ? conceptByCode : conceptService.getConceptByName(codings.get(0).getDisplay());
+    }
+
+    public Concept findConceptByCode(List<CodingDt> codings) {
         Map<ConceptReferenceTerm, String> referenceTermMap = new HashMap<>();
         for (CodingDt coding : codings) {
             if (isValueSetUrl(coding.getSystem())) {
@@ -147,6 +152,12 @@ public class OMRSConceptLookup {
             }
         }
         return null;
+        //TODO : should we do this?
+//        final String conceptName = referenceTermMapping.get(refTerm);
+//        Concept concept = new Concept();
+//        concept.addName(new ConceptName(conceptName, ENGLISH));
+//        concept.addConceptMapping(new ConceptMap(refTerm, conceptService.getConceptMapTypeByUuid(SAME_AS_MAP_TYPE_UUID)));
+//        return conceptService.saveConcept(concept);
     }
 
     private static String getUuid(String content) {

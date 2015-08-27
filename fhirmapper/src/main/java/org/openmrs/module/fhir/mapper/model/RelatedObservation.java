@@ -16,7 +16,7 @@ public class RelatedObservation implements PartOf<Observation> {
     @Override
     public Observation mergeWith(Observation observation, SystemProperties systemProperties) {
         Observation.Related related = observation.addRelated();
-        related.setTarget(new ResourceReferenceDt().setReference(new EntityReference().build(Observation.class, systemProperties, relatedObservation.getId().getValue())));
+        related.setTarget(new ResourceReferenceDt().setReference(relatedObservation.getId().getValue()));
         related.setType(ObservationRelationshipTypeEnum.HAS_COMPONENT);
         return observation;
     }

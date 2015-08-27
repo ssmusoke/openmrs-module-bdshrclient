@@ -149,7 +149,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
 //    private Concept mapRoute(MedicationPrescriptionDosageInstructionComponent dosageInstruction) {
 //        Concept route = null;
 //        if (null != dosageInstruction.getRoute() && !dosageInstruction.getRoute().getCoding().isEmpty()) {
-//            route = omrsConceptLookup.findConcept(dosageInstruction.getRoute().getCoding());
+//            route = omrsConceptLookup.findConceptByCode(dosageInstruction.getRoute().getCoding());
 //            if (route == null) {
 //                route = conceptService.getConceptByName(dosageInstruction.getRoute().getCoding().get(0).getDisplaySimple());
 //            }

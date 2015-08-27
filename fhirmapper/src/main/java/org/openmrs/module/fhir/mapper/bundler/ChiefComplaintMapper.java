@@ -4,11 +4,11 @@ import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
+import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Condition;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.valueset.ConditionClinicalStatusEnum;
-import ca.uhn.fhir.model.primitive.DateTimeDt;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 import org.openmrs.Obs;
@@ -90,12 +90,15 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
         return new FHIRResource(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT, condition.getIdentifier(), condition);
     }
 
-    private DateTimeDt getOnsetDate(Obs member) {
+    private PeriodDt getOnsetDate(Obs member) {
         Double durationInMinutes = member.getValueNumeric();
         final java.util.Date obsDatetime = member.getObsDatetime();
         org.joda.time.DateTime obsTime = new DateTime(obsDatetime);
         final java.util.Date assertedDateTime = obsTime.minusMinutes(durationInMinutes.intValue()).toDate();
-        return new DateTimeDt(assertedDateTime, TemporalPrecisionEnum.MILLI);
+        PeriodDt periodDt = new PeriodDt();
+        periodDt.setStart(assertedDateTime, TemporalPrecisionEnum.MILLI);
+        periodDt.setEnd(obsDatetime, TemporalPrecisionEnum.MILLI);
+        return periodDt;
     }
 
     private CodeableConceptDt getChiefComplaintCategory() {

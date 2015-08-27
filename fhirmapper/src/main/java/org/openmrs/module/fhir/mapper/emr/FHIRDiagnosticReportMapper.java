@@ -52,7 +52,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
         DiagnosticReport diagnosticReport = (DiagnosticReport) resource;
         if (processedList.containsKey(diagnosticReport.getIdentifier().get(0).getValue()))
             return;
-        Concept concept = omrsConceptLookup.findConcept(diagnosticReport.getName().getCoding());
+        Concept concept = omrsConceptLookup.findConceptByCode(diagnosticReport.getName().getCoding());
         if (concept == null) {
             return;
         }

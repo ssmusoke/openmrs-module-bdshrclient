@@ -4,17 +4,19 @@ import ca.uhn.fhir.model.api.IDatatype;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
-import ca.uhn.fhir.model.primitive.BooleanDt;
+import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
 import ca.uhn.fhir.model.primitive.DateDt;
-import ca.uhn.fhir.model.primitive.DecimalDt;
 import ca.uhn.fhir.model.primitive.StringDt;
 import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Concept;
+import org.openmrs.ConceptNumeric;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.utils.CodableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import static org.openmrs.module.fhir.mapper.FHIRProperties.*;
 
 @Component
 public class ObservationValueMapper {
@@ -28,7 +30,13 @@ public class ObservationValueMapper {
             @Override
             public IDatatype readValue(Obs obs, IdMappingsRepository idMappingsRepository, CodableConceptService codableConceptService) {
                 if (obs.getConcept().getDatatype().isNumeric() && obs.getValueNumeric() != null) {
-                    return new DecimalDt(obs.getValueNumeric());
+                    QuantityDt quantity = new QuantityDt();
+                    quantity.setValue(obs.getValueNumeric());
+                    if (obs.getConcept() instanceof ConceptNumeric) {
+                        String units = ((ConceptNumeric) obs.getConcept()).getUnits();
+                        if (units != null) quantity.setUnits(units);
+                    }
+                    return quantity;
                 }
                 return null;
             }
@@ -48,7 +56,12 @@ public class ObservationValueMapper {
             @Override
             public IDatatype readValue(Obs obs, IdMappingsRepository idMappingsRepository, CodableConceptService codableConceptService) {
                 if (obs.getConcept().getDatatype().isBoolean() && obs.getValueAsBoolean() != null) {
-                    return new BooleanDt(obs.getValueAsBoolean());
+                    CodeableConceptDt codeableConcept = new CodeableConceptDt();
+                    CodingDt coding = codeableConcept.addCoding();
+                    coding.setSystem(FHIR_YES_NO_INDICATOR_URL);
+                    coding.setCode(obs.getValueBoolean() ? FHIR_YES_INDICATOR_CODE : FHIR_NO_INDICATOR_CODE);
+                    coding.setDisplay(obs.getValueBoolean() ? FHIR_YES_INDICATOR_DISPLAY : FHIR_NO_INDICATOR_DISPLAY);
+                    return codeableConcept;
                 }
                 return null;
             }

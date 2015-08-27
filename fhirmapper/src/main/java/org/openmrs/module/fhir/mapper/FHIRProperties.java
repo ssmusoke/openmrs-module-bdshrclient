@@ -31,6 +31,13 @@ public class FHIRProperties {
     public static final String LOINC_CODE_DETAILS_NOTE = "51899-3";
     public static final String LOINC_DETAILS_NOTE_DISPLAY = "Details Document";
 
+    public static final String FHIR_YES_NO_INDICATOR_URL = "http://hl7.org/fhir/v2/vs/0136";
+    public static final String FHIR_YES_INDICATOR_CODE = "Y";
+    public static final String FHIR_YES_INDICATOR_DISPLAY = "Yes";
+    public static final String FHIR_NO_INDICATOR_CODE = "N";
+    public static final String FHIR_NO_INDICATOR_DISPLAY = "No";
+
+
     private Map<String, String> severityCodes = new HashMap<String, String>();
 
     public FHIRProperties() {

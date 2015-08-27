@@ -1,6 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import org.junit.After;
+import org.junit.Test;
 import org.openmrs.api.OrderService;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +25,8 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 //        executeDataSet("testDataSets/drugOrderDS.xml");
 //    }
 //
-//    @Test
-//    public void shouldMapDrugOrders() throws Exception {
+    @Test
+    public void shouldMapDrugOrders() throws Exception {
 //        Order order = orderService.getOrder(16);
 //        Encounter fhirEncounter = getFhirEncounter();
 //
@@ -41,7 +42,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 //        assertRoute(dosageInstruction);
 //        assertDoseQuantity(dosageInstruction);
 //        assertSchedule(dosageInstruction, 6, 1, 1, d);
-//    }
+    }
 //
 //    @Test
 //    public void shouldCalculateSchedulesForTwiceAWeek() throws Exception {

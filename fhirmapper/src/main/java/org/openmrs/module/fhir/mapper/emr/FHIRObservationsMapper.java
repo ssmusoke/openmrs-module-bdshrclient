@@ -11,7 +11,6 @@ import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -26,16 +25,13 @@ import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReferen
 public class FHIRObservationsMapper implements FHIRResourceMapper {
 
     @Autowired
-    ConceptService conceptService;
+    private ConceptService conceptService;
 
     @Autowired
-    IdMappingsRepository idMappingsRepository;
+    private OMRSConceptLookup omrsConceptLookup;
 
     @Autowired
-    OMRSConceptLookup omrsConceptLookup;
-
-    @Autowired
-    FHIRResourceValueMapper resourceValueMapper;
+    private FHIRResourceValueMapper resourceValueMapper;
 
     @Override
     public boolean canHandle(IResource resource) {
@@ -107,7 +103,7 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
         if (observationName.getCoding().isEmpty()) {
             return null;
         }
-        Concept concept = omrsConceptLookup.findConcept(observationName.getCoding());
+        Concept concept = omrsConceptLookup.findConceptByCode(observationName.getCoding());
         if(concept == null) {
             return conceptService.getConceptByName(observationName.getCoding().get(0).getDisplay());
         }

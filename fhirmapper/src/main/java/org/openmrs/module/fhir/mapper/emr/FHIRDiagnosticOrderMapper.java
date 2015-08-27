@@ -50,7 +50,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         List<DiagnosticOrder.Item> item = diagnosticOrder.getItem();
         ArrayList<String> processedTestOrderUuids = new ArrayList<>();
         for (DiagnosticOrder.Item diagnosticOrderItemComponent : item) {
-            Concept testOrderConcept = omrsConceptLookup.findConcept(diagnosticOrderItemComponent.getCode().getCoding());
+            Concept testOrderConcept = omrsConceptLookup.findConceptByCode(diagnosticOrderItemComponent.getCode().getCoding());
             if (testOrderConcept != null) {
                 Order testOrder = createTestOrder(bundle, diagnosticOrder, patient, encounter, testOrderConcept);
                 encounter.addOrder(testOrder);
@@ -76,7 +76,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
 
     private void setOrderer(Order testOrder, DiagnosticOrder diagnosticOrder) {
         ResourceReferenceDt orderer = diagnosticOrder.getOrderer();
-        if (orderer != null) {
+        if (!orderer.isEmpty()) {
             String practitionerReferenceUrl = orderer.getReference().getValue();
             testOrder.setOrderer(providerLookupService.getProviderByReferenceUrl(practitionerReferenceUrl));
         }

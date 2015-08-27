@@ -2,9 +2,9 @@ package org.openmrs.module.fhir.mapper.emr;
 
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
+import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Condition;
-import ca.uhn.fhir.model.primitive.DateTimeDt;
 import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
@@ -56,7 +56,7 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
 
         Obs chiefComplaintObs = new Obs();
         List<CodingDt> conditionCoding = condition.getCode().getCoding();
-        Concept conceptAnswer = omrsConceptLookup.findConcept(conditionCoding);
+        Concept conceptAnswer = omrsConceptLookup.findConceptByCode(conditionCoding);
         if (conceptAnswer == null) {
             if (CollectionUtils.isNotEmpty(conditionCoding)) {
                 String displayName = conditionCoding.get(0).getDisplay();
@@ -117,8 +117,8 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
     }
 
     private Double getComplaintDuration(Condition condition) {
-        DateTimeDt onsetDateTime = (DateTimeDt) condition.getOnset();
-        long differenceInMinutes = (condition.getDateAsserted().getTime() - onsetDateTime.getValue().getTime()) / CONVERTION_PARAMETER_FOR_MINUTES;
+        PeriodDt onsetPeriod = (PeriodDt) condition.getOnset();
+        long differenceInMinutes = (onsetPeriod.getEnd().getTime() - onsetPeriod.getStart().getTime()) / CONVERTION_PARAMETER_FOR_MINUTES;
         return Double.valueOf(differenceInMinutes);
     }
 }

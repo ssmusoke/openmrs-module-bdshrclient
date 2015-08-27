@@ -85,11 +85,11 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
 
     private String getCodeSimple(FamilyMemberHistory relation) {
         CodeableConceptDt relationship = relation.getRelationship();
-        if (null == relationship) {
+        if (relationship.isEmpty()) {
             return null;
         }
         List<CodingDt> coding = relationship.getCoding();
-        if (null == coding) {
+        if (coding.isEmpty()) {
             return null;
         }
         return coding.get(0).getCode();
@@ -124,7 +124,7 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
     }
 
     private void mapNotes(Obs result, FamilyMemberHistory.Condition condition) {
-        if (null != condition.getNote()) {
+        if (!condition.getNote().isEmpty()) {
             Obs notes = new Obs();
             Concept onsetDateConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_RELATIONSHIP_NOTES);
             notes.setConcept(onsetDateConcept);
@@ -134,7 +134,7 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
     }
 
     private void mapOnsetDate(Obs result, IDatatype onset) {
-        if (null != onset && onset instanceof AgeDt) {
+        if (!onset.isEmpty() && onset instanceof AgeDt) {
             Obs ageValue = new Obs();
             Concept onsetDateConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_ONSET_AGE);
             ageValue.setConcept(onsetDateConcept);
@@ -156,7 +156,7 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
     }
 
     private Obs setBornOnObs(FamilyMemberHistory familyMemberHistory) {
-        if (null != familyMemberHistory.getBorn() && familyMemberHistory.getBorn() instanceof DateDt) {
+        if (!familyMemberHistory.getBorn().isEmpty() && familyMemberHistory.getBorn() instanceof DateDt) {
             Obs bornOnObs = new Obs();
             Concept bornOnConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_BORN_ON);
             java.util.Date observationValue = ((DateDt) familyMemberHistory.getBorn()).getValue();

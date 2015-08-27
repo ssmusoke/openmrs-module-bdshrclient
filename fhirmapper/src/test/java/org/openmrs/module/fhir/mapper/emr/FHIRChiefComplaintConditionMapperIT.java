@@ -55,7 +55,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
 
     @Test
     public void shouldMapFHIRComplaint() throws Exception {
-        final Bundle bundle = loadSampleFHIREncounter("classpath:encounterBundles/dstu2/testFHIREncounter.xml");
+        final Bundle bundle = loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithChiefComplaints.xml");
         final List<IResource> conditions = TestFhirFeedHelper.getResourceByType(bundle, new Condition().getResourceName());
         Patient emrPatient = new Patient();
         Encounter emrEncounter = new Encounter();
@@ -91,7 +91,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
 
     @Test
     public void shouldNotCreateDurationObsIfDurationNotGiven() throws Exception {
-        final Bundle bundle = loadSampleFHIREncounter("classpath:encounterBundles/chiefComplaintWithoutDuration.xml");
+        final Bundle bundle = loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithChiefComplaintWithoutDuration.xml");
         final List<IResource> conditions = TestFhirFeedHelper.getResourceByType(bundle, new Condition().getResourceName());
         Patient emrPatient = new Patient();
         Encounter emrEncounter = new Encounter();
@@ -108,7 +108,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
 
     @Test
     public void shouldCreateOneHistoryAndExaminationObsForAllComplaints() throws Exception {
-        final Bundle bundle = loadSampleFHIREncounter("classpath:encounterBundles/encounterWithMultipleChiefComplaints.xml");
+        final Bundle bundle = loadSampleFHIREncounter("classpath:encounterBundles/dstu2/encounterWithMultipleChiefComplaints.xml");
         final List<IResource> conditions = TestFhirFeedHelper.getResourceByType(bundle, new Condition().getResourceName());
         Patient emrPatient = new Patient();
         Encounter emrEncounter = new Encounter();

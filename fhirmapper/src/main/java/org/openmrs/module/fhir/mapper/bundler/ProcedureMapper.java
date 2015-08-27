@@ -1,7 +1,6 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 
-import ca.uhn.fhir.model.api.IDatatype;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
@@ -9,11 +8,13 @@ import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Procedure;
+import org.openmrs.Concept;
 import org.openmrs.Obs;
-import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
+import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,7 +30,10 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     private static String DIAGNOSTIC_REPORT_RESOURCE_NAME = "Diagnostic Report";
 
     @Autowired
-    private ObservationValueMapper obsValueMapper;
+    private CodableConceptService codeableConceptService;
+
+    @Autowired
+    private IdMappingsRepository idMappingsRepository;
 
     @Autowired
     private DiagnosticReportBuilder diagnosticReportBuilder;
@@ -89,12 +93,10 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         CodeableConceptDt procedureType = null;
         Obs procedureTypeObs = compoundObservationProcedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_TYPE);
         if (procedureTypeObs != null) {
-            IDatatype codeableType = obsValueMapper.map(procedureTypeObs);
-            if (codeableType != null && codeableType instanceof CodeableConceptDt) {
-                procedureType = (CodeableConceptDt) codeableType;
-            }
+            Concept valueCoded = procedureTypeObs.getValueCoded();
+            procedureType = codeableConceptService.addTRCodingOrDisplay(valueCoded, idMappingsRepository);
         }
-        return procedureType;
+        return procedureType!= null && !procedureType.isEmpty() ? procedureType : null;
     }
 
     private void setIdentifier(Obs obs, SystemProperties systemProperties, Procedure procedure) {
@@ -129,13 +131,9 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     }
 
     private PeriodDt getPeriod(Obs startDateObs, Obs endDateObs) {
-        if (startDateObs == null && endDateObs == null) {
-            return null;
-        }
         PeriodDt period = new PeriodDt();
-        period.setStart(startDateObs.getValueDate(), TemporalPrecisionEnum.MILLI);
-        period.setEnd(endDateObs.getValueDate(), TemporalPrecisionEnum.MILLI);
-
+        if (startDateObs != null) period.setStart(startDateObs.getValueDate(), TemporalPrecisionEnum.MILLI);
+        if (startDateObs != null && endDateObs != null) period.setEnd(endDateObs.getValueDate(), TemporalPrecisionEnum.MILLI);
         return period;
     }
 
@@ -155,11 +153,10 @@ public class ProcedureMapper implements EmrObsResourceHandler {
 
     private void setDiagnosisToDiagnosticReport(DiagnosticReport diagnosticReport, CompoundObservation compoundDiagnosticStudyObs) {
         Obs diagnosisObs = compoundDiagnosticStudyObs.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSIS);
-        IDatatype codeableType = diagnosisObs != null ? obsValueMapper.map(diagnosisObs) : null;
-        if (codeableType != null && codeableType instanceof CodeableConceptDt) {
+        CodeableConceptDt codeableType = diagnosisObs != null ? codeableConceptService.addTRCodingOrDisplay(diagnosisObs.getValueCoded(), idMappingsRepository) : null;
+        if (codeableType != null && !codeableType.isEmpty()) {
             CodeableConceptDt codedDiagnosis = diagnosticReport.addCodedDiagnosis();
-            CodeableConceptDt codeableConcept = (CodeableConceptDt) codeableType;
-            codedDiagnosis.getCoding().addAll(codeableConcept.getCoding());
+            codedDiagnosis.getCoding().addAll(codeableType.getCoding());
         }
     }
 
@@ -173,13 +170,11 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     }
 
     private CodeableConceptDt getNameToDiagnosticReport(CompoundObservation compoundDiagnosticStudyObs) {
+        CodeableConceptDt name = null;
         if (compoundDiagnosticStudyObs.getRawObservation() != null) {
             Obs diagnosticTestObs = compoundDiagnosticStudyObs.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_TEST);
-            IDatatype name = diagnosticTestObs != null ? obsValueMapper.map(diagnosticTestObs) : null;
-            if (name != null && name instanceof CodeableConceptDt) {
-                return (CodeableConceptDt) name;
-            }
+            name = diagnosticTestObs != null ? codeableConceptService.addTRCodingOrDisplay(diagnosticTestObs.getValueCoded(), idMappingsRepository) : null;
         }
-        return null;
+        return name != null && name.isEmpty() ? null : name;
     }
 }

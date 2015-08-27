@@ -14,6 +14,7 @@ import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,10 +31,7 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
     private ConceptService conceptService;
 
     @Autowired
-    FHIRResourceValueMapper fhirResourceValueMapper;
-
-    @Autowired
-    FHIRDiagnosticReportMapper fhirDiagnosticReportMapper;
+    private OMRSConceptLookup omrsConceptLookup;
 
     @Override
     public boolean canHandle(IResource resource) {
@@ -70,17 +68,20 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
         Obs diagnosisStudyObs = new Obs();
         diagnosisStudyObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_STUDY));
 
-        Obs diagnosticTest = fhirResourceValueMapper.mapObservationForConcept(diagnosticReport.getName(), MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_TEST);
+        Obs diagnosticTest = mapObservationForConcept(diagnosticReport.getName(), MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_TEST);
 
         List<ResourceReferenceDt> diagnosisResult = diagnosticReport.getResult();
         Obs result = null;
-        if (CollectionUtils.isNotEmpty(diagnosisResult)) {
-            result = fhirResourceValueMapper.mapObservationForConcept(diagnosisResult.get(0).getDisplay(), MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_RESULT);
+        if (CollectionUtils.isNotEmpty(diagnosisResult) && !diagnosisResult.get(0).isEmpty()) {
+            result = new Obs();
+            result.setConcept(conceptService.getConceptByName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_RESULT));
+            String diagnosticResult = diagnosisResult.get(0).getDisplay().getValue();
+            result.setValueText(diagnosticResult);
         }
         List<CodeableConceptDt> codedDiagnosis = diagnosticReport.getCodedDiagnosis();
         Obs diagnosisObs = null;
         if (CollectionUtils.isNotEmpty(codedDiagnosis)) {
-            diagnosisObs = fhirResourceValueMapper.mapObservationForConcept(codedDiagnosis.get(0), MRS_CONCEPT_PROCEDURE_DIAGNOSIS);
+            diagnosisObs = mapObservationForConcept(codedDiagnosis.get(0), MRS_CONCEPT_PROCEDURE_DIAGNOSIS);
         }
         diagnosisStudyObs.addGroupMember(diagnosticTest);
         diagnosisStudyObs.addGroupMember(result);
@@ -95,7 +96,7 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
 
     private Obs getProcedureType(Procedure procedure) {
         CodeableConceptDt procedureType = procedure.getType();
-        return fhirResourceValueMapper.mapObservationForConcept(procedureType, MRS_CONCEPT_PROCEDURE_TYPE);
+        return mapObservationForConcept(procedureType, MRS_CONCEPT_PROCEDURE_TYPE);
     }
 
     private boolean isAlreadyProcessed(Procedure procedure, Map<String, List<String>> processedList) {
@@ -132,4 +133,11 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
 //    private Obs getFollowUp(Procedure procedure) {
 //        return fhirResourceValueMapper.mapObservationForConcept(procedure.getFollowUp(), MRS_CONCEPT_PROCEDURE_FOLLOW_UP);
 //    }
+
+    private Obs mapObservationForConcept(CodeableConceptDt codeableConcept, String conceptName) {
+        Obs obs = new Obs();
+        obs.setConcept(conceptService.getConceptByName(conceptName));
+        obs.setValueCoded(omrsConceptLookup.findConceptByCodeOrDisplay(codeableConcept.getCoding()));
+        return obs;
+    }
 }

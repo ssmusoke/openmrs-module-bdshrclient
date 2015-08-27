@@ -2,6 +2,7 @@ package org.openmrs.module.fhir.utils;
 
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
+import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Concept;
 import org.openmrs.ConceptMap;
 import org.openmrs.ConceptMapType;
@@ -31,6 +32,15 @@ public class CodableConceptService {
         coding.setCode(code);
         coding.setSystem(system);
         coding.setDisplay(display);
+    }
+
+    public CodeableConceptDt addTRCodingOrDisplay(Concept concept, IdMappingsRepository idMappingsRepository) {
+        CodeableConceptDt codeableConceptDt = addTRCoding(concept, idMappingsRepository);
+        if (CollectionUtils.isEmpty(codeableConceptDt.getCoding())) {
+            CodingDt coding = codeableConceptDt.addCoding();
+            coding.setDisplay(concept.getName().getName());
+        }
+        return codeableConceptDt;
     }
 
     public CodeableConceptDt addTRCoding(Concept concept, IdMappingsRepository idMappingsRepository) {

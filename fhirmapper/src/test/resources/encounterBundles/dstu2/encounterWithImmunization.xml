@@ -105,6 +105,8 @@
                 </encounter>
                 <doseQuantity>
                     <value value="100.0"/>
+                    <system value="http://127.0.0.1:9997/openmrs/ws/rest/v1/tr/vs/Quantity-Units"/>
+                    <code value="mg"/>
                 </doseQuantity>
                 <explanation>
                     <reason>
@@ -122,6 +124,13 @@
                         </coding>
                     </reasonNotGiven>
                 </explanation>
+                <route>
+                    <coding>
+                        <system value="http://127.0.0.1:9997/openmrs/ws/rest/v1/tr/vs/Route-of-Administration"/>
+                        <code value="ORAL-X"/>
+                        <display value="Oral"/>
+                    </coding>
+                </route>
             </Immunization>
         </resource>
     </entry>

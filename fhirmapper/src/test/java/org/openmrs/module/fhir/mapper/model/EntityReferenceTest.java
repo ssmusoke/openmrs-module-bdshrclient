@@ -34,7 +34,7 @@ public class EntityReferenceTest {
     @Test
     public void shouldCreateEncounterReference() {
         EntityReference entityReference = new EntityReference();
-        assertEquals("urn:1", entityReference.build(Encounter.class, getSystemProperties("1234"), "1"));
+        assertEquals("1", entityReference.build(Encounter.class, getSystemProperties("1234"), "1"));
     }
 
     /**

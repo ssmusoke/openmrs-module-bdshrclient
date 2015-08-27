@@ -1,9 +1,9 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
+import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
-import ca.uhn.fhir.model.primitive.DecimalDt;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -72,7 +72,7 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
             if(assertCoding(code, "M54.418965", "referenceterms/201")) flag ++;
         }
         assertEquals(2, flag);
-        assertTrue(133 == ((DecimalDt) observation.getValue()).getValue().doubleValue());
+        assertTrue(133 == ((QuantityDt) observation.getValue()).getValue().doubleValue());
         assertTrue(isEmpty(observation.getRelated()));
     }
 
@@ -80,7 +80,7 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
         List<CodingDt> coding = observation.getCode().getCoding();
         assertEquals(1, coding.size());
         assertTrue(assertCoding(coding.get(0), "105", "/concepts/105"));
-        assertTrue(120 == ((DecimalDt) observation.getValue()).getValue().doubleValue());
+        assertTrue(120 == ((QuantityDt) observation.getValue()).getValue().doubleValue());
         assertTrue(isEmpty(observation.getRelated()));
     }
 
