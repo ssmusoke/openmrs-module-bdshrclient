@@ -3,13 +3,7 @@ package org.openmrs.module.shrclient.mapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.openmrs.Person;
-import org.openmrs.PersonAddress;
-import org.openmrs.PersonAttribute;
-import org.openmrs.PersonAttributeType;
-import org.openmrs.PersonName;
-import org.openmrs.Provider;
-import org.openmrs.User;
+import org.openmrs.*;
 import org.openmrs.api.ProviderService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.ServiceContext;
@@ -27,11 +21,7 @@ import org.openmrs.module.shrclient.util.AddressHelper;
 import org.openmrs.module.shrclient.util.SystemProperties;
 
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -57,10 +47,8 @@ public class PatientMapperTest {
     private String nationalId = "nid-100";
     private String healthId = "hid-200";
     private String brnId = "brn-200";
-    private String uniqueId = "uid-200";
     private String occupation = "agriculture";
     private String educationLevel = "6th to 9th";
-    private String primaryContact = "some contact";
     private String houseHoldCode = "house4";
 
     private org.openmrs.Patient openMrsPatient;
@@ -165,7 +153,6 @@ public class PatientMapperTest {
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndNameAndParent(any(AddressHierarchyLevel.class), eq(cityCorp), any(AddressHierarchyEntry.class))).thenReturn(cityCorpEntries);
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndNameAndParent(any(AddressHierarchyLevel.class), eq(unionOrUrbanWard), any(AddressHierarchyEntry.class))).thenReturn(unionOrUrbanWardEntries);
         when(addressHierarchyService.getAddressHierarchyEntriesByLevelAndNameAndParent(any(AddressHierarchyLevel.class), eq(ruralWard), any(AddressHierarchyEntry.class))).thenReturn(ruralWardEntries);
-
 
 
         patient = new Patient();
