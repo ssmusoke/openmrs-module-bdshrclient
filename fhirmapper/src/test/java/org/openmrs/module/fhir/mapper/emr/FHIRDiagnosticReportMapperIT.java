@@ -57,7 +57,7 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
     @Test
     public void shouldMapDiagnosticReportForTestResult() throws Exception {
         Bundle bundle = (Bundle) new MapperTestHelper()
-                .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticReport.xml", springContext);
+                .loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithDiagnosticReport.xml", springContext);
         DiagnosticReport report = (DiagnosticReport) FHIRFeedHelper.identifyResource(bundle.getEntry(), new DiagnosticReport().getResourceName());
         Encounter encounter = new Encounter();
         encounter.setPatient(patientService.getPatient(1));
@@ -82,18 +82,18 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         Obs resultObs = findObsByConcept(secondLevelObs.getGroupMembers(), hemoglobinConcept);
         assertNotNull(resultObs);
         assertEquals(testOrder, resultObs.getOrder());
-        assertEquals(Double.valueOf(3000), resultObs.getValueNumeric());
+        assertEquals(Double.valueOf(20), resultObs.getValueNumeric());
 
         Obs notesObs = findObsByConcept(secondLevelObs.getGroupMembers(), conceptService.getConcept(103));
         assertNotNull(notesObs);
         assertEquals(testOrder, notesObs.getOrder());
-        assertEquals("notes: hello world", notesObs.getValueText());
+        assertEquals("changed", notesObs.getValueText());
     }
 
     @Test
     public void shouldAddAlreadyProcessedObservationResultToTestResults() throws Exception {
         Bundle bundle = (Bundle) new MapperTestHelper()
-                .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithDiagnosticReport.xml", springContext);
+                .loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithDiagnosticReport.xml", springContext);
         DiagnosticReport report = (DiagnosticReport) FHIRFeedHelper.identifyResource(bundle.getEntry(), new DiagnosticReport().getResourceName());
         Observation observation = (Observation) FHIRFeedHelper.identifyResource(bundle.getEntry(), new Observation().getResourceName());
         Encounter encounter = new Encounter();
@@ -113,8 +113,7 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
 
     @Test
     public void shouldAddAlreadyProcessedObservationResultToPanelResults() throws Exception {
-        Bundle bundle = (Bundle) new MapperTestHelper()
-                .loadSampleFHIREncounter("classpath:encounterBundles/encounterWithPanelReport.xml", springContext);
+        Bundle bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithPanelReport.xml", springContext);
         List<IResource> resources = FHIRFeedHelper.identifyResources(bundle.getEntry(), new DiagnosticReport().getResourceName());
         Encounter encounter = new Encounter();
         encounter.setPatient(patientService.getPatient(1));

@@ -1,0 +1,231 @@
+<Bundle xmlns="http://hl7.org/fhir">
+    <id value="9122262f-45a7-4ee0-8614-238b98dd302e"/>
+    <meta>
+        <lastUpdated value="2015-08-31T17:03:08.000+05:30"/>
+    </meta>
+    <type value="document"/>
+    <entry>
+        <base value="urn:uuid:"/>
+        <resource>
+            <Composition xmlns="http://hl7.org/fhir">
+                <id value="199c90a7-6c15-4c8e-8681-2659526fee5e"/>
+                <identifier>
+                    <value value="urn:uuid:199c90a7-6c15-4c8e-8681-2659526fee5e"/>
+                </identifier>
+                <date value="2015-08-31T17:03:08.000+05:30"/>
+                <type>
+                    <coding>
+                        <system value="http://hl7.org/fhir/vs/doc-typecodes"/>
+                        <code value="51899-3"/>
+                        <display value="Details Document"/>
+                    </coding>
+                </type>
+                <status value="final"/>
+                <confidentiality value="N"/>
+                <subject>
+                    <reference value="http://172.18.46.56:8081/api/v1/patients/98101039678"/>
+                    <display value="98101039678"/>
+                </subject>
+                <author>
+                    <reference value="http://hrmtest.dghs.gov.bd/api/1.0/facilities/10019841.json"/>
+                </author>
+                <encounter>
+                    <reference value="urn:uuid:85c310fd-1f9d-4c1e-a16b-4e53a636c46d"/>
+                </encounter>
+                <section>
+                    <content>
+                        <reference value="urn:uuid:85c310fd-1f9d-4c1e-a16b-4e53a636c46d"/>
+                        <display value="Encounter"/>
+                    </content>
+                </section>
+                <section>
+                    <content>
+                        <reference value="urn:uuid:b052c4dc-d425-4ef7-90f8-0376d6e9e29a"/>
+                        <display value="Hemoglobin"/>
+                    </content>
+                </section>
+                <section>
+                    <content>
+                        <reference value="urn:uuid:2f933127-feb9-4131-be06-4c92980d0b7b"/>
+                        <display value="Diagnostic Report"/>
+                    </content>
+                </section>
+                <section>
+                    <content>
+                        <reference value="urn:uuid:2f933127-1e19-1131-be06-4c92980d0b7b"/>
+                        <display value="Diagnostic Report"/>
+                    </content>
+                </section>
+                <section>
+                    <content>
+                        <reference value="urn:uuid:b022c42c-d225-4ef7-90f8-0376d6e9e29a"/>
+                        <display value="ESR"/>
+                    </content>
+                </section>
+            </Composition>
+        </resource>
+    </entry>
+    <entry>
+        <base value="urn:uuid:"/>
+        <resource>
+            <Encounter xmlns="http://hl7.org/fhir">
+                <id value="85c310fd-1f9d-4c1e-a16b-4e53a636c46d"/>
+                <identifier>
+                    <value value="urn:uuid:85c310fd-1f9d-4c1e-a16b-4e53a636c46d"/>
+                </identifier>
+                <status value="finished"/>
+                <class value="outpatient"/>
+                <type>
+                    <text value="LAB_RESULT"/>
+                </type>
+                <patient>
+                    <reference value="http://172.18.46.56:8081/api/v1/patients/98101039678"/>
+                    <display value="98101039678"/>
+                </patient>
+                <serviceProvider>
+                    <reference value="http://hrmtest.dghs.gov.bd/api/1.0/facilities/10019841.json"/>
+                </serviceProvider>
+            </Encounter>
+        </resource>
+    </entry>
+    <entry>
+        <base value="urn:uuid:"/>
+        <resource>
+            <Observation xmlns="http://hl7.org/fhir">
+                <id value="b052c4dc-d425-4ef7-90f8-0376d6e9e29a"/>
+                <code>
+                    <coding>
+                        <system value="http://127.0.0.1:9997/openmrs/ws/rest/v1/tr/referenceterms/94f5e936-1b2d-421d-8f83-21048270bf32"/>
+                        <code value="20563-3"/>
+                        <display value="Hemoglobin"/>
+                    </coding>
+                    <coding>
+                        <system value="http://127.0.0.1:9997/openmrs/ws/rest/v1/tr/concepts/79647ed4-a60e-4cf5-ba68-cf4d55956cba"/>
+                        <code value="79647ed4-a60e-4cf5-ba68-cf4d55956cba"/>
+                        <display value="Hemoglobin"/>
+                    </coding>
+                </code>
+                <valueQuantity>
+                    <value value="20.0"/>
+                </valueQuantity>
+                <status value="final"/>
+                <reliability value="ok"/>
+                <identifier>
+                    <value value="urn:uuid:b052c4dc-d425-4ef7-90f8-0376d6e9e29a"/>
+                </identifier>
+                <subject>
+                    <reference value="http://172.18.46.56:8081/api/v1/patients/98101039678"/>
+                    <display value="98101039678"/>
+                </subject>
+                <encounter>
+                    <reference value="urn:uuid:85c310fd-1f9d-4c1e-a16b-4e53a636c46d"/>
+                </encounter>
+            </Observation>
+        </resource>
+    </entry>
+    <entry>
+        <base value="urn:uuid:"/>
+        <resource>
+            <DiagnosticReport xmlns="http://hl7.org/fhir">
+                <id value="2f933127-feb9-4131-be06-4c92980d0b7b"/>
+                <name>
+                    <coding>
+                        <system value="http://127.0.0.1:9997/openmrs/ws/rest/v1/tr/referenceterms/94f5e936-1b2d-421d-8f83-21048270bf32"/>
+                        <code value="20563-3"/>
+                        <display value="Hemoglobin"/>
+                    </coding>
+                    <coding>
+                        <system value="http://127.0.0.1:9997/openmrs/ws/rest/v1/tr/concepts/79647ed4-a60e-4cf5-ba68-cf4d55956cba"/>
+                        <code value="79647ed4-a60e-4cf5-ba68-cf4d55956cba"/>
+                        <display value="Hemoglobin"/>
+                    </coding>
+                </name>
+                <status value="final"/>
+                <issued value="2015-08-31T17:14:30.000+05:30"/>
+                <subject>
+                    <reference value="http://172.18.46.56:8081/api/v1/patients/98101039678"/>
+                    <display value="98101039678"/>
+                </subject>
+                <encounter>
+                    <reference value="urn:uuid:85c310fd-1f9d-4c1e-a16b-4e53a636c46d"/>
+                </encounter>
+                <identifier>
+                    <value value="urn:uuid:2f933127-feb9-4131-be06-4c92980d0b7b"/>
+                </identifier>
+                <requestDetail>
+                    <reference value="http://shr.com/patients/hid/encounters/shrEncounterId4"/>
+                </requestDetail>
+                <diagnosticDateTime value="2015-08-31T17:03:09.000+05:30"/>
+                <result>
+                    <reference value="urn:uuid:b052c4dc-d425-4ef7-90f8-0376d6e9e29a"/>
+                </result>
+                <conclusion value="changed"/>
+            </DiagnosticReport>
+        </resource>
+    </entry>
+    <entry>
+        <base value="urn:uuid:"/>
+        <resource>
+            <DiagnosticReport xmlns="http://hl7.org/fhir">
+                <id value="2f933127-1e19-1131-be06-4c92980d0b7b"/>
+                <name>
+                    <coding>
+                        <system value="http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/concepts/a04c36be-3f90-11e3-968c-0800271c1b75"/>
+                        <code value="a04c36be-3f90-11e3-968c-0800271c1b75"/>
+                        <display value="ESR"/>
+                    </coding>
+                </name>
+                <status value="final"/>
+                <issued value="2015-08-31T17:14:30.000+05:30"/>
+                <subject>
+                    <reference value="http://172.18.46.56:8081/api/v1/patients/98101039678"/>
+                    <display value="98101039678"/>
+                </subject>
+                <encounter>
+                    <reference value="urn:uuid:85c310fd-1f9d-4c1e-a16b-4e53a636c46d"/>
+                </encounter>
+                <identifier>
+                    <value value="urn:uuid:2f933127-1e19-1131-be06-4c92980d0b7b"/>
+                </identifier>
+                <requestDetail>
+                    <reference value="http://shr.com/patients/hid/encounters/shrEncounterId4"/>
+                </requestDetail>
+                <diagnosticDateTime value="2015-08-31T17:03:09.000+05:30"/>
+                <result>
+                    <reference value="urn:uuid:b022c42c-d225-4ef7-90f8-0376d6e9e29a"/>
+                </result>
+                <conclusion value="changed"/>
+            </DiagnosticReport>
+        </resource>
+    </entry>
+    <entry>
+        <base value="urn:uuid:"/>
+        <resource>
+            <Observation xmlns="http://hl7.org/fhir">
+                <id value="b022c42c-d225-4ef7-90f8-0376d6e9e29a"/>
+                <code>
+                    <coding>
+                        <system value="http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/concepts/a04c36be-3f90-11e3-968c-0800271c1b75"/>
+                        <code value="a04c36be-3f90-11e3-968c-0800271c1b75"/>
+                        <display value="ESR"/>
+                    </coding>
+                </code>
+                <valueQuantity>
+                    <value value="20.0"/>
+                </valueQuantity>
+                <status value="final"/>
+                <reliability value="ok"/>
+                <identifier>
+                    <value value="urn:uuid:b022c42c-d225-4ef7-90f8-0376d6e9e29a"/>
+                </identifier>
+                <subject>
+                    <reference value="http://172.18.46.56:8081/api/v1/patients/98101039678"/>
+                    <display value="98101039678"/>
+                </subject>
+                <encounter>
+                    <reference value="urn:uuid:85c310fd-1f9d-4c1e-a16b-4e53a636c46d"/>
+                </encounter>
+            </Observation>
+        </resource>
+    </entry>
+</Bundle>
