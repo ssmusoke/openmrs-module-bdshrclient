@@ -57,7 +57,9 @@ import static org.openmrs.module.fhir.utils.Constants.*;
 
 @Component
 public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPatientService {
-
+    private static final String DOB_TYPE_DECLARED = "1";
+    private static final String DOB_TYPE_ESTIMATED = "3";
+    
     private static final Logger logger = Logger.getLogger(MciPatientServiceImpl.class);
     public static final String REGEX_TO_MATCH_MULTIPLE_WHITE_SPACE = "\\s+";
 
@@ -149,6 +151,12 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
         Date dob = mciPatient.getDateOfBirth();
         emrPatient.setBirthdate(dob);
+        if (mciPatient.getDobType().equals(DOB_TYPE_ESTIMATED)){
+            emrPatient.setBirthdateEstimated(Boolean.TRUE);
+        }
+        else {
+            emrPatient.setBirthdateEstimated(Boolean.FALSE);
+        }
 
         org.openmrs.Patient patient = patientService.savePatient(emrPatient);
         systemUserService.setOpenmrsShrSystemUserAsCreator(emrPatient);

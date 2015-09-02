@@ -1,6 +1,7 @@
 package org.openmrs.module.shrclient.model;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.openmrs.module.fhir.utils.DateUtil;
@@ -30,6 +31,9 @@ public class Patient {
     @JsonProperty("date_of_birth")
     private String dateOfBirth;
 
+    @JsonProperty("dob_type")
+    private String dobType;
+
     @JsonProperty("gender")
     private String gender;
 
@@ -58,7 +62,7 @@ public class Patient {
     @JsonProperty("relations")
     @JsonInclude(NON_NULL)
     private Relation[] relations;
-    
+
     @JsonProperty("provider")
     @JsonInclude(NON_NULL)
     private String providerReference;
@@ -73,7 +77,7 @@ public class Patient {
 
     @JsonProperty("active")
     @JsonInclude(NON_EMPTY)
-    private boolean active;
+    private Boolean active;
 
     @Override
     public boolean equals(Object o) {
@@ -83,7 +87,8 @@ public class Patient {
         Patient patient = (Patient) o;
 
         if (address != null ? !address.equals(patient.address) : patient.address != null) return false;
-        if (dateOfBirth != null ? !DateUtil.isEqualTo(getDateOfBirth(), patient.getDateOfBirth()) : patient.dateOfBirth != null) return false;
+        if (dateOfBirth != null ? !DateUtil.isEqualTo(getDateOfBirth(), patient.getDateOfBirth()) : patient.dateOfBirth != null)
+            return false;
         if (educationLevel != null ? !educationLevel.equals(patient.educationLevel) : patient.educationLevel != null)
             return false;
         if (gender != null ? !gender.equals(patient.gender) : patient.gender != null) return false;
@@ -95,6 +100,8 @@ public class Patient {
         if (birthRegNumber != null ? !birthRegNumber.equals(patient.birthRegNumber) : patient.birthRegNumber != null)
             return false;
         if (houseHoldCode != null ? !houseHoldCode.equals(patient.houseHoldCode) : patient.houseHoldCode != null)
+            return false;
+        if (dobType != null ? !dobType.equals(patient.dobType) : patient.dobType != null)
             return false;
         if (providerReference != null ? !providerReference.equals(patient.providerReference) : patient.providerReference != null)
             return false;
@@ -111,6 +118,7 @@ public class Patient {
         result = 31 * result + (surName != null ? surName.hashCode() : 0);
         result = 31 * result + (banglaName != null ? banglaName.hashCode() : 0);
         result = 31 * result + (dateOfBirth != null ? dateOfBirth.hashCode() : 0);
+        result = 31 * result + (dobType != null ? dobType.hashCode() : 0);
         result = 31 * result + (gender != null ? gender.hashCode() : 0);
         result = 31 * result + (occupation != null ? occupation.hashCode() : 0);
         result = 31 * result + (educationLevel != null ? educationLevel.hashCode() : 0);
@@ -131,6 +139,7 @@ public class Patient {
         sb.append(", surName='").append(surName).append('\'');
         sb.append(", banglaName='").append(banglaName).append('\'');
         sb.append(", dateOfBirth='").append(dateOfBirth).append('\'');
+        sb.append(", dobType='").append(dobType).append('\'');
         sb.append(", address=").append(address);
         sb.append(", gender='").append(gender).append('\'');
         sb.append(", occupation='").append(occupation).append('\'');
@@ -273,12 +282,23 @@ public class Patient {
         this.phoneNumber = phoneNumber;
     }
 
-    public boolean isActive() {
-        return active;
+    @JsonIgnore
+    public Boolean isActive() {
+        return Boolean.TRUE.equals(active);
     }
 
-    public void setActive(boolean active) {
+    public void setActive(Boolean active) {
         this.active = active;
     }
+
+    public String getDobType() {
+        return dobType;
+    }
+
+    public void setDobType(String dobType) {
+        this.dobType = dobType;
+
+    }
+
 }
 

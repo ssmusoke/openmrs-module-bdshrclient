@@ -19,6 +19,8 @@ import java.util.Collection;
 import static org.openmrs.module.fhir.utils.Constants.*;
 
 public class PatientMapper {
+    private static final String DOB_TYPE_DECLARED = "1";
+    private static final String DOB_TYPE_ESTIMATED = "3";
     private BbsCodeService bbsCodeService;
     private final AddressHelper addressHelper;
 
@@ -89,8 +91,13 @@ public class PatientMapper {
         patient.setStatus(getMciPatientStatus(openMrsPatient));
 
         setProvider(patient, openMrsPatient, systemProperties);
+        patient.setDobType(getDobType(openMrsPatient));
 
         return patient;
+    }
+
+    public String getDobType(org.openmrs.Patient openMrsPatient) {
+        return openMrsPatient.getBirthdateEstimated() ? DOB_TYPE_ESTIMATED : DOB_TYPE_DECLARED;
     }
 
     private void setProvider(Patient patient, org.openmrs.Patient openMrsPatient, SystemProperties systemProperties) {

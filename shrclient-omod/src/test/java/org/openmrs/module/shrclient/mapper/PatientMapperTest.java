@@ -72,11 +72,20 @@ public class PatientMapperTest {
         Patient expectedPatient = patientMapper.map(openMrsPatient, systemProperties);
         assertEquals(this.patient, expectedPatient);
     }
+    
+    @Test
+    public void shouldMapDobTypeAsEstimated() throws Exception {
+        openMrsPatient.setBirthdateEstimated(Boolean.TRUE);
+        patient.setDobType("3");
+        Patient expectedPatient = patientMapper.map(openMrsPatient, systemProperties);
+        assertEquals(this.patient, expectedPatient);
+    }
 
     @Test
     public void shouldGetProviderFromChangedBy() throws Exception {
         Person changedByPerson = new Person(12);
         openMrsPatient.setChangedBy(new User(changedByPerson));
+        
         Provider provider = new Provider(104);
         provider.setIdentifier("1234");
         provider.setPerson(changedByPerson);
@@ -125,6 +134,7 @@ public class PatientMapperTest {
         address.setAddress3(unionOrUrbanWard);
         address.setAddress2(ruralWard);
         person.addAddress(address);
+        person.setBirthdateEstimated(Boolean.FALSE);
         openMrsPatient = new org.openmrs.Patient(person);
 
         Person userPerson = new Person(101);
@@ -171,6 +181,7 @@ public class PatientMapperTest {
         Status status = new Status();
         status.setType('2');
         status.setDateOfDeath(dateOfDeath);
+        patient.setDobType("1");
         patient.setStatus(status);
 
 

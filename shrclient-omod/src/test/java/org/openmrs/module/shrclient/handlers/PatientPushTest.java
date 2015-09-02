@@ -1,7 +1,9 @@
 package org.openmrs.module.shrclient.handlers;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.openmrs.Patient;
@@ -12,6 +14,7 @@ import org.openmrs.api.PersonService;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
+import org.openmrs.module.shrclient.model.mci.api.MciPatientUpdateResponse;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.util.SystemProperties;
@@ -52,6 +55,10 @@ public class PatientPushTest {
 
     private String healthId = "hid-200";
     private String mciPatientContext;
+
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(8089);
+
 
     @Before
     public void setUp() throws Exception {
@@ -122,6 +129,29 @@ public class PatientPushTest {
         patientPush.process(event);
 
         verify(patientMapper, never()).map(any(Patient.class), any(SystemProperties.class));
+    }
+
+    @Test
+    public void shouldRequestMciToCreateAPatient() throws Exception {
+        String content = "/openmrs/ws/rest/v1/patient/36c82d16-6237-4495-889f-59bd9e0d8181?v=full";
+        Date eventUpdatedDate = new Date();
+        Event event = new Event("123defc456", content, "Patient", null, eventUpdatedDate);
+
+        Patient openMrsPatient = new Patient();
+        MciPatientUpdateResponse updateResponse = new MciPatientUpdateResponse();
+        updateResponse.setHealthId("h100");
+
+        org.openmrs.module.shrclient.model.Patient patient = new org.openmrs.module.shrclient.model.Patient();
+
+        when(patientService.getPatientByUuid("36c82d16-6237-4495-889f-59bd9e0d8181")).thenReturn(openMrsPatient);
+        when(patientMapper.map(any(Patient.class), any(SystemProperties.class))).thenReturn(patient);
+        when(mockMciRestClient.post(propertiesReader.getMciPatientContext(), patient, MciPatientUpdateResponse.class))
+                .thenReturn(updateResponse);
+
+        patientPush.process(event);
+
+        verify(mockMciRestClient, times(1))
+                .post(propertiesReader.getMciPatientContext(), patient, MciPatientUpdateResponse.class);
     }
 
     private PersonAttribute createHealthIdAttribute() {
