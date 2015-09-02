@@ -31,7 +31,7 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
     private OMRSConceptLookup omrsConceptLookup;
 
     @Autowired
-    private FHIRResourceValueMapper resourceValueMapper;
+    private FHIRObservationValueMapper resourceValueMapper;
 
     @Override
     public boolean canHandle(IResource resource) {

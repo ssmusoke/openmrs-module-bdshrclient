@@ -4,7 +4,7 @@ import ca.uhn.fhir.model.api.IDatatype;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
-import ca.uhn.fhir.model.primitive.DateDt;
+import ca.uhn.fhir.model.primitive.DateTimeDt;
 import ca.uhn.fhir.model.primitive.StringDt;
 import org.junit.After;
 import org.junit.Test;
@@ -49,8 +49,8 @@ public class ObservationValueMapperTest extends BaseModuleWebContextSensitiveTes
         Date obsDate = dateFormat.parse("2014-03-12");
         obs.setValueDate(obsDate);
         IDatatype value = observationValueMapper.map(obs);
-        assertTrue(value instanceof DateDt);
-        java.util.Date actualDate = ((DateDt) value).getValue();
+        assertTrue(value instanceof DateTimeDt);
+        java.util.Date actualDate = ((DateTimeDt) value).getValue();
         assertEquals(obsDate, actualDate);
     }
 

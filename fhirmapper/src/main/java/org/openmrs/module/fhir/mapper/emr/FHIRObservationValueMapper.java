@@ -4,7 +4,6 @@ import ca.uhn.fhir.model.api.IDatatype;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
-import ca.uhn.fhir.model.primitive.DateDt;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
 import ca.uhn.fhir.model.primitive.StringDt;
 import org.openmrs.Concept;
@@ -20,7 +19,7 @@ import java.text.ParseException;
 import java.util.List;
 
 @Component
-public class FHIRResourceValueMapper {
+public class FHIRObservationValueMapper {
 
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
@@ -34,8 +33,6 @@ public class FHIRResourceValueMapper {
                     obs.setValueAsString(((StringDt) value).getValue());
                 } else if (value instanceof QuantityDt) {
                     obs.setValueNumeric(((QuantityDt) value).getValue().doubleValue());
-                } else if (value instanceof DateDt) {
-                    obs.setValueDate(((DateDt) value).getValue());
                 } else if (value instanceof DateTimeDt) {
                     obs.setValueDate(((DateTimeDt) value).getValue());
                 } else if (value instanceof CodeableConceptDt) {

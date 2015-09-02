@@ -5,7 +5,7 @@ import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
-import ca.uhn.fhir.model.primitive.DateDt;
+import ca.uhn.fhir.model.primitive.DateTimeDt;
 import ca.uhn.fhir.model.primitive.StringDt;
 import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Concept;
@@ -71,7 +71,17 @@ public class ObservationValueMapper {
             @Override
             public IDatatype readValue(Obs obs, IdMappingsRepository idMappingsRepository, CodableConceptService codableConceptService) {
                 if (obs.getConcept().getDatatype().isDate() && obs.getValueDate() != null) {
-                    return new DateDt(obs.getValueDate(), TemporalPrecisionEnum.DAY);
+                    return new DateTimeDt(obs.getValueDate(), TemporalPrecisionEnum.DAY);
+                }
+                return null;
+            }
+        },
+
+        DateTime {
+            @Override
+            public IDatatype readValue(Obs obs, IdMappingsRepository idMappingsRepository, CodableConceptService codableConceptService) {
+                if (obs.getConcept().getDatatype().isDateTime() && obs.getValueDatetime() != null) {
+                    return new DateTimeDt(obs.getValueDate(), TemporalPrecisionEnum.MILLI);
                 }
                 return null;
             }
