@@ -100,7 +100,7 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
 
     private Concept mapConcept(Observation observation) {
         CodeableConceptDt observationName = observation.getCode();
-        if (observationName.getCoding().isEmpty()) {
+        if (observationName.getCoding() != null && observationName.getCoding().isEmpty()) {
             return null;
         }
         Concept concept = omrsConceptLookup.findConceptByCode(observationName.getCoding());

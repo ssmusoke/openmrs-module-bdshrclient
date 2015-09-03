@@ -69,9 +69,9 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
 
     private Obs addImmunizationReasons(Immunization immunization, Obs immunizationIncidentObs) {
         Immunization.Explanation explanation = immunization.getExplanation();
-        if (!explanation.isEmpty()) {
+        if (explanation != null && !explanation.isEmpty()) {
             List<BoundCodeableConceptDt<ImmunizationReasonCodesEnum>> reasons = explanation.getReason();
-            if (!reasons.isEmpty()) {
+            if (reasons != null && !reasons.isEmpty()) {
                 Concept immunizationReasonConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.IMMUNIZATION_REASON);
                 for (BoundCodeableConceptDt<ImmunizationReasonCodesEnum> reason : reasons) {
                     Obs immunizationReasonObs = new Obs();
@@ -86,9 +86,9 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
 
     private Obs addImmunizationRefusalReasons(Immunization immunization, Obs immunizationIncidentObs) {
         Immunization.Explanation explanation = immunization.getExplanation();
-        if (!explanation.isEmpty()) {
+        if (explanation != null && !explanation.isEmpty()) {
             List<CodeableConceptDt> reasons = explanation.getReasonNotGiven();
-            if (!reasons.isEmpty()) {
+            if (reasons != null && !reasons.isEmpty()) {
                 Concept immunizationRefusalReasonConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.IMMUNIZATION_REFUSAL_REASON);
                 for (CodeableConceptDt reason : reasons) {
                     Obs immunizationRefusalReasonObs = new Obs();
@@ -102,7 +102,7 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
     }
 
     private Obs getRoute(Immunization immunization) {
-        if (!immunization.getRoute().isEmpty()) {
+        if (immunization.getRoute() != null && !immunization.getRoute().isEmpty()) {
             Concept routeOfAdministrationConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.ROUTE_OF_ADMINISTRATION);
             Obs routeOfObservationObs = new Obs();
             routeOfObservationObs.setConcept(routeOfAdministrationConcept);
@@ -127,7 +127,7 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
     private Obs getQuantityUnits(Immunization immunization) {
         QuantityDt doseQuantity = immunization.getDoseQuantity();
         Obs quantityUnitsObs = null;
-        if (!doseQuantity.isEmpty()) {
+        if (doseQuantity != null && !doseQuantity.isEmpty()) {
             quantityUnitsObs = new Obs();
             Concept quantityUnitsConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.QUANTITY_UNITS);
             quantityUnitsObs.setConcept(quantityUnitsConcept);
@@ -140,7 +140,7 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
 
     private Obs getDosage(Immunization immunization) {
         QuantityDt doseQuantity = immunization.getDoseQuantity();
-        if (!doseQuantity.isEmpty()) {
+        if (doseQuantity != null && !doseQuantity.isEmpty()) {
             Obs obs = new Obs();
             obs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_DOSAGE));
             obs.setValueNumeric(doseQuantity.getValue().doubleValue());

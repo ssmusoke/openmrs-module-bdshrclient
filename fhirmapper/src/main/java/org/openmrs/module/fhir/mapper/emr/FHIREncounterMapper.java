@@ -70,7 +70,7 @@ public class FHIREncounterMapper {
         emrEncounter.setEncounterType(encounterType);
 
         ResourceReferenceDt serviceProvider = fhirEncounter.getServiceProvider();
-        if (!serviceProvider.isEmpty()) {
+        if (serviceProvider != null && !serviceProvider.isEmpty()) {
             setInternalFacilityId(emrEncounter, new EntityReference().parse(Location.class, serviceProvider.getReference().getValue()));
         } else {
             setFacilityIdFromProvider(fhirEncounter, emrEncounter);

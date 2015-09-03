@@ -71,7 +71,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
     private DiagnosticReport build(Obs obs, Encounter fhirEncounter, List<FHIRResource> fHIRResourceList, SystemProperties systemProperties) {
         DiagnosticReport report = diagnosticReportBuilder.build(obs, fhirEncounter, systemProperties);
         CodeableConceptDt name = codableConceptService.addTRCoding(obs.getConcept(), idMappingsRepository);
-        if (name.getCoding().isEmpty()) {
+        if (name.getCoding() != null && name.getCoding().isEmpty()) {
             return null;
         }
         report.setName(name);

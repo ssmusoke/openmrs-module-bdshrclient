@@ -91,7 +91,7 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
 
     private IResource getDiagnosticReportResource(Bundle bundle, Procedure procedure) {
         List<ResourceReferenceDt> reportList = procedure.getReport();
-        return reportList.isEmpty() ? null : FHIRFeedHelper.findResourceByReference(bundle, reportList.get(0));
+        return reportList != null && reportList.isEmpty() ? null : FHIRFeedHelper.findResourceByReference(bundle, reportList.get(0));
     }
 
     private Obs getProcedureType(Procedure procedure) {
