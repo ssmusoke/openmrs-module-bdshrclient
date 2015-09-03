@@ -8,6 +8,7 @@ import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Procedure;
+import ca.uhn.fhir.model.dstu2.valueset.ProcedureStatusEnum;
 import org.openmrs.Concept;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
@@ -63,6 +64,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
             //TODO : how do we set follow up and outcome
 //            procedure.setOutcome(getProcedureOutcomeText(compoundObservationProcedure));
 //            procedure.setFollowUp(getProcedureFollowUp(compoundObservationProcedure));
+            procedure.setStatus(ProcedureStatusEnum.COMPLETED);
             procedure.setPerformed(getProcedurePeriod(compoundObservationProcedure));
             FHIRResource procedureReportResource = addReportToProcedure(compoundObservationProcedure, fhirEncounter, systemProperties, procedure);
             if (procedureReportResource != null) {
