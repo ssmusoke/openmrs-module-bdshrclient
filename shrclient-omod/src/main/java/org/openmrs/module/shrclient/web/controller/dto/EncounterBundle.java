@@ -21,7 +21,7 @@ public class EncounterBundle {
     private String[] categories;
 
     @JsonProperty("content")
-    @JsonDeserialize(using = ResourceOrFeedDeserializer.class)
+    @JsonDeserialize(using = BundleDeserializer.class)
     private Bundle bundle;
 
     public String getEncounterId() {

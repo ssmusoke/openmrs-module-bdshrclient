@@ -48,7 +48,7 @@ public class CompositionBundle {
         Bundle bundle = new Bundle();
         Encounter fhirEncounter = encounterMapper.map(emrEncounter, systemProperties);
         Composition composition = createComposition(emrEncounter.getEncounterDatetime(), fhirEncounter, systemProperties);
-        bundle.setType(BundleTypeEnum.DOCUMENT);
+        bundle.setType(BundleTypeEnum.COLLECTION);
         //TODO: bundle.setBase("urn:uuid:");
         bundle.setId(UUID.randomUUID().toString());
         ResourceMetadataMap metadataMap = new ResourceMetadataMap();

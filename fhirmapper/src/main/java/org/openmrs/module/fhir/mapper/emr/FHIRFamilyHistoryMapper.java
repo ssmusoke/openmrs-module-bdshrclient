@@ -143,7 +143,6 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
         }
     }
 
-
     private Obs mapRelationship(String code) {
         if (StringUtils.isNotBlank(code)) {
             Obs result = new Obs();

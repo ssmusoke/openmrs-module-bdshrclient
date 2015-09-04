@@ -1,6 +1,6 @@
 <Bundle xmlns="http://hl7.org/fhir">
     <id value="4fe6f9e2-d10a-4956-aae5-091e810090e1"/>
-    <type value="document"/>
+    <type value="collection"/>
     <entry>
         <resource>
             <Composition xmlns="http://hl7.org/fhir">

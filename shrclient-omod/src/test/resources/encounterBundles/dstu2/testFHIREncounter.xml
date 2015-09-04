@@ -3,7 +3,7 @@
     <meta>
         <lastUpdated value="2015-08-24T16:37:53.000+05:30"/>
     </meta>
-    <type value="document"/>
+    <type value="collection"/>
     <entry>
         <resource>
             <Composition xmlns="http://hl7.org/fhir">

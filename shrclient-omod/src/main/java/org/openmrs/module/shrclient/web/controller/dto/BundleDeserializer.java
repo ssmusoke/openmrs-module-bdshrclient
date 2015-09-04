@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.node.TextNode;
 import org.openmrs.module.shrclient.util.FhirBundleContextHolder;
 
-public class ResourceOrFeedDeserializer extends JsonDeserializer<Bundle> {
+public class BundleDeserializer extends JsonDeserializer<Bundle> {
 
     @Override
     public Bundle deserialize(JsonParser jp, DeserializationContext ctx) {
