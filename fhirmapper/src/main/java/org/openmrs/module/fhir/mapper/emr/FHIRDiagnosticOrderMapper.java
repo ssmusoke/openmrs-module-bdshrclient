@@ -6,8 +6,8 @@ import org.hl7.fhir.instance.model.Resource;
 import org.hl7.fhir.instance.model.ResourceReference;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
+import org.openmrs.Order;
 import org.openmrs.Patient;
-import org.openmrs.TestOrder;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.OrderCareSettingLookupService;
@@ -52,7 +52,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         for (DiagnosticOrder.DiagnosticOrderItemComponent diagnosticOrderItemComponent : item) {
             Concept testOrderConcept = omrsConceptLookup.findConcept(diagnosticOrderItemComponent.getCode().getCoding());
             if (testOrderConcept != null) {
-                TestOrder testOrder = createTestOrder(feed, diagnosticOrder, patient, encounter, testOrderConcept);
+                Order testOrder = createTestOrder(feed, diagnosticOrder, patient, encounter, testOrderConcept);
                 encounter.addOrder(testOrder);
                 processedTestOrderUuids.add(testOrder.getUuid());
             }
@@ -62,8 +62,8 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         }
     }
 
-    private TestOrder createTestOrder(AtomFeed feed, DiagnosticOrder diagnosticOrder, Patient patient, Encounter encounter, Concept testOrderConcept) {
-        TestOrder testOrder = new TestOrder();
+    private Order createTestOrder(AtomFeed feed, DiagnosticOrder diagnosticOrder, Patient patient, Encounter encounter, Concept testOrderConcept) {
+        Order testOrder = new Order();
         testOrder.setOrderType(orderService.getOrderTypeByName("Lab Order"));
         testOrder.setConcept(testOrderConcept);
         testOrder.setPatient(patient);
@@ -74,7 +74,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         return testOrder;
     }
 
-    private void setOrderer(TestOrder testOrder, DiagnosticOrder diagnosticOrder) {
+    private void setOrderer(Order testOrder, DiagnosticOrder diagnosticOrder) {
         ResourceReference orderer = diagnosticOrder.getOrderer();
         if (orderer != null) {
             String practitionerReferenceUrl = orderer.getReferenceSimple();
