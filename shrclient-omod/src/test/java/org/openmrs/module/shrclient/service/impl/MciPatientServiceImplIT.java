@@ -10,7 +10,6 @@ import org.openmrs.DrugOrder;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.Patient;
-import org.openmrs.TestOrder;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
@@ -104,7 +103,6 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         Set<Order> orders = encounter.getOrders();
         assertFalse(orders.isEmpty());
         assertEquals(1, orders.size());
-        assertTrue(orders.iterator().next() instanceof TestOrder);
     }
 
     @Test
