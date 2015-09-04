@@ -101,11 +101,13 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
 
     private void mapConditionOnsetAge(FamilyMemberHistory.Condition familyMemberCondition, CompoundObservation familyMemberConditonCompoundObs) {
         Obs onsetAgeObs = familyMemberConditonCompoundObs.getMemberObsForConceptName(MRS_CONCEPT_NAME_ONSET_AGE);
-        AgeDt age = new AgeDt();
-        age.setValue(onsetAgeObs.getValueNumeric());
-        age.setUnits(UCUM_UNIT_FOR_YEARS);
-        age.setSystem(UCUM_URL);
-        familyMemberCondition.setOnset(age);
+        if (onsetAgeObs != null) {
+            AgeDt age = new AgeDt();
+            age.setValue(onsetAgeObs.getValueNumeric());
+            age.setUnits(UCUM_UNIT_FOR_YEARS);
+            age.setSystem(UCUM_URL);
+            familyMemberCondition.setOnset(age);
+        }
     }
 
     private void mapBornDate(FamilyMemberHistory familyMemberHistory, Obs person) {
