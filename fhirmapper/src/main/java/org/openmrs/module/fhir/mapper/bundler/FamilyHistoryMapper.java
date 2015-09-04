@@ -55,7 +55,7 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
         List<FHIRResource> FHIRResources = new ArrayList<>();
         for (Obs person : obs.getGroupMembers()) {
             FamilyMemberHistory familyMemberHistory = createFamilyMemberHistory(person, fhirEncounter, systemProperties);
-            FHIRResources.add(new FHIRResource(obs.getConcept().getName().getName(), familyMemberHistory.getIdentifier(), familyMemberHistory));
+            FHIRResources.add(new FHIRResource("Family History", familyMemberHistory.getIdentifier(), familyMemberHistory));
         }
         return FHIRResources;
     }

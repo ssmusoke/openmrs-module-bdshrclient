@@ -28,8 +28,6 @@ import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 @Component
 public class ProcedureMapper implements EmrObsResourceHandler {
 
-    private static String DIAGNOSTIC_REPORT_RESOURCE_NAME = "Diagnostic Report";
-
     @Autowired
     private CodableConceptService codeableConceptService;
 
@@ -71,7 +69,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
                 resources.add(procedureReportResource);
             }
 
-            FHIRResource procedureResource = new FHIRResource(MRS_CONCEPT_PROCEDURES_TEMPLATE, procedure.getIdentifier(), procedure);
+            FHIRResource procedureResource = new FHIRResource("Procedure", procedure.getIdentifier(), procedure);
             resources.add(procedureResource);
         }
 
@@ -82,7 +80,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         DiagnosticReport diagnosticReport = buildDiagnosticReport(compoundObservationProcedure, fhirEncounter, systemProperties);
         FHIRResource diagnosticReportResource = null;
         if (diagnosticReport != null) {
-            diagnosticReportResource = new FHIRResource(DIAGNOSTIC_REPORT_RESOURCE_NAME, diagnosticReport.getIdentifier(), diagnosticReport);
+            diagnosticReportResource = new FHIRResource("Diagnostic Report", diagnosticReport.getIdentifier(), diagnosticReport);
             ResourceReferenceDt diagnosticResourceRef = procedure.addReport();
             diagnosticResourceRef.setReference(diagnosticReportResource.getIdentifier().getValue());
             diagnosticResourceRef.setDisplay(diagnosticReportResource.getResourceName());

@@ -87,7 +87,7 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
         identifier.setValue(conditionId);
         condition.setId(conditionId);
 
-        return new FHIRResource(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT, condition.getIdentifier(), condition);
+        return new FHIRResource(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT_DISPLAY, condition.getIdentifier(), condition);
     }
 
     private PeriodDt getOnsetDate(Obs member) {

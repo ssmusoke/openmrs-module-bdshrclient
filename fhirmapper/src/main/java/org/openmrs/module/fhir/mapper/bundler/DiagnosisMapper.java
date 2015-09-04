@@ -94,7 +94,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         identifier.setValue(obsId);
         condition.setId(obsId);
 
-        return new FHIRResource("Diagnosis", condition.getIdentifier(), condition);
+        return new FHIRResource(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS_DISPLAY, condition.getIdentifier(), condition);
     }
 
     private boolean isDiagnosisCertaintyObservation(Concept concept) {
