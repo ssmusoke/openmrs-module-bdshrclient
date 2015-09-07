@@ -72,41 +72,45 @@ public class ObservationMapper implements EmrObsResourceHandler {
 
     public List<FHIRResource> mapToFhirObservation(Obs observation, Encounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> result = new ArrayList<>();
-        Observation fhirObservation = createObservation(observation, fhirEncounter, systemProperties);
-        FHIRResource entry = buildResource(fhirObservation, observation);
+        FHIRResource entry = mapObservation(observation, fhirEncounter, systemProperties);
         for (Obs member : observation.getGroupMembers()) {
-            mapGroupMember(member, fhirEncounter, fhirObservation, result, systemProperties);
+            mapGroupMember(member, fhirEncounter, (Observation) entry.getResource(), result, systemProperties);
         }
         result.add(entry);
         return result;
     }
 
-    private FHIRResource buildResource(Observation observation, Obs obs) {
-        return new FHIRResource(obs.getConcept().getName().getName(), observation.getIdentifier(), observation);
+    public FHIRResource mapObservation(Obs openmrsObs, Encounter fhirEncounter, SystemProperties systemProperties) {
+        Observation fhirObservation = buildObservationResource(openmrsObs, fhirEncounter, systemProperties);
+        mapCode(openmrsObs, fhirObservation);
+        mapValue(openmrsObs, fhirObservation);
+        return buildFhirResource(fhirObservation, openmrsObs);
     }
 
-    private void mapGroupMember(Obs obs, Encounter fhirEncounter, Observation parentObservation, List<FHIRResource> result, SystemProperties systemProperties) {
-        Observation observation = createObservation(obs, fhirEncounter, systemProperties);
-        FHIRResource entry = buildResource(observation, obs);
-        mapRelatedObservation(observation).mergeWith(parentObservation, systemProperties);
-        for (Obs member : obs.getGroupMembers()) {
-            mapGroupMember(member, fhirEncounter, observation, result, systemProperties);
-        }
-        result.add(entry);
-    }
-
-    private Observation createObservation(Obs openmrsObs, Encounter fhirEncounter, SystemProperties systemProperties) {
+    private Observation buildObservationResource(Obs openmrsObs, Encounter fhirEncounter, SystemProperties systemProperties) {
         Observation fhirObservation = new Observation();
         fhirObservation.setSubject(fhirEncounter.getPatient());
         fhirObservation.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValue()));
-        mapName(openmrsObs, fhirObservation);
         fhirObservation.setStatus(ObservationStatusEnum.FINAL);
         fhirObservation.setReliability(ObservationReliabilityEnum.OK);
         String id = new EntityReference().build(IResource.class, systemProperties, openmrsObs.getUuid());
         fhirObservation.setId(id);
         fhirObservation.addIdentifier(new IdentifierDt().setValue(id));
-        mapValue(openmrsObs, fhirObservation);
         return fhirObservation;
+    }
+
+    private FHIRResource buildFhirResource(Observation observation, Obs obs) {
+        return new FHIRResource(obs.getConcept().getName().getName(), observation.getIdentifier(), observation);
+    }
+
+    private void mapGroupMember(Obs obs, Encounter fhirEncounter, Observation parentObservation, List<FHIRResource> result, SystemProperties systemProperties) {
+        FHIRResource entry = mapObservation(obs, fhirEncounter, systemProperties);
+        Observation observation = (Observation) entry.getResource();
+        mapRelatedObservation(observation).mergeWith(parentObservation, systemProperties);
+        for (Obs member : obs.getGroupMembers()) {
+            mapGroupMember(member, fhirEncounter, observation, result, systemProperties);
+        }
+        result.add(entry);
     }
 
     private void mapValue(Obs openmrsObs, Observation fhirObservation) {
@@ -116,14 +120,14 @@ public class ObservationMapper implements EmrObsResourceHandler {
         }
     }
 
-    private void mapName(Obs openmrsObs, Observation fhirObservation) {
-        CodeableConceptDt name = buildName(openmrsObs);
+    private void mapCode(Obs openmrsObs, Observation fhirObservation) {
+        CodeableConceptDt name = buildCode(openmrsObs);
         if (null != name) {
             fhirObservation.setCode(name);
         }
     }
 
-    private CodeableConceptDt buildName(Obs observation) {
+    private CodeableConceptDt buildCode(Obs observation) {
         if (null == observation.getConcept()) {
             return null;
         }

@@ -21,9 +21,7 @@ import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
@@ -44,22 +42,14 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
+    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
         FamilyMemberHistory familyMemberHistory = (FamilyMemberHistory) resource;
-        if (isAlreadyProcessed(familyMemberHistory, processedList))
-            return;
         Obs familyHistoryObs = new Obs();
         familyHistoryObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_FAMILY_HISTORY));
         mapRelationships(familyHistoryObs, familyMemberHistory);
         newEmrEncounter.addObs(familyHistoryObs);
-
-        processedList.put(familyMemberHistory.getId().getValue(), Arrays.asList(familyHistoryObs.getUuid()));
     }
 
-
-    private boolean isAlreadyProcessed(FamilyMemberHistory familyMemberHistory, Map<String, List<String>> processedList) {
-        return processedList.containsKey(familyMemberHistory.getId().getValue());
-    }
 
     private void mapRelationships(Obs familyHistoryObs, FamilyMemberHistory familyMemberHistory) {
         Obs personObs = new Obs();

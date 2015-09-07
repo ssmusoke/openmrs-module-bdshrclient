@@ -14,15 +14,12 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.ObsHelper;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
-import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -41,9 +38,6 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
 
     @Autowired
     private ConceptService conceptService;
-
-    @Autowired
-    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     private IResource resource;
     private Bundle bundle;
@@ -151,7 +145,7 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
 
     private Obs mapImmunizationIncidentObs() {
         Encounter mrsEncounter = new Encounter();
-        mapper.map(bundle, resource, null, mrsEncounter, new HashMap<String, List<String>>());
+        mapper.map(bundle, resource, null, mrsEncounter);
 
         Set<Obs> allObs = mrsEncounter.getAllObs();
         assertEquals(1, allObs.size());

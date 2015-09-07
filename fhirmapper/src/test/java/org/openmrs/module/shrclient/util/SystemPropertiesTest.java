@@ -60,11 +60,11 @@ public class SystemPropertiesTest {
         trProperties.setProperty(PropertyKeyConstants.TR_REFERENCE_PATH, "http://172.18.46.56:9080");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_PATH_INFO, "openmrs/ws/rest/v1/tr/vs");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_ROUTE, "Route-of-Administration");
-        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_QTY_UNITS, "Quantity-Units");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_QUANTITY_UNITS, "Quantity-Units");
         HashMap<String, String> baseUrls = new HashMap<>();
         baseUrls.put("tr", "http://172.18.46.56:9080");
         SystemProperties systemProperties = new SystemProperties(baseUrls, new Properties(), trProperties, new Properties(), new Properties(),null);
         assertThat(systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_ROUTE), is("http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/vs/Route-of-Administration"));
-        assertThat(systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_QTY_UNITS), is("http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/vs/Quantity-Units"));
+        assertThat(systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_QUANTITY_UNITS), is("http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/vs/Quantity-Units"));
     }
 }

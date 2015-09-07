@@ -1,0 +1,208 @@
+<Bundle xmlns="http://hl7.org/fhir">
+    <id value="e498a897-d736-4799-bf83-43ea5fb7360d"/>
+    <meta>
+        <lastUpdated value="2015-09-07T15:31:19.000+05:30"/>
+    </meta>
+    <type value="collection"/>
+    <entry>
+        <base value="urn:uuid:"/>
+        <resource>
+            <Composition xmlns="http://hl7.org/fhir">
+                <id value="e84513d2-f1ad-4433-8b19-b2dc403cc235"/>
+                <identifier>
+                    <value value="urn:uuid:e84513d2-f1ad-4433-8b19-b2dc403cc235"/>
+                </identifier>
+                <date value="2015-09-07T15:31:19.000+05:30"/>
+                <type>
+                    <coding>
+                        <system value="http://hl7.org/fhir/vs/doc-typecodes"/>
+                        <code value="51899-3"/>
+                        <display value="Details Document"/>
+                    </coding>
+                </type>
+                <status value="final"/>
+                <confidentiality value="N"/>
+                <subject>
+                    <reference value="http://172.18.46.56:8081/api/v1/patients/98103104413"/>
+                    <display value="98103104413"/>
+                </subject>
+                <author>
+                    <reference value="http://hrmtest.dghs.gov.bd/api/1.0/facilities/10019841.json"/>
+                </author>
+                <encounter>
+                    <reference value="urn:uuid:773e0487-a0d9-4fa5-8932-1b2fda5270b7"/>
+                </encounter>
+                <section>
+                    <content>
+                        <reference value="urn:uuid:773e0487-a0d9-4fa5-8932-1b2fda5270b7"/>
+                        <display value="Encounter"/>
+                    </content>
+                </section>
+                <section>
+                    <content>
+                        <reference value="urn:uuid:2e0258de-131a-4adf-8c6d-609c56665425"/>
+                        <display value="Test A"/>
+                    </content>
+                </section>
+                <section>
+                    <content>
+                        <reference value="urn:uuid:af0fd5b4-77ae-4d5e-8fa7-793b2cefe96c"/>
+                        <display value="Diagnostic Report"/>
+                    </content>
+                </section>
+                <section>
+                    <content>
+                        <reference value="urn:uuid:610b982e-30a3-4a7e-8e6e-6d94e3ab7047"/>
+                        <display value="Procedure"/>
+                    </content>
+                </section>
+            </Composition>
+        </resource>
+    </entry>
+    <entry>
+        <base value="urn:uuid:"/>
+        <resource>
+            <Encounter xmlns="http://hl7.org/fhir">
+                <id value="773e0487-a0d9-4fa5-8932-1b2fda5270b7"/>
+                <identifier>
+                    <value value="urn:uuid:773e0487-a0d9-4fa5-8932-1b2fda5270b7"/>
+                </identifier>
+                <status value="finished"/>
+                <class value="outpatient"/>
+                <type>
+                    <text value="OPD"/>
+                </type>
+                <patient>
+                    <reference value="http://172.18.46.56:8081/api/v1/patients/98103104413"/>
+                    <display value="98103104413"/>
+                </patient>
+                <participant>
+                    <individual>
+                        <reference value="http://hrmtest.dghs.gov.bd/api/1.0/providers/812.json"/>
+                    </individual>
+                </participant>
+                <serviceProvider>
+                    <reference value="http://hrmtest.dghs.gov.bd/api/1.0/facilities/10019841.json"/>
+                </serviceProvider>
+            </Encounter>
+        </resource>
+    </entry>
+    <entry>
+        <base value="urn:uuid:"/>
+        <resource>
+            <Observation xmlns="http://hl7.org/fhir">
+                <id value="2e0258de-131a-4adf-8c6d-609c56665425"/>
+                <code>
+                    <coding>
+                        <system value="http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/referenceterms/b6ddf0d8-e14c-47c4-a8ab-3f8b9f98e29a"/>
+                        <code value="20563-3"/>
+                        <display value="Hemoglobin"/>
+                    </coding>
+                    <coding>
+                        <system value="http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/concepts/46e33abd-4a0b-42c1-b3e4-a8948b3bab3f"/>
+                        <code value="46e33abd-4a0b-42c1-b3e4-a8948b3bab3f"/>
+                        <display value="Hemoglobin"/>
+                    </coding>
+                </code>
+                <valueString value="200"/>
+                <status value="registered"/>
+                <identifier>
+                    <value value="urn:uuid:2e0258de-131a-4adf-8c6d-609c56665425"/>
+                </identifier>
+                <subject>
+                    <reference value="http://172.18.46.56:8081/api/v1/patients/98103104413"/>
+                    <display value="98103104413"/>
+                </subject>
+                <encounter>
+                    <reference value="urn:uuid:773e0487-a0d9-4fa5-8932-1b2fda5270b7"/>
+                </encounter>
+            </Observation>
+        </resource>
+    </entry>
+    <entry>
+        <base value="urn:uuid:"/>
+        <resource>
+            <DiagnosticReport xmlns="http://hl7.org/fhir">
+                <id value="af0fd5b4-77ae-4d5e-8fa7-793b2cefe96c"/>
+                <name>
+                    <coding>
+                        <system value="http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/referenceterms/b6ddf0d8-e14c-47c4-a8ab-3f8b9f98e29a"/>
+                        <code value="20563-3"/>
+                        <display value="Hemoglobin"/>
+                    </coding>
+                    <coding>
+                        <system value="http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/concepts/46e33abd-4a0b-42c1-b3e4-a8948b3bab3f"/>
+                        <code value="46e33abd-4a0b-42c1-b3e4-a8948b3bab3f"/>
+                        <display value="Hemoglobin"/>
+                    </coding>
+                </name>
+                <status value="final"/>
+                <issued value="2015-09-07T15:31:19.000+05:30"/>
+                <subject>
+                    <reference value="http://172.18.46.56:8081/api/v1/patients/98103104413"/>
+                    <display value="98103104413"/>
+                </subject>
+                <performer>
+                    <reference value="http://hrmtest.dghs.gov.bd/api/1.0/providers/812.json"/>
+                </performer>
+                <encounter>
+                    <reference value="urn:uuid:773e0487-a0d9-4fa5-8932-1b2fda5270b7"/>
+                </encounter>
+                <identifier>
+                    <value value="urn:uuid:af0fd5b4-77ae-4d5e-8fa7-793b2cefe96c"/>
+                </identifier>
+                <diagnosticDateTime value="2015-09-07T15:31:19.000+05:30"/>
+                <result>
+                    <reference value="urn:uuid:2e0258de-131a-4adf-8c6d-609c56665425"/>
+                    <display value="Hemoglobin"/>
+                </result>
+                <codedDiagnosis>
+                    <coding>
+                        <system value="http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/referenceterms/6aa18b6a-946d-4b3b-9056-4743d11f0c0e"/>
+                        <code value="N87.0"/>
+                        <display value="CIN I"/>
+                    </coding>
+                    <coding>
+                        <system value="http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/concepts/adcec315-f517-4f17-bd4c-946ef239d9fb"/>
+                        <code value="adcec315-f517-4f17-bd4c-946ef239d9fb"/>
+                        <display value="CIN I"/>
+                    </coding>
+                </codedDiagnosis>
+            </DiagnosticReport>
+        </resource>
+    </entry>
+    <entry>
+        <base value="urn:uuid:"/>
+        <resource>
+            <Procedure xmlns="http://hl7.org/fhir">
+                <id value="610b982e-30a3-4a7e-8e6e-6d94e3ab7047"/>
+                <identifier>
+                    <value value="urn:uuid:610b982e-30a3-4a7e-8e6e-6d94e3ab7047"/>
+                </identifier>
+                <patient>
+                    <reference value="http://172.18.46.56:8081/api/v1/patients/98103104413"/>
+                    <display value="98103104413"/>
+                </patient>
+                <status value="completed"/>
+                <type>
+                    <coding>
+                        <system value="http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/concepts/4f4862d5-2f42-4da5-a0f7-216ad21f734f"/>
+                        <code value="4f4862d5-2f42-4da5-a0f7-216ad21f734f"/>
+                        <display value="Biopsy"/>
+                    </coding>
+                </type>
+                <performedPeriod>
+                    <start value="2015-09-01T00:00:00.000+05:30"/>
+                    <end value="2015-09-02T00:00:00.000+05:30"/>
+                </performedPeriod>
+                <encounter>
+                    <reference value="urn:uuid:773e0487-a0d9-4fa5-8932-1b2fda5270b7"/>
+                </encounter>
+                <report>
+                    <reference value="urn:uuid:af0fd5b4-77ae-4d5e-8fa7-793b2cefe96c"/>
+                    <display value="Diagnostic Report"/>
+                </report>
+            </Procedure>
+        </resource>
+    </entry>
+</Bundle>

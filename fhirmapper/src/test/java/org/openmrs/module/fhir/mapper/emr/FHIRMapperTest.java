@@ -1,8 +1,9 @@
 package org.openmrs.module.fhir.mapper.emr;
 
+import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import org.junit.After;
 import org.junit.Test;
-import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
@@ -17,6 +18,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -55,5 +57,25 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
 
         Obs vitalsObs = topLevelObs.iterator().next();
         assertEquals(conceptService.getConcept(301), vitalsObs.getConcept());
+
+        assertEquals(2, vitalsObs.getGroupMembers().size());
+
+        Obs pulseObs = identifyObsByConcept(vitalsObs.getGroupMembers(), conceptService.getConcept(303));
+        assertTrue(75 == pulseObs.getValueNumeric());
+        Concept bpConcept = conceptService.getConcept(302);
+        Obs bpObs = identifyObsByConcept(vitalsObs.getGroupMembers(), bpConcept);
+        assertEquals(1, bpObs.getGroupMembers().size());
+        Obs diastolicObs = identifyObsByConcept(bpObs.getGroupMembers(), conceptService.getConcept(305));
+        assertTrue(70 == diastolicObs.getValueNumeric());
+
+    }
+
+    private Obs identifyObsByConcept(Set<Obs> obses, Concept concept) {
+        for (Obs obs : obses) {
+            if(obs.getConcept().equals(concept)) {
+                return obs;
+            }
+        }
+        return null;
     }
 }

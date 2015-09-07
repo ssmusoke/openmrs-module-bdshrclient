@@ -15,9 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
 
@@ -39,58 +36,37 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
+    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
         Observation observation = (Observation) resource;
-        if (isAlreadyProcessed(observation, processedList))
-            return;
-        Obs result = mapObs(bundle, newEmrEncounter, observation, processedList);
+        Obs result = mapObs(bundle, newEmrEncounter, observation);
         if (result == null) return;
         newEmrEncounter.addObs(result);
     }
 
-    private void mapRelatedObservations(Bundle bundle, Observation observation, Map<String, List<String>> processedList, Obs obs, Encounter emrEncounter) throws ParseException {
+    private void mapRelatedObservations(Bundle bundle, Observation observation, Obs obs, Encounter emrEncounter) throws ParseException {
         for (Observation.Related component : observation.getRelated()) {
             Obs member;
             Observation relatedObs = (Observation) findResourceByReference(bundle, component.getTarget());
-            if (isAlreadyProcessed(relatedObs, processedList)) {
-                member = findObsInEncounter(emrEncounter, processedList.get(relatedObs.getId().getValue()));
-            } else {
-                member = mapObs(bundle, emrEncounter, relatedObs, processedList);
-            }
+            member = mapObs(bundle, emrEncounter, relatedObs);
             if (member != null) {
                 obs.addGroupMember(member);
+                emrEncounter.addObs(member);
             }
         }
     }
 
-    Obs mapObs(Bundle bundle, Encounter emrEncounter, Observation observation, Map<String, List<String>> processedList) {
+    Obs mapObs(Bundle bundle, Encounter emrEncounter, Observation observation) {
         Concept concept = mapConcept(observation);
         if (concept == null) return null;
         Obs result = new Obs();
         result.setConcept(concept);
         try {
             mapValue(observation, result);
-            processedList.put(observation.getId().getValue(), Arrays.asList(result.getUuid()));
-            mapRelatedObservations(bundle, observation, processedList, result, emrEncounter);
+            mapRelatedObservations(bundle, observation, result, emrEncounter);
         } catch (ParseException e) {
             e.printStackTrace();
         }
         return result;
-    }
-
-    private Obs findObsInEncounter(Encounter emrEncounter, List<String> processedItems) {
-        for (Obs obs : emrEncounter.getAllObs()) {
-            for (String processedItem : processedItems) {
-                if (processedItem.equals(obs.getUuid())) {
-                    return obs;
-                }
-            }
-        }
-        return null;
-    }
-
-    private boolean isAlreadyProcessed(Observation observation, Map<String, List<String>> processedList) {
-        return processedList.containsKey(observation.getId().getValue());
     }
 
     private void mapValue(Observation relatedObs, Obs result) throws ParseException {
@@ -104,7 +80,7 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
             return null;
         }
         Concept concept = omrsConceptLookup.findConceptByCode(observationName.getCoding());
-        if(concept == null) {
+        if (concept == null) {
             return conceptService.getConceptByName(observationName.getCoding().get(0).getDisplay());
         }
         return concept;

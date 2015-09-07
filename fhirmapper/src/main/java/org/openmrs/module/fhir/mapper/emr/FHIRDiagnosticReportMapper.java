@@ -20,9 +20,7 @@ import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CONCEPT_CLASS_LAB_SET;
@@ -48,10 +46,8 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
+    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
         DiagnosticReport diagnosticReport = (DiagnosticReport) resource;
-        if (processedList.containsKey(diagnosticReport.getIdentifier().get(0).getValue()))
-            return;
         Concept concept = omrsConceptLookup.findConceptByCode(diagnosticReport.getName().getCoding());
         if (concept == null) {
             return;
@@ -65,7 +61,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
         Obs secondLevelObs = buildObs(concept, order);
         topLevelObs.addGroupMember(secondLevelObs);
 
-        Obs resultObs = buildResultObs(bundle, newEmrEncounter, processedList, diagnosticReport, concept);
+        Obs resultObs = buildResultObs(bundle, newEmrEncounter, diagnosticReport);
         resultObs.setOrder(order);
         secondLevelObs.addGroupMember(resultObs);
 
@@ -81,7 +77,6 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
             newEmrEncounter.addObs(panelObs);
         }
         newEmrEncounter.addObs(topLevelObs);
-        processedList.put(diagnosticReport.getId().getValue(), Arrays.asList(topLevelObs.getUuid()));
     }
 
     private Order getOrder(DiagnosticReport diagnosticReport, Concept concept) {
@@ -125,26 +120,9 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
         return null;
     }
 
-    private Obs buildResultObs(Bundle bundle, Encounter newEmrEncounter, Map<String, List<String>> processedList, DiagnosticReport diagnosticReport, Concept concept) {
+    private Obs buildResultObs(Bundle bundle, Encounter newEmrEncounter, DiagnosticReport diagnosticReport) {
         Observation observationResource = (Observation) findResourceByReference(bundle, diagnosticReport.getResult().get(0));
-        if (processedList.containsKey(observationResource.getId().getValue())) {
-            List<String> uuids = processedList.get(observationResource.getId().getValue());
-            for (String uuid : uuids) {
-                Obs obs = findObsByUUid(newEmrEncounter, uuid);
-                if (obs.getConcept().equals(concept)) {
-                    return obs;
-                }
-            }
-        }
-        return observationsMapper.mapObs(bundle, newEmrEncounter, observationResource, processedList);
-    }
-
-    private Obs findObsByUUid(Encounter newEmrEncounter, String obsUuid) {
-        for (Obs obs : newEmrEncounter.getAllObs()) {
-            if (obs.getUuid().equals(obsUuid))
-                return obs;
-        }
-        return null;
+        return observationsMapper.mapObs(bundle, newEmrEncounter, observationResource);
     }
 
     private Obs findObsByOrder(Encounter encounter, Order order) {

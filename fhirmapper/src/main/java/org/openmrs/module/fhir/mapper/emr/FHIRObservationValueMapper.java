@@ -15,7 +15,6 @@ import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.text.ParseException;
 import java.util.List;
 
 @Component
@@ -28,32 +27,28 @@ public class FHIRObservationValueMapper {
 
     public Obs map(IDatatype value, Obs obs) {
         if (value != null && !value.isEmpty()) {
-            try {
-                if (value instanceof StringDt) {
-                    obs.setValueAsString(((StringDt) value).getValue());
-                } else if (value instanceof QuantityDt) {
-                    obs.setValueNumeric(((QuantityDt) value).getValue().doubleValue());
-                } else if (value instanceof DateTimeDt) {
-                    obs.setValueDate(((DateTimeDt) value).getValue());
-                } else if (value instanceof CodeableConceptDt) {
-                    List<CodingDt> codings = ((CodeableConceptDt) value).getCoding();
-                    Boolean booleanValue = checkIfBooleanCoding(codings);
-                    if (booleanValue != null) {
-                        obs.setValueBoolean(booleanValue);
+            if (value instanceof StringDt) {
+                obs.setValueText(((StringDt) value).getValue());
+            } else if (value instanceof QuantityDt) {
+                obs.setValueNumeric(((QuantityDt) value).getValue().doubleValue());
+            } else if (value instanceof DateTimeDt) {
+                obs.setValueDate(((DateTimeDt) value).getValue());
+            } else if (value instanceof CodeableConceptDt) {
+                List<CodingDt> codings = ((CodeableConceptDt) value).getCoding();
+                Boolean booleanValue = checkIfBooleanCoding(codings);
+                if (booleanValue != null) {
+                    obs.setValueBoolean(booleanValue);
+                } else {
+            /* TODO: The last element of codings is the concept. Make this more explicit*/
+                    Drug drug = omrsConceptLookup.findDrug(codings);
+                    if (drug != null) {
+                        obs.setValueCoded(drug.getConcept());
                     } else {
-                /* TODO: The last element of codings is the concept. Make this more explicit*/
-                        Drug drug = omrsConceptLookup.findDrug(codings);
-                        if (drug != null) {
-                            obs.setValueCoded(drug.getConcept());
-                        } else {
-                            obs.setValueCoded(findConcept(codings));
-                        }
+                        obs.setValueCoded(findConcept(codings));
                     }
                 }
-                return obs;
-            } catch (ParseException e) {
-                e.printStackTrace();
             }
+            return obs;
         }
         return null;
     }

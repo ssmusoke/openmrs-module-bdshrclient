@@ -19,9 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Map;
 
-import static java.util.Arrays.asList;
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
 @Component
@@ -39,11 +37,8 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
+    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
         Immunization immunization = (Immunization) resource;
-
-        if (isAlreadyProcessed(immunization, processedList))
-            return;
 
         Obs immunizationIncidentObs = new Obs();
         immunizationIncidentObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_IMMUNIZATION_INCIDENT_TEMPLATE));
@@ -59,12 +54,6 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
         addImmunizationRefusalReasons(immunization, immunizationIncidentObs);
 
         newEmrEncounter.addObs(immunizationIncidentObs);
-        processedList.put(immunization.getId().getValue(), asList(immunizationIncidentObs.getUuid()));
-
-    }
-
-    private boolean isAlreadyProcessed(Immunization immunization, Map<String, List<String>> processedList) {
-        return processedList.containsKey(immunization.getId().getValue());
     }
 
     private Obs addImmunizationReasons(Immunization immunization, Obs immunizationIncidentObs) {

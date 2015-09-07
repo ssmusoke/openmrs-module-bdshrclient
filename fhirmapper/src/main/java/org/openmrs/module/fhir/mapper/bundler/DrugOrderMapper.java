@@ -142,7 +142,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 //                if (null != idMappingsRepository.findByInternalId(drugOrder.getDoseUnits().getUuid())) {
 //                    String code = codableConceptService.getTRValueSetCode(drugOrder.getDoseUnits());
 //                    doseQuantity.setCodeSimple(code);
-//                    doseQuantity.setSystemSimple(systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_QTY_UNITS));
+//                    doseQuantity.setSystemSimple(systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_QUANTITY_UNITS));
 //                }
 //            }
 //            dosageInstruction.setDoseQuantity(doseQuantity.setValue(dose));

@@ -7,7 +7,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
@@ -16,14 +15,13 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.ObsHelper;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.utils.TrValueSetType;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -40,6 +38,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     ConceptService conceptService;
     @Autowired
     private ApplicationContext springContext;
+
     private IResource resource;
     private Bundle bundle;
     private ObsHelper obsHelper;
@@ -83,34 +82,33 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    @Ignore
-    public void shouldMapOutComeText() throws Exception {
+    public void shouldMapOutCome() throws Exception {
         Obs proceduresObs = mapProceduresObs();
-        Obs outcomeObs = obsHelper.findMemberObsByConceptName(proceduresObs, MRS_CONCEPT_PROCEDURE_OUTCOME);
-        assertEquals("Little johny wants to play", outcomeObs.getValueText());
+        Obs outcomeObs = obsHelper.findMemberObsByConceptName(proceduresObs, TrValueSetType.PROCEDURE_OUTCOME.getDefaultConceptName());
+        int outcomeType = 606;
+        assertEquals(conceptService.getConcept(outcomeType), outcomeObs.getValueCoded());
     }
 
     @Test
-    @Ignore
-    public void shouldMapFollowUpText() throws Exception {
+    public void shouldMapFollowUp() throws Exception {
         Obs proceduresObs = mapProceduresObs();
-        Obs followUpObs = obsHelper.findMemberObsByConceptName(proceduresObs, MRS_CONCEPT_PROCEDURE_FOLLOW_UP);
-        assertEquals("Come again another day", followUpObs.getValueText());
+        Obs followUpObs = obsHelper.findMemberObsByConceptName(proceduresObs, TrValueSetType.PROCEDURE_FOLLOWUP.getDefaultConceptName());
+        assertEquals(conceptService.getConcept(607), followUpObs.getValueCoded());
     }
 
     @Test
     public void shouldMapProcedureType() throws Exception {
-        Obs procedureObs= mapProceduresObs();
-        Obs procedureTypeObs= obsHelper.findMemberObsByConceptName(procedureObs, MRS_CONCEPT_PROCEDURE_TYPE);
+        Obs procedureObs = mapProceduresObs();
+        Obs procedureTypeObs = obsHelper.findMemberObsByConceptName(procedureObs, MRS_CONCEPT_PROCEDURE_TYPE);
         Concept valueCoded = procedureTypeObs.getValueCoded();
-        int procedureType= 601;
+        int procedureType = 601;
         assertEquals(conceptService.getConcept(procedureType), valueCoded);
     }
 
     @Test
-    public void shouldMapDiagnosticReport() throws  Exception {
-        Obs procedureObs= mapProceduresObs();
-        Obs diagnosticStudyObs= obsHelper.findMemberObsByConceptName(procedureObs, MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_STUDY);
+    public void shouldMapDiagnosticReport() throws Exception {
+        Obs procedureObs = mapProceduresObs();
+        Obs diagnosticStudyObs = obsHelper.findMemberObsByConceptName(procedureObs, MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_STUDY);
 
         Obs diagnosticTestName = obsHelper.findMemberObsByConceptName(diagnosticStudyObs, MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_TEST);
         Concept diagnosticTestCode = diagnosticTestName.getValueCoded();
@@ -128,7 +126,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     private Obs mapProceduresObs() {
         Encounter mrsEncounter = new Encounter();
-        fhirProcedureMapper.map(bundle, resource, null, mrsEncounter, new HashMap<String, List<String>>());
+        fhirProcedureMapper.map(bundle, resource, null, mrsEncounter);
 
         Set<Obs> allObs = mrsEncounter.getAllObs();
         assertEquals(1, allObs.size());

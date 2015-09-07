@@ -3,7 +3,6 @@ package org.openmrs.module.fhir.mapper.emr;
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
-import ca.uhn.fhir.model.dstu2.resource.Observation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,11 +20,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveTest {
@@ -61,10 +60,7 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         DiagnosticReport report = (DiagnosticReport) FHIRFeedHelper.identifyResource(bundle.getEntry(), new DiagnosticReport().getResourceName());
         Encounter encounter = new Encounter();
         encounter.setPatient(patientService.getPatient(1));
-        HashMap<String, List<String>> processedList = new HashMap<>();
-        diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter, processedList);
-        assertEquals(2, processedList.size());
-        assertTrue(processedList.containsKey(report.getId().getValue()));
+        diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter);
         Set<Obs> obsSet = encounter.getObsAtTopLevel(false);
         assertEquals(1, obsSet.size());
         Obs topLevelObs = obsSet.iterator().next();
@@ -91,39 +87,15 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
     }
 
     @Test
-    public void shouldAddAlreadyProcessedObservationResultToTestResults() throws Exception {
-        Bundle bundle = (Bundle) new MapperTestHelper()
-                .loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithDiagnosticReport.xml", springContext);
-        DiagnosticReport report = (DiagnosticReport) FHIRFeedHelper.identifyResource(bundle.getEntry(), new DiagnosticReport().getResourceName());
-        Observation observation = (Observation) FHIRFeedHelper.identifyResource(bundle.getEntry(), new Observation().getResourceName());
-        Encounter encounter = new Encounter();
-        encounter.setPatient(patientService.getPatient(1));
-        HashMap<String, List<String>> processedList = new HashMap<>();
-        observationsMapper.map(bundle, observation, encounter.getPatient(), encounter, processedList);
-        assertTrue(processedList.containsKey(observation.getId().getValue()));
-
-        diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter, processedList);
-        assertEquals(2, processedList.size());
-        assertTrue(processedList.containsKey(report.getId().getValue()));
-        Set<Obs> obsSet = encounter.getObsAtTopLevel(false);
-        assertEquals(1, obsSet.size());
-        Concept concept = conceptService.getConcept(303);
-        assertTestObs(obsSet.iterator().next(), concept);
-    }
-
-    @Test
-    public void shouldAddAlreadyProcessedObservationResultToPanelResults() throws Exception {
+    public void shouldProcessPanelResults() throws Exception {
         Bundle bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithPanelReport.xml", springContext);
-        List<IResource> resources = FHIRFeedHelper.identifyResources(bundle.getEntry(), new DiagnosticReport().getResourceName());
+        List<IResource> resources = FHIRFeedHelper.identifyResourcesByName(bundle.getEntry(), new DiagnosticReport().getResourceName());
         Encounter encounter = new Encounter();
         encounter.setPatient(patientService.getPatient(1));
-        HashMap<String, List<String>> processedList = new HashMap<>();
         for (IResource resource : resources) {
             DiagnosticReport report = (DiagnosticReport) resource;
-            diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter, processedList);
-            assertTrue(processedList.containsKey(report.getId().getValue()));
+            diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter);
         }
-        assertEquals(4, processedList.size());
         Set<Obs> obsSet = encounter.getObsAtTopLevel(false);
         assertEquals(1, obsSet.size());
         Obs panelObs = obsSet.iterator().next();

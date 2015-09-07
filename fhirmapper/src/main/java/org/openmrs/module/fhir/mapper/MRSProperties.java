@@ -36,8 +36,6 @@ public class MRSProperties {
 
     public static final String MRS_CONCEPT_PROCEDURES_TEMPLATE = "Procedure Template";
     public static final String MRS_CONCEPT_PROCEDURE_TYPE = "Procedure Type";
-    public static final String MRS_CONCEPT_PROCEDURE_OUTCOME = "Procedure Outcome";
-    public static final String MRS_CONCEPT_PROCEDURE_FOLLOW_UP = "Procedure Follow up";
     public static final String MRS_CONCEPT_PROCEDURE_START_DATE = "Procedure Start Date";
     public static final String MRS_CONCEPT_PROCEDURE_END_DATE = "Procedure End Date";
     public static final String MRS_CONCEPT_PROCEDURE_DIAGNOSIS = "Procedure Diagnosis";
@@ -64,6 +62,8 @@ public class MRSProperties {
     public static final String TR_VALUESET_IMMUNIZATION_REASON = "Immunization Reason";
     public static final String TR_VALUESET_IMMUNIZATION_REFUSAL_REASON = "No Immunization Reason";
     public static final String TR_VALUESET_ROUTE_OF_ADMINSTRATION = "Route of Administration";
+    public static final String TR_VALUESET_PROCEDURE_OUTCOME = "Procedure Outcome";
+    public static final String TR_VALUESET_PROCEDURE_FOLLOWUP = "Procedure Follow up";
 
     public static final String TR_CONCEPT_CAUSE_OF_DEATH = "Cause of Death";
     public static final String TR_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH = "Unspecified cause of death";
@@ -73,6 +73,9 @@ public class MRSProperties {
     public static final String GLOBAL_PROPERTY_CONCEPT_IMMUNIZATION_REASON = "shr.concept.immunizationReason";
     public static final String GLOBAL_PROPERTY_CONCEPT_IMMUNIZATION_REFUSAL_REASON = "shr.concept.immunizationRefusalReason";
     public static final String GLOBAL_PROPERTY_CONCEPT_ROUTE_OF_ADMINISTRATION = "shr.concept.routeOfAdministration";
+    public static final String GLOBAL_PROPERTY_CONCEPT_PROCEDURE_OUTCOME = "shr.concept.procedureOutcome";
+    public static final String GLOBAL_PROPERTY_CONCEPT_PROCEDURE_FOLLOWUP = "shr.concept.procedureFollowUp";
+
     public static final String GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH = "concept.causeOfDeath";
     public static final String GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH = "concept.unspecifiedCauseOfDeath";
 

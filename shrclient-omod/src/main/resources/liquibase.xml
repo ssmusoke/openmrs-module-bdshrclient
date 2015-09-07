@@ -649,6 +649,34 @@
             <column name="created_by" value="1"/>
             <column name="date_created" valueDate=" now() "/>
             <column name="uuid" valueComputed=" uuid() "/>
+    </insert>
+    </changeSet>
+    <changeSet id="bdshrclient-05092015-1613" author="Neha" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from global_property where
+                property='shr.concept.procedureOutcome';
+            </sqlCheck>
+        </preConditions>
+        <comment>Adding a global property which saves the concept id for Procedure Outcome</comment>
+        <insert tableName="global_property">
+            <column name="property" value="shr.concept.procedureOutcome"/>
+            <column name="description" value="Concept Id for Procedure Outcome"/>
+            <column name="uuid" valueComputed="uuid()"/>
+        </insert>
+    </changeSet>
+    <changeSet id="bdshrclient-07092015-1113" author="Neha" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from global_property where
+                property='shr.concept.procedureFollowUp';
+            </sqlCheck>
+        </preConditions>
+        <comment>Adding a global property which saves the concept id for Procedure Follow Up</comment>
+        <insert tableName="global_property">
+            <column name="property" value="shr.concept.procedureFollowUp"/>
+            <column name="description" value="Concept Id for Procedure Follow Up"/>
+            <column name="uuid" valueComputed="uuid()"/>
         </insert>
     </changeSet>
 </databaseChangeLog>

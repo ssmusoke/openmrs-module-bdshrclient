@@ -88,11 +88,10 @@ public class TestResultMapper implements EmrObsResourceHandler {
 
         for (Obs member : obs.getGroupMembers()) {
             if (member.getConcept().equals(obs.getConcept())) {
-                List<FHIRResource> observationResources = observationMapper.map(member, fhirEncounter, systemProperties);
+                FHIRResource observationResource = observationMapper.mapObservation(member, fhirEncounter, systemProperties);
                 ResourceReferenceDt resourceReference = report.addResult();
-                // TODO: how do we identify this observation?
-                resourceReference.setReference(observationResources.get(0).getIdentifier().getValue());
-                fHIRResourceList.addAll(observationResources);
+                resourceReference.setReference(observationResource.getIdentifier().getValue());
+                fHIRResourceList.add(observationResource);
             } else if (MRS_CONCEPT_NAME_LAB_NOTES.equals(member.getConcept().getName().getName())) {
                 report.setConclusion(member.getValueText());
             }

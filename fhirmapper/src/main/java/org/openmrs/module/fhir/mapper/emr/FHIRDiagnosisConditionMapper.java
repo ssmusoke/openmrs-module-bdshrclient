@@ -17,7 +17,6 @@ import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -52,11 +51,9 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
+    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
         Condition condition = (Condition) resource;
 
-        if (isAlreadyProcessed(condition, processedList))
-            return;
         Obs visitDiagnosisObs = new Obs();
 
         Concept diagnosisOrder = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_DIAGNOSIS_ORDER);
@@ -98,14 +95,8 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
         bahmniDiagRevisedObs.setValueBoolean(false);
 
         newEmrEncounter.addObs(visitDiagnosisObs);
-
-        processedList.put(condition.getIdentifier().get(0).getValue(), Arrays.asList(visitDiagnosisObs.getUuid()));
     }
 
-
-    private boolean isAlreadyProcessed(Condition condition, Map<String, List<String>> processedList) {
-        return processedList.containsKey(condition.getIdentifier().get(0).getValue());
-    }
 
     private Obs addToObsGroup(Patient emrPatient, Obs visitDiagnosisObs, Concept obsConcept) {
         Obs orderObs = new Obs();

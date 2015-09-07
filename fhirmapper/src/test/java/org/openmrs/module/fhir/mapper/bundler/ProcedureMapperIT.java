@@ -6,15 +6,17 @@ import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
+import ca.uhn.fhir.model.dstu2.resource.Observation;
 import ca.uhn.fhir.model.dstu2.resource.Procedure;
+import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
+import ca.uhn.fhir.model.primitive.StringDt;
 import org.apache.commons.collections.CollectionUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.ObsService;
-import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import java.util.List;
 import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 import static org.openmrs.module.fhir.TestFhirFeedHelper.getResourceByReference;
+import static org.openmrs.module.fhir.TestFhirFeedHelper.getResourceByType;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -69,32 +72,62 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    public void shouldMapPatient() {
+    public void shouldMapPatientAndEncounter() {
         Encounter fhirEncounter = new Encounter();
         ResourceReferenceDt patient = new ResourceReferenceDt();
         patient.setReference("Hid");
         fhirEncounter.setPatient(patient);
 
-        Procedure procedure = getProcedure(mapProcedure(1100, fhirEncounter));
+        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, fhirEncounter)).getResource();
 
         assertEquals(patient, procedure.getPatient());
+
+        assertEquals(fhirEncounter.getId().getValue(), procedure.getEncounter().getReference().getValue());
     }
 
-//    @Test
-//    public void shouldMapOutCome(){
-//        Procedure procedure= getProcedure(mapProcedure(1100, new Encounter()));
-//        assertEquals("Outcome results",procedure.getOutcome().getValue());
-//    }
+    @Test
+    public void shouldPopulateReferencesAndIds() {
+        List<FHIRResource> fhirResources = mapProcedure(1100, new Encounter());
 
-//    @Test
-//    public void shouldMapFollowUp() throws Exception {
-//        Procedure procedure= getProcedure(mapProcedure(1100, new Encounter()));
-//        assertEquals("Follow up actions",procedure.getFollowUp().getValue());
-//    }
+        FHIRResource procedureResource = getResourceByType(new Procedure().getResourceName(), fhirResources);
+        assertTrue(procedureResource.getResource() instanceof Procedure);
+        assertEquals("urn:uuid:ef4554cb-22gg-471a-lld7-1434552c337c1", procedureResource.getIdentifierList().get(0).getValue());
+        assertEquals("urn:uuid:ef4554cb-22gg-471a-lld7-1434552c337c1", procedureResource.getResource().getId().getValue());
+        assertEquals("Procedure", procedureResource.getResourceName());
+
+        FHIRResource diagnosticReportResource = getResourceByType(new DiagnosticReport().getResourceName(), fhirResources);
+        assertNotNull(diagnosticReportResource);
+        assertEquals("urn:uuid:ew6574cb-22yy-891a-giz7-3450552c77459", diagnosticReportResource.getIdentifierList().get(0).getValue());
+        assertEquals("urn:uuid:ew6574cb-22yy-891a-giz7-3450552c77459", diagnosticReportResource.getResource().getId().getValue());
+        assertEquals("Diagnostic Report", diagnosticReportResource.getResourceName());
+
+        FHIRResource resultResource = getResourceByType(new Observation().getResourceName(), fhirResources);
+        assertNotNull(resultResource);
+        assertEquals("urn:uuid:dia574cb-22yy-671a-giz7-3450552cresult", resultResource.getIdentifierList().get(0).getValue());
+        assertEquals("Test A", resultResource.getResourceName());
+    }
 
     @Test
-    public void shouldMapProcedure() throws Exception {
-        Procedure procedure = getProcedure(mapProcedure(1100, new Encounter()));
+    public void shouldMapOutCome() {
+        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, new Encounter())).getResource();
+        assertEquals("385669000", procedure.getOutcome().getCodingFirstRep().getCode());
+        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Procedure-Outcome", procedure.getOutcome().getCodingFirstRep().getSystem());
+        assertEquals("Successful", procedure.getOutcome().getCodingFirstRep().getDisplay());
+    }
+
+    @Test
+    public void shouldMapFollowUp() throws Exception {
+        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
+        assertEquals(1, procedure.getFollowUp().size());
+        CodingDt followUpCoding = procedure.getFollowUp().get(0).getCoding().get(0);
+        assertEquals("385669000", followUpCoding.getCode());
+        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Procedure-Followup", followUpCoding.getSystem());
+        assertEquals("Change of dressing", followUpCoding.getDisplay());
+    }
+
+    @Test
+    public void shouldMapProcedureType() throws Exception {
+        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
         CodingDt procedureType = procedure.getType().getCoding().get(0);
         assertNotNull(procedureType);
         assertEquals("ProcedureAnswer1", procedureType.getDisplay());
@@ -104,7 +137,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapPeriod() throws Exception {
-        Procedure procedure = getProcedure(mapProcedure(1100, new Encounter()));
+        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
         PeriodDt period = (PeriodDt) procedure.getPerformed();
 
         Date expectedStartDate = DateUtil.parseDate("2015-01-10 00:00:00");
@@ -114,36 +147,42 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(expectedEndDate, period.getEnd());
     }
 
-    //TODO: Set proper data
     @Test
-    public void shouldMapReferenceToDiagnosisReport() throws Exception {
-        Encounter encounter = buildEncounter();
-        List<FHIRResource> fhirResources = mapProcedure(1100, encounter);
-        Procedure procedure = getProcedure(fhirResources);
+    public void shouldMapDiagnosisReport() throws Exception {
+        Encounter fhirEncounter = buildEncounter();
+        List<FHIRResource> fhirResources = mapProcedure(1100, fhirEncounter);
+        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), fhirResources).getResource();
 
-        ResourceReferenceDt resourceReference = procedure.getReport().get(0);
-        IResource dianosticReportResource = getResourceByReference(resourceReference, fhirResources).getResource();
-        DiagnosticReport diagnosticReport = null;
-        if (dianosticReportResource instanceof DiagnosticReport) {
-            diagnosticReport = (DiagnosticReport) dianosticReportResource;
-        }
-        assertNotNull(diagnosticReport);
+        assertEquals(1, procedure.getReport().size());
+        ResourceReferenceDt reportReference = procedure.getReport().get(0);
+        IResource diagnosticReportResource = getResourceByReference(reportReference, fhirResources).getResource();
+        assertNotNull(diagnosticReportResource);
+        assertTrue(diagnosticReportResource instanceof DiagnosticReport);
+        DiagnosticReport diagnosticReport = (DiagnosticReport) diagnosticReportResource;
 
+        assertEquals(fhirEncounter.getId().getValue(), diagnosticReport.getEncounter().getReference().getValue());
         assertEquals("patient", diagnosticReport.getSubject().getReference().getValue());
         assertEquals("Provider 1", diagnosticReport.getPerformer().getReference().getValue());
         Date expectedDate = DateUtil.parseDate("2010-08-18 15:09:05");
         Date diagnosticDate = ((DateTimeDt) diagnosticReport.getDiagnostic()).getValue();
         assertEquals(expectedDate, diagnosticDate);
 
-        assertDiagnosticName(diagnosticReport);
+        assertTestCoding(diagnosticReport.getName().getCoding());
         assertCodedDiagnosis(diagnosticReport);
-        assertDiagnosisResult(diagnosticReport);
 
+        assertEquals(1, diagnosticReport.getResult().size());
+        Observation resultResource = (Observation) getResourceByReference(diagnosticReport.getResult().get(0), fhirResources).getResource();
+        assertDiagnosisResult(resultResource, fhirEncounter);
     }
 
-    private void assertDiagnosisResult(DiagnosticReport diagnosticReport) {
-        ResourceReferenceDt resourceRefResult = diagnosticReport.getResult().get(0);
-        assertEquals("Blood Pressure is very high", resourceRefResult.getDisplay().getValue());
+    private void assertDiagnosisResult(Observation result, Encounter fhirEncounter) {
+        assertNotNull(result);
+        assertEquals(fhirEncounter.getId().getValue(), result.getEncounter().getReference().getValue());
+        assertEquals("patient", result.getSubject().getReference().getValue());
+        assertTrue(result.getValue() instanceof StringDt);
+        assertEquals("Blood Pressure is very high", ((StringDt)result.getValue()).getValue());
+        assertEquals(ObservationStatusEnum.REGISTERED, result.getStatusElement().getValueAsEnum());
+        assertTestCoding(result.getCode().getCoding());
     }
 
     private void assertCodedDiagnosis(DiagnosticReport diagnosticReport) {
@@ -162,8 +201,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals("Viral-Pneumonia", termCoding.getCode());
     }
 
-    private void assertDiagnosticName(DiagnosticReport diagnosticReport) {
-        List<CodingDt> codings = diagnosticReport.getName().getCoding();
+    private void assertTestCoding(List<CodingDt> codings) {
         assertTrue(codings.size() == 2);
 
         CodingDt referenceTermCoding = codings.get(0);
@@ -181,27 +219,8 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         Obs obs = obsService.getObs(observationId);
         List<FHIRResource> fhirResources = procedureMapper.map(obs, fhirEncounter, getSystemProperties("1"));
 
-        assertEquals(2, fhirResources.size());
-
-        assertTrue(fhirResources.get(0).getResource() instanceof DiagnosticReport);
-        assertEquals("urn:uuid:ew6574cb-22yy-891a-giz7-3450552c77459", fhirResources.get(0).getIdentifierList().get(0).getValue());
-        assertEquals("Diagnostic Report", fhirResources.get(0).getResourceName());
-
-        assertTrue(fhirResources.get(1).getResource() instanceof Procedure);
-        assertEquals("urn:uuid:ef4554cb-22gg-471a-lld7-1434552c337c1", fhirResources.get(1).getIdentifierList().get(0).getValue());
-        assertEquals(MRSProperties.MRS_CONCEPT_PROCEDURES_TEMPLATE, fhirResources.get(1).getResourceName());
-
+        assertEquals(3, fhirResources.size());
         return fhirResources;
-    }
-
-    private Procedure getProcedure(List<FHIRResource> fhirResources) {
-        IResource procedure = null;
-        for (FHIRResource fhirResource : fhirResources) {
-            if ((procedure = fhirResource.getResource()) instanceof Procedure) {
-                return (Procedure) procedure;
-            }
-        }
-        return null;
     }
 
     private Encounter buildEncounter() {
@@ -209,7 +228,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         fhirEncounter.setPatient(new ResourceReferenceDt().setReference("patient"));
         Encounter.Participant participant = fhirEncounter.addParticipant();
         participant.setIndividual(new ResourceReferenceDt().setReference("Provider 1"));
-
+        fhirEncounter.setId("urn:uuid:6d0af6767-707a-4629-9850-f15206e63ab0");
         return fhirEncounter;
     }
 }

@@ -40,6 +40,12 @@
                 </section>
                 <section>
                     <content>
+                        <reference value="urn:uuid:2e0258de-131a-4adf-8c6d-609c56665425"/>
+                        <display value="Test A"/>
+                    </content>
+                </section>
+                <section>
+                    <content>
                         <reference value="urn:uuid:83f05bb3-acbc-4260-a044-027b5a9299e0"/>
                         <display value="Diagnostic Report"/>
                     </content>
@@ -84,6 +90,31 @@
     <entry>
         <base value="urn:uuid:"/>
         <resource>
+            <Observation xmlns="http://hl7.org/fhir">
+                <id value="2e0258de-131a-4adf-8c6d-609c56665425"/>
+                <code>
+                    <coding>
+                        <display value="Test A"/>
+                    </coding>
+                </code>
+                <valueString value="positive"/>
+                <status value="registered"/>
+                <identifier>
+                    <value value="urn:uuid:2e0258de-131a-4adf-8c6d-609c56665425"/>
+                </identifier>
+                <subject>
+                    <reference value="http://172.18.46.56:8081/api/v1/patients/98103104413"/>
+                    <display value="98103104413"/>
+                </subject>
+                <encounter>
+                    <reference value="urn:uuid:773e0487-a0d9-4fa5-8932-1b2fda5270b7"/>
+                </encounter>
+            </Observation>
+        </resource>
+    </entry>
+    <entry>
+        <base value="urn:uuid:"/>
+        <resource>
             <DiagnosticReport xmlns="http://hl7.org/fhir">
                 <id value="83f05bb3-acbc-4260-a044-027b5a9299e0"/>
                 <name>
@@ -108,7 +139,8 @@
                 </identifier>
                 <diagnosticDateTime value="2015-08-26T12:25:55.000+05:30"/>
                 <result>
-                    <display value="positive"/>
+                    <reference value="urn:uuid:2e0258de-131a-4adf-8c6d-609c56665425" />
+                    <display value="Test A"/>
                 </result>
                 <codedDiagnosis>
                     <coding>
@@ -142,6 +174,20 @@
                         <display value="ProcedureAnswer1"/>
                     </coding>
                 </type>
+                <outcome>
+                    <coding>
+                        <system value="http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Procedure-Outcome"/>
+                        <code value="385669000"/>
+                        <display value="Successful"/>
+                    </coding>
+                </outcome>
+                <followUp>
+                    <coding>
+                        <system value="http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Procedure-Followup"/>
+                        <code value="385669000"/>
+                        <display value="Change of dressing"/>
+                    </coding>
+                </followUp>
                 <performedPeriod>
                     <start value="2015-08-04T00:00:00.000+05:30"/>
                     <end value="2015-08-20T00:00:00.000+05:30"/>

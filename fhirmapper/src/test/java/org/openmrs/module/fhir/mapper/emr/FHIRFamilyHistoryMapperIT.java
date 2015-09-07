@@ -16,8 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
@@ -48,7 +46,7 @@ public class FHIRFamilyHistoryMapperIT extends BaseModuleWebContextSensitiveTest
         Bundle bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithFamilyHistory.xml", springContext);
         FamilyMemberHistory familyHistory = (FamilyMemberHistory) FHIRFeedHelper.identifyResource(bundle.getEntry(), new FamilyMemberHistory().getResourceName());
         Encounter newEmrEncounter = new Encounter();
-        familyHistoryMapper.map(bundle, familyHistory, new Patient(), newEmrEncounter, new HashMap<String, List<String>>());
+        familyHistoryMapper.map(bundle, familyHistory, new Patient(), newEmrEncounter);
 
         assertEquals(1, newEmrEncounter.getObsAtTopLevel(false).size());
         Obs familyHistoryObs = newEmrEncounter.getObsAtTopLevel(false).iterator().next();

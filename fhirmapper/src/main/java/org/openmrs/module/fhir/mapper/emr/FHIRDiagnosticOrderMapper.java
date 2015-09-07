@@ -15,9 +15,7 @@ import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
@@ -39,26 +37,19 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter encounter, Map<String, List<String>> processedList) {
+    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter encounter) {
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) resource;
-        if (processedList.containsKey(diagnosticOrder.getIdentifier().get(0).getValue()))
-            return;
-        createTestOrders(bundle, diagnosticOrder, emrPatient, encounter, processedList);
+        createTestOrders(bundle, diagnosticOrder, emrPatient, encounter);
     }
 
-    private void createTestOrders(Bundle bundle, DiagnosticOrder diagnosticOrder, Patient patient, Encounter encounter, Map<String, List<String>> processedList) {
+    private void createTestOrders(Bundle bundle, DiagnosticOrder diagnosticOrder, Patient patient, Encounter encounter) {
         List<DiagnosticOrder.Item> item = diagnosticOrder.getItem();
-        ArrayList<String> processedTestOrderUuids = new ArrayList<>();
         for (DiagnosticOrder.Item diagnosticOrderItemComponent : item) {
             Concept testOrderConcept = omrsConceptLookup.findConceptByCode(diagnosticOrderItemComponent.getCode().getCoding());
             if (testOrderConcept != null) {
                 Order testOrder = createTestOrder(bundle, diagnosticOrder, patient, encounter, testOrderConcept);
                 encounter.addOrder(testOrder);
-                processedTestOrderUuids.add(testOrder.getUuid());
             }
-        }
-        if (!processedTestOrderUuids.isEmpty()) {
-            processedList.put(diagnosticOrder.getIdentifier().get(0).getValue(), processedTestOrderUuids);
         }
     }
 

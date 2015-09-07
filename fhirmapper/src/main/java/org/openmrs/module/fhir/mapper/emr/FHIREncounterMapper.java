@@ -1,7 +1,6 @@
 package org.openmrs.module.fhir.mapper.emr;
 
 
-import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
@@ -24,9 +23,7 @@ import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.openmrs.module.fhir.utils.Constants.ORGANIZATION_ATTRIBUTE_TYPE_NAME;
@@ -37,9 +34,6 @@ public class FHIREncounterMapper {
     private EncounterService encounterService;
 
     @Autowired
-    private List<FHIRResourceMapper> fhirResourceMappers;
-
-    @Autowired
     public IdMappingsRepository idMappingsRepository;
 
     @Autowired
@@ -47,23 +41,20 @@ public class FHIREncounterMapper {
 
     @Autowired
     public VisitLookupService visitLookupService;
+
     @Autowired
     private ProviderLookupService providerLookupService;
 
+    @Autowired
+    private FHIRSubResourceMapper fhirSubResourceMapper;
+
     public org.openmrs.Encounter map(Encounter fhirEncounter, Date encounterDate, Patient emrPatient, Bundle bundle) throws ParseException {
-        Map<String, List<String>> processedList = new HashMap<>();
         org.openmrs.Encounter emrEncounter = new org.openmrs.Encounter();
         emrEncounter.setEncounterDatetime(encounterDate);
 
         emrEncounter.setPatient(emrPatient);
-        for (Bundle.Entry bundleEntry : bundle.getEntry()) {
-            final IResource resource = bundleEntry.getResource();
-            for (FHIRResourceMapper fhirResourceMapper : fhirResourceMappers) {
-                if (fhirResourceMapper.canHandle(resource)) {
-                    fhirResourceMapper.map(bundle, resource, emrPatient, emrEncounter, processedList);
-                }
-            }
-        }
+
+        fhirSubResourceMapper.map(emrPatient, bundle, emrEncounter);
 
         final String encounterTypeName = fhirEncounter.getType().get(0).getText();
         final EncounterType encounterType = encounterService.getEncounterType(encounterTypeName);

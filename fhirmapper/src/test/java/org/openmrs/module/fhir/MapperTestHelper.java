@@ -28,9 +28,11 @@ public class MapperTestHelper {
         trProperties.setProperty(PropertyKeyConstants.TR_REFERENCE_PATH, "http://localhost:9080");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_PATH_INFO, "openmrs/ws/rest/v1/tr/vs");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_ROUTE, "Route-of-Administration");
-        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_QTY_UNITS, "Quantity-Units");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_QUANTITY_UNITS, "Quantity-Units");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_IMMUNIZATION_REASON, "Immunization-Reason");
-        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_REFUSAL_REASON, "No-Immunization-Reason");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_IMMUNIZATION_REFUSAL_REASON, "No-Immunization-Reason");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_PROCEDURE_OUTCOME, "Procedure-Outcome");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_PROCEDURE_FOLLOWUP, "Procedure-Followup");
 
         Properties providerRegistry = new Properties();
         providerRegistry.setProperty(PropertyKeyConstants.PROVIDER_REFERENCE_PATH, "http://hrmtest.dghs.gov.bd/api/1.0/providers");

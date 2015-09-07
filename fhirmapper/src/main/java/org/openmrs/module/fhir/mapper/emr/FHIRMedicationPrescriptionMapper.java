@@ -14,9 +14,6 @@ import org.openmrs.module.fhir.utils.UnitsHelpers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-
 @Component
 public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
     private static final int DEFAULT_NUM_REFILLS = 0;
@@ -42,7 +39,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
+    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
 //        MedicationPrescription prescription = (MedicationPrescription) resource;
 //
 //        if (isAlreadyProcessed(prescription, processedList))

@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -62,7 +61,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         emrEncounter.setPatient(emrPatient);
         for (IResource condition : conditions) {
             if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
-                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter, new HashMap<String, List<String>>());
+                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter);
             }
         }
         final Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);
@@ -98,7 +97,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         emrEncounter.setPatient(emrPatient);
         for (IResource condition : conditions) {
             if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
-                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter, new HashMap<String, List<String>>());
+                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter);
             }
         }
         final Set<Obs> observations = emrEncounter.getAllObs();
@@ -115,7 +114,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         emrEncounter.setPatient(emrPatient);
         for (IResource condition : conditions) {
             if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
-                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter, new HashMap<String, List<String>>());
+                fhirChiefComplaintConditionMapper.map(bundle, condition, emrPatient, emrEncounter);
             }
         }
         final Set<Obs> topLevelObs = emrEncounter.getObsAtTopLevel(false);

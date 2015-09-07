@@ -17,9 +17,7 @@ import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
@@ -45,11 +43,9 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList) {
+    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
         Condition condition = (Condition) resource;
 
-        if (isAlreadyProcessed(condition, processedList))
-            return;
         Concept historyAndExaminationConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_COMPLAINT_CONDITION_TEMPLATE);
         Concept chiefComplaintDataConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA);
         Concept chiefComplaintDurationConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DURATION);
@@ -87,8 +83,6 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
         historyExaminationObs.setConcept(historyAndExaminationConcept);
         historyExaminationObs.addGroupMember(chiefComplaintDataObs);
         newEmrEncounter.addObs(historyExaminationObs);
-
-        processedList.put(condition.getIdentifier().get(0).getValue(), Arrays.asList(chiefComplaintDataObs.getUuid()));
     }
 
     public Obs getHistoryAndExaminationObservation(Encounter newEmrEncounter, Concept historyAndExaminationConcept) {
@@ -110,10 +104,6 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
 
     private boolean hasDuration(Condition condition) {
         return condition.getOnset() != null;
-    }
-
-    private boolean isAlreadyProcessed(Condition condition, Map<String, List<String>> processedList) {
-        return processedList.containsKey(condition.getIdentifier().get(0).getValue());
     }
 
     private Double getComplaintDuration(Condition condition) {

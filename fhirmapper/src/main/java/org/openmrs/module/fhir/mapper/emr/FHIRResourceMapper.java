@@ -6,12 +6,9 @@ import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-
 @Component
 public interface FHIRResourceMapper {
     public boolean canHandle(IResource resource);
 
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter, Map<String, List<String>> processedList);
+    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter);
 }
