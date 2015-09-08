@@ -4,7 +4,6 @@ package org.openmrs.module.fhir.utils;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openmrs.Concept;
 import org.openmrs.api.ConceptService;
@@ -60,8 +59,6 @@ public class OMRSConceptLookupIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    @Ignore
-    //TODO : should we do this?
     public void shouldFindConceptFromCodingThatHasReferenceTermsWithoutAnyMatchingConceptPreferredName() {
         List<CodingDt> codings = asList(buildCoding(REF_TERM_URI, "1101", "A001", "xyz concept"),
                 buildCoding(REF_TERM_URI, "1102", "B001", "pqr concept"));
@@ -142,5 +139,4 @@ public class OMRSConceptLookupIT extends BaseModuleWebContextSensitiveTest {
         coding.setDisplay(display);
         return coding;
     }
-
 }

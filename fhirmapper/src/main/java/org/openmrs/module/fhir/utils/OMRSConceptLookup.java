@@ -6,6 +6,7 @@ import org.apache.commons.lang.StringUtils;
 import org.openmrs.Concept;
 import org.openmrs.ConceptAnswer;
 import org.openmrs.ConceptMap;
+import org.openmrs.ConceptMapType;
 import org.openmrs.ConceptName;
 import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.Drug;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.apache.commons.collections4.CollectionUtils.exists;
@@ -44,36 +46,40 @@ public class OMRSConceptLookup {
 
     public Concept findConceptByCode(List<CodingDt> codings) {
         Map<ConceptReferenceTerm, String> referenceTermMap = new HashMap<>();
+        Concept identifiedConcept = null;
         for (CodingDt coding : codings) {
             if (isValueSetUrl(coding.getSystem())) {
-                Concept concept = findConceptFromValueSetCode(coding.getSystem(), coding.getCode());
-                if (concept != null) return concept;
+                identifiedConcept = findConceptFromValueSetCode(coding.getSystem(), coding.getCode());
             } else {
                 String uuid = getUuid(coding.getSystem());
                 if (StringUtils.isNotBlank(uuid)) {
                     IdMapping idMapping = idMappingsRepository.findByExternalId(uuid);
                     if (idMapping != null) {
                         if (ID_MAPPING_CONCEPT_TYPE.equalsIgnoreCase(idMapping.getType())) {
-                            return conceptService.getConceptByUuid(idMapping.getInternalId());
+                            identifiedConcept = conceptService.getConceptByUuid(idMapping.getInternalId());
                         } else if (ID_MAPPING_REFERENCE_TERM_TYPE.equalsIgnoreCase(idMapping.getType())) {
                             referenceTermMap.put(conceptService.getConceptReferenceTermByUuid(idMapping.getInternalId()), coding.getDisplay());
                         }
                     }
                 }
             }
+
+            if (identifiedConcept != null) {
+                return identifiedConcept;
+            }
         }
+
         return findConceptByReferenceTermMapping(referenceTermMap);
     }
 
     public Drug findDrug(List<CodingDt> codings) {
-        Drug drug = null;
         for (CodingDt coding : codings) {
             if (isDrugSet(coding.getSystem())) {
-                drug = findDrug(coding.getCode());
+                Drug drug = findDrug(coding.getCode());
                 if (drug != null) return drug;
             }
         }
-        return drug;
+        return null;
     }
 
     private boolean isValueSetUrl(String systemSimple) {
@@ -96,7 +102,7 @@ public class OMRSConceptLookup {
         String valueSet = StringUtils.replace(StringUtils.substringAfterLast(system, "/"), "-", " ");
         Concept valueSetConcept = conceptService.getConceptByName(valueSet);
         Concept answerConcept = findAnswerConceptFromValueSetCode(valueSetConcept, code);
-        return answerConcept == null? conceptService.getConceptByName(code) : answerConcept;
+        return answerConcept == null ? conceptService.getConceptByName(code) : answerConcept;
     }
 
     public boolean referenceTermCodeFound(Concept concept, final String code) {
@@ -154,22 +160,30 @@ public class OMRSConceptLookup {
         }
 
         ConceptReferenceTerm refTerm = null;
+        String displayString = null;
         for (ConceptReferenceTerm referenceTerm : referenceTermMapping.keySet()) {
-            refTerm = referenceTerm;
             List<Concept> concepts = conceptService.getConceptsByMapping(referenceTerm.getCode(), referenceTerm.getConceptSource().getName());
             for (Concept concept : concepts) {
-                if (concept.getName().getName().equalsIgnoreCase(referenceTermMapping.get(referenceTerm))) {
-                    return concept;
+                String display = referenceTermMapping.get(referenceTerm);
+                if (StringUtils.isBlank(display)) continue;
+                else {
+                    refTerm = referenceTerm;
+                    displayString = display;
+                    for (ConceptName conceptName : concept.getNames()) {
+                        if (conceptName.getName().equalsIgnoreCase(displayString)) {
+                            return concept;
+                        }
+                    }
                 }
             }
         }
-        return null;
-        //TODO : should we do this?
-//        final String conceptName = referenceTermMapping.get(refTerm);
-//        Concept concept = new Concept();
-//        concept.addName(new ConceptName(conceptName, ENGLISH));
-//        concept.addConceptMapping(new ConceptMap(refTerm, conceptService.getConceptMapTypeByUuid(SAME_AS_MAP_TYPE_UUID)));
-//        return conceptService.saveConcept(concept);
+
+        if (displayString == null) return null;
+        final String conceptName = referenceTermMapping.get(refTerm);
+        Concept concept = new Concept();
+        concept.addName(new ConceptName(conceptName, Locale.ENGLISH));
+        concept.addConceptMapping(new ConceptMap(refTerm, conceptService.getConceptMapTypeByUuid(ConceptMapType.SAME_AS_MAP_TYPE_UUID)));
+        return conceptService.saveConcept(concept);
     }
 
     private static String getUuid(String content) {
