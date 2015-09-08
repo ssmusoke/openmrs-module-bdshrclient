@@ -51,6 +51,8 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
         proceduresObs.addGroupMember(getOutCome(procedure));
         setFollowUpObses(procedure, proceduresObs);
         proceduresObs.addGroupMember(getProcedureType(procedure));
+        proceduresObs.addGroupMember(getProcedureNotesObs(procedure));
+        proceduresObs.addGroupMember(getProcedureStatusObs(procedure));
 
         for (ResourceReferenceDt reportReference : procedure.getReport()) {
             IResource diagnosticReportResource = FHIRFeedHelper.findResourceByReference(bundle, reportReference);
@@ -59,6 +61,24 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
             }
         }
         newEmrEncounter.addObs(proceduresObs);
+    }
+
+    private Obs getProcedureStatusObs(Procedure procedure) {
+        Obs statusObs = new Obs();
+        statusObs.setConcept(omrsConceptLookup.findTRConceptOfType(TrValueSetType.PROCEDURE_STATUS));
+        Concept statusConcept = omrsConceptLookup.findValuesetConceptFromTrValuesetType(TrValueSetType.PROCEDURE_STATUS, procedure.getStatus());
+        statusObs.setValueCoded(statusConcept);
+        return statusObs;
+    }
+
+    private Obs getProcedureNotesObs(Procedure procedure) {
+        if (procedure.getNotes() != null && !procedure.getNotes().isEmpty()) {
+            Obs procedureNotesObs = new Obs();
+            procedureNotesObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_PROCEDURE_NOTES));
+            procedureNotesObs.setValueText(procedure.getNotes());
+            return procedureNotesObs;
+        }
+        return null;
     }
 
     private Obs getDiagnosisStudyObs(DiagnosticReport diagnosticReport, Bundle bundle) {

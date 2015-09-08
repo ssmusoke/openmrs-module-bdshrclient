@@ -95,18 +95,8 @@ public class OMRSConceptLookup {
     public Concept findConceptFromValueSetCode(String system, String code) {
         String valueSet = StringUtils.replace(StringUtils.substringAfterLast(system, "/"), "-", " ");
         Concept valueSetConcept = conceptService.getConceptByName(valueSet);
-        if (valueSetConcept != null) {
-            for (ConceptAnswer answer : valueSetConcept.getAnswers()) {
-                Concept concept = answer.getAnswerConcept();
-                if (referenceTermCodeFound(concept, code) || shortNameFound(concept, code) || fullNameMatchFound(concept, code))
-                    return concept;
-            }
-        }
-        return conceptService.getConceptByName(code);
-    }
-
-    private boolean fullNameMatchFound(Concept concept, String code) {
-        return concept.getName().getName().equals(code);
+        Concept answerConcept = findAnswerConceptFromValueSetCode(valueSetConcept, code);
+        return answerConcept == null? conceptService.getConceptByName(code) : answerConcept;
     }
 
     public boolean referenceTermCodeFound(Concept concept, final String code) {
@@ -134,6 +124,28 @@ public class OMRSConceptLookup {
         } else {
             return conceptService.getConceptByName(type.getDefaultConceptName());
         }
+    }
+
+    public Concept findValuesetConceptFromTrValuesetType(TrValueSetType type, String valuesetCode) {
+        Concept valuesetConcept = findTRConceptOfType(type);
+        Concept answerConcept = findAnswerConceptFromValueSetCode(valuesetConcept, valuesetCode);
+        return answerConcept == null ? conceptService.getConceptByName(valuesetCode) : answerConcept;
+    }
+
+
+    public Concept findAnswerConceptFromValueSetCode(Concept valueSetConcept, String valueSetCode) {
+        if (valueSetConcept != null) {
+            for (ConceptAnswer answer : valueSetConcept.getAnswers()) {
+                Concept concept = answer.getAnswerConcept();
+                if (referenceTermCodeFound(concept, valueSetCode) || shortNameFound(concept, valueSetCode) || fullNameMatchFound(concept, valueSetCode))
+                    return concept;
+            }
+        }
+        return null;
+    }
+
+    private boolean fullNameMatchFound(Concept concept, String code) {
+        return concept.getName().getName().equals(code);
     }
 
     private Concept findConceptByReferenceTermMapping(Map<ConceptReferenceTerm, String> referenceTermMapping) {

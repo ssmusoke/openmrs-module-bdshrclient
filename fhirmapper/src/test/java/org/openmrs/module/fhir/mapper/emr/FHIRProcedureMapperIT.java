@@ -14,6 +14,7 @@ import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.ObsHelper;
+import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.fhir.utils.TrValueSetType;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -97,12 +98,28 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
+    public void shouldMapProcedureNotes() throws Exception {
+        Obs proceduresObs = mapProceduresObs();
+        Obs notesObs = obsHelper.findMemberObsByConceptName(proceduresObs, MRSProperties.MRS_CONCEPT_PROCEDURE_NOTES);
+        assertEquals("Procedure went well", notesObs.getValueText());
+    }
+
+    @Test
     public void shouldMapProcedureType() throws Exception {
         Obs procedureObs = mapProceduresObs();
         Obs procedureTypeObs = obsHelper.findMemberObsByConceptName(procedureObs, MRS_CONCEPT_PROCEDURE_TYPE);
         Concept valueCoded = procedureTypeObs.getValueCoded();
         int procedureType = 601;
         assertEquals(conceptService.getConcept(procedureType), valueCoded);
+    }
+
+    @Test
+    public void shouldMapProcedureStatus() throws Exception {
+        Obs procedureObs = mapProceduresObs();
+        Obs procedureStatusObs = obsHelper.findMemberObsByConceptName(procedureObs, TrValueSetType.PROCEDURE_STATUS.getDefaultConceptName());
+        Concept valueCoded = procedureStatusObs.getValueCoded();
+        int procedureStatusConceptId = 604;
+        assertEquals(conceptService.getConcept(procedureStatusConceptId), valueCoded);
     }
 
     @Test

@@ -42,6 +42,7 @@ public class MRSProperties {
     public static final String MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_STUDY = "Procedure Diagnostic Study";
     public static final String MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_TEST = "Procedure Diagnostic Test";
     public static final String MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_RESULT = "Procedure Diagnostic Result";
+    public static final String MRS_CONCEPT_PROCEDURE_NOTES = "Procedure Notes";
 
     public static final String MRS_CONCEPT_NAME_LAB_NOTES = "LAB_NOTES";
     public static final String MRS_CARE_SETTING_FOR_OUTPATIENT = "Outpatient";
@@ -64,6 +65,7 @@ public class MRSProperties {
     public static final String TR_VALUESET_ROUTE_OF_ADMINSTRATION = "Route of Administration";
     public static final String TR_VALUESET_PROCEDURE_OUTCOME = "Procedure Outcome";
     public static final String TR_VALUESET_PROCEDURE_FOLLOWUP = "Procedure Follow up";
+    public static final String TR_VALUESET_PROCEDURE_STATUS = "Procedure Status";
 
     public static final String TR_CONCEPT_CAUSE_OF_DEATH = "Cause of Death";
     public static final String TR_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH = "Unspecified cause of death";
@@ -75,6 +77,7 @@ public class MRSProperties {
     public static final String GLOBAL_PROPERTY_CONCEPT_ROUTE_OF_ADMINISTRATION = "shr.concept.routeOfAdministration";
     public static final String GLOBAL_PROPERTY_CONCEPT_PROCEDURE_OUTCOME = "shr.concept.procedureOutcome";
     public static final String GLOBAL_PROPERTY_CONCEPT_PROCEDURE_FOLLOWUP = "shr.concept.procedureFollowUp";
+    public static final String GLOBAL_PROPERTY_CONCEPT_PROCEDURE_STATUS = "shr.concept.procedureStatus";
 
     public static final String GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH = "concept.causeOfDeath";
     public static final String GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH = "concept.unspecifiedCauseOfDeath";

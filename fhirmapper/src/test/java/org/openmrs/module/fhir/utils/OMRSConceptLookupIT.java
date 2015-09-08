@@ -121,6 +121,20 @@ public class OMRSConceptLookupIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(conceptService.getConcept(403), relationshipTypeConcept);
     }
 
+    @Test
+    public void shouldMapConceptFromValuesetCodeFromAnswerConceptsOnly() throws Exception {
+        Concept valuesetOneConcept = conceptService.getConceptByName("ValueSet One");
+        Concept answerConceptForValuesetOne = omrsConceptLookup.findAnswerConceptFromValueSetCode(valuesetOneConcept, "completed");
+        assertEquals(conceptService.getConcept(604), answerConceptForValuesetOne);
+
+        Concept valuesetTwoConcept = conceptService.getConceptByName("ValueSet Two");
+        Concept answerConceptForValuesetTwoConcept = omrsConceptLookup.findAnswerConceptFromValueSetCode(valuesetTwoConcept, "completed");
+        assertEquals(conceptService.getConcept(606), answerConceptForValuesetTwoConcept);
+
+        Concept someOtherValueset = conceptService.getConceptByName("Value Set Concept");
+        assertNull(omrsConceptLookup.findAnswerConceptFromValueSetCode(someOtherValueset, "completed"));
+    }
+
     private CodingDt buildCoding(String uri, String externalId, String code, String display) {
         final CodingDt coding = new CodingDt();
         coding.setSystem(uri + externalId);

@@ -12,6 +12,8 @@ import ca.uhn.fhir.model.dstu2.resource.Observation;
 import ca.uhn.fhir.model.dstu2.resource.Procedure;
 import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
 import ca.uhn.fhir.model.dstu2.valueset.ProcedureStatusEnum;
+import ca.uhn.fhir.model.primitive.BoundCodeDt;
+import org.apache.log4j.Logger;
 import org.openmrs.Concept;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
@@ -49,6 +51,8 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     @Autowired
     private ObservationValueMapper observationValueMapper;
 
+    private Logger logger = Logger.getLogger(EncounterMapper.class);
+
     @Override
     public boolean canHandle(Obs observation) {
         CompoundObservation obs = new CompoundObservation(observation);
@@ -73,7 +77,8 @@ public class ProcedureMapper implements EmrObsResourceHandler {
             setIdentifier(obs, systemProperties, procedure);
             procedure.setOutcome(getProcedureOutcome(compoundObservationProcedure, systemProperties));
             procedure.setFollowUp(getProcedureFollowUp(compoundObservationProcedure, systemProperties));
-            procedure.setStatus(ProcedureStatusEnum.COMPLETED);
+            procedure.setStatus(getProcedureStatus(compoundObservationProcedure));
+            procedure.setNotes(getProcedureNotes(compoundObservationProcedure));
             procedure.setPerformed(getProcedurePeriod(compoundObservationProcedure));
             addReportToProcedure(compoundObservationProcedure, fhirEncounter, systemProperties, procedure, resources);
             FHIRResource procedureResource = new FHIRResource("Procedure", procedure.getIdentifier(), procedure);
@@ -81,6 +86,22 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         }
 
         return resources;
+    }
+
+    private BoundCodeDt<ProcedureStatusEnum> getProcedureStatus(CompoundObservation procedure) {
+        Obs procdureStatusObs = procedure.getMemberObsForConcept(omrsConceptLookup.findTRConceptOfType(TrValueSetType.PROCEDURE_STATUS));
+        if (procdureStatusObs != null) {
+            String statusCode = codeableConceptService.getTRValueSetCode(procdureStatusObs.getValueCoded());
+            BoundCodeDt<ProcedureStatusEnum> code = new BoundCodeDt<>(ProcedureStatusEnum.VALUESET_BINDER);
+            code.setValueAsString(statusCode);
+            return code;
+        }
+        return new BoundCodeDt<>(ProcedureStatusEnum.VALUESET_BINDER, ProcedureStatusEnum.COMPLETED);
+    }
+
+    private String getProcedureNotes(CompoundObservation procedure) {
+        Obs notesObs = procedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_NOTES);
+        return notesObs != null ? notesObs.getValueText() : null;
     }
 
     private void addReportToProcedure(CompoundObservation compoundObservationProcedure, Encounter fhirEncounter, SystemProperties systemProperties, Procedure procedure, List<FHIRResource> allResources) {

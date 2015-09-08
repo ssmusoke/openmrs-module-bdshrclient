@@ -679,4 +679,18 @@
             <column name="uuid" valueComputed="uuid()"/>
         </insert>
     </changeSet>
+    <changeSet id="bdshrclient-08092015-1513" author="Neha" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from global_property where
+                property='shr.concept.procedureStatus';
+            </sqlCheck>
+        </preConditions>
+        <comment>Adding a global property which saves the concept id for Procedure Status</comment>
+        <insert tableName="global_property">
+            <column name="property" value="shr.concept.procedureStatus"/>
+            <column name="description" value="Concept Id for Procedure Status"/>
+            <column name="uuid" valueComputed="uuid()"/>
+        </insert>
+    </changeSet>
 </databaseChangeLog>

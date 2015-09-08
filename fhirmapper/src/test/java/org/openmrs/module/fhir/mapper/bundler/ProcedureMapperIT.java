@@ -9,6 +9,7 @@ import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 import ca.uhn.fhir.model.dstu2.resource.Procedure;
 import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
+import ca.uhn.fhir.model.dstu2.valueset.ProcedureStatusEnum;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
 import ca.uhn.fhir.model.primitive.StringDt;
 import org.apache.commons.collections.CollectionUtils;
@@ -78,7 +79,9 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         patient.setReference("Hid");
         fhirEncounter.setPatient(patient);
 
-        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, fhirEncounter)).getResource();
+        List<FHIRResource> fhirResources = mapProcedure(1100, fhirEncounter);
+        assertEquals(3, fhirResources.size());
+        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), fhirResources).getResource();
 
         assertEquals(patient, procedure.getPatient());
 
@@ -88,6 +91,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldPopulateReferencesAndIds() {
         List<FHIRResource> fhirResources = mapProcedure(1100, new Encounter());
+        assertEquals(3, fhirResources.size());
 
         FHIRResource procedureResource = getResourceByType(new Procedure().getResourceName(), fhirResources);
         assertTrue(procedureResource.getResource() instanceof Procedure);
@@ -105,6 +109,19 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         assertNotNull(resultResource);
         assertEquals("urn:uuid:dia574cb-22yy-671a-giz7-3450552cresult", resultResource.getIdentifierList().get(0).getValue());
         assertEquals("Test A", resultResource.getResourceName());
+    }
+
+    @Test
+    public void shouldMapProcedureType() throws Exception {
+        List<FHIRResource> fhirResources = mapProcedure(1100, buildEncounter());
+        assertEquals(3, fhirResources.size());
+
+        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), fhirResources).getResource();
+        CodingDt procedureType = procedure.getType().getCoding().get(0);
+        assertNotNull(procedureType);
+        assertEquals("ProcedureAnswer1", procedureType.getDisplay());
+        assertEquals("http://tr.com/Osteopathic-Treatment-of-Abdomen", procedureType.getSystem());
+        assertEquals("Osteopathic-Treatment-of-Abdomen", procedureType.getCode());
     }
 
     @Test
@@ -126,16 +143,6 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    public void shouldMapProcedureType() throws Exception {
-        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
-        CodingDt procedureType = procedure.getType().getCoding().get(0);
-        assertNotNull(procedureType);
-        assertEquals("ProcedureAnswer1", procedureType.getDisplay());
-        assertEquals("http://tr.com/Osteopathic-Treatment-of-Abdomen", procedureType.getSystem());
-        assertEquals("Osteopathic-Treatment-of-Abdomen", procedureType.getCode());
-    }
-
-    @Test
     public void shouldMapPeriod() throws Exception {
         Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
         PeriodDt period = (PeriodDt) procedure.getPerformed();
@@ -145,6 +152,24 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
         assertEquals(expectedStartDate, period.getStart());
         assertEquals(expectedEndDate, period.getEnd());
+    }
+
+    @Test
+    public void shouldMapProcedureNotes() throws Exception {
+        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
+        assertEquals("Procedure went well", procedure.getNotes());
+    }
+
+    @Test
+    public void shouldMapProcedureStatus() throws Exception {
+        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
+        assertEquals(ProcedureStatusEnum.IN_PROGRESS, procedure.getStatusElement().getValueAsEnum());
+    }
+
+    @Test
+    public void shouldSetProcedureStatusAsCompletedIfNotGiven() throws Exception {
+        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1501, buildEncounter())).getResource();
+        assertEquals(ProcedureStatusEnum.COMPLETED, procedure.getStatusElement().getValueAsEnum());
     }
 
     @Test
@@ -218,8 +243,6 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     private List<FHIRResource> mapProcedure(int observationId, Encounter fhirEncounter) {
         Obs obs = obsService.getObs(observationId);
         List<FHIRResource> fhirResources = procedureMapper.map(obs, fhirEncounter, getSystemProperties("1"));
-
-        assertEquals(3, fhirResources.size());
         return fhirResources;
     }
 

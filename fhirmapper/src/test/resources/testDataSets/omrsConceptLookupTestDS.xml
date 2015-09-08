@@ -37,7 +37,6 @@
     <concept_reference_term concept_reference_term_id="10" concept_source_id="1" code="VSA-ref" name="VS-ref-name"
                             creator="1" date_created="2004-08-12 00:00:00.0" uuid="aaea67Zc-bZ4e-ab04-7028-c3b9941hji94"></concept_reference_term>
     <concept_reference_map concept_map_id="10" concept_id="401" concept_reference_term_id="10" concept_map_type_id="1" creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_map>
-
     <!--Value Set-->
 
     <concept concept_id="402" retired="false" datatype_id="4" class_id="11" is_set="true" creator="1" date_created="2004-08-12 00:00:00.0" version=""
@@ -52,4 +51,41 @@
     <concept_name concept_id="403" concept_name_id="403" name="Relationship Type" locale="en" creator="1"
                   date_created="2004-08-12 00:00:00.0" concept_name_type="FULLY_SPECIFIED" locale_preferred="1"
                   voided="false" uuid="lkiay80e-1fi9-fda3-2b88-812oaloa687h"/>
+
+    <!--Two ValueSets with same code-->
+    <concept concept_id="312" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
+             date_created="2004-08-12 00:00:00.0" version="" changed_by="1"
+             date_changed="2005-02-25 11:43:43.0" uuid="dia999-78i3-zhem-ucme-8122sis" />
+    <concept_name concept_name_id="312" concept_id="312" name="ValueSet One" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="diatppv9-8che-cejd-uce3-bc433583sis"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0" />
+
+    <concept concept_id="604" retired="false" datatype_id="4" class_id="2" is_set="false" creator="1"
+             date_created="2005-01-01 00:00:00.0" uuid="pne45-3ca8-y1e3-cg3b-a6782m0nia12"/>
+    <concept_name concept_name_id="604" concept_id="604" name="ValueSet One Completed" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="b47l00p9-7cy3-43yd-93yd-b4335835for"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <concept_name concept_name_id="605" concept_id="604" name="completed" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="b47l00p9-7cy0-40yd-83jc-b4335835for"
+                  concept_name_type="SHORT" locale_preferred="0"/>
+    <concept_answer concept_answer_id="604" concept_id="312" answer_concept="604" sort_weight="1" date_created="2004-08-12 00:00:00.0" creator="1" uuid="eachro8f-uom3-6cu3-873d-qa3a3lz36ans" />
+
+    <concept concept_id="313" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
+             date_created="2004-08-12 00:00:00.0" version="" changed_by="1"
+             date_changed="2005-02-25 11:43:43.0" uuid="dia999-78i3-zhem-uome-812iiis" />
+    <concept_name concept_name_id="313" concept_id="313" name="ValueSet Two" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="98atppv9-8che-cejd-uded-b3433583sis"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0" />
+
+    <concept concept_id="606" retired="false" datatype_id="4" class_id="2" is_set="false" creator="1"
+             date_created="2005-01-01 00:00:00.0" uuid="pne45-3ca8-y1e3-cg3b-a678250nia12"/>
+    <concept_name concept_name_id="606" concept_id="606" name="ValueSet Two Completed" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="b47e00e9-7cy3-43yd-93yd-b4335835for"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <concept_name concept_name_id="607" concept_id="606" name="completed" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="b47l00p9-7cy0-40pd-8pjc-b4335835for"
+                  concept_name_type="SHORT" locale_preferred="0"/>
+    <concept_answer concept_answer_id="606" concept_id="313" answer_concept="606" sort_weight="1" date_created="2004-08-12 00:00:00.0" creator="1" uuid="eachro8f-uom3-6cu3-873d-qa3a3oz36ans" />
+
+    <!--Two ValueSets with same code-->
 </dataset>

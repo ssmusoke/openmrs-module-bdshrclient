@@ -169,7 +169,31 @@
     <shr_id_mapping id="45" internal_id="pne45-3ca8-y1e3-cg3b-a6782monia12" external_id="Viral-Pneumonia" type="concept"
                     uri="http://tr.com/Viral-Pneumonia"></shr_id_mapping>
 
+    <concept concept_id="311" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
+             date_created="2004-08-12 00:00:00.0" version="" changed_by="1"
+             date_changed="2005-02-25 11:43:43.0" uuid="dia999-1yz7-2kxme-3de3-8122sis" />
+    <concept_name concept_name_id="311" concept_id="311" name="Procedure Notes" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="diatppv9-7cje-52g8-ukv3-bc433583sis"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0" />
+    <concept_set concept_set_id="311" concept_id="311" concept_set="301" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="2"></concept_set>
 
+    <concept concept_id="312" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
+             date_created="2004-08-12 00:00:00.0" version="" changed_by="1"
+             date_changed="2005-02-25 11:43:43.0" uuid="dia999-78i3-zhem-ucme-8122sis" />
+    <concept_name concept_name_id="312" concept_id="312" name="Procedure Status" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="diatppv9-8che-cejd-uce3-bc433583sis"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0" />
+    <concept_set concept_set_id="312" concept_id="312" concept_set="301" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="1" />
+
+    <concept concept_id="604" retired="false" datatype_id="4" class_id="2" is_set="false" creator="1"
+             date_created="2005-01-01 00:00:00.0" uuid="pne45-3ca8-y1e3-cg3b-a6782m0nia12"/>
+    <concept_name concept_name_id="604" concept_id="604" name="In Progress" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="b47l00p9-7cy3-43yd-93yd-b4335835for"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <concept_name concept_name_id="605" concept_id="604" name="in-progress" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="b47l00p9-7cy0-40yd-83jc-b4335835for"
+                  concept_name_type="SHORT" locale_preferred="0"/>
+    <concept_answer concept_answer_id="604" concept_id="312" answer_concept="604" sort_weight="1" date_created="2004-08-12 00:00:00.0" creator="1" uuid="eachro8f-uom3-6cu3-873d-qa3a3lz36ans" />
 
     <!-- Procedure observations -->
     <visit visit_id="1" date_started="2014-07-10 00:00:00" date_created="2014-07-10 00:00:00" patient_id="1"
@@ -197,6 +221,12 @@
     <obs obs_id="1105" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" obs_group_id="1100"
          date_created="2010-08-18 15:09:05.0"
          uuid="bg6574cb-22yy-581a-giz7-1434552c77459" creator="1" concept_id="306" voided="0" value_datetime="2015-01-15 00:00:00.0"/>
+    <obs obs_id="1110" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" obs_group_id="1100"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="bg6574cb-22yy-8cu3-eixk-1434552c77459" creator="1" concept_id="311" voided="0" value_text="Procedure went well"/>
+    <obs obs_id="1111" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" obs_group_id="1100"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="bg05740b-22yy-8cu3-eixk-1434552c77459" creator="1" concept_id="312" voided="0" value_coded="604"/>
 
     <!--Diagnostic Study -->
     <obs obs_id="1106" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" obs_group_id="1100"
@@ -217,7 +247,7 @@
          date_created="2010-08-18 15:09:05.0"
          uuid="ef4778cb-22gg-471a-lld7-1434552c337c1" creator="1" concept_id="301" voided="0"/>
 
-    <!-- Obs with procedure type without diagnosis test-->
+    <!-- Obs with procedure type without diagnosis test and status-->
     <obs obs_id="1501" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0"
          date_created="2010-08-18 15:09:05.0"
          uuid="ef4778cb-22gg-466a-lld7-1434552c337c1" creator="1" concept_id="301" voided="0"/>

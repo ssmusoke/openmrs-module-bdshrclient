@@ -162,6 +162,7 @@
                     <reference value="http://www.mci.com/patients/98101039678"/>
                     <display value="98101039678"/>
                 </patient>
+                <status value="in-progress" />
                 <type>
                     <coding>
                         <system value="http://192.168.33.17:9080/openmrs/ws/rest/v1/tr/referenceterms/838b3372-0fe8-4c09-acce-30248abe71ef"/>
@@ -199,6 +200,7 @@
                     <reference value="urn:uuid:83f05bb3-acbc-4260-a044-027b5a9299e0"/>
                     <display value="Diagnostic Report"/>
                 </report>
+                <notes value="Procedure went well" />
             </Procedure>
         </resource>
     </entry>

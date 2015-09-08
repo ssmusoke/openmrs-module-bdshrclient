@@ -137,7 +137,7 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
         if (StringUtils.isNotBlank(code)) {
             Obs result = new Obs();
             result.setConcept(conceptLookup.findTRConceptOfType(TrValueSetType.RELATIONSHIP_TYPE));
-            result.setValueCoded(conceptService.getConceptByName(code));
+            result.setValueCoded(conceptLookup.findValuesetConceptFromTrValuesetType(TrValueSetType.RELATIONSHIP_TYPE, code));
             return result;
         } else {
             return null;
