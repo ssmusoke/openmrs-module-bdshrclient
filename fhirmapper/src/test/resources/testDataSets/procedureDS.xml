@@ -57,7 +57,7 @@
     <concept concept_id="303" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg999-1yz9-4da3-bb88-8122ctdabcde"/>
-    <concept_name concept_name_id="303" concept_id="303" name="Procedure Follow up" locale="en" creator="1"
+    <concept_name concept_name_id="303" concept_id="303" name="Procedure Followup" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zayyv9-e1v4-41t6-b2d6-bc4335835eaaa"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
 
