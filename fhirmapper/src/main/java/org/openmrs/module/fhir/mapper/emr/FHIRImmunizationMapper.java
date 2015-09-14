@@ -117,10 +117,13 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
         QuantityDt doseQuantity = immunization.getDoseQuantity();
         Obs quantityUnitsObs = null;
         if (doseQuantity != null && !doseQuantity.isEmpty()) {
-            quantityUnitsObs = new Obs();
-            Concept quantityUnitsConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.QUANTITY_UNITS);
-            quantityUnitsObs.setConcept(quantityUnitsConcept);
-            quantityUnitsObs.setValueCoded(omrsConceptLookup.findConceptFromValueSetCode(doseQuantity.getSystem(), doseQuantity.getCode()));
+            Concept quantityUnit = omrsConceptLookup.findConceptFromValueSetCode(doseQuantity.getSystem(), doseQuantity.getCode());
+            if(quantityUnit != null) {
+                quantityUnitsObs = new Obs();
+                Concept quantityUnitsConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.QUANTITY_UNITS);
+                quantityUnitsObs.setConcept(quantityUnitsConcept);
+                quantityUnitsObs.setValueCoded(quantityUnit);
+            }
 
         }
         return quantityUnitsObs;
