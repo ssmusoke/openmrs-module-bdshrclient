@@ -74,9 +74,9 @@ public class TestResultMapper implements EmrObsResourceHandler {
         if (name.getCoding() != null && name.getCoding().isEmpty()) {
             return null;
         }
-        report.setName(name);
+        report.setCode(name);
         org.openmrs.Order obsOrder = obs.getOrder();
-        report.setDiagnostic(getOrderTime(obsOrder));
+        report.setEffective(getOrderTime(obsOrder));
 
         String uuid = obsOrder.getEncounter().getUuid();
         IdMapping encounterIdMapping = idMappingsRepository.findByInternalId(uuid);
@@ -84,7 +84,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
             throw new RuntimeException("Encounter id [" + uuid + "] doesn't have id mapping.");
         }
 
-        report.addRequestDetail().setReference(encounterIdMapping.getUri());
+        report.addRequest().setReference(encounterIdMapping.getUri());
 
         for (Obs member : obs.getGroupMembers()) {
             if (member.getConcept().equals(obs.getConcept())) {

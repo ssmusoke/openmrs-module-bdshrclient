@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
 
+import static java.util.Arrays.asList;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
 
 @Component
@@ -46,7 +47,7 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
     private void mapRelatedObservations(Bundle bundle, Observation observation, Obs obs, Encounter emrEncounter) throws ParseException {
         for (Observation.Related component : observation.getRelated()) {
             Obs member;
-            Observation relatedObs = (Observation) findResourceByReference(bundle, component.getTarget());
+            Observation relatedObs = (Observation) findResourceByReference(bundle, asList(component.getTarget()));
             member = mapObs(bundle, emrEncounter, relatedObs);
             if (member != null) {
                 obs.addGroupMember(member);

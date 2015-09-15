@@ -8,7 +8,7 @@ import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Condition;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
-import ca.uhn.fhir.model.dstu2.valueset.ConditionClinicalStatusEnum;
+import ca.uhn.fhir.model.dstu2.valueset.ConditionCategoryCodesEnum;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 import org.openmrs.Obs;
@@ -58,9 +58,7 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
         condition.setEncounter(new ResourceReferenceDt().setReference(encounter.getId().getValue()));
         condition.setPatient(encounter.getPatient());
         condition.setAsserter(getParticipant(encounter));
-        condition.setCategory(getChiefComplaintCategory());
-        condition.setClinicalStatus(ConditionClinicalStatusEnum.CONFIRMED);
-        condition.setDateAsserted(obs.getObsDatetime(), TemporalPrecisionEnum.DAY);
+        condition.setCategory(ConditionCategoryCodesEnum.COMPLAINT);
 
         final Set<Obs> obsMembers = obs.getGroupMembers(false);
         for (Obs member : obsMembers) {
@@ -99,11 +97,6 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
         periodDt.setStart(assertedDateTime, TemporalPrecisionEnum.MILLI);
         periodDt.setEnd(obsDatetime, TemporalPrecisionEnum.MILLI);
         return periodDt;
-    }
-
-    private CodeableConceptDt getChiefComplaintCategory() {
-        return codableConceptService.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT,
-                FHIRProperties.FHIR_CONDITION_CATEGORY_URL, FHIRProperties.FHIR_CONDITION_CODE_CHIEF_COMPLAINT_DISPLAY);
     }
 
     protected ResourceReferenceDt getParticipant(Encounter encounter) {

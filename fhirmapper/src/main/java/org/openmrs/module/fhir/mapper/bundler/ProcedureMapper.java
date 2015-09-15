@@ -3,6 +3,7 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
+import ca.uhn.fhir.model.dstu2.composite.AnnotationDt;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
@@ -13,7 +14,6 @@ import ca.uhn.fhir.model.dstu2.resource.Procedure;
 import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
 import ca.uhn.fhir.model.dstu2.valueset.ProcedureStatusEnum;
 import ca.uhn.fhir.model.primitive.BoundCodeDt;
-import org.apache.log4j.Logger;
 import org.openmrs.Concept;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
@@ -51,8 +51,6 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     @Autowired
     private ObservationValueMapper observationValueMapper;
 
-    private Logger logger = Logger.getLogger(EncounterMapper.class);
-
     @Override
     public boolean canHandle(Obs observation) {
         CompoundObservation obs = new CompoundObservation(observation);
@@ -69,11 +67,11 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         List<FHIRResource> resources = new ArrayList<>();
         Procedure procedure = new Procedure();
 
-        procedure.setPatient(fhirEncounter.getPatient());
+        procedure.setSubject(fhirEncounter.getPatient());
         procedure.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValue()));
         CodeableConceptDt procedureType = getProcedure(compoundObservationProcedure);
         if (procedureType != null) {
-            procedure.setType(procedureType);
+            procedure.setCode(procedureType);
             setIdentifier(obs, systemProperties, procedure);
             procedure.setOutcome(getProcedureOutcome(compoundObservationProcedure, systemProperties));
             procedure.setFollowUp(getProcedureFollowUp(compoundObservationProcedure, systemProperties));
@@ -99,9 +97,13 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         return new BoundCodeDt<>(ProcedureStatusEnum.VALUESET_BINDER, ProcedureStatusEnum.COMPLETED);
     }
 
-    private String getProcedureNotes(CompoundObservation procedure) {
-        Obs notesObs = procedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_NOTES);
-        return notesObs != null ? notesObs.getValueText() : null;
+    private List<AnnotationDt> getProcedureNotes(CompoundObservation procedure) {
+        List<Obs> notesObses = procedure.findAllMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_NOTES);
+        ArrayList<AnnotationDt> annotationDts = new ArrayList<>();
+        for (Obs notesObs : notesObses) {
+            annotationDts.add(new AnnotationDt().setText(notesObs.getValueText()));
+        }
+        return annotationDts.isEmpty() ? null : annotationDts;
     }
 
     private void addReportToProcedure(CompoundObservation compoundObservationProcedure, Encounter fhirEncounter, SystemProperties systemProperties, Procedure procedure, List<FHIRResource> allResources) {
@@ -173,7 +175,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         CodeableConceptDt diagnosisTestName = getNameToDiagnosticReport(diagnosticStudyObs);
         if (diagnosisTestName != null) {
             DiagnosticReport diagnosticReport = diagnosticReportBuilder.build(diagnosticStudyObs.getRawObservation(), fhirEncounter, systemProperties);
-            diagnosticReport.setName(diagnosisTestName);
+            diagnosticReport.setCode(diagnosisTestName);
             addDiagnosticResults(diagnosticStudyObs, systemProperties, allResources, diagnosticReport);
             addDiagnosisToDiagnosticReport(diagnosticReport, diagnosticStudyObs);
             return diagnosticReport;
@@ -206,7 +208,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
 
     private FHIRResource getResultObservationResource(Obs diagnosticResultObs, DiagnosticReport diagnosticReport, SystemProperties systemProperties) {
         Observation observation = buildResultObservation(diagnosticResultObs, diagnosticReport, systemProperties);
-        String diagnosticTestName = diagnosticReport.getName().getCoding().get(0).getDisplay();
+        String diagnosticTestName = diagnosticReport.getCode().getCoding().get(0).getDisplay();
         return new FHIRResource(diagnosticTestName, observation.getIdentifier(), observation);
     }
 
@@ -218,7 +220,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         observation.setSubject(diagnosticReport.getSubject());
         observation.setEncounter(diagnosticReport.getEncounter());
         observation.setStatus(ObservationStatusEnum.REGISTERED);
-        observation.setCode(diagnosticReport.getName());
+        observation.setCode(diagnosticReport.getCode());
         observation.setValue(observationValueMapper.map(diagnosticResultObs));
         return observation;
     }

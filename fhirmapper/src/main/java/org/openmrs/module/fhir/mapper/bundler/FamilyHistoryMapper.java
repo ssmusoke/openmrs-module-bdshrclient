@@ -2,12 +2,14 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.AgeDt;
+import ca.uhn.fhir.model.dstu2.composite.AnnotationDt;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.FamilyMemberHistory;
 import ca.uhn.fhir.model.primitive.DateDt;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Concept;
 import org.openmrs.ConceptName;
 import org.openmrs.Obs;
@@ -88,14 +90,14 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
         Obs familyMemberConditionDiagnosisObs = familyMemberConditonCompoundObs.getMemberObsForConceptName(MRS_CONCEPT_NAME_RELATIONSHIP_DIAGNOSIS);
         final CodeableConceptDt codeableConcept = getCodeableConceptFromObs(familyMemberConditionDiagnosisObs);
         if (null != codeableConcept) {
-            familyMemberCondition.setType(codeableConcept);
+            familyMemberCondition.setCode(codeableConcept);
         }
     }
 
     private void mapConditionNotes(FamilyMemberHistory.Condition familyMemberCondition, CompoundObservation familyMemberConditonCompoundObs) {
         Obs familyMemberConditionNotes = familyMemberConditonCompoundObs.getMemberObsForConceptName(MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_NOTES);
-        if (familyMemberConditionNotes != null) {
-            familyMemberCondition.setNote(familyMemberConditionNotes.getValueText());
+        if (familyMemberConditionNotes != null && StringUtils.isNotEmpty(familyMemberConditionNotes.getValueText())) {
+            familyMemberCondition.setNote(new AnnotationDt().setText(familyMemberConditionNotes.getValueText()));
         }
     }
 

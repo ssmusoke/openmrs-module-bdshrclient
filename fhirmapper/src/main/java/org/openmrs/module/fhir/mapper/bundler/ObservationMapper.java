@@ -8,7 +8,6 @@ import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
-import ca.uhn.fhir.model.dstu2.valueset.ObservationReliabilityEnum;
 import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
 import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Obs;
@@ -17,7 +16,6 @@ import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.RelatedObservation;
 import org.openmrs.module.fhir.utils.CodableConceptService;
-import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +35,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
     private final CodableConceptService codableConceptService;
 
     @Autowired
-    public ObservationMapper(ObservationValueMapper observationValueMapper, IdMappingsRepository idMappingsRepository, CodableConceptService codableConceptService, GlobalPropertyLookUpService globalPropertyLookUpService) {
+    public ObservationMapper(ObservationValueMapper observationValueMapper, IdMappingsRepository idMappingsRepository, CodableConceptService codableConceptService) {
         this.observationValueMapper = observationValueMapper;
         this.idMappingsRepository = idMappingsRepository;
         this.codableConceptService = codableConceptService;
@@ -92,7 +90,6 @@ public class ObservationMapper implements EmrObsResourceHandler {
         fhirObservation.setSubject(fhirEncounter.getPatient());
         fhirObservation.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValue()));
         fhirObservation.setStatus(ObservationStatusEnum.FINAL);
-        fhirObservation.setReliability(ObservationReliabilityEnum.OK);
         String id = new EntityReference().build(IResource.class, systemProperties, openmrsObs.getUuid());
         fhirObservation.setId(id);
         fhirObservation.addIdentifier(new IdentifierDt().setValue(id));

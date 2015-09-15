@@ -1,15 +1,15 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import ca.uhn.fhir.model.api.IDatatype;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
+import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
 import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.composite.TimingDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
-import ca.uhn.fhir.model.dstu2.resource.MedicationPrescription;
-import ca.uhn.fhir.model.dstu2.valueset.MedicationPrescriptionStatusEnum;
+import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
+import ca.uhn.fhir.model.dstu2.valueset.MedicationOrderStatusEnum;
 import ca.uhn.fhir.model.primitive.BooleanDt;
 import ca.uhn.fhir.model.primitive.DecimalDt;
 import org.apache.commons.collections.CollectionUtils;
@@ -51,27 +51,27 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
     public List<FHIRResource> map(Order order, Encounter fhirEncounter, Bundle bundle, SystemProperties systemProperties) {
         List<FHIRResource> FHIRResources = new ArrayList<>();
         DrugOrder drugOrder = (DrugOrder) order;
-        MedicationPrescription prescription = new MedicationPrescription();
-        prescription.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValueAsString()));
-        setPatient(fhirEncounter, prescription);
-        prescription.setDateWritten(drugOrder.getDateCreated(), TemporalPrecisionEnum.MILLI);
-        prescription.setMedication(getMedication(drugOrder));
-        prescription.setPrescriber(getOrdererReference(drugOrder, fhirEncounter, systemProperties));
-        setDoseInstructions(drugOrder, prescription, systemProperties);
-        setStatus(drugOrder, prescription);
+        MedicationOrder medicationOrder = new MedicationOrder();
+        medicationOrder.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValueAsString()));
+        setPatient(fhirEncounter, medicationOrder);
+        medicationOrder.setDateWritten(drugOrder.getDateCreated(), TemporalPrecisionEnum.MILLI);
+        medicationOrder.setMedication(getMedication(drugOrder));
+        medicationOrder.setPrescriber(getOrdererReference(drugOrder, fhirEncounter, systemProperties));
+        setDoseInstructions(drugOrder, medicationOrder, systemProperties);
+        setStatus(drugOrder, medicationOrder);
         String id = new EntityReference().build(Order.class, systemProperties, order.getUuid());
-        prescription.addIdentifier().setValue(id);
-        prescription.setId(id);
-        FHIRResources.add(new FHIRResource("Medication Prescription", prescription.getIdentifier(), prescription));
+        medicationOrder.addIdentifier().setValue(id);
+        medicationOrder.setId(id);
+        FHIRResources.add(new FHIRResource("Medication Prescription", medicationOrder.getIdentifier(), medicationOrder));
         return FHIRResources;
     }
 
-    private void setStatus(DrugOrder drugOrder, MedicationPrescription prescription) {
-        if(drugOrder.getDateStopped() != null) {
-            prescription.setStatus(MedicationPrescriptionStatusEnum.STOPPED);
-            //TODO : set the end date for MedicationOrder
+    private void setStatus(DrugOrder drugOrder, MedicationOrder medicationOrder) {
+        if (drugOrder.getDateStopped() != null) {
+            medicationOrder.setStatus(MedicationOrderStatusEnum.STOPPED);
+            medicationOrder.setDateEnded(drugOrder.getDateStopped(), TemporalPrecisionEnum.MILLI);
         } else {
-            prescription.setStatus(MedicationPrescriptionStatusEnum.ACTIVE);
+            medicationOrder.setStatus(MedicationOrderStatusEnum.ACTIVE);
         }
     }
 
@@ -89,19 +89,19 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         return null;
     }
 
-    private void setDoseInstructions(DrugOrder drugOrder, MedicationPrescription prescription, SystemProperties systemProperties) {
-        MedicationPrescription.DosageInstruction dosageInstruction = prescription.addDosageInstruction();
+    private void setDoseInstructions(DrugOrder drugOrder, MedicationOrder medicationOrder, SystemProperties systemProperties) {
+        MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.addDosageInstruction();
         if (null != drugOrder.getRoute()) {
             dosageInstruction.setRoute(
                     codableConceptService.getTRValueSetCodeableConcept(drugOrder.getRoute(),
                             systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_ROUTE)));
         }
         setDoseQuantity(drugOrder, dosageInstruction, systemProperties);
-        dosageInstruction.setScheduled(getSchedule(drugOrder));
+        dosageInstruction.setTiming(getTiming(drugOrder));
         dosageInstruction.setAsNeeded(new BooleanDt(drugOrder.getAsNeeded()));
     }
 
-    private IDatatype getSchedule(DrugOrder drugOrder) {
+    private TimingDt getTiming(DrugOrder drugOrder) {
         TimingDt timing = new TimingDt();
         TimingDt.Repeat repeat = new TimingDt.Repeat();
 
@@ -127,7 +127,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         repeat.setBounds(period);
     }
 
-    private void setDoseQuantity(DrugOrder drugOrder, MedicationPrescription.DosageInstruction dosageInstruction, SystemProperties systemProperties) {
+    private void setDoseQuantity(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction, SystemProperties systemProperties) {
         if (null != drugOrder.getDose()) {
             QuantityDt doseQuantity = new QuantityDt();
             DecimalDt dose = new DecimalDt();
@@ -143,17 +143,23 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         }
     }
 
-    private ResourceReferenceDt getMedication(DrugOrder drugOrder) {
-        ResourceReferenceDt resourceReference = new ResourceReferenceDt();
+    private CodeableConceptDt getMedication(DrugOrder drugOrder) {
+        CodeableConceptDt codeableConcept = new CodeableConceptDt();
         String uuid = drugOrder.getDrug().getUuid();
         IdMapping idMapping = idMappingsRepository.findByInternalId(uuid);
-        if (null != idMapping)
-            resourceReference.setReference(idMapping.getUri());
-        resourceReference.setDisplay(drugOrder.getDrug().getDisplayName());
-        return resourceReference;
+        String displayName = drugOrder.getDrug().getDisplayName();
+        if (null != idMapping) {
+            codeableConcept.addCoding()
+                    .setCode(idMapping.getExternalId())
+                    .setSystem(idMapping.getUri())
+                    .setDisplay(displayName);
+        } else {
+            codeableConcept.addCoding().setDisplay(displayName);
+        }
+        return codeableConcept;
     }
 
-    private void setPatient(Encounter fhirEncounter, MedicationPrescription medicationPrescription) {
-        medicationPrescription.setPatient(fhirEncounter.getPatient());
+    private void setPatient(Encounter fhirEncounter, MedicationOrder medicationOrder) {
+        medicationOrder.setPatient(fhirEncounter.getPatient());
     }
 }

@@ -29,7 +29,7 @@ public class DiagnosticReportBuilder {
 
         DateTimeDt diagnostic = new DateTimeDt();
         diagnostic.setValue(obs.getDateCreated(), TemporalPrecisionEnum.MILLI);
-        report.setDiagnostic(diagnostic);
+        report.setEffective(diagnostic);
         return report;
     }
 

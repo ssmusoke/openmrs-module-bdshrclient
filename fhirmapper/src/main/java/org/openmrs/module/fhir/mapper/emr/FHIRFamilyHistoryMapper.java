@@ -103,7 +103,7 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
     }
 
     private Concept getAnswer(FamilyMemberHistory.Condition condition) {
-        List<CodingDt> coding = condition.getType().getCoding();
+        List<CodingDt> coding = condition.getCode().getCoding();
         for (CodingDt code : coding) {
             IdMapping mapping = idMappingsRepository.findByExternalId(code.getCode());
             if (null != mapping) {
@@ -118,7 +118,7 @@ public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
             Obs notes = new Obs();
             Concept onsetDateConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_RELATIONSHIP_NOTES);
             notes.setConcept(onsetDateConcept);
-            notes.setValueText(condition.getNote());
+            notes.setValueText(condition.getNote().getText());
             result.addGroupMember(notes);
         }
     }

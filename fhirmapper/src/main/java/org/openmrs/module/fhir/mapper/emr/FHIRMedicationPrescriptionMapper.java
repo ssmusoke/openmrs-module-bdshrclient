@@ -2,7 +2,7 @@ package org.openmrs.module.fhir.mapper.emr;
 
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
-import ca.uhn.fhir.model.dstu2.resource.MedicationPrescription;
+import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
@@ -35,7 +35,7 @@ public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
 
     @Override
     public boolean canHandle(IResource resource) {
-        return resource instanceof MedicationPrescription;
+        return resource instanceof MedicationOrder;
     }
 
     @Override

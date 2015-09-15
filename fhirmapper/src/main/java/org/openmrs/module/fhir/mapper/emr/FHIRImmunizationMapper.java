@@ -104,11 +104,11 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
     private Obs getVaccineType(Immunization immunization) {
         Obs obs = new Obs();
         obs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_VACCINE));
-        Drug drug = omrsConceptLookup.findDrug(immunization.getVaccineType().getCoding());
+        Drug drug = omrsConceptLookup.findDrug(immunization.getVaccineCode().getCoding());
         if (drug != null) {
             obs.setValueCoded(drug.getConcept());
         } else {
-            obs.setValueCoded(omrsConceptLookup.findConceptByCodeOrDisplay(immunization.getVaccineType().getCoding()));
+            obs.setValueCoded(omrsConceptLookup.findConceptByCodeOrDisplay(immunization.getVaccineCode().getCoding()));
         }
         return obs;
     }

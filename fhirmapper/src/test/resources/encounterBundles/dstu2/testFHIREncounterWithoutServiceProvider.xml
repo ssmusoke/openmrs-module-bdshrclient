@@ -29,16 +29,15 @@
                     <reference value="urn:uuid:4d2f9872-4df1-438e-9d72-0a8b161d409b"/>
                 </encounter>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:4d2f9872-4df1-438e-9d72-0a8b161d409b"/>
                         <display value="Encounter"/>
-                    </content>
+                    </entry>
                 </section>
             </Composition>
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
         <resource>
             <Encounter xmlns="http://hl7.org/fhir">
                 <id value="4d2f9872-4df1-438e-9d72-0a8b161d409b"/>

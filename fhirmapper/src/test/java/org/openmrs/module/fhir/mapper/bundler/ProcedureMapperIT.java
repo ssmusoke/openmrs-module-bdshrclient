@@ -83,7 +83,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(3, fhirResources.size());
         Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), fhirResources).getResource();
 
-        assertEquals(patient, procedure.getPatient());
+        assertEquals(patient, procedure.getSubject());
 
         assertEquals(fhirEncounter.getId().getValue(), procedure.getEncounter().getReference().getValue());
     }
@@ -117,7 +117,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(3, fhirResources.size());
 
         Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), fhirResources).getResource();
-        CodingDt procedureType = procedure.getType().getCoding().get(0);
+        CodingDt procedureType = procedure.getCode().getCoding().get(0);
         assertNotNull(procedureType);
         assertEquals("ProcedureAnswer1", procedureType.getDisplay());
         assertEquals("http://tr.com/Osteopathic-Treatment-of-Abdomen", procedureType.getSystem());
@@ -157,7 +157,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldMapProcedureNotes() throws Exception {
         Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
-        assertEquals("Procedure went well", procedure.getNotes());
+        assertEquals("Procedure went well", procedure.getNotes().get(0).getText());
     }
 
     @Test
@@ -189,10 +189,10 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals("patient", diagnosticReport.getSubject().getReference().getValue());
         assertEquals("Provider 1", diagnosticReport.getPerformer().getReference().getValue());
         Date expectedDate = DateUtil.parseDate("2010-08-18 15:09:05");
-        Date diagnosticDate = ((DateTimeDt) diagnosticReport.getDiagnostic()).getValue();
+        Date diagnosticDate = ((DateTimeDt) diagnosticReport.getEffective()).getValue();
         assertEquals(expectedDate, diagnosticDate);
 
-        assertTestCoding(diagnosticReport.getName().getCoding());
+        assertTestCoding(diagnosticReport.getCode().getCoding());
         assertCodedDiagnosis(diagnosticReport);
 
         assertEquals(1, diagnosticReport.getResult().size());

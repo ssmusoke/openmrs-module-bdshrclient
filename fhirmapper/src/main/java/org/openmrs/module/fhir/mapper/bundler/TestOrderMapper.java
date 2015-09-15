@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import static java.util.Arrays.asList;
 import static org.openmrs.module.fhir.mapper.FHIRProperties.LOINC_SOURCE_NAME;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_LAB_ORDER_TYPE;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
@@ -93,7 +94,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
 
     private Specimen getIfSpecimenExists(Bundle bundle, List<ResourceReferenceDt> specimenList, Order order, SystemProperties systemProperties) {
         for (ResourceReferenceDt resourceReference : specimenList) {
-            IResource resource = findResourceByReference(bundle, resourceReference);
+            IResource resource = findResourceByReference(bundle, asList(resourceReference));
             if (resource != null) {
                 Specimen specimenResource = (Specimen) resource;
 

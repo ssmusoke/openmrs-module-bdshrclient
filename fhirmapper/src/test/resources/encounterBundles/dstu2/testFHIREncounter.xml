@@ -4,7 +4,7 @@
     <entry>
         <resource>
             <Composition xmlns="http://hl7.org/fhir">
-                <id value="bce6c82a-01ec-482b-8dee-12240f372a38" />
+                <id value="bce6c82a-01ec-482b-8dee-12240f372a38"/>
                 <identifier>
                     <value value="urn:uuid:bce6c82a-01ec-482b-8dee-12240f372a38"/>
                 </identifier>
@@ -29,28 +29,27 @@
                     <reference value="urn:uuid:4d2f9872-4df1-438e-9d72-0a8b161d409b"/>
                 </encounter>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:4d2f9872-4df1-438e-9d72-0a8b161d409b"/>
                         <display value="Encounter"/>
-                    </content>
+                    </entry>
                 </section>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:4e06a589-cc74-4318-abad-d748fa8268ea"/>
                         <display value="Diagnosis"/>
-                    </content>
+                    </entry>>
                 </section>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:4e06a589-cc74-4318-abad-e74efa8268ea"/>
                         <display value="Diagnosis"/>
-                    </content>
+                    </entry>>
                 </section>
             </Composition>
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
         <resource>
             <Encounter xmlns="http://hl7.org/fhir">
                 <id value="4d2f9872-4df1-438e-9d72-0a8b161d409b"/>
@@ -78,7 +77,6 @@
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
         <resource>
             <Condition xmlns="http://hl7.org/fhir">
                 <id value="4e06a589-cc74-4318-abad-d748fa8268ea"/>
@@ -95,7 +93,6 @@
                 <asserter>
                     <reference value="http://hrmtest.dghs.gov.bd/api/1.0/providers/812.json"/>
                 </asserter>
-                <dateAsserted value="2015-08-24"/>
                 <code>
                     <coding>
                         <system value="www.bdshr-tr.com/concepts/101"/>
@@ -115,7 +112,6 @@
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
         <resource>
             <Condition xmlns="http://hl7.org/fhir">
                 <id value="4e06a589-cc74-4318-abad-e74efa8268ea"/>
@@ -132,7 +128,6 @@
                 <asserter>
                     <reference value="http://hrmtest.dghs.gov.bd/api/1.0/providers/812.json"/>
                 </asserter>
-                <dateAsserted value="2014-07-24"/>
                 <code>
                     <coding>
                         <system value="www.bdshr-tr.com/concepts/101"/>

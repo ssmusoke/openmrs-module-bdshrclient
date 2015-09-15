@@ -4,7 +4,7 @@ import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Condition;
-import ca.uhn.fhir.model.dstu2.valueset.ConditionClinicalStatusEnum;
+import ca.uhn.fhir.model.dstu2.valueset.ConditionVerificationStatusEnum;
 import org.openmrs.Concept;
 import org.openmrs.ConceptAnswer;
 import org.openmrs.Encounter;
@@ -26,7 +26,7 @@ import java.util.Map;
 @Component
 public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
 
-    private final Map<ConditionClinicalStatusEnum, String> diaConditionStatus = new HashMap<>();
+    private final Map<ConditionVerificationStatusEnum, String> diaConditionStatus = new HashMap<>();
     @Autowired
     private ConceptService conceptService;
     @Autowired
@@ -34,8 +34,8 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
 
 
     public FHIRDiagnosisConditionMapper() {
-        diaConditionStatus.put(ConditionClinicalStatusEnum.PROVISIONAL, MRSProperties.MRS_DIAGNOSIS_STATUS_PRESUMED);
-        diaConditionStatus.put(ConditionClinicalStatusEnum.CONFIRMED, MRSProperties.MRS_DIAGNOSIS_STATUS_CONFIRMED);
+        diaConditionStatus.put(ConditionVerificationStatusEnum.PROVISIONAL, MRSProperties.MRS_DIAGNOSIS_STATUS_PRESUMED);
+        diaConditionStatus.put(ConditionVerificationStatusEnum.CONFIRMED, MRSProperties.MRS_DIAGNOSIS_STATUS_CONFIRMED);
     }
 
     @Override
@@ -107,7 +107,7 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
     }
 
     private Concept identifyDiagnosisCertainty(Condition condition, Concept diagnosisCertainty) {
-        ConditionClinicalStatusEnum conditionStatus = condition.getClinicalStatusElement().getValueAsEnum();
+        ConditionVerificationStatusEnum conditionStatus = condition.getVerificationStatusElement().getValueAsEnum();
         String status = diaConditionStatus.get(conditionStatus);
 
         Concept certaintyAnswerConcept = null;

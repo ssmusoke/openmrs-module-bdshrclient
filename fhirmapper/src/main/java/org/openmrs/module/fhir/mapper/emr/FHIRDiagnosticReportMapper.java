@@ -48,7 +48,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     @Override
     public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
         DiagnosticReport diagnosticReport = (DiagnosticReport) resource;
-        Concept concept = omrsConceptLookup.findConceptByCode(diagnosticReport.getName().getCoding());
+        Concept concept = omrsConceptLookup.findConceptByCode(diagnosticReport.getCode().getCoding());
         if (concept == null) {
             return;
         }
@@ -80,7 +80,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     }
 
     private Order getOrder(DiagnosticReport diagnosticReport, Concept concept) {
-        List<ResourceReferenceDt> requestDetail = diagnosticReport.getRequestDetail();
+        List<ResourceReferenceDt> requestDetail = diagnosticReport.getRequest();
         for (ResourceReferenceDt reference : requestDetail) {
             String requestDetailReference = reference.getReference().getValue();
             if (requestDetailReference.startsWith("http://") || requestDetailReference.startsWith("https://")) {
@@ -121,7 +121,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     }
 
     private Obs buildResultObs(Bundle bundle, Encounter newEmrEncounter, DiagnosticReport diagnosticReport) {
-        Observation observationResource = (Observation) findResourceByReference(bundle, diagnosticReport.getResult().get(0));
+        Observation observationResource = (Observation) findResourceByReference(bundle, diagnosticReport.getResult());
         return observationsMapper.mapObs(bundle, newEmrEncounter, observationResource);
     }
 

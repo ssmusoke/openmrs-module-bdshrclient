@@ -7,6 +7,7 @@ import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
 import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.composite.SimpleQuantityDt;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Immunization;
 import ca.uhn.fhir.model.dstu2.valueset.ImmunizationReasonCodesEnum;
@@ -72,7 +73,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         if (CollectionUtils.isEmpty(drugs)) {
             return null;
         }
-        immunization.setVaccineType(getVaccineType(drugs));
+        immunization.setVaccineCode(getVaccineType(drugs));
         setIdentifier(immunizationIncidentObs, systemProperties, immunization);
         immunization.setDate(getVaccinationDate(immunizationIncidentObs), TemporalPrecisionEnum.MILLI);
         immunization.setWasNotGiven(getIndicator(immunizationIncidentObs, MRS_CONCEPT_VACCINATION_REFUSED));
@@ -128,10 +129,10 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         }
     }
 
-    private QuantityDt getDosage(CompoundObservation immunizationIncidentObs, SystemProperties systemProperties) {
+    private SimpleQuantityDt getDosage(CompoundObservation immunizationIncidentObs, SystemProperties systemProperties) {
         Obs doseObs = immunizationIncidentObs.getMemberObsForConceptName(MRS_CONCEPT_DOSAGE);
         if (doseObs == null) return null;
-        QuantityDt dose = new QuantityDt();
+        SimpleQuantityDt dose = new SimpleQuantityDt();
         dose.setValue(doseObs.getValueNumeric());
         populateQuantityUnits(immunizationIncidentObs, systemProperties, dose);
         return dose;

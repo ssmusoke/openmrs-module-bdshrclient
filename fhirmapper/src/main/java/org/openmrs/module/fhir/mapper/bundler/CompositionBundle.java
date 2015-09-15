@@ -55,7 +55,7 @@ public class CompositionBundle {
         metadataMap.put(ResourceMetadataKeyEnum.UPDATED, new InstantDt(composition.getDate(), TemporalPrecisionEnum.MILLI));
         bundle.setResourceMetadata(metadataMap);
         final FHIRResource encounterResource = new FHIRResource("Encounter", fhirEncounter.getIdentifier(), fhirEncounter);
-        addResourceSectionToComposition(composition, encounterResource, systemProperties);
+        addResourceSectionToComposition(composition, encounterResource);
         addBundleEntry(bundle, new FHIRResource("Composition", asList(composition.getIdentifier()), composition));
         addBundleEntry(bundle, encounterResource);
 
@@ -65,7 +65,7 @@ public class CompositionBundle {
                 if (handler.canHandle(obs)) {
                     List<FHIRResource> mappedResources = handler.map(obs, fhirEncounter, systemProperties);
                     if (CollectionUtils.isNotEmpty(mappedResources)) {
-                        addResourcesToBundle(mappedResources, composition, bundle, systemProperties);
+                        addResourcesToBundle(mappedResources, composition, bundle);
                     }
                 }
             }
@@ -77,7 +77,7 @@ public class CompositionBundle {
                 if (handler.canHandle(order)) {
                     List<FHIRResource> mappedResources = handler.map(order, fhirEncounter, bundle, systemProperties);
                     if (CollectionUtils.isNotEmpty(mappedResources)) {
-                        addResourcesToBundle(mappedResources, composition, bundle, systemProperties);
+                        addResourcesToBundle(mappedResources, composition, bundle);
                     }
                 }
             }
@@ -86,20 +86,17 @@ public class CompositionBundle {
         return bundle;
     }
 
-    private void addResourcesToBundle(List<FHIRResource> mappedResources, Composition composition, Bundle bundle, SystemProperties systemProperties) {
+    private void addResourcesToBundle(List<FHIRResource> mappedResources, Composition composition, Bundle bundle) {
         for (FHIRResource mappedResource : mappedResources) {
-            addResourceSectionToComposition(composition, mappedResource, systemProperties);
+            addResourceSectionToComposition(composition, mappedResource);
             addBundleEntry(bundle, mappedResource);
         }
     }
 
-    //TODO: reference should be a relative URL
-    private void addResourceSectionToComposition(Composition composition, FHIRResource resource, SystemProperties systemProperties) {
-//        String resourceId = new EntityReference().build(IResource.class, systemProperties, resource.getIdentifier().getValue());
-        ResourceReferenceDt resourceReference = new ResourceReferenceDt();
+    private void addResourceSectionToComposition(Composition composition, FHIRResource resource) {
+        ResourceReferenceDt resourceReference = composition.addSection().addEntry();
         resourceReference.setReference(resource.getIdentifier().getValue());
         resourceReference.setDisplay(resource.getResourceName());
-        composition.addSection().setContent(resourceReference);
     }
 
     @SuppressWarnings("unchecked")

@@ -68,7 +68,7 @@ public class ObservationValueMapperTest extends BaseModuleWebContextSensitiveTes
         assertTrue(value instanceof QuantityDt);
         QuantityDt quantity = (QuantityDt) value;
         assertTrue(quantity.getValue().doubleValue() == valueNumeric);
-        assertEquals(units, quantity.getUnits());
+        assertEquals(units, quantity.getUnit());
     }
 
     @Test

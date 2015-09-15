@@ -2,6 +2,7 @@ package org.openmrs.module.fhir.mapper.emr;
 
 
 import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.AnnotationDt;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
@@ -20,6 +21,7 @@ import org.openmrs.module.fhir.utils.TrValueSetType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import static java.util.Arrays.asList;
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
 @Component
@@ -51,11 +53,11 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
         proceduresObs.addGroupMember(getOutCome(procedure));
         setFollowUpObses(procedure, proceduresObs);
         proceduresObs.addGroupMember(getProcedureType(procedure));
-        proceduresObs.addGroupMember(getProcedureNotesObs(procedure));
+        getProcedureNotesObs(procedure, proceduresObs);
         proceduresObs.addGroupMember(getProcedureStatusObs(procedure));
 
         for (ResourceReferenceDt reportReference : procedure.getReport()) {
-            IResource diagnosticReportResource = FHIRFeedHelper.findResourceByReference(bundle, reportReference);
+            IResource diagnosticReportResource = FHIRFeedHelper.findResourceByReference(bundle, asList(reportReference));
             if (diagnosticReportResource != null && diagnosticReportResource instanceof DiagnosticReport) {
                 proceduresObs.addGroupMember(getDiagnosisStudyObs((DiagnosticReport) diagnosticReportResource, bundle));
             }
@@ -71,21 +73,20 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
         return statusObs;
     }
 
-    private Obs getProcedureNotesObs(Procedure procedure) {
-        if (procedure.getNotes() != null && !procedure.getNotes().isEmpty()) {
+    private void getProcedureNotesObs(Procedure procedure, Obs proceduresObs) {
+        for (AnnotationDt annotationDt : procedure.getNotes()) {
             Obs procedureNotesObs = new Obs();
             procedureNotesObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_PROCEDURE_NOTES));
-            procedureNotesObs.setValueText(procedure.getNotes());
-            return procedureNotesObs;
+            procedureNotesObs.setValueText(annotationDt.getText());
+            proceduresObs.addGroupMember(procedureNotesObs);
         }
-        return null;
     }
 
     private Obs getDiagnosisStudyObs(DiagnosticReport diagnosticReport, Bundle bundle) {
         Obs diagnosisStudyObs = new Obs();
         diagnosisStudyObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_STUDY));
 
-        Obs diagnosticTest = mapObservationForConcept(diagnosticReport.getName(), MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_TEST);
+        Obs diagnosticTest = mapObservationForConcept(diagnosticReport.getCode(), MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_TEST);
         diagnosisStudyObs.addGroupMember(diagnosticTest);
 
         addDiagnosticResults(diagnosticReport, bundle, diagnosisStudyObs);
@@ -105,14 +106,14 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
         for (ResourceReferenceDt resultReference : diagnosticReport.getResult()) {
             Obs result = new Obs();
             result.setConcept(diagnosticResultConcept);
-            Observation resultObservation = (Observation) FHIRFeedHelper.findResourceByReference(bundle, resultReference);
+            Observation resultObservation = (Observation) FHIRFeedHelper.findResourceByReference(bundle, asList(resultReference));
             observationValueMapper.map(resultObservation.getValue(), result);
             diagnosisStudyObs.addGroupMember(result);
         }
     }
 
     private Obs getProcedureType(Procedure procedure) {
-        CodeableConceptDt procedureType = procedure.getType();
+        CodeableConceptDt procedureType = procedure.getCode();
         return mapObservationForConcept(procedureType, MRS_CONCEPT_PROCEDURE_TYPE);
     }
 

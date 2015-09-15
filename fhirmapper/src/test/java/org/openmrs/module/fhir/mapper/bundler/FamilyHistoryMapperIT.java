@@ -65,14 +65,14 @@ public class FamilyHistoryMapperIT extends BaseModuleWebContextSensitiveTest {
     private void assertRelationshipCondition(FamilyMemberHistory familyMemberHistory) {
         assertEquals(1, familyMemberHistory.getCondition().size());
         FamilyMemberHistory.Condition familyMemberCondition = familyMemberHistory.getCondition().get(0);
-        assertEquals("some notes", familyMemberCondition.getNote());
+        assertEquals("some notes", familyMemberCondition.getNote().getText());
         assertOnsetAge(familyMemberCondition);
         assertConditionType(familyMemberCondition);
     }
 
     private void assertConditionType(FamilyMemberHistory.Condition familyMemberCondition) {
-        assertEquals(1, familyMemberCondition.getType().getCoding().size());
-        CodingDt type = familyMemberCondition.getType().getCoding().get(0);
+        assertEquals(1, familyMemberCondition.getCode().getCoding().size());
+        CodingDt type = familyMemberCondition.getCode().getCoding().get(0);
         assertEquals("3", type.getCode());
         assertEquals("http://tr.com/openmrs/ws/rest/v1/tr/concept/3", type.getSystem());
     }
@@ -80,7 +80,7 @@ public class FamilyHistoryMapperIT extends BaseModuleWebContextSensitiveTest {
     private void assertOnsetAge(FamilyMemberHistory.Condition familyMemberCondition) {
         AgeDt onset = (AgeDt) familyMemberCondition.getOnset();
         assertEquals(12, onset.getValue().intValue());
-        assertEquals(UCUM_UNIT_FOR_YEARS, onset.getUnits());
+        assertEquals(UCUM_UNIT_FOR_YEARS, onset.getUnit());
         assertEquals(UCUM_URL, onset.getSystem());
     }
 

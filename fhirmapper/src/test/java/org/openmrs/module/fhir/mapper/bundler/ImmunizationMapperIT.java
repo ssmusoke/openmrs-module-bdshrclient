@@ -62,7 +62,6 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
         assertTrue(CollectionUtils.isNotEmpty(immunization.getIdentifier()));
     }
 
-
     @Test
     public void shouldMapRefusedIndicator() throws Exception {
         Immunization immunization = mapImmunization(11, new Encounter());
@@ -73,7 +72,7 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldMapVaccine() throws Exception {
         Immunization immunization = mapImmunization(11, new Encounter());
 
-        CodingDt vaccineTypeCoding = immunization.getVaccineType().getCoding().get(0);
+        CodingDt vaccineTypeCoding = immunization.getVaccineCode().getCoding().get(0);
         assertEquals("Paracetamol 500", vaccineTypeCoding.getDisplay());
         assertEquals("ABC", vaccineTypeCoding.getCode());
         assertEquals("http://tr.com/ABC", vaccineTypeCoding.getSystem());

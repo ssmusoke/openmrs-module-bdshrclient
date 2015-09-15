@@ -65,7 +65,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         assertEquals(DateUtil.parseDate("2014-07-10T16:05:09+05:30"), composition.getDate());
         final Encounter encounter = FHIRFeedHelper.getEncounter(encounterBundle);
         assertNotNull(encounter);
-        assertEquals("urn:uuid:4d2f9872-4df1-438e-9d72-0a8b161d409b", encounter.getId().getValue());
+        assertEquals("4d2f9872-4df1-438e-9d72-0a8b161d409b", encounter.getId().getIdPart());
 
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
         org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map(encounter, composition.getDate(), emrPatient, encounterBundle);
@@ -107,7 +107,7 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
     @Test
     public void shouldMapAnEncounterWhichDoesNotHaveServiceProvider() throws Exception {
         executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
-        Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/dstu2/testFHIREncounterWithoutServiceProvider.xml", springContext);
+        Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/testFHIREncounterWithoutServiceProvider.xml", springContext);
         Composition composition = FHIRFeedHelper.getComposition(encounterBundle);
         Encounter encounter = FHIRFeedHelper.getEncounter(encounterBundle);
         org.openmrs.Patient emrPatient = patientService.getPatient(1);

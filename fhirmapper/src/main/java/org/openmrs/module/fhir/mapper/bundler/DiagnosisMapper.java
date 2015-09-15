@@ -1,13 +1,13 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.IResource;
-import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Condition;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
-import ca.uhn.fhir.model.dstu2.valueset.ConditionClinicalStatusEnum;
+import ca.uhn.fhir.model.dstu2.valueset.ConditionCategoryCodesEnum;
+import ca.uhn.fhir.model.dstu2.valueset.ConditionVerificationStatusEnum;
 import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Concept;
 import org.openmrs.Obs;
@@ -37,11 +37,11 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
     @Autowired
     private CodableConceptService codableConceptService;
 
-    private final Map<String, ConditionClinicalStatusEnum> diaConditionStatus = new HashMap<String, ConditionClinicalStatusEnum>();
+    private final Map<String, ConditionVerificationStatusEnum> diaConditionStatus = new HashMap<>();
 
     public DiagnosisMapper() {
-        diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_PRESUMED, ConditionClinicalStatusEnum.PROVISIONAL);
-        diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_CONFIRMED, ConditionClinicalStatusEnum.CONFIRMED);
+        diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_PRESUMED, ConditionVerificationStatusEnum.PROVISIONAL);
+        diaConditionStatus.put(MRSProperties.MRS_DIAGNOSIS_STATUS_CONFIRMED, ConditionVerificationStatusEnum.CONFIRMED);
     }
 
     @Override
@@ -69,7 +69,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         if (null != participant) {
             condition.setAsserter(participant);
         }
-        condition.setCategory(getDiagnosisCategory());
+        condition.setCategory(ConditionCategoryCodesEnum.DIAGNOSIS);
 
         final Set<Obs> obsMembers = obs.getGroupMembers(false);
         for (Obs member : obsMembers) {
@@ -81,14 +81,13 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
                 }
                 condition.setCode(diagnosisCode);
             } else if (isDiagnosisCertaintyObservation(memberConcept)) {
-                condition.setClinicalStatus(getConditionStatus(member));
+                condition.setVerificationStatus(getConditionStatus(member));
             }
         }
         if (condition.getCode() == null || CollectionUtils.isEmpty(condition.getCode().getCoding())) {
             return null;
         }
 
-        condition.setDateAsserted(obs.getObsDatetime(), TemporalPrecisionEnum.DAY);
         IdentifierDt identifier = condition.addIdentifier();
         String obsId = new EntityReference().build(IResource.class, systemProperties, obs.getUuid());
         identifier.setValue(obsId);
@@ -108,15 +107,10 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
     }
 
 
-    private ConditionClinicalStatusEnum getConditionStatus(Obs member) {
+    private ConditionVerificationStatusEnum getConditionStatus(Obs member) {
         Concept diagnosisStatus = member.getValueCoded();
-        ConditionClinicalStatusEnum status = diaConditionStatus.get(diagnosisStatus.getName().getName());
-        return status != null ? status : ConditionClinicalStatusEnum.CONFIRMED;
-    }
-
-    private CodeableConceptDt getDiagnosisCategory() {
-        return codableConceptService.getFHIRCodeableConcept(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS,
-                FHIRProperties.FHIR_CONDITION_CATEGORY_URL, FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS_DISPLAY);
+        ConditionVerificationStatusEnum status = diaConditionStatus.get(diagnosisStatus.getName().getName());
+        return status != null ? status : ConditionVerificationStatusEnum.CONFIRMED;
     }
 
     protected ResourceReferenceDt getParticipant(Encounter encounter) {
