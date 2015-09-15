@@ -57,6 +57,12 @@
     <concept_name concept_name_id="803" concept_id="803" name="Day(s)" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a37ae9v9-e1v4-41d4-b2d6-bc4335835eaa"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <concept_reference_term concept_reference_term_id="19" concept_source_id="2" code="258703001" name="Day(s)"
+                            creator="1" date_created="2004-08-12 00:00:00.0" retired="false"
+                            uuid="baef67ac-b24e-ab04-ider-c3b994132b85"></concept_reference_term>
+    <concept_reference_map concept_map_id="19" concept_id="803" concept_reference_term_id="19" concept_map_type_id="2"
+                           creator="1" date_created="2004-08-12 00:00:00.0" uuid="baef67ac-b24e-ixke-ider-c3b994132b85"/>
+
 
     <concept concept_id="804" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1"
              date_created="2005-01-01 00:00:00.0" uuid="7f7379ba-eee8-a1a3-ba2b-a8a02a1vava5"/>
@@ -150,11 +156,11 @@
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="637de959-e1c4-41d4-b2d6-bc4335835ea9"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <concept_reference_term concept_reference_term_id="9" concept_source_id="1" code="G01AD01" name="lactic acid"
-                            creator="1" date_created="2004-08-12 00:00:00.0"
+                            creator="1" date_created="2004-08-12 00:00:00.0" retired="0"
                             uuid="baef67ac-b24e-ab04-7028-c3b994132b85"></concept_reference_term>
     <concept_reference_map concept_map_id="9" concept_id="301" concept_reference_term_id="9" concept_map_type_id="1"
-                           creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_map>
-    <drug drug_id="301" concept_id="301" dosage_form="51" name="Lactic Acid" combination="true" route="701" creator="1"
+                           creator="1" date_created="2004-08-12 00:00:00.0" uuid="baef67ac-b24e-93kf-ix3d-c3b994132b85"/>
+    <drug drug_id="301" concept_id="301" dosage_form="51" name="Lactic Acid" combination="true" route="901" creator="2"
           strength="200"
           date_created="2005-02-24 00:00:00.0" retired="false" uuid="42f00b94-26fe-102b-80cb-0017a47871b2"/>
     <shr_id_mapping id="1" internal_id="baef67ac-b24e-ab04-7028-c3b994132b85" external_id="101"
@@ -177,33 +183,42 @@
     <orders order_id="16" order_type_id="1" encounter_id="36" urgency="ROUTINE" concept_id="301"
             date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
             care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
-            scheduled_date="2008-08-09 00:00:00.0" uuid="6d0ae386-707a-f123-9850-f15206e63ab0"/>
-    <drug_order order_id="16" drug_inventory_id="301" dose="4" as_needed="true" quantity="192" duration="6"
+            uuid="6d0ae386-707a-f123-9850-f15206e63ab0" auto_expire_date="2008-08-13 23:59:59.0"/>
+    <drug_order order_id="16" drug_inventory_id="301" dose="4" as_needed="false" quantity="192" duration="6"
                 duration_units="803" route="701" frequency="1"
                 quantity_units="50" dispense_as_written="true" dose_units="50"/>
 
     <orders order_id="17" order_type_id="1" encounter_id="36" urgency="ROUTINE" concept_id="301"
             date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
             care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
-            scheduled_date="2008-08-09 00:00:00.0" uuid="adeaea86-707a-f123-9850-f15206e63ab0"/>
-    <drug_order order_id="17" drug_inventory_id="301" dose="4" as_needed="true" quantity="192" duration="10"
+            auto_expire_date="2008-10-16 23:59:59" uuid="adeaea86-707a-f123-9850-f15206e63ab0"/>
+    <drug_order order_id="17" drug_inventory_id="301" dose="4" as_needed="false" quantity="192" duration="10"
                 duration_units="804" route="701" frequency="2"
                 quantity_units="50" dispense_as_written="true" dose_units="50"/>
 
     <orders order_id="18" order_type_id="1" encounter_id="36" urgency="ROUTINE" concept_id="301"
             date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
             care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
-            scheduled_date="2008-08-09 00:00:00.0" uuid="amebea86-707a-f123-9850-f15206e63ab0"/>
-    <drug_order order_id="18" drug_inventory_id="301" dose="4" as_needed="true" quantity="192" duration="10"
+            auto_expire_date="2008-10-16 23:59:59" uuid="amebea86-707a-f123-9850-f15206e63ab0"/>
+    <drug_order order_id="18" drug_inventory_id="301" dose="4" as_needed="false" quantity="192" duration="10"
                 duration_units="804" route="701" frequency="3"
                 quantity_units="50" dispense_as_written="true" dose_units="50"/>
 
     <orders order_id="19" order_type_id="1" encounter_id="36" urgency="ROUTINE" concept_id="301"
             date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
             care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
-            scheduled_date="2008-08-09 00:00:00.0" uuid="amebea86-awaa-g1f3-98w0-f152w6e63ab0"/>
-    <drug_order order_id="19" drug_inventory_id="301" dose="4" as_needed="true" quantity="192" duration="48"
+            auto_expire_date="2008-10-09 23:59:59" uuid="amebea86-awaa-g1f3-98w0-f152w6e63ab0"/>
+    <drug_order order_id="19" drug_inventory_id="301" dose="4" as_needed="false" quantity="192" duration="48"
                 duration_units="805" route="701" frequency="4"
                 quantity_units="50" dispense_as_written="true" dose_units="50"/>
+
+    <orders order_id="20" order_type_id="1" encounter_id="36" urgency="ON_SCHEDULED_DATE" concept_id="301"
+            date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
+            care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
+            scheduled_date="2008-08-10 00:00:00.0" auto_expire_date="2008-10-18 23:59:59" uuid="adeaea86-xoel-f123-9850-f15206e63ab0"/>
+    <drug_order order_id="20" drug_inventory_id="301" dose="4" as_needed="true" quantity="192" duration="10"
+                duration_units="804" route="701" frequency="2"
+                quantity_units="50" dispense_as_written="true" dose_units="50"/>
+
     <!--Drug Orders for patients-->
 </dataset>

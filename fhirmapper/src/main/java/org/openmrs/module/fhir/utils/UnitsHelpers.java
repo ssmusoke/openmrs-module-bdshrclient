@@ -11,53 +11,10 @@ import static ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum.*;
 
 @Component
 public class UnitsHelpers {
-    public enum UnitToDaysConverter {
-        Hour("Hour(s)", H),
-        Day("Day(s)", D),
-        Week("Week(s)", WK),
-        Month("Month(s)", MO);
-
-        private final String units;
-        private final UnitsOfTimeEnum unitsOfTime;
-
-        UnitToDaysConverter(String units, UnitsOfTimeEnum unitsOfTime) {
-            this.units = units;
-            this.unitsOfTime = unitsOfTime;
-        }
-
-        public String getUnits() {
-            return units;
-        }
-
-        public UnitsOfTimeEnum getUnitsOfTime() {
-            return unitsOfTime;
-        }
-    }
-
     private Map<String, FrequencyUnits> conceptNameToFrequencyUnitMapper;
-    private Map<String, UnitToDaysConverter> durationUnitToUnitMapper;
-    private Map<UnitsOfTimeEnum, UnitToDaysConverter> unitsOfTimeMapper;
 
     public UnitsHelpers() {
         buildConceptNameMapper();
-        buildDurationUnitMapper();
-        buildUnitsOfTimeToUnitsMapper();
-    }
-
-    private void buildUnitsOfTimeToUnitsMapper() {
-        unitsOfTimeMapper = new HashMap<>();
-        unitsOfTimeMapper.put(H, UnitToDaysConverter.Hour);
-        unitsOfTimeMapper.put(D, UnitToDaysConverter.Day);
-        unitsOfTimeMapper.put(WK, UnitToDaysConverter.Week);
-        unitsOfTimeMapper.put(MO, UnitToDaysConverter.Month);
-    }
-
-    private void buildDurationUnitMapper() {
-        durationUnitToUnitMapper = new HashMap<>();
-        durationUnitToUnitMapper.put("Hour(s)", UnitToDaysConverter.Hour);
-        durationUnitToUnitMapper.put("Day(s)", UnitToDaysConverter.Day);
-        durationUnitToUnitMapper.put("Week(s)", UnitToDaysConverter.Week);
-        durationUnitToUnitMapper.put("Month(s)", UnitToDaysConverter.Month);
     }
 
     public enum FrequencyUnits {
@@ -66,12 +23,12 @@ public class UnitsHelpers {
         THRICE_A_DAY("Thrice a day", 3, D, 1),
         FOUR_TIMES_A_DAY("Four times a day", 4, D, 1),
         EVERY_HOUR("Every Hour", 1, H, 1),
-        EVERY_TWO_HOURS("Every 2 hours", 2, H, 1),
-        EVERY_THREE_HOURS("Every 3 hours", 3, H, 1),
-        EVERY_FOUR_HOURS("Every 4 hours", 4, H, 1),
-        EVERY_SIX_HOURS("Every 6 hours", 6, H, 1),
-        EVERY_EIGHT_HOURS("Every 8 hours", 8, H, 1),
-        EVERY_TWELVE_HOURS("Every 12 hours", 12, H, 1),
+        EVERY_TWO_HOURS("Every 2 hours", 1, H, 2),
+        EVERY_THREE_HOURS("Every 3 hours", 1, H, 3),
+        EVERY_FOUR_HOURS("Every 4 hours", 1, H, 4),
+        EVERY_SIX_HOURS("Every 6 hours", 1, H, 6),
+        EVERY_EIGHT_HOURS("Every 8 hours", 1, H, 8),
+        EVERY_TWELVE_HOURS("Every 12 hours", 1, H, 12),
         ON_ALTERNATE_DAYS("On alternate days", 1, D, 2),
         ONCE_A_WEEK("Once a week", 1, WK, 1),
         TWICE_A_WEEK("Twice a week", 2, WK, 1),
@@ -131,15 +88,8 @@ public class UnitsHelpers {
         conceptNameToFrequencyUnitMapper.put("Once a month", FrequencyUnits.ONCE_A_MONTH);
     }
 
-    public Map<String, UnitToDaysConverter> getDurationUnitToUnitMapper() {
-        return durationUnitToUnitMapper;
-    }
-
     public FrequencyUnits getFrequencyUnits(String conceptName) {
         return conceptNameToFrequencyUnitMapper.get(conceptName);
     }
 
-    public Map<UnitsOfTimeEnum, UnitToDaysConverter> getUnitsOfTimeMapper() {
-        return unitsOfTimeMapper;
-    }
 }

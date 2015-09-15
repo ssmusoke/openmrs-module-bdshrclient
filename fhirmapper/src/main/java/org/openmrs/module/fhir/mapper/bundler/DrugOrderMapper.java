@@ -2,7 +2,6 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.IDatatype;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
-import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
 import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
 import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
@@ -10,6 +9,8 @@ import ca.uhn.fhir.model.dstu2.composite.TimingDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.MedicationPrescription;
+import ca.uhn.fhir.model.dstu2.valueset.MedicationPrescriptionStatusEnum;
+import ca.uhn.fhir.model.primitive.BooleanDt;
 import ca.uhn.fhir.model.primitive.DecimalDt;
 import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.DrugOrder;
@@ -40,7 +41,6 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 
     @Autowired
     private CodableConceptService codableConceptService;
-    private final int DEFAULT_DURATION = 1;
 
     @Override
     public boolean canHandle(Order order) {
@@ -58,11 +58,21 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         prescription.setMedication(getMedication(drugOrder));
         prescription.setPrescriber(getOrdererReference(drugOrder, fhirEncounter, systemProperties));
         setDoseInstructions(drugOrder, prescription, systemProperties);
-        IdentifierDt identifier = prescription.addIdentifier();
-        identifier.setValue(new EntityReference().build(Order.class, systemProperties, order.getUuid()));
+        setStatus(drugOrder, prescription);
+        String id = new EntityReference().build(Order.class, systemProperties, order.getUuid());
+        prescription.addIdentifier().setValue(id);
+        prescription.setId(id);
         FHIRResources.add(new FHIRResource("Medication Prescription", prescription.getIdentifier(), prescription));
         return FHIRResources;
-        //org.openmrs.module.bahmniemrapi.drugorder.dosinginstructions.FlexibleDosingInstructions
+    }
+
+    private void setStatus(DrugOrder drugOrder, MedicationPrescription prescription) {
+        if(drugOrder.getDateStopped() != null) {
+            prescription.setStatus(MedicationPrescriptionStatusEnum.STOPPED);
+            //TODO : set the end date for MedicationOrder
+        } else {
+            prescription.setStatus(MedicationPrescriptionStatusEnum.ACTIVE);
+        }
     }
 
     private ResourceReferenceDt getOrdererReference(Order order, Encounter encounter, SystemProperties systemProperties) {
@@ -88,14 +98,14 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         }
         setDoseQuantity(drugOrder, dosageInstruction, systemProperties);
         dosageInstruction.setScheduled(getSchedule(drugOrder));
+        dosageInstruction.setAsNeeded(new BooleanDt(drugOrder.getAsNeeded()));
     }
 
     private IDatatype getSchedule(DrugOrder drugOrder) {
         TimingDt timing = new TimingDt();
         TimingDt.Repeat repeat = new TimingDt.Repeat();
 
-        setEvent(drugOrder, repeat);
-        setDuration(drugOrder, repeat);
+        setBounds(drugOrder, repeat);
         setFrequencyAndPeriod(drugOrder, repeat);
 
         timing.setRepeat(repeat);
@@ -110,72 +120,12 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         repeat.setPeriodUnits(frequencyUnit.getUnitOfTime());
     }
 
-    private void setDuration(DrugOrder drugOrder, TimingDt.Repeat repeat) {
-        repeat.setDuration(drugOrder.getDuration());
-        if (drugOrder.getDurationUnits() != null) {
-            String units = drugOrder.getDurationUnits().getName().getName();
-            UnitsHelpers.UnitToDaysConverter unitToDaysConverter = unitsHelpers.getDurationUnitToUnitMapper().get(units);
-            repeat.setDurationUnits(unitToDaysConverter.getUnitsOfTime());
-        }
+    private void setBounds(DrugOrder drugOrder, TimingDt.Repeat repeat) {
+        PeriodDt period = new PeriodDt();
+        period.setStart(drugOrder.getEffectiveStartDate(), TemporalPrecisionEnum.MILLI);
+        period.setEnd(drugOrder.getEffectiveStopDate(), TemporalPrecisionEnum.MILLI);
+        repeat.setBounds(period);
     }
-
-
-//    private Schedule getSchedule(DrugOrder drugOrder) {
-//        Schedule schedule = new Schedule();
-//        setEvent(drugOrder, schedule);
-//        setRepeatComponent(drugOrder, schedule);
-//        return schedule;
-//    }
-
-    private void setEvent(DrugOrder drugOrder, TimingDt.Repeat repeat) {
-        java.util.Date scheduledDate = drugOrder.getScheduledDate();
-        if (null != scheduledDate) {
-            PeriodDt period = new PeriodDt();
-            period.setStart(scheduledDate, TemporalPrecisionEnum.MILLI);
-            repeat.setBounds(period);
-        }
-    }
-
-//    private void setRepeatComponent(DrugOrder drugOrder, Schedule schedule) {
-//        if (null != drugOrder.getFrequency() && null != drugOrder.getDuration()) {
-//            Decimal duration = getDuration();
-//            String conceptName = drugOrder.getFrequency().getConcept().getName().getName();
-//            Schedule.UnitsOfTime frequencyUnit = unitsHelpers.getUnitsOfTime(conceptName);
-//            ScheduleRepeatComponent repeatComponent = new ScheduleRepeatComponent(duration, new Enumeration<>(frequencyUnit));
-//            repeatComponent.setFrequencySimple(getFrequencyPerUnit(drugOrder, frequencyUnit, unitsHelpers));
-//            repeatComponent.setUnitsSimple(frequencyUnit);
-//            setCount(drugOrder, unitsHelpers, schedule, frequencyUnit, repeatComponent);
-//            schedule.setRepeat(repeatComponent);
-//        }
-//    }
-
-//    private Decimal getDuration() {
-//        Decimal duration = new Decimal();
-//        duration.setValue(new BigDecimal(DEFAULT_DURATION));
-//        return duration;
-//    }
-
-//    private void setCount(DrugOrder drugOrder, UnitsHelpers unitsHelpers, Schedule schedule, Schedule.UnitsOfTime frequencyUnit, ScheduleRepeatComponent repeatComponent) {
-//        double unitsToDaysMultiplier = getUnitsToDaysMultiplier(drugOrder, unitsHelpers, frequencyUnit);
-//        Integer integer = new Integer();
-//        repeatComponent.setCount(integer);
-//        int countValue = (int) Math.round(drugOrder.getDuration().intValue() * unitsToDaysMultiplier);
-//        integer.setValue(countValue);
-//    }
-
-//    private double getUnitsToDaysMultiplier(DrugOrder drugOrder, UnitsHelpers unitsHelpers, Schedule.UnitsOfTime frequnecyUnit) {
-//        UnitsHelpers.UnitToDaysConverter unitToDaysConverter = unitsHelpers.getDurationUnitToUnitMapper().get(drugOrder.getDurationUnits().getName().getName());
-//        double unitsToDaysMultiplier = 1;
-//        if (!unitToDaysConverter.getUnitsOfTime().toCode().equals(frequnecyUnit.toCode())) {
-//            unitsToDaysMultiplier = unitToDaysConverter.getInDays() * unitsHelpers.getUnitsOfTimeMapper().get(frequnecyUnit).getInDays();
-//        }
-//        return unitsToDaysMultiplier;
-//    }
-
-//    private int getFrequencyPerUnit(DrugOrder drugOrder, Schedule.UnitsOfTime frequencyUnit, UnitsHelpers unitsHelpers) {
-//        double frequencyPerUnit = (drugOrder.getFrequency().getFrequencyPerDay()) * unitsHelpers.getUnitsOfTimeMapper().get(frequencyUnit).getInDays();
-//        return (int) Math.round(frequencyPerUnit);
-//    }
 
     private void setDoseQuantity(DrugOrder drugOrder, MedicationPrescription.DosageInstruction dosageInstruction, SystemProperties systemProperties) {
         if (null != drugOrder.getDose()) {
