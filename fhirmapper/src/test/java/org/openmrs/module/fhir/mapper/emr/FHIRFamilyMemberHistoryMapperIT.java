@@ -24,12 +24,12 @@ import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class FHIRFamilyHistoryMapperIT extends BaseModuleWebContextSensitiveTest {
+public class FHIRFamilyMemberHistoryMapperIT extends BaseModuleWebContextSensitiveTest {
     @Autowired
     private ApplicationContext springContext;
 
     @Autowired
-    private FHIRFamilyHistoryMapper familyHistoryMapper;
+    private FHIRFamilyMemberHistoryMapper familyHistoryMapper;
 
     @Autowired
     private ConceptService conceptService;

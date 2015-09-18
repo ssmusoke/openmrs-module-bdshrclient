@@ -3,8 +3,8 @@ package org.openmrs.module.fhir.mapper.bundler;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
-import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.composite.SimpleQuantityDt;
 import ca.uhn.fhir.model.dstu2.composite.TimingDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
@@ -129,7 +129,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 
     private void setDoseQuantity(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction, SystemProperties systemProperties) {
         if (null != drugOrder.getDose()) {
-            QuantityDt doseQuantity = new QuantityDt();
+            SimpleQuantityDt doseQuantity = new SimpleQuantityDt();
             DecimalDt dose = new DecimalDt();
             dose.setValue(new BigDecimal(drugOrder.getDose()));
             if (null != drugOrder.getDoseUnits()) {

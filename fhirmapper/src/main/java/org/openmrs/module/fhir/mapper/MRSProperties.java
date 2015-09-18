@@ -66,6 +66,7 @@ public class MRSProperties {
     public static final String TR_VALUESET_PROCEDURE_OUTCOME = "Procedure Outcome";
     public static final String TR_VALUESET_PROCEDURE_FOLLOWUP = "Procedure Followup";
     public static final String TR_VALUESET_PROCEDURE_STATUS = "Procedure Status";
+    public static final String TR_VALUESET_IMMUNIZATION_STATUS = "Immunization Status";
 
     public static final String TR_CONCEPT_CAUSE_OF_DEATH = "Cause of Death";
     public static final String TR_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH = "Unspecified cause of death";
@@ -78,6 +79,7 @@ public class MRSProperties {
     public static final String GLOBAL_PROPERTY_CONCEPT_PROCEDURE_OUTCOME = "shr.concept.procedureOutcome";
     public static final String GLOBAL_PROPERTY_CONCEPT_PROCEDURE_FOLLOWUP = "shr.concept.procedureFollowUp";
     public static final String GLOBAL_PROPERTY_CONCEPT_PROCEDURE_STATUS = "shr.concept.procedureStatus";
+    public static final String GLOBAL_PROPERTY_CONCEPT_IMMUNIZATION_STATUS = "shr.concept.immunizationStatus";
 
     public static final String GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH = "concept.causeOfDeath";
     public static final String GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH = "concept.unspecifiedCauseOfDeath";

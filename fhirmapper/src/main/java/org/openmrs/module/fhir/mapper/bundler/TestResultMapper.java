@@ -5,6 +5,8 @@ import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
+import ca.uhn.fhir.model.dstu2.resource.Observation;
+import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.utils.CodableConceptService;
@@ -89,6 +91,8 @@ public class TestResultMapper implements EmrObsResourceHandler {
         for (Obs member : obs.getGroupMembers()) {
             if (member.getConcept().equals(obs.getConcept())) {
                 FHIRResource observationResource = observationMapper.mapObservation(member, fhirEncounter, systemProperties);
+                Observation fhirObservation = (Observation) observationResource.getResource();
+                fhirObservation.setStatus(ObservationStatusEnum.FINAL);
                 ResourceReferenceDt resourceReference = report.addResult();
                 resourceReference.setReference(observationResource.getIdentifier().getValue());
                 fHIRResourceList.add(observationResource);

@@ -206,7 +206,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals("patient", result.getSubject().getReference().getValue());
         assertTrue(result.getValue() instanceof StringDt);
         assertEquals("Blood Pressure is very high", ((StringDt)result.getValue()).getValue());
-        assertEquals(ObservationStatusEnum.REGISTERED, result.getStatusElement().getValueAsEnum());
+        assertEquals(ObservationStatusEnum.FINAL, result.getStatusElement().getValueAsEnum());
         assertTestCoding(result.getCode().getCoding());
     }
 

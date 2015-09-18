@@ -81,6 +81,14 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
     }
 
     @Test
+    public void shouldMapImmunizationStatus() throws Exception {
+        Obs obs = mapImmunizationIncidentObs();
+
+        Obs vaccinationStatus = obsHelper.findMemberObsByConceptName(obs, TR_VALUESET_IMMUNIZATION_STATUS);
+        assertEquals(conceptService.getConcept(604), vaccinationStatus.getValueCoded());
+    }
+
+    @Test
     public void shouldMapRefusedIndicator() throws Exception {
         Obs obs = mapImmunizationIncidentObs();
         Obs refusedIndicator = obsHelper.findMemberObsByConceptName(obs, MRS_CONCEPT_VACCINATION_REFUSED);

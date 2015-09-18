@@ -46,6 +46,7 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
         immunizationIncidentObs.addGroupMember(getVaccinationDate(immunization));
         immunizationIncidentObs.addGroupMember(getVaccineReported(immunization));
         immunizationIncidentObs.addGroupMember(getVaccineRefused(immunization));
+        immunizationIncidentObs.addGroupMember(getImmunizationStatus(immunization));
         immunizationIncidentObs.addGroupMember(getDosage(immunization));
         immunizationIncidentObs.addGroupMember(getQuantityUnits(immunization));
         immunizationIncidentObs.addGroupMember(getVaccineType(immunization));
@@ -54,6 +55,14 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
         addImmunizationRefusalReasons(immunization, immunizationIncidentObs);
 
         newEmrEncounter.addObs(immunizationIncidentObs);
+    }
+
+    private Obs getImmunizationStatus(Immunization immunization) {
+        Obs statusObs = new Obs();
+        statusObs.setConcept(omrsConceptLookup.findTRConceptOfType(TrValueSetType.IMMUNIZATION_STATUS));
+        Concept statusConcept = omrsConceptLookup.findValuesetConceptFromTrValuesetType(TrValueSetType.IMMUNIZATION_STATUS, immunization.getStatus());
+        statusObs.setValueCoded(statusConcept);
+        return statusObs;
     }
 
     private Obs addImmunizationReasons(Immunization immunization, Obs immunizationIncidentObs) {

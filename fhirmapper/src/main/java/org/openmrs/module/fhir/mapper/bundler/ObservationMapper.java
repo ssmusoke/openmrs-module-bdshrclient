@@ -71,8 +71,10 @@ public class ObservationMapper implements EmrObsResourceHandler {
     public List<FHIRResource> mapToFhirObservation(Obs observation, Encounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> result = new ArrayList<>();
         FHIRResource entry = mapObservation(observation, fhirEncounter, systemProperties);
+        Observation fhirObservation = (Observation) entry.getResource();
+        fhirObservation.setStatus(ObservationStatusEnum.PRELIMINARY);
         for (Obs member : observation.getGroupMembers()) {
-            mapGroupMember(member, fhirEncounter, (Observation) entry.getResource(), result, systemProperties);
+            mapGroupMember(member, fhirEncounter, fhirObservation, result, systemProperties);
         }
         result.add(entry);
         return result;

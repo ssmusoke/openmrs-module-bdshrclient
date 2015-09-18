@@ -35,7 +35,7 @@ import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_URL;
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
 @Component
-public class FamilyHistoryMapper implements EmrObsResourceHandler {
+public class FamilyMemberHistoryMapper implements EmrObsResourceHandler {
 
     @Autowired
     IdMappingsRepository idMappingsRepository;
@@ -57,7 +57,7 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
         List<FHIRResource> fhirResources = new ArrayList<>();
         for (Obs person : obs.getGroupMembers()) {
             FamilyMemberHistory familyMemberHistory = createFamilyMemberHistory(person, fhirEncounter, systemProperties);
-            fhirResources.add(new FHIRResource("Family History", familyMemberHistory.getIdentifier(), familyMemberHistory));
+            fhirResources.add(new FHIRResource("Family Member History", familyMemberHistory.getIdentifier(), familyMemberHistory));
         }
         return fhirResources;
     }
@@ -65,6 +65,7 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
     private FamilyMemberHistory createFamilyMemberHistory(Obs person, Encounter fhirEncounter, SystemProperties systemProperties) {
         FamilyMemberHistory familyMemberHistory = new FamilyMemberHistory();
         familyMemberHistory.setPatient(fhirEncounter.getPatient());
+        familyMemberHistory.setStatus("partial");
         String familyMemberHistoryId = new EntityReference().build(Obs.class, systemProperties, person.getUuid());
         familyMemberHistory.addIdentifier().setValue(familyMemberHistoryId);
         familyMemberHistory.setId(familyMemberHistoryId);

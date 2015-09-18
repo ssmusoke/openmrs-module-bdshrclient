@@ -27,12 +27,12 @@ import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_URL;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class FamilyHistoryMapperIT extends BaseModuleWebContextSensitiveTest {
+public class FamilyMemberHistoryMapperIT extends BaseModuleWebContextSensitiveTest {
     @Autowired
     private EncounterService encounterService;
 
     @Autowired
-    private FamilyHistoryMapper familyHistoryMapper;
+    private FamilyMemberHistoryMapper familyMemberHistoryMapper;
 
     @After
     public void tearDown() throws Exception {
@@ -49,7 +49,7 @@ public class FamilyHistoryMapperIT extends BaseModuleWebContextSensitiveTest {
         encounter.addParticipant().setIndividual(new ResourceReferenceDt());
         org.openmrs.Encounter openMrsEncounter = encounterService.getEncounter(36);
 
-        List<FHIRResource> familyHistoryResources = familyHistoryMapper.map(openMrsEncounter.getObsAtTopLevel(false).iterator().next(), encounter, getSystemProperties("1"));
+        List<FHIRResource> familyHistoryResources = familyMemberHistoryMapper.map(openMrsEncounter.getObsAtTopLevel(false).iterator().next(), encounter, getSystemProperties("1"));
         assertFalse(familyHistoryResources.isEmpty());
         assertEquals(1, familyHistoryResources.size());
 

@@ -69,6 +69,12 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
+    public void shouldMapImmunizationStatus() throws Exception {
+        Immunization immunization = mapImmunization(11, new Encounter());
+        assertEquals("in-progress", immunization.getStatus());
+    }
+
+    @Test
     public void shouldMapVaccine() throws Exception {
         Immunization immunization = mapImmunization(11, new Encounter());
 
@@ -77,7 +83,6 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals("ABC", vaccineTypeCoding.getCode());
         assertEquals("http://tr.com/ABC", vaccineTypeCoding.getSystem());
     }
-
 
     @Test
     public void shouldMapVaccinationDate() throws Exception {
@@ -102,7 +107,6 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
         Immunization immunization = mapImmunization(11, fhirEncounter);
 
         assertEquals(doctor, immunization.getRequester());
-
     }
 
     @Test

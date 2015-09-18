@@ -84,6 +84,7 @@
                 <identifier>
                     <value value="urn:uuid:b0a0aaba-23d6-42e9-912e-635f3a8a4b0a"/>
                 </identifier>
+                <status value="in-progress" />
                 <date value="2015-08-17T00:00:00.000+05:30"/>
                 <vaccineCode>
                     <coding>

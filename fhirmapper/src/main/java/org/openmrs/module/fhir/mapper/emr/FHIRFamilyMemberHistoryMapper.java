@@ -26,7 +26,7 @@ import java.util.List;
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 
 @Component
-public class FHIRFamilyHistoryMapper implements FHIRResourceMapper {
+public class FHIRFamilyMemberHistoryMapper implements FHIRResourceMapper {
     @Autowired
     private IdMappingsRepository idMappingsRepository;
 

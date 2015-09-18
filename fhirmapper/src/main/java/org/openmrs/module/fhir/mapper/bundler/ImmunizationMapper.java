@@ -43,7 +43,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     @Autowired
     private ConceptService conceptService;
     @Autowired
-    private CodableConceptService codableConceptService;
+    private CodableConceptService codeableConceptService;
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
 
@@ -73,6 +73,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         if (CollectionUtils.isEmpty(drugs)) {
             return null;
         }
+        immunization.setStatus(getImmunizationStatus(immunizationIncidentObs));
         immunization.setVaccineCode(getVaccineType(drugs));
         setIdentifier(immunizationIncidentObs, systemProperties, immunization);
         immunization.setDate(getVaccinationDate(immunizationIncidentObs), TemporalPrecisionEnum.MILLI);
@@ -86,11 +87,19 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         return immunization;
     }
 
+    private String getImmunizationStatus(CompoundObservation immunizationIncidentObs) {
+        Obs procdureStatusObs = immunizationIncidentObs.getMemberObsForConcept(omrsConceptLookup.findTRConceptOfType(TrValueSetType.IMMUNIZATION_STATUS));
+        if (procdureStatusObs != null) {
+            return codeableConceptService.getTRValueSetCode(procdureStatusObs.getValueCoded());
+        }
+        return "completed";
+    }
+
     private void setRoute(CompoundObservation immunizationIncidentObs, Immunization immunization, SystemProperties systemProperties) {
         Concept routeOfAdministrationConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.ROUTE_OF_ADMINISTRATION);
         Obs routeObs = immunizationIncidentObs.getMemberObsForConceptName(routeOfAdministrationConcept.getName().getName());
         if (routeObs != null) {
-            CodeableConceptDt codeableConceptDt = codableConceptService.getTRValueSetCodeableConcept(routeObs.getValueCoded(), TrValueSetType.ROUTE_OF_ADMINISTRATION.getTrPropertyValueSetUrl(systemProperties), new BoundCodeableConceptDt<>(ImmunizationRouteCodesEnum.VALUESET_BINDER));
+            CodeableConceptDt codeableConceptDt = codeableConceptService.getTRValueSetCodeableConcept(routeObs.getValueCoded(), TrValueSetType.ROUTE_OF_ADMINISTRATION.getTrPropertyValueSetUrl(systemProperties), new BoundCodeableConceptDt<>(ImmunizationRouteCodesEnum.VALUESET_BINDER));
             BoundCodeableConceptDt<ImmunizationRouteCodesEnum> routeCodeableConcept = new BoundCodeableConceptDt<>(ImmunizationRouteCodesEnum.VALUESET_BINDER);
             routeCodeableConcept.setCoding(codeableConceptDt.getCoding());
             immunization.setRoute(routeCodeableConcept);
@@ -114,7 +123,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         Concept reasonConcept = omrsConceptLookup.findTRConceptOfType(trValueSetType);
         Obs immunizationReasonObs = immunizationIncidentObs.getMemberObsForConceptName(reasonConcept.getName().getName());
         if (immunizationReasonObs != null && idMappingsRepository.findByInternalId(immunizationReasonObs.getValueCoded().getUuid()) != null) {
-            CodeableConceptDt reason = codableConceptService.getTRValueSetCodeableConcept(immunizationReasonObs.getValueCoded(),
+            CodeableConceptDt reason = codeableConceptService.getTRValueSetCodeableConcept(immunizationReasonObs.getValueCoded(),
                     trValueSetType.getTrPropertyValueSetUrl(systemProperties));
             setReason(trValueSetType, explanationComponent, reason);
         }
@@ -142,7 +151,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         Concept quantityUnitsConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.QUANTITY_UNITS);
         Obs quantityUnitsObs = immunizationIncidentObs.getMemberObsForConceptName(quantityUnitsConcept.getName().getName());
         if (quantityUnitsObs != null) {
-            dose.setCode(codableConceptService.getTRValueSetCode(quantityUnitsObs.getValueCoded()));
+            dose.setCode(codeableConceptService.getTRValueSetCode(quantityUnitsObs.getValueCoded()));
             if (idMappingsRepository.findByInternalId(quantityUnitsObs.getValueCoded().getUuid()) != null)
                 dose.setSystem(TrValueSetType.QUANTITY_UNITS.getTrPropertyValueSetUrl(systemProperties));
         }
@@ -171,7 +180,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         IdMapping idMapping = idMappingsRepository.findByInternalId(drugsByConcept.getUuid());
         CodeableConceptDt codeableConcept = new CodeableConceptDt();
         if (idMapping != null) {
-            codableConceptService.addFHIRCoding(codeableConcept, idMapping.getExternalId(), idMapping.getUri(), drugsByConcept.getDisplayName());
+            codeableConceptService.addFHIRCoding(codeableConcept, idMapping.getExternalId(), idMapping.getUri(), drugsByConcept.getDisplayName());
         } else {
             CodingDt coding = codeableConcept.addCoding();
             coding.setDisplay(drugsByConcept.getDisplayName());

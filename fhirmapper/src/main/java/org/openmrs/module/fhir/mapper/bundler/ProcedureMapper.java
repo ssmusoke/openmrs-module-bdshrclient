@@ -82,7 +82,6 @@ public class ProcedureMapper implements EmrObsResourceHandler {
             FHIRResource procedureResource = new FHIRResource("Procedure", procedure.getIdentifier(), procedure);
             resources.add(procedureResource);
         }
-
         return resources;
     }
 
@@ -119,7 +118,6 @@ public class ProcedureMapper implements EmrObsResourceHandler {
             }
         }
     }
-
 
     private CodeableConceptDt getProcedure(CompoundObservation compoundObservationProcedure) {
         CodeableConceptDt procedureType = null;
@@ -219,7 +217,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         observation.setId(id);
         observation.setSubject(diagnosticReport.getSubject());
         observation.setEncounter(diagnosticReport.getEncounter());
-        observation.setStatus(ObservationStatusEnum.REGISTERED);
+        observation.setStatus(ObservationStatusEnum.FINAL);
         observation.setCode(diagnosticReport.getCode());
         observation.setValue(observationValueMapper.map(diagnosticResultObs));
         return observation;
