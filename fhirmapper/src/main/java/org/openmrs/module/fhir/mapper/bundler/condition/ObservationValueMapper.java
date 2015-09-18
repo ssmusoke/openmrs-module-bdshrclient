@@ -34,7 +34,7 @@ public class ObservationValueMapper {
                     quantity.setValue(obs.getValueNumeric());
                     if (obs.getConcept() instanceof ConceptNumeric) {
                         String units = ((ConceptNumeric) obs.getConcept()).getUnits();
-                        if (units != null) quantity.setUnits(units);
+                        if (units != null) quantity.setUnit(units);
                     }
                     return quantity;
                 }

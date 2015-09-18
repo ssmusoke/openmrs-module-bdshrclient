@@ -5,7 +5,7 @@
     </meta>
     <type value="collection"/>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:7326589b-7535-4148-87a6-36cce7b960ce"/>
         <resource>
             <Composition xmlns="http://hl7.org/fhir">
                 <id value="7326589b-7535-4148-87a6-36cce7b960ce"/>
@@ -20,6 +20,7 @@
                         <display value="Details Document"/>
                     </coding>
                 </type>
+                <title value="Patient Clinical Encounter" />
                 <status value="final"/>
                 <confidentiality value="N"/>
                 <subject>
@@ -33,34 +34,34 @@
                     <reference value="urn:uuid:4b2d4e98-dea3-4e26-a516-898284d9b9e2"/>
                 </encounter>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:4b2d4e98-dea3-4e26-a516-898284d9b9e2"/>
                         <display value="Encounter"/>
-                    </content>
+                    </entry>
                 </section>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:2e0258de-131a-4adf-8c6d-609c56665425"/>
                         <display value="Test A"/>
-                    </content>
+                    </entry>
                 </section>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:83f05bb3-acbc-4260-a044-027b5a9299e0"/>
                         <display value="Diagnostic Report"/>
-                    </content>
+                    </entry>
                 </section>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:b59d5489-90b4-496a-a5e6-1315dc4fea21"/>
                         <display value="Procedure Template"/>
-                    </content>
+                    </entry>
                 </section>
             </Composition>
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:4b2d4e98-dea3-4e26-a516-898284d9b9e2"/>
         <resource>
             <Encounter xmlns="http://hl7.org/fhir">
                 <id value="4b2d4e98-dea3-4e26-a516-898284d9b9e2"/>
@@ -88,7 +89,7 @@
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:2e0258de-131a-4adf-8c6d-609c56665425"/>
         <resource>
             <Observation xmlns="http://hl7.org/fhir">
                 <id value="2e0258de-131a-4adf-8c6d-609c56665425"/>
@@ -113,15 +114,15 @@
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:83f05bb3-acbc-4260-a044-027b5a9299e0"/>
         <resource>
             <DiagnosticReport xmlns="http://hl7.org/fhir">
                 <id value="83f05bb3-acbc-4260-a044-027b5a9299e0"/>
-                <name>
+                <code>
                     <coding>
                         <display value="Test A"/>
                     </coding>
-                </name>
+                </code>
                 <status value="final"/>
                 <issued value="2015-08-26T12:25:55.000+05:30"/>
                 <subject>
@@ -137,7 +138,7 @@
                 <identifier>
                     <value value="urn:uuid:83f05bb3-acbc-4260-a044-027b5a9299e0"/>
                 </identifier>
-                <diagnosticDateTime value="2015-08-26T12:25:55.000+05:30"/>
+                <effectiveDateTime value="2015-08-26T12:25:55.000+05:30"/>
                 <result>
                     <reference value="urn:uuid:2e0258de-131a-4adf-8c6d-609c56665425" />
                     <display value="Test A"/>
@@ -151,19 +152,19 @@
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:"/>
         <resource>
             <Procedure xmlns="http://hl7.org/fhir">
                 <id value="b59d5489-90b4-496a-a5e6-1315dc4fea21"/>
                 <identifier>
                     <value value="urn:uuid:b59d5489-90b4-496a-a5e6-1315dc4fea21"/>
                 </identifier>
-                <patient>
+                <subject>
                     <reference value="http://www.mci.com/patients/98101039678"/>
                     <display value="98101039678"/>
-                </patient>
+                </subject>
                 <status value="in-progress" />
-                <type>
+                <code>
                     <coding>
                         <system value="http://192.168.33.17:9080/openmrs/ws/rest/v1/tr/referenceterms/838b3372-0fe8-4c09-acce-30248abe71ef"/>
                         <code value="7W09X0Z"/>
@@ -174,7 +175,7 @@
                         <code value="bfbcf165-2414-4f33-92fd-80d61bc191ba"/>
                         <display value="ProcedureAnswer1"/>
                     </coding>
-                </type>
+                </code>
                 <outcome>
                     <coding>
                         <system value="http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Procedure-Outcome"/>
@@ -200,7 +201,9 @@
                     <reference value="urn:uuid:83f05bb3-acbc-4260-a044-027b5a9299e0"/>
                     <display value="Diagnostic Report"/>
                 </report>
-                <notes value="Procedure went well" />
+                <notes>
+                    <text value="Procedure went well" />
+                </notes>
             </Procedure>
         </resource>
     </entry>

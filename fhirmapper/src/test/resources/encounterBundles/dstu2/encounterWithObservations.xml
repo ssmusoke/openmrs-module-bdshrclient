@@ -20,6 +20,7 @@
                         <display value="Details Document"/>
                     </coding>
                 </type>
+                <title value="Patient Clinical Encounter" />
                 <status value="final"/>
                 <confidentiality value="N"/>
                 <subject>

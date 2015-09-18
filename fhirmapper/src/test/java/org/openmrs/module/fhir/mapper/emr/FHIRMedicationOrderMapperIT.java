@@ -17,13 +17,13 @@ import org.springframework.test.annotation.DirtiesContext;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSensitiveTest {
+public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     private ApplicationContext springContext;
 
     @Autowired
-    private FHIRMedicationPrescriptionMapper mapper;
+    private FHIRMedicationOrderMapper mapper;
 
     @Autowired
     private ConceptService conceptService;

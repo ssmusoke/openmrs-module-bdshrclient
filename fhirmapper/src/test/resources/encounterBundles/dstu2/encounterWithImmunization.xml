@@ -5,7 +5,7 @@
     </meta>
     <type value="collection"/>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:63185c4b-e29e-4fb7-a090-5cfd80dbdb12"/>
         <resource>
             <Composition xmlns="http://hl7.org/fhir">
                 <id value="63185c4b-e29e-4fb7-a090-5cfd80dbdb12"/>
@@ -20,6 +20,7 @@
                         <display value="Details Document"/>
                     </coding>
                 </type>
+                <title value="Patient Clinical Encounter" />
                 <status value="final"/>
                 <confidentiality value="N"/>
                 <subject>
@@ -33,22 +34,22 @@
                     <reference value="urn:uuid:de711fc8-3b1b-4089-813e-1ae8b3936ea8"/>
                 </encounter>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:de711fc8-3b1b-4089-813e-1ae8b3936ea8"/>
                         <display value="Encounter"/>
-                    </content>
+                    </entry>
                 </section>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:b0a0aaba-23d6-42e9-912e-635f3a8a4b0a"/>
                         <display value="Immunization"/>
-                    </content>
+                    </entry>
                 </section>
             </Composition>
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:de711fc8-3b1b-4089-813e-1ae8b3936ea8"/>
         <resource>
             <Encounter xmlns="http://hl7.org/fhir">
                 <id value="de711fc8-3b1b-4089-813e-1ae8b3936ea8"/>
@@ -76,7 +77,7 @@
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:b0a0aaba-23d6-42e9-912e-635f3a8a4b0a"/>
         <resource>
             <Immunization xmlns="http://hl7.org/fhir">
                 <id value="b0a0aaba-23d6-42e9-912e-635f3a8a4b0a"/>
@@ -84,13 +85,13 @@
                     <value value="urn:uuid:b0a0aaba-23d6-42e9-912e-635f3a8a4b0a"/>
                 </identifier>
                 <date value="2015-08-17T00:00:00.000+05:30"/>
-                <vaccineType>
+                <vaccineCode>
                     <coding>
                         <system value="http://http://127.0.0.1:9997/openmrs/ws/rest/v1/tr/drugs/751c9b29-6f70-4e2a-90b0-068c4f8a5fe6"/>
                         <code value="751c9b29-6f70-4e2a-90b0-068c4f8a5fe6"/>
                         <display value="BCG"/>
                     </coding>
-                </vaccineType>
+                </vaccineCode>
                 <patient>
                     <reference value="http://www.mci.com/patients/98104750156"/>
                     <display value="98104750156"/>

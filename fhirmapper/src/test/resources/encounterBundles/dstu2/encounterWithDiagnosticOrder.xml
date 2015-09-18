@@ -5,8 +5,10 @@
     </meta>
     <type value="collection"/>
     <entry>
+        <fullUrl value="urn:uuid:f1aeb8d3-52c8-4c65-ab55-05a487e24092"/>
         <resource>
             <Composition xmlns="http://hl7.org/fhir">
+                <id value="f1aeb8d3-52c8-4c65-ab55-05a487e24092" />
                 <identifier>
                     <value value="urn:uuid:f1aeb8d3-52c8-4c65-ab55-05a487e24092"/>
                 </identifier>
@@ -18,6 +20,7 @@
                         <display value="Details Document"/>
                     </coding>
                 </type>
+                <title value="Patient Clinical Encounter" />
                 <status value="final"/>
                 <confidentiality value="N"/>
                 <subject>
@@ -31,28 +34,28 @@
                     <reference value="urn:uuid:4d2f9872-4df1-438e-9d72-0a8b161d409b"/>
                 </encounter>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:4d2f9872-4df1-438e-9d72-0a8b161d409b"/>
                         <display value="Encounter"/>
-                    </content>
+                    </entry>
                 </section>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:453b7b24-7847-49f7-8a33-2fc339e5c4c7"/>
                         <display value="Diagnostic Order"/>
-                    </content>
+                    </entry>
                 </section>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:a0848743-e6ae-40c7-a271-4117e46d43cd"/>
                         <display value="Specimen"/>
-                    </content>
+                    </entry>
                 </section>
             </Composition>
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:4d2f9872-4df1-438e-9d72-0a8b161d409b"/>
         <resource>
             <Encounter xmlns="http://hl7.org/fhir">
                 <id value="4d2f9872-4df1-438e-9d72-0a8b161d409b"/>
@@ -80,7 +83,7 @@
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:"/>
         <resource>
             <DiagnosticOrder xmlns="http://hl7.org/fhir">
                 <id value="453b7b24-7847-49f7-8a33-2fc339e5c4c7"/>
@@ -118,7 +121,7 @@
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:"/>
         <resource>
             <Specimen xmlns="http://hl7.org/fhir">
                 <id value="a0848743-e6ae-40c7-a271-4117e46d43cd"/>

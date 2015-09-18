@@ -63,7 +63,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
         String healthId = "HIDA764177";
         String shrEncounterId = "shr-enc-id";
-        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "classpath:encounterBundles/dstu2/testFHIREncounter.xml");
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/testFHIREncounter.xml");
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);

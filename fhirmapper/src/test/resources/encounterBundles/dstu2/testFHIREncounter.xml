@@ -2,6 +2,7 @@
     <id value="4fe6f9e2-d10a-4956-aae5-091e810090e1"/>
     <type value="collection"/>
     <entry>
+        <fullUrl value="urn:uuid:bce6c82a-01ec-482b-8dee-12240f372a38" />
         <resource>
             <Composition xmlns="http://hl7.org/fhir">
                 <id value="bce6c82a-01ec-482b-8dee-12240f372a38"/>
@@ -16,6 +17,7 @@
                         <display value="Details Document"/>
                     </coding>
                 </type>
+                <title value="Patient Clinical Encounter" />
                 <status value="final"/>
                 <confidentiality value="N"/>
                 <subject>
@@ -50,6 +52,7 @@
         </resource>
     </entry>
     <entry>
+        <fullUrl value="urn:uuid:4d2f9872-4df1-438e-9d72-0a8b161d409b" />
         <resource>
             <Encounter xmlns="http://hl7.org/fhir">
                 <id value="4d2f9872-4df1-438e-9d72-0a8b161d409b"/>
@@ -77,6 +80,7 @@
         </resource>
     </entry>
     <entry>
+        <fullUrl value="urn:uuid:4e06a589-cc74-4318-abad-d748fa8268ea" />
         <resource>
             <Condition xmlns="http://hl7.org/fhir">
                 <id value="4e06a589-cc74-4318-abad-d748fa8268ea"/>
@@ -107,11 +111,12 @@
                         <display value="Diagnosis"/>
                     </coding>
                 </category>
-                <clinicalStatus value="provisional"/>
+                <verificationStatus value="provisional"/>
             </Condition>
         </resource>
     </entry>
     <entry>
+        <fullUrl value="urn:uuid:4e06a589-cc74-4318-abad-e74efa8268ea" />
         <resource>
             <Condition xmlns="http://hl7.org/fhir">
                 <id value="4e06a589-cc74-4318-abad-e74efa8268ea"/>
@@ -149,7 +154,7 @@
                         <display value="Moderate"/>
                     </coding>
                 </severity>
-                <clinicalStatus value="confirmed"/>
+                <verificationStatus value="confirmed"/>
                 <onsetPeriod>
                     <start value="2014-07-24T10:00:00+05:30"/>
                     <end value="2014-07-24T14:31:48.000+05:30"/>

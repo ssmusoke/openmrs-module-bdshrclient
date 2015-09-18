@@ -5,7 +5,7 @@
     </meta>
     <type value="collection"/>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:a2d0468c-aea7-4413-af54-7209adbd32d0"/>
         <resource>
             <Composition xmlns="http://hl7.org/fhir">
                 <id value="a2d0468c-aea7-4413-af54-7209adbd32d0"/>
@@ -20,6 +20,7 @@
                         <display value="Details Document"/>
                     </coding>
                 </type>
+                <title value="Patient Clinical Encounter" />
                 <status value="final"/>
                 <confidentiality value="N"/>
                 <subject>
@@ -33,22 +34,22 @@
                     <reference value="urn:uuid:de711fc8-3b1b-4089-813e-1ae8b3936ea8"/>
                 </encounter>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:de711fc8-3b1b-4089-813e-1ae8b3936ea8"/>
                         <display value="Encounter"/>
-                    </content>
+                    </entry>
                 </section>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:4eb2959f-6bd6-4f97-a7cc-e58bfe01b9fd"/>
                         <display value="Family History Template"/>
-                    </content>
+                    </entry>
                 </section>
             </Composition>
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:de711fc8-3b1b-4089-813e-1ae8b3936ea8"/>
         <resource>
             <Encounter xmlns="http://hl7.org/fhir">
                 <id value="de711fc8-3b1b-4089-813e-1ae8b3936ea8"/>
@@ -76,7 +77,7 @@
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:4eb2959f-6bd6-4f97-a7cc-e58bfe01b9fd"/>
         <resource>
             <FamilyMemberHistory xmlns="http://hl7.org/fhir">
                 <id value="4eb2959f-6bd6-4f97-a7cc-e58bfe01b9fd"/>
@@ -96,19 +97,21 @@
                 </relationship>
                 <bornDate value="2074-12-01"/>
                 <condition>
-                    <type>
+                    <code>
                         <coding>
                             <system value="http://tr.com/openmrs/ws/rest/v1/tr/concept/3"/>
                             <code value="3"/>
                             <display value="Back Pain"/>
                         </coding>
-                    </type>
-                    <onsetAge>
+                    </code>
+                    <onsetQuantity>
                         <value value="5.0"/>
-                        <units value="a"/>
+                        <unit value="a"/>
                         <system value="http://unitsofmeasure.org"/>
-                    </onsetAge>
-                    <note value="Some notes"/>
+                    </onsetQuantity>
+                    <note>
+                        <text value="Some notes"/>
+                    </note>
                 </condition>
             </FamilyMemberHistory>
         </resource>

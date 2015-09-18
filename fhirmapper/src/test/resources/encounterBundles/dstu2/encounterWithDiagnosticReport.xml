@@ -5,7 +5,7 @@
     </meta>
     <type value="collection"/>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:199c90a7-6c15-4c8e-8681-2659526fee5e"/>
         <resource>
             <Composition xmlns="http://hl7.org/fhir">
                 <id value="199c90a7-6c15-4c8e-8681-2659526fee5e"/>
@@ -20,6 +20,7 @@
                         <display value="Details Document"/>
                     </coding>
                 </type>
+                <title value="Patient Clinical Encounter" />
                 <status value="final"/>
                 <confidentiality value="N"/>
                 <subject>
@@ -33,28 +34,28 @@
                     <reference value="urn:uuid:85c310fd-1f9d-4c1e-a16b-4e53a636c46d"/>
                 </encounter>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:85c310fd-1f9d-4c1e-a16b-4e53a636c46d"/>
                         <display value="Encounter"/>
-                    </content>
+                    </entry>
                 </section>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:b052c4dc-d425-4ef7-90f8-0376d6e9e29a"/>
                         <display value="Hemoglobin"/>
-                    </content>
+                    </entry>
                 </section>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:2f933127-feb9-4131-be06-4c92980d0b7b"/>
                         <display value="Diagnostic Report"/>
-                    </content>
+                    </entry>
                 </section>
             </Composition>
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:85c310fd-1f9d-4c1e-a16b-4e53a636c46d"/>
         <resource>
             <Encounter xmlns="http://hl7.org/fhir">
                 <id value="85c310fd-1f9d-4c1e-a16b-4e53a636c46d"/>
@@ -77,7 +78,7 @@
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:b052c4dc-d425-4ef7-90f8-0376d6e9e29a"/>
         <resource>
             <Observation xmlns="http://hl7.org/fhir">
                 <id value="b052c4dc-d425-4ef7-90f8-0376d6e9e29a"/>
@@ -97,7 +98,6 @@
                     <value value="20.0"/>
                 </valueQuantity>
                 <status value="final"/>
-                <reliability value="ok"/>
                 <identifier>
                     <value value="urn:uuid:b052c4dc-d425-4ef7-90f8-0376d6e9e29a"/>
                 </identifier>
@@ -112,11 +112,11 @@
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:2f933127-feb9-4131-be06-4c92980d0b7b"/>
         <resource>
             <DiagnosticReport xmlns="http://hl7.org/fhir">
                 <id value="2f933127-feb9-4131-be06-4c92980d0b7b"/>
-                <name>
+                <code>
                     <coding>
                         <system value="http://127.0.0.1:9997/openmrs/ws/rest/v1/tr/referenceterms/94f5e936-1b2d-421d-8f83-21048270bf32"/>
                         <code value="20563-3"/>
@@ -127,7 +127,7 @@
                         <code value="79647ed4-a60e-4cf5-ba68-cf4d55956cba"/>
                         <display value="Hemoglobin"/>
                     </coding>
-                </name>
+                </code>
                 <status value="final"/>
                 <issued value="2015-08-31T17:14:30.000+05:30"/>
                 <subject>
@@ -140,10 +140,10 @@
                 <identifier>
                     <value value="urn:uuid:2f933127-feb9-4131-be06-4c92980d0b7b"/>
                 </identifier>
-                <requestDetail>
+                <request>
                     <reference value="http://shr.com/patients/hid/encounters/shrEncounterId3"/>
-                </requestDetail>
-                <diagnosticDateTime value="2015-08-31T17:03:09.000+05:30"/>
+                </request>
+                <effectiveDateTime value="2015-08-31T17:03:09.000+05:30"/>
                 <result>
                     <reference value="urn:uuid:b052c4dc-d425-4ef7-90f8-0376d6e9e29a"/>
                 </result>

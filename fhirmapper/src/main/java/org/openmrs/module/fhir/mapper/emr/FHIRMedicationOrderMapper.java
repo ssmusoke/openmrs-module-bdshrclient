@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class FHIRMedicationPrescriptionMapper implements FHIRResourceMapper {
+public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
     private static final int DEFAULT_NUM_REFILLS = 0;
     private static final String URL_SEPERATOR = "/";
     private static final String ROUTE_NOT_SPECIFIED = "NOT SPECIFIED";

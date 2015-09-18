@@ -45,7 +45,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
     private Bundle bundle;
 
     public Bundle loadSampleFHIREncounter() throws Exception {
-        return (Bundle) new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/dstu2/encounterWithDiagnosticOrder.xml", springContext);
+        return (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithDiagnosticOrder.xml", springContext);
     }
 
     @Before

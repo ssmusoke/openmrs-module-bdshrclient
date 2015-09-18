@@ -5,6 +5,7 @@
     </meta>
     <type value="collection"/>
     <entry>
+        <fullUrl value="urn:uuid:bce6c82a-01ec-482b-8dee-12240f372a38" />
         <resource>
             <Composition xmlns="http://hl7.org/fhir">
                 <identifier>
@@ -31,28 +32,28 @@
                     <reference value="urn:uuid:4d2f9872-4df1-438e-9d72-0a8b161d409b"/>
                 </encounter>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:4d2f9872-4df1-438e-9d72-0a8b161d409b"/>
                         <display value="Encounter"/>
-                    </content>
+                    </entry>
                 </section>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:4e06a589-cc74-4318-abad-d748fa8268ea"/>
                         <display value="Diagnosis"/>
-                    </content>
+                    </entry>
                 </section>
                 <section>
-                    <content>
+                    <entry>
                         <reference value="urn:uuid:4e06a589-cc74-4318-abad-e74efa8268ea"/>
                         <display value="Diagnosis"/>
-                    </content>
+                    </entry>
                 </section>
             </Composition>
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:4d2f9872-4df1-438e-9d72-0a8b161d409b"/>
         <resource>
             <Encounter xmlns="http://hl7.org/fhir">
                 <id value="4d2f9872-4df1-438e-9d72-0a8b161d409b"/>
@@ -80,7 +81,7 @@
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:4e06a589-cc74-4318-abad-d748fa8268ea"/>
         <resource>
             <Condition xmlns="http://hl7.org/fhir">
                 <id value="4e06a589-cc74-4318-abad-d748fa8268ea"/>
@@ -97,7 +98,7 @@
                 <asserter>
                     <reference value="http://hrmtest.dghs.gov.bd/api/1.0/providers/812.json"/>
                 </asserter>
-                <dateAsserted value="2015-08-24"/>
+                <dateRecorded value="2015-08-24"/>
                 <code>
                     <coding>
                         <system value="http://192.168.33.18/openmrs/ws/rest/v1/concept/f34f6020-9e33-4332-b7a5-bc9d464cb438"/>
@@ -112,12 +113,12 @@
                         <display value="Diagnosis"/>
                     </coding>
                 </category>
-                <clinicalStatus value="provisional"/>
+                <verificationStatus value="provisional"/>
             </Condition>
         </resource>
     </entry>
     <entry>
-        <base value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:4e06a589-cc74-4318-abad-e74efa8268ea"/>
         <resource>
             <Condition xmlns="http://hl7.org/fhir">
                 <id value="4e06a589-cc74-4318-abad-e74efa8268ea"/>
@@ -134,7 +135,7 @@
                 <asserter>
                     <reference value="http://hrmtest.dghs.gov.bd/api/1.0/providers/812.json"/>
                 </asserter>
-                <dateAsserted value="2015-08-24"/>
+                <dateRecorded value="2015-08-24"/>
                 <code>
                     <coding>
                         <system value="http://192.168.33.18/openmrs/ws/rest/v1/concept/96f64eb2-4d94-40ab-a386-a62ba03ff6b2"/>
@@ -149,7 +150,7 @@
                         <display value="Diagnosis"/>
                     </coding>
                 </category>
-                <clinicalStatus value="provisional"/>
+                <verificationStatus value="provisional"/>
             </Condition>
         </resource>
     </entry>
