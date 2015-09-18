@@ -110,6 +110,7 @@ public class CompositionBundle {
         Composition composition = new Composition().setDate(encounterDateTime, TemporalPrecisionEnum.MILLI);
         composition.setEncounter(new ResourceReferenceDt().setReference(encounter.getId()));
         composition.setStatus(CompositionStatusEnum.FINAL);
+        composition.setTitle("Patient Clinical Encounter");
         // TODO : remove creating the identifier if necessary. We can use resource Id to identify resources now.
         String id = new EntityReference().build(Composition.class, systemProperties, UUID.randomUUID().toString());
         composition.setId(id);

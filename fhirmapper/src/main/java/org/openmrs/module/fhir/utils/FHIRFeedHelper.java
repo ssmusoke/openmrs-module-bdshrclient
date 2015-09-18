@@ -64,22 +64,19 @@ public class FHIRFeedHelper {
         for (Bundle.Entry entry : bundle.getEntry()) {
             for (ResourceReferenceDt reference : references) {
                 IdDt resourceReference = reference.getReference();
-                    boolean hasFullUrlDefined = !StringUtils.isBlank(entry.getFullUrl());
-                    IResource entryResource = entry.getResource();
-
-                    if (hasFullUrlDefined) {
-                        if (entry.getFullUrl().equals(resourceReference.getValue())) {
-                            return entryResource;
-                        }
-                    } else if (resourceReference.hasResourceType()) {
-                        if (entryResource.getId().getValue().equals(resourceReference.getValue())) {
-                            return entryResource;
-                        }
-                    } else {
-                        if (entryResource.getId().getIdPart().equals(resourceReference.getIdPart())) {
-                            return entryResource;
-                        }
+                IResource entryResource = entry.getResource();
+                IdDt entryResourceId = entryResource.getId();
+                boolean hasFullUrlDefined = !org.apache.commons.lang3.StringUtils.isBlank(entry.getFullUrl());
+                if (resourceReference.hasResourceType() && entryResourceId.hasResourceType()
+                        && entryResourceId.getValue().equals(resourceReference.getValue()) ) {
+                    return entryResource;
+                } else if (entryResourceId.getIdPart().equals(resourceReference.getIdPart())) {
+                    return entryResource;
+                } else if (hasFullUrlDefined) {
+                    if (entry.getFullUrl().endsWith(resourceReference.getIdPart())) {
+                        return entryResource;
                     }
+                }
             }
         }
         return null;

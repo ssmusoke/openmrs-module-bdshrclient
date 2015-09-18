@@ -9,6 +9,8 @@ import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Condition;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.valueset.ConditionCategoryCodesEnum;
+import ca.uhn.fhir.model.dstu2.valueset.ConditionClinicalStatusCodesEnum;
+import ca.uhn.fhir.model.dstu2.valueset.ConditionVerificationStatusEnum;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 import org.openmrs.Obs;
@@ -59,6 +61,8 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
         condition.setPatient(encounter.getPatient());
         condition.setAsserter(getParticipant(encounter));
         condition.setCategory(ConditionCategoryCodesEnum.COMPLAINT);
+        condition.setClinicalStatus(ConditionClinicalStatusCodesEnum.ACTIVE);
+        condition.setVerificationStatus(ConditionVerificationStatusEnum.PROVISIONAL);
 
         final Set<Obs> obsMembers = obs.getGroupMembers(false);
         for (Obs member : obsMembers) {

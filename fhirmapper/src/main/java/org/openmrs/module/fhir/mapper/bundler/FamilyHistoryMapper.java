@@ -54,12 +54,12 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
 
     @Override
     public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
-        List<FHIRResource> FHIRResources = new ArrayList<>();
+        List<FHIRResource> fhirResources = new ArrayList<>();
         for (Obs person : obs.getGroupMembers()) {
             FamilyMemberHistory familyMemberHistory = createFamilyMemberHistory(person, fhirEncounter, systemProperties);
-            FHIRResources.add(new FHIRResource("Family History", familyMemberHistory.getIdentifier(), familyMemberHistory));
+            fhirResources.add(new FHIRResource("Family History", familyMemberHistory.getIdentifier(), familyMemberHistory));
         }
-        return FHIRResources;
+        return fhirResources;
     }
 
     private FamilyMemberHistory createFamilyMemberHistory(Obs person, Encounter fhirEncounter, SystemProperties systemProperties) {
@@ -106,7 +106,7 @@ public class FamilyHistoryMapper implements EmrObsResourceHandler {
         if (onsetAgeObs != null) {
             AgeDt age = new AgeDt();
             age.setValue(onsetAgeObs.getValueNumeric());
-            age.setUnits(UCUM_UNIT_FOR_YEARS);
+            age.setUnit(UCUM_UNIT_FOR_YEARS);
             age.setSystem(UCUM_URL);
             familyMemberCondition.setOnset(age);
         }
