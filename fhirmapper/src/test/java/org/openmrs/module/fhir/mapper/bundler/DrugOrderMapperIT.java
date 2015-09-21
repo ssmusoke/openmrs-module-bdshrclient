@@ -3,8 +3,8 @@ package org.openmrs.module.fhir.mapper.bundler;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
-import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.composite.SimpleQuantityDt;
 import ca.uhn.fhir.model.dstu2.composite.TimingDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
@@ -56,12 +56,12 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
 
         assertEquals(1, fhirResources.size());
-        MedicationOrder prescription = (MedicationOrder) fhirResources.get(0).getResource();
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
         Date expectedDate = DateUtil.parseDate("2008-08-19 12:20:22");
-        assertMedicationPrescription(prescription, expectedDate);
-        assertEquals(fhirEncounter.getId().getValue(), prescription.getEncounter().getReference().getValue());
-        assertEquals(1, prescription.getDosageInstruction().size());
-        MedicationOrder.DosageInstruction dosageInstruction = prescription.getDosageInstruction().get(0);
+        assertMedicationOrder(medicationOrder, expectedDate);
+        assertEquals(fhirEncounter.getId().getValue(), medicationOrder.getEncounter().getReference().getValue());
+        assertEquals(1, medicationOrder.getDosageInstruction().size());
+        MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.getDosageInstruction().get(0);
         assertRoute(dosageInstruction);
         assertDoseQuantity(dosageInstruction);
         assertSchedule(dosageInstruction, 1, 1, UnitsOfTimeEnum.D,
@@ -74,8 +74,8 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         Encounter fhirEncounter = getFhirEncounter();
 
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
-        MedicationOrder prescription = (MedicationOrder) fhirResources.get(0).getResource();
-        assertSchedule(prescription.getDosageInstruction().get(0), 2, 1, UnitsOfTimeEnum.WK,
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+        assertSchedule(medicationOrder.getDosageInstruction().get(0), 2, 1, UnitsOfTimeEnum.WK,
                 DateUtil.parseDate("2008-08-08 00:00:00"), DateUtil.parseDate("2008-10-16 23:59:59"));
     }
 
@@ -85,8 +85,8 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         Encounter fhirEncounter = getFhirEncounter();
 
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
-        MedicationOrder prescription = (MedicationOrder) fhirResources.get(0).getResource();
-        assertSchedule(prescription.getDosageInstruction().get(0), 1, 3, UnitsOfTimeEnum.H,
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+        assertSchedule(medicationOrder.getDosageInstruction().get(0), 1, 3, UnitsOfTimeEnum.H,
                 DateUtil.parseDate("2008-08-08 00:00:00"), DateUtil.parseDate("2008-10-16 23:59:59"));
     }
 
@@ -96,8 +96,8 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         Encounter fhirEncounter = getFhirEncounter();
 
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
-        MedicationOrder prescription = (MedicationOrder) fhirResources.get(0).getResource();
-        assertSchedule(prescription.getDosageInstruction().get(0), 1, 2, UnitsOfTimeEnum.H,
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+        assertSchedule(medicationOrder.getDosageInstruction().get(0), 1, 2, UnitsOfTimeEnum.H,
                 DateUtil.parseDate("2008-08-08 00:00:00"), DateUtil.parseDate("2008-10-09 23:59:59"));
     }
 
@@ -107,8 +107,8 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         Encounter fhirEncounter = getFhirEncounter();
 
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
-        MedicationOrder prescription = (MedicationOrder) fhirResources.get(0).getResource();
-        assertSchedule(prescription.getDosageInstruction().get(0), 2, 1, UnitsOfTimeEnum.WK,
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+        assertSchedule(medicationOrder.getDosageInstruction().get(0), 2, 1, UnitsOfTimeEnum.WK,
                 DateUtil.parseDate("2008-08-10 00:00:00"), DateUtil.parseDate("2008-10-18 23:59:59"));
     }
 
@@ -118,13 +118,13 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
         Order order = orderService.getOrder(20);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
-        MedicationOrder prescription = (MedicationOrder) fhirResources.get(0).getResource();
-        assertTrue(((BooleanDt) prescription.getDosageInstruction().get(0).getAsNeeded()).getValue());
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+        assertTrue(((BooleanDt) medicationOrder.getDosageInstruction().get(0).getAsNeeded()).getValue());
 
         order = orderService.getOrder(19);
         fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
-        prescription = (MedicationOrder) fhirResources.get(0).getResource();
-        assertFalse(((BooleanDt) prescription.getDosageInstruction().get(0).getAsNeeded()).getValue());
+        medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+        assertFalse(((BooleanDt) medicationOrder.getDosageInstruction().get(0).getAsNeeded()).getValue());
     }
 
     @Test
@@ -156,7 +156,8 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     private void assertDoseQuantity(MedicationOrder.DosageInstruction dosageInstruction) {
-        QuantityDt doseQuantity = (QuantityDt) dosageInstruction.getDose();
+        assertTrue(dosageInstruction.getDose() instanceof SimpleQuantityDt);
+        SimpleQuantityDt doseQuantity = (SimpleQuantityDt) dosageInstruction.getDose();
         assertNotNull(doseQuantity);
         assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Quantity-Units", doseQuantity.getSystem());
         assertEquals("mg", doseQuantity.getCode());
@@ -170,17 +171,17 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Route-of-Administration", routeCode.getSystem());
     }
 
-    private void assertMedicationPrescription(MedicationOrder prescription, Date expectedDate) {
-        assertNotNull(prescription);
-        assertEquals("hid", prescription.getPatient().getReference().getValue());
-        assertNotNull(prescription.getIdentifier());
+    private void assertMedicationOrder(MedicationOrder medicationOrder, Date expectedDate) {
+        assertNotNull(medicationOrder);
+        assertEquals("hid", medicationOrder.getPatient().getReference().getValue());
+        assertNotNull(medicationOrder.getIdentifier());
 
-        assertEquals(expectedDate, prescription.getDateWritten());
-        List<CodingDt> coding = ((CodeableConceptDt) prescription.getMedication()).getCoding();
+        assertEquals(expectedDate, medicationOrder.getDateWritten());
+        List<CodingDt> coding = ((CodeableConceptDt) medicationOrder.getMedication()).getCoding();
         assertEquals(1, coding.size());
         assertEquals("drugs/104", coding.get(0).getSystem());
         assertEquals("Lactic Acid", coding.get(0).getDisplay());
         assertEquals("104", coding.get(0).getCode());
-        assertTrue(prescription.getPrescriber().getReference().getValue().endsWith("321.json"));
+        assertTrue(medicationOrder.getPrescriber().getReference().getValue().endsWith("321.json"));
     }
 }

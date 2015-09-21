@@ -103,6 +103,7 @@ public class CompositionBundle {
     private void addBundleEntry(Bundle bundle, FHIRResource resource) {
         Bundle.Entry resourceEntry = new Bundle.Entry();
         resourceEntry.setResource(resource.getResource());
+        resourceEntry.setFullUrl(resource.getIdentifier().getValue());
         bundle.addEntry(resourceEntry);
     }
 
