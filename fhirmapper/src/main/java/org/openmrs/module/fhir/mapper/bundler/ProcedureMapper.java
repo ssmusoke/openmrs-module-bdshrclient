@@ -20,7 +20,7 @@ import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
-import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.TrValueSetType;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -37,7 +37,7 @@ import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 public class ProcedureMapper implements EmrObsResourceHandler {
 
     @Autowired
-    private CodableConceptService codeableConceptService;
+    private CodeableConceptService codeableConceptService;
 
     @Autowired
     private IdMappingsRepository idMappingsRepository;

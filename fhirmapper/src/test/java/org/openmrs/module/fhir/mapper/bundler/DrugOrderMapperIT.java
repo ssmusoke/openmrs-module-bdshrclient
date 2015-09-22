@@ -1,8 +1,9 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import ca.uhn.fhir.model.api.ExtensionDt;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
-import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
+import ca.uhn.fhir.model.dstu2.composite.DurationDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.composite.SimpleQuantityDt;
 import ca.uhn.fhir.model.dstu2.composite.TimingDt;
@@ -11,11 +12,16 @@ import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
 import ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum;
 import ca.uhn.fhir.model.primitive.BooleanDt;
+<<<<<<< HEAD
 import org.junit.After;
+=======
+import ca.uhn.fhir.model.primitive.DateTimeDt;
+>>>>>>> Neha | bdshr-772 | using duration for MedicationOrder.bounds, added extention for scheduled date
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Order;
 import org.openmrs.api.OrderService;
+import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +71,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertRoute(dosageInstruction);
         assertDoseQuantity(dosageInstruction);
         assertSchedule(dosageInstruction, 1, 1, UnitsOfTimeEnum.D,
-                DateUtil.parseDate("2008-08-08"), DateUtil.parseDate("2008-08-13 23:59:59"));
+                6, UnitsOfTimeEnum.D);
     }
 
     @Test
@@ -76,7 +82,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
         assertSchedule(medicationOrder.getDosageInstruction().get(0), 2, 1, UnitsOfTimeEnum.WK,
-                DateUtil.parseDate("2008-08-08 00:00:00"), DateUtil.parseDate("2008-10-16 23:59:59"));
+                10, UnitsOfTimeEnum.WK);
     }
 
     @Test
@@ -87,7 +93,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
         assertSchedule(medicationOrder.getDosageInstruction().get(0), 1, 3, UnitsOfTimeEnum.H,
-                DateUtil.parseDate("2008-08-08 00:00:00"), DateUtil.parseDate("2008-10-16 23:59:59"));
+                10, UnitsOfTimeEnum.WK);
     }
 
     @Test
@@ -98,18 +104,20 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
         assertSchedule(medicationOrder.getDosageInstruction().get(0), 1, 2, UnitsOfTimeEnum.H,
-                DateUtil.parseDate("2008-08-08 00:00:00"), DateUtil.parseDate("2008-10-09 23:59:59"));
+                2, UnitsOfTimeEnum.D);
     }
 
     @Test
-    public void shouldCalculateBoundPeriodFromScheduledDate() throws Exception {
+    public void shouldSetScheduledDate() throws Exception {
         Order order = orderService.getOrder(20);
         Encounter fhirEncounter = getFhirEncounter();
 
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
-        assertSchedule(medicationOrder.getDosageInstruction().get(0), 2, 1, UnitsOfTimeEnum.WK,
-                DateUtil.parseDate("2008-08-10 00:00:00"), DateUtil.parseDate("2008-10-18 23:59:59"));
+        MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.getDosageInstruction().get(0);
+        ExtensionDt scheduledDateExtension = dosageInstruction.getTiming().getUndeclaredExtensions().get(0);
+        assertEquals(order.getScheduledDate(), ((DateTimeDt) scheduledDateExtension.getValue()).getValue());
+        assertEquals(FHIRProperties.SCHEDULED_DATE_EXTENSION_URL, scheduledDateExtension.getUrl());
     }
 
     @Test
@@ -127,11 +135,6 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertFalse(((BooleanDt) medicationOrder.getDosageInstruction().get(0).getAsNeeded()).getValue());
     }
 
-    @Test
-    public void shouldSetAdditionalInstructions() throws Exception {
-
-    }
-
     private Encounter getFhirEncounter() {
         Encounter fhirEncounter = new Encounter();
         fhirEncounter.setId("shrEncId");
@@ -141,14 +144,14 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         return fhirEncounter;
     }
 
-    private void assertSchedule(MedicationOrder.DosageInstruction dosageInstruction, int expectedFrequency, int expectedPeriod, UnitsOfTimeEnum expectedPeriodUnits, Date expectedStartDate, Date expectedEndDate) throws ParseException {
+    private void assertSchedule(MedicationOrder.DosageInstruction dosageInstruction, int expectedFrequency, int expectedPeriod, UnitsOfTimeEnum expectedPeriodUnits, int expectedDuration, UnitsOfTimeEnum expectedDurationUnits) throws ParseException {
         TimingDt timing = dosageInstruction.getTiming();
         assertNotNull(timing);
         TimingDt.Repeat repeat = timing.getRepeat();
         assertNotNull(repeat);
-        PeriodDt bounds = (PeriodDt) repeat.getBounds();
-        assertEquals(expectedStartDate, bounds.getStart());
-        assertEquals(expectedEndDate, bounds.getEnd());
+        DurationDt bounds = (DurationDt) repeat.getBounds();
+        assertEquals(expectedDuration, bounds.getValue().intValue());
+        assertEquals(expectedDurationUnits.getCode(), bounds.getCode());
         assertNull(repeat.getDuration());
         assertTrue(expectedFrequency == repeat.getFrequency());
         assertEquals(new BigDecimal(expectedPeriod), repeat.getPeriod());

@@ -15,7 +15,7 @@ import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.RelatedObservation;
-import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +32,13 @@ public class ObservationMapper implements EmrObsResourceHandler {
 
     private ObservationValueMapper observationValueMapper;
     private IdMappingsRepository idMappingsRepository;
-    private final CodableConceptService codableConceptService;
+    private final CodeableConceptService codeableConceptService;
 
     @Autowired
-    public ObservationMapper(ObservationValueMapper observationValueMapper, IdMappingsRepository idMappingsRepository, CodableConceptService codableConceptService) {
+    public ObservationMapper(ObservationValueMapper observationValueMapper, IdMappingsRepository idMappingsRepository, CodeableConceptService codeableConceptService) {
         this.observationValueMapper = observationValueMapper;
         this.idMappingsRepository = idMappingsRepository;
-        this.codableConceptService = codableConceptService;
+        this.codeableConceptService = codeableConceptService;
     }
 
     @Override
@@ -130,7 +130,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
         if (null == observation.getConcept()) {
             return null;
         }
-        CodeableConceptDt observationName = codableConceptService.addTRCoding(observation.getConcept(), idMappingsRepository);
+        CodeableConceptDt observationName = codeableConceptService.addTRCoding(observation.getConcept(), idMappingsRepository);
         if (CollectionUtils.isEmpty(observationName.getCoding())) {
             CodingDt coding = observationName.addCoding();
             coding.setDisplay(observation.getConcept().getName().getName());

@@ -18,7 +18,7 @@ import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +36,7 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
     @Autowired
     private IdMappingsRepository idMappingsRepository;
     @Autowired
-    private CodableConceptService codableConceptService;
+    private CodeableConceptService codeableConceptService;
 
     @Override
     public boolean canHandle(Obs observation) {
@@ -68,7 +68,7 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
         for (Obs member : obsMembers) {
             final String memberConceptName = member.getConcept().getName().getName();
             if (memberConceptName.equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT)) {
-                final CodeableConceptDt complaintCode = codableConceptService.addTRCoding(member.getValueCoded(), idMappingsRepository);
+                final CodeableConceptDt complaintCode = codeableConceptService.addTRCoding(member.getValueCoded(), idMappingsRepository);
                 if (CollectionUtils.isEmpty(complaintCode.getCoding())) {
                     CodingDt coding = complaintCode.addCoding();
                     coding.setDisplay(member.getValueCoded().getName().getName());

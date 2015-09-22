@@ -63,10 +63,10 @@ public class MRSProperties {
     public static final String TR_VALUESET_IMMUNIZATION_REASON = "Immunization Reason";
     public static final String TR_VALUESET_IMMUNIZATION_REFUSAL_REASON = "No Immunization Reason";
     public static final String TR_VALUESET_ROUTE_OF_ADMINSTRATION = "Route of Administration";
+    public static final String TR_VALUESET_IMMUNIZATION_STATUS = "Immunization Status";
     public static final String TR_VALUESET_PROCEDURE_OUTCOME = "Procedure Outcome";
     public static final String TR_VALUESET_PROCEDURE_FOLLOWUP = "Procedure Followup";
     public static final String TR_VALUESET_PROCEDURE_STATUS = "Procedure Status";
-    public static final String TR_VALUESET_IMMUNIZATION_STATUS = "Immunization Status";
 
     public static final String TR_CONCEPT_CAUSE_OF_DEATH = "Cause of Death";
     public static final String TR_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH = "Unspecified cause of death";

@@ -9,7 +9,7 @@ import ca.uhn.fhir.model.dstu2.resource.Observation;
 import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
 import org.openmrs.Obs;
-import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.SystemProperties;
@@ -34,7 +34,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
     private DiagnosticReportBuilder diagnosticReportBuilder;
 
     @Autowired
-    private CodableConceptService codableConceptService;
+    private CodeableConceptService codeableConceptService;
 
     @Override
     public boolean canHandle(Obs observation) {
@@ -72,7 +72,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
 
     private DiagnosticReport build(Obs obs, Encounter fhirEncounter, List<FHIRResource> fHIRResourceList, SystemProperties systemProperties) {
         DiagnosticReport report = diagnosticReportBuilder.build(obs, fhirEncounter, systemProperties);
-        CodeableConceptDt name = codableConceptService.addTRCoding(obs.getConcept(), idMappingsRepository);
+        CodeableConceptDt name = codeableConceptService.addTRCoding(obs.getConcept(), idMappingsRepository);
         if (name.getCoding() != null && name.getCoding().isEmpty()) {
             return null;
         }

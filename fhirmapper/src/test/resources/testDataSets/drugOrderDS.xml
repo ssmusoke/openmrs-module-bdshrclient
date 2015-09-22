@@ -208,8 +208,8 @@
             date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
             care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
             auto_expire_date="2008-10-09 23:59:59" uuid="amebea86-awaa-g1f3-98w0-f152w6e63ab0"/>
-    <drug_order order_id="19" drug_inventory_id="301" dose="4" as_needed="false" quantity="192" duration="48"
-                duration_units="805" route="701" frequency="4"
+    <drug_order order_id="19" drug_inventory_id="301" dose="4" as_needed="false" quantity="192" duration="2"
+                duration_units="803" route="701" frequency="4"
                 quantity_units="50" dispense_as_written="true" dose_units="50"/>
 
     <orders order_id="20" order_type_id="1" encounter_id="36" urgency="ON_SCHEDULED_DATE" concept_id="301"

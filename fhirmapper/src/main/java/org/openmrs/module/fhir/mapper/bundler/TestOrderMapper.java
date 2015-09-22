@@ -17,7 +17,7 @@ import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.Order;
 import org.openmrs.Provider;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
     private IdMappingsRepository idMappingsRepository;
 
     @Autowired
-    private CodableConceptService codableConceptService;
+    private CodeableConceptService codeableConceptService;
     private List<FHIRResource> resources;
 
     @Override
@@ -167,7 +167,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         if (null == order.getConcept()) {
             return null;
         }
-        CodeableConceptDt result = codableConceptService.addTRCoding(order.getConcept(), idMappingsRepository);
+        CodeableConceptDt result = codeableConceptService.addTRCoding(order.getConcept(), idMappingsRepository);
         if (result.getCoding() != null && result.getCoding().isEmpty()) {
             CodingDt coding = result.addCoding();
             coding.setDisplay(order.getConcept().getName().getName());

@@ -1,8 +1,5 @@
 package org.openmrs.module.fhir.mapper;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class FHIRProperties {
 
     public static final String LOINC_SOURCE_NAME = "LOINC";
@@ -37,11 +34,5 @@ public class FHIRProperties {
     public static final String FHIR_NO_INDICATOR_CODE = "N";
     public static final String FHIR_NO_INDICATOR_DISPLAY = "No";
 
-
-    private Map<String, String> severityCodes = new HashMap<String, String>();
-
-    public FHIRProperties() {
-        severityCodes.put(FHIR_SEVERITY_MODERATE, SNOMED_VALUE_MODERATE_SEVERTY);
-        severityCodes.put(FHIR_SEVERITY_SEVERE, SNOMED_VALUE_SEVERE_SEVERITY);
-    }
+    public static final String SCHEDULED_DATE_EXTENSION_URL = "ScheduledDate";
 }

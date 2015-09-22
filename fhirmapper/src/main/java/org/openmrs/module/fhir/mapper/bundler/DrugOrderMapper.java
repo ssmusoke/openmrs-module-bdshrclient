@@ -1,8 +1,9 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import ca.uhn.fhir.model.api.ExtensionDt;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
-import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
+import ca.uhn.fhir.model.dstu2.composite.DurationDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.composite.SimpleQuantityDt;
 import ca.uhn.fhir.model.dstu2.composite.TimingDt;
@@ -10,14 +11,17 @@ import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
 import ca.uhn.fhir.model.dstu2.valueset.MedicationOrderStatusEnum;
+import ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum;
 import ca.uhn.fhir.model.primitive.BooleanDt;
+import ca.uhn.fhir.model.primitive.DateTimeDt;
 import ca.uhn.fhir.model.primitive.DecimalDt;
 import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.DrugOrder;
 import org.openmrs.Order;
 import org.openmrs.Provider;
+import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.fhir.utils.UnitsHelpers;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -40,7 +44,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
     private UnitsHelpers unitsHelpers;
 
     @Autowired
-    private CodableConceptService codableConceptService;
+    private CodeableConceptService codeableConceptService;
 
     @Override
     public boolean canHandle(Order order) {
@@ -49,7 +53,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 
     @Override
     public List<FHIRResource> map(Order order, Encounter fhirEncounter, Bundle bundle, SystemProperties systemProperties) {
-        List<FHIRResource> FHIRResources = new ArrayList<>();
+        List<FHIRResource> fhirResources = new ArrayList<>();
         DrugOrder drugOrder = (DrugOrder) order;
         MedicationOrder medicationOrder = new MedicationOrder();
         medicationOrder.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValueAsString()));
@@ -62,8 +66,8 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         String id = new EntityReference().build(Order.class, systemProperties, order.getUuid());
         medicationOrder.addIdentifier().setValue(id);
         medicationOrder.setId(id);
-        FHIRResources.add(new FHIRResource("Medication Prescription", medicationOrder.getIdentifier(), medicationOrder));
-        return FHIRResources;
+        fhirResources.add(new FHIRResource("Medication Order", medicationOrder.getIdentifier(), medicationOrder));
+        return fhirResources;
     }
 
     private void setStatus(DrugOrder drugOrder, MedicationOrder medicationOrder) {
@@ -93,7 +97,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.addDosageInstruction();
         if (null != drugOrder.getRoute()) {
             dosageInstruction.setRoute(
-                    codableConceptService.getTRValueSetCodeableConcept(drugOrder.getRoute(),
+                    codeableConceptService.getTRValueSetCodeableConcept(drugOrder.getRoute(),
                             systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_ROUTE)));
         }
         setDoseQuantity(drugOrder, dosageInstruction, systemProperties);
@@ -107,24 +111,32 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 
         setBounds(drugOrder, repeat);
         setFrequencyAndPeriod(drugOrder, repeat);
-
         timing.setRepeat(repeat);
+
+        if (drugOrder.getScheduledDate() != null) {
+            DateTimeDt dateTimeDt = new DateTimeDt(drugOrder.getScheduledDate(), TemporalPrecisionEnum.MILLI);
+            ExtensionDt extensionDt = new ExtensionDt(false, FHIRProperties.SCHEDULED_DATE_EXTENSION_URL, dateTimeDt);
+            timing.addUndeclaredExtension(extensionDt);
+        }
         return timing;
     }
 
     private void setFrequencyAndPeriod(DrugOrder drugOrder, TimingDt.Repeat repeat) {
         String frequencyConceptName = drugOrder.getFrequency().getConcept().getName().getName();
-        UnitsHelpers.FrequencyUnits frequencyUnit = unitsHelpers.getFrequencyUnits(frequencyConceptName);
+        UnitsHelpers.FrequencyUnit frequencyUnit = unitsHelpers.getFrequencyUnits(frequencyConceptName);
         repeat.setFrequency(frequencyUnit.getFrequency());
         repeat.setPeriod(frequencyUnit.getFrequencyPeriod());
         repeat.setPeriodUnits(frequencyUnit.getUnitOfTime());
     }
 
     private void setBounds(DrugOrder drugOrder, TimingDt.Repeat repeat) {
-        PeriodDt period = new PeriodDt();
-        period.setStart(drugOrder.getEffectiveStartDate(), TemporalPrecisionEnum.MILLI);
-        period.setEnd(drugOrder.getEffectiveStopDate(), TemporalPrecisionEnum.MILLI);
-        repeat.setBounds(period);
+        DurationDt duration = new DurationDt();
+        duration.setValue(drugOrder.getDuration());
+        String durationUnit = drugOrder.getDurationUnits().getName().getName();
+        UnitsOfTimeEnum unitOfTime = unitsHelpers.getUnitOfTime(durationUnit);
+        duration.setCode(unitOfTime.getCode());
+        duration.setSystem(unitOfTime.getSystem());
+        repeat.setBounds(duration);
     }
 
     private void setDoseQuantity(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction, SystemProperties systemProperties) {
@@ -134,7 +146,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
             dose.setValue(new BigDecimal(drugOrder.getDose()));
             if (null != drugOrder.getDoseUnits()) {
                 if (null != idMappingsRepository.findByInternalId(drugOrder.getDoseUnits().getUuid())) {
-                    String code = codableConceptService.getTRValueSetCode(drugOrder.getDoseUnits());
+                    String code = codeableConceptService.getTRValueSetCode(drugOrder.getDoseUnits());
                     doseQuantity.setCode(code);
                     doseQuantity.setSystem(systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_QUANTITY_UNITS));
                 }

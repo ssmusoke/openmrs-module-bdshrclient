@@ -20,7 +20,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
-import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.TrValueSetType;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -43,7 +43,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     @Autowired
     private ConceptService conceptService;
     @Autowired
-    private CodableConceptService codeableConceptService;
+    private CodeableConceptService codeableConceptService;
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
 

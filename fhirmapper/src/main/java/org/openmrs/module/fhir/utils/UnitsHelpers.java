@@ -1,5 +1,6 @@
 package org.openmrs.module.fhir.utils;
 
+import ca.uhn.fhir.model.dstu2.composite.TimingDt;
 import ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum;
 import org.springframework.stereotype.Component;
 
@@ -11,13 +12,17 @@ import static ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum.*;
 
 @Component
 public class UnitsHelpers {
-    private Map<String, FrequencyUnits> conceptNameToFrequencyUnitMapper;
+    private Map<String, FrequencyUnit> conceptNameToFrequencyUnitMap;
+    private Map<String, UnitsOfTimeEnum> unitsOfTimeMap;
+    private Map<UnitsOfTimeEnum, String> conceptNameToUnitsOfTimeMap;
 
     public UnitsHelpers() {
-        buildConceptNameMapper();
+        buildConceptNameMap();
+        buildUnitOfTimeMap();
+        buildConceptNameToUnitOfTimeMap();
     }
 
-    public enum FrequencyUnits {
+    public enum FrequencyUnit {
         ONCE_A_DAY("Once a day", 1, D, 1),
         TWICE_A_DAY("Twice a day", 2, D, 1),
         THRICE_A_DAY("Thrice a day", 3, D, 1),
@@ -38,11 +43,11 @@ public class UnitsHelpers {
         ONCE_A_MONTH("Once a month", 1, MO, 1);
 
         private final String conceptName;
+
         private int frequency;
         private final UnitsOfTimeEnum unitOfTime;
         private int frequencyPeriod;
-
-        FrequencyUnits(String conceptName, int frequency, UnitsOfTimeEnum unitOfTime, int frequencyPeriod) {
+        FrequencyUnit(String conceptName, int frequency, UnitsOfTimeEnum unitOfTime, int frequencyPeriod) {
             this.conceptName = conceptName;
             this.frequency = frequency;
             this.unitOfTime = unitOfTime;
@@ -66,30 +71,62 @@ public class UnitsHelpers {
         }
     }
 
-    private void buildConceptNameMapper() {
-        conceptNameToFrequencyUnitMapper = new HashMap<>();
-        conceptNameToFrequencyUnitMapper.put("Once a day", FrequencyUnits.ONCE_A_DAY);
-        conceptNameToFrequencyUnitMapper.put("Twice a day", FrequencyUnits.TWICE_A_DAY);
-        conceptNameToFrequencyUnitMapper.put("Thrice a day", FrequencyUnits.THRICE_A_DAY);
-        conceptNameToFrequencyUnitMapper.put("Four times a day", FrequencyUnits.FOUR_TIMES_A_DAY);
-        conceptNameToFrequencyUnitMapper.put("Every Hour", FrequencyUnits.EVERY_HOUR);
-        conceptNameToFrequencyUnitMapper.put("Every 2 hours", FrequencyUnits.EVERY_TWO_HOURS);
-        conceptNameToFrequencyUnitMapper.put("Every 3 hours", FrequencyUnits.EVERY_THREE_HOURS);
-        conceptNameToFrequencyUnitMapper.put("Every 4 hours", FrequencyUnits.EVERY_FOUR_HOURS);
-        conceptNameToFrequencyUnitMapper.put("Every 6 hours", FrequencyUnits.EVERY_SIX_HOURS);
-        conceptNameToFrequencyUnitMapper.put("Every 8 hours", FrequencyUnits.EVERY_EIGHT_HOURS);
-        conceptNameToFrequencyUnitMapper.put("Every 12 hours", FrequencyUnits.EVERY_TWELVE_HOURS);
-        conceptNameToFrequencyUnitMapper.put("On alternate days", FrequencyUnits.ON_ALTERNATE_DAYS);
-        conceptNameToFrequencyUnitMapper.put("Once a week", FrequencyUnits.ONCE_A_WEEK);
-        conceptNameToFrequencyUnitMapper.put("Twice a week", FrequencyUnits.TWICE_A_WEEK);
-        conceptNameToFrequencyUnitMapper.put("Thrice a week", FrequencyUnits.THRICE_A_WEEK);
-        conceptNameToFrequencyUnitMapper.put("Every 2 weeks", FrequencyUnits.EVERY_TWO_WEEKS);
-        conceptNameToFrequencyUnitMapper.put("Every 3 weeks", FrequencyUnits.EVERY_THREE_WEEKS);
-        conceptNameToFrequencyUnitMapper.put("Once a month", FrequencyUnits.ONCE_A_MONTH);
+    private void buildConceptNameMap() {
+        conceptNameToFrequencyUnitMap = new HashMap<>();
+        conceptNameToFrequencyUnitMap.put("Once a day", FrequencyUnit.ONCE_A_DAY);
+        conceptNameToFrequencyUnitMap.put("Twice a day", FrequencyUnit.TWICE_A_DAY);
+        conceptNameToFrequencyUnitMap.put("Thrice a day", FrequencyUnit.THRICE_A_DAY);
+        conceptNameToFrequencyUnitMap.put("Four times a day", FrequencyUnit.FOUR_TIMES_A_DAY);
+        conceptNameToFrequencyUnitMap.put("Every Hour", FrequencyUnit.EVERY_HOUR);
+        conceptNameToFrequencyUnitMap.put("Every 2 hours", FrequencyUnit.EVERY_TWO_HOURS);
+        conceptNameToFrequencyUnitMap.put("Every 3 hours", FrequencyUnit.EVERY_THREE_HOURS);
+        conceptNameToFrequencyUnitMap.put("Every 4 hours", FrequencyUnit.EVERY_FOUR_HOURS);
+        conceptNameToFrequencyUnitMap.put("Every 6 hours", FrequencyUnit.EVERY_SIX_HOURS);
+        conceptNameToFrequencyUnitMap.put("Every 8 hours", FrequencyUnit.EVERY_EIGHT_HOURS);
+        conceptNameToFrequencyUnitMap.put("Every 12 hours", FrequencyUnit.EVERY_TWELVE_HOURS);
+        conceptNameToFrequencyUnitMap.put("On alternate days", FrequencyUnit.ON_ALTERNATE_DAYS);
+        conceptNameToFrequencyUnitMap.put("Once a week", FrequencyUnit.ONCE_A_WEEK);
+        conceptNameToFrequencyUnitMap.put("Twice a week", FrequencyUnit.TWICE_A_WEEK);
+        conceptNameToFrequencyUnitMap.put("Thrice a week", FrequencyUnit.THRICE_A_WEEK);
+        conceptNameToFrequencyUnitMap.put("Every 2 weeks", FrequencyUnit.EVERY_TWO_WEEKS);
+        conceptNameToFrequencyUnitMap.put("Every 3 weeks", FrequencyUnit.EVERY_THREE_WEEKS);
+        conceptNameToFrequencyUnitMap.put("Once a month", FrequencyUnit.ONCE_A_MONTH);
     }
 
-    public FrequencyUnits getFrequencyUnits(String conceptName) {
-        return conceptNameToFrequencyUnitMapper.get(conceptName);
+    private void buildUnitOfTimeMap() {
+        unitsOfTimeMap = new HashMap<>();
+        unitsOfTimeMap.put("Day(s)", D);
+        unitsOfTimeMap.put("Week(s)", WK);
+        unitsOfTimeMap.put("Month(s)", MO);
     }
 
+    private void buildConceptNameToUnitOfTimeMap() {
+        conceptNameToUnitsOfTimeMap = new HashMap<>();
+        conceptNameToUnitsOfTimeMap.put(D, "Day(s)");
+        conceptNameToUnitsOfTimeMap.put(WK, "Week(s)");
+        conceptNameToUnitsOfTimeMap.put(MO, "Month(s)");
+    }
+
+    public UnitsOfTimeEnum getUnitOfTime(String conceptName) {
+        return unitsOfTimeMap.get(conceptName);
+    }
+
+    public String getConceptNameFromUnitOfTime(UnitsOfTimeEnum unitsOfTime) {
+        return conceptNameToUnitsOfTimeMap.get(unitsOfTime);
+    }
+
+    public FrequencyUnit getFrequencyUnits(String conceptName) {
+        return conceptNameToFrequencyUnitMap.get(conceptName);
+    }
+
+    public FrequencyUnit getFrequencyUnitsFromRepeat(TimingDt.Repeat repeat) {
+        for (FrequencyUnit frequencyUnit : FrequencyUnit.values()) {
+            if(frequencyUnit.getFrequency() == repeat.getFrequency() &&
+                    frequencyUnit.getFrequencyPeriod() == repeat.getPeriod().intValue() &&
+                    frequencyUnit.getUnitOfTime().equals(repeat.getPeriodUnitsElement().getValueAsEnum())) {
+                return frequencyUnit;
+            }
+        }
+        return null;
+    }
 }

@@ -18,7 +18,7 @@ import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
-import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.TrValueSetType;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -41,7 +41,7 @@ public class FamilyMemberHistoryMapper implements EmrObsResourceHandler {
     IdMappingsRepository idMappingsRepository;
 
     @Autowired
-    private CodableConceptService codableConceptService;
+    private CodeableConceptService codeableConceptService;
 
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
@@ -136,7 +136,7 @@ public class FamilyMemberHistoryMapper implements EmrObsResourceHandler {
         Obs relationshipTypeObs = new CompoundObservation(person).getMemberObsForConcept(relationshipTypeConcept);
         CodeableConceptDt codeableConcept = new CodeableConceptDt();
         Concept relationshipConcept = relationshipTypeObs.getValueCoded();
-        codableConceptService.addFHIRCoding(
+        codeableConceptService.addFHIRCoding(
                 codeableConcept,
                 getConceptCode(relationshipConcept),
                 FHIRProperties.FHIR_SYSTEM_RELATIONSHIP_ROLE,
@@ -147,7 +147,7 @@ public class FamilyMemberHistoryMapper implements EmrObsResourceHandler {
     private CodeableConceptDt getCodeableConceptFromObs(Obs obs) {
         Concept valueCoded = obs.getValueCoded();
         if (null != valueCoded) {
-            CodeableConceptDt concept = codableConceptService.addTRCoding(valueCoded, idMappingsRepository);
+            CodeableConceptDt concept = codeableConceptService.addTRCoding(valueCoded, idMappingsRepository);
             if (CollectionUtils.isEmpty(concept.getCoding())) {
                 CodingDt coding = concept.addCoding();
                 coding.setDisplay(valueCoded.getName().getName());

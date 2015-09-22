@@ -14,7 +14,7 @@ import ca.uhn.fhir.model.primitive.InstantDt;
 import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -42,7 +42,7 @@ public class CompositionBundle {
     private List<EmrOrderResourceHandler> orderResourceHandlers;
 
     @Autowired
-    private CodableConceptService codableConceptService;
+    private CodeableConceptService codeableConceptService;
 
     public Bundle create(org.openmrs.Encounter emrEncounter, SystemProperties systemProperties) {
         Bundle bundle = new Bundle();
@@ -120,7 +120,7 @@ public class CompositionBundle {
         ResourceReferenceDt resourceReferenceAuthor = composition.addAuthor();
         resourceReferenceAuthor.setReference(encounter.getServiceProvider().getReference());
         composition.setConfidentiality(CONFIDENTIALITY_NORMAL);
-        composition.setType(codableConceptService.getFHIRCodeableConcept(LOINC_CODE_DETAILS_NOTE, FHIR_DOC_TYPECODES_URL, LOINC_DETAILS_NOTE_DISPLAY));
+        composition.setType(codeableConceptService.getFHIRCodeableConcept(LOINC_CODE_DETAILS_NOTE, FHIR_DOC_TYPECODES_URL, LOINC_DETAILS_NOTE_DISPLAY));
         return composition;
     }
 }

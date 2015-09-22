@@ -15,7 +15,7 @@ import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.CodableConceptService;
+import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +35,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
     @Autowired
     private IdMappingsRepository idMappingsRepository;
     @Autowired
-    private CodableConceptService codableConceptService;
+    private CodeableConceptService codeableConceptService;
 
     private final Map<String, ConditionVerificationStatusEnum> diaConditionStatus = new HashMap<>();
 
@@ -75,7 +75,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         for (Obs member : obsMembers) {
             Concept memberConcept = member.getConcept();
             if (isCodedDiagnosisObservation(memberConcept)) {
-                CodeableConceptDt diagnosisCode = codableConceptService.addTRCoding(member.getValueCoded(), idMappingsRepository);
+                CodeableConceptDt diagnosisCode = codeableConceptService.addTRCoding(member.getValueCoded(), idMappingsRepository);
                 if (CollectionUtils.isEmpty(diagnosisCode.getCoding())) {
                     return null;
                 }
