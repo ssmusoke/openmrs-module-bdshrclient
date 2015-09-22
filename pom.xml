@@ -36,8 +36,8 @@
     </modules>
 
     <properties>
-        <openMRSVersion>1.10.1</openMRSVersion>
-        <openMRSRuntimeVersion>1.10.1</openMRSRuntimeVersion>
+        <openMRSVersion>1.11.4-SNAPSHOT</openMRSVersion>
+        <openMRSRuntimeVersion>1.11.4-SNAPSHOT</openMRSRuntimeVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <webservicesRestModuleVersion>2.9</webservicesRestModuleVersion>
         <openmrsAtomfeedVersion>2.3</openmrsAtomfeedVersion>
@@ -232,6 +232,18 @@
             <id>sonatype-nexus-snapshots</id>
             <name>Sonatype Nexus Snapshots</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+
+        <repository>
+            <id>openmrs-nexus-snapshots</id>
+            <name>Openmrs Nexus Snapshots</name>
+            <url>http://mavenrepo.openmrs.org/nexus/content/repositories/snapshots</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
