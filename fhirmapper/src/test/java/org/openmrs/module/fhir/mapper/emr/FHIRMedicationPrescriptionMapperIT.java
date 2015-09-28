@@ -4,6 +4,7 @@ import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.Resource;
 import org.hl7.fhir.instance.model.ResourceType;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.DrugOrder;
@@ -49,6 +50,12 @@ public class FHIRMedicationPrescriptionMapperIT extends BaseModuleWebContextSens
         feed = resourceOrFeed.getFeed();
         resource = FHIRFeedHelper.identifyResource(feed.getEntryList(), ResourceType.MedicationPrescription);
     }
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
+    }
+
 
     @Test
     public void shouldHandleResourceOfTypeMedicationPrescription() throws Exception {

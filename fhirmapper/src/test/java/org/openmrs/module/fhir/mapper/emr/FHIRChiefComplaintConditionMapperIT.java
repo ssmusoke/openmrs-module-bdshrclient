@@ -4,6 +4,7 @@ import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.Resource;
 import org.hl7.fhir.instance.model.ResourceType;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
@@ -50,6 +51,12 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
     public void setUp() throws Exception {
         executeDataSet("testDataSets/shrChiefComplaintReverseSyncTestDS.xml");
     }
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
+    }
+
 
     @Test
     public void shouldMapFHIRComplaint() throws Exception {

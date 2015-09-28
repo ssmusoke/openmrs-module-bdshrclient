@@ -3,7 +3,9 @@ package org.openmrs.module.shrclient.advice;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.ict4h.atomfeed.server.repository.AllEventRecordsQueue;
 import org.ict4h.atomfeed.server.repository.jdbc.AllEventRecordsJdbcImpl;
+import org.ict4h.atomfeed.server.repository.jdbc.AllEventRecordsQueueJdbcImpl;
 import org.ict4h.atomfeed.server.service.Event;
 import org.ict4h.atomfeed.server.service.EventService;
 import org.ict4h.atomfeed.server.service.EventServiceImpl;
@@ -92,7 +94,7 @@ public class ShrEncounterAdvice implements AfterReturningAdvice {
     }
 
     private EventServiceImpl getEventService(AtomFeedSpringTransactionManager atomFeedSpringTransactionManager) {
-        AllEventRecordsJdbcImpl records = new AllEventRecordsJdbcImpl(atomFeedSpringTransactionManager);
+        AllEventRecordsQueueJdbcImpl records = new AllEventRecordsQueueJdbcImpl(atomFeedSpringTransactionManager);
         return new EventServiceImpl(records);
     }
 

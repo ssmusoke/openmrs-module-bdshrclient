@@ -7,6 +7,7 @@ import org.hl7.fhir.instance.model.Condition;
 import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Resource;
 import org.hl7.fhir.instance.model.ResourceType;
+import org.junit.After;
 import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
@@ -46,6 +47,12 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         ParserBase.ResourceOrFeed parsedResource = new MapperTestHelper().loadSampleFHIREncounter("classpath:encounterBundles/testFHIREncounter.xml", springContext);
         return parsedResource;
     }
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
+    }
+
 
     @Test
     public void shouldMapFhirEncounter() throws Exception {

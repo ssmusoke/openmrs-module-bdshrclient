@@ -4,6 +4,7 @@ import org.hl7.fhir.instance.model.AtomEntry;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.DiagnosticOrder;
 import org.hl7.fhir.instance.model.ResourceType;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Encounter;
@@ -34,6 +35,11 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/labOrderDS.xml");
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
     }
 
     @Test

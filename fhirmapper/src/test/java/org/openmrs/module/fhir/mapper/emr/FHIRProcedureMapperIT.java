@@ -6,6 +6,7 @@ import org.hl7.fhir.instance.model.Resource;
 import org.hl7.fhir.instance.model.ResourceType;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
@@ -51,6 +52,12 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         resource = FHIRFeedHelper.identifyResource(feed.getEntryList(), ResourceType.Procedure);
         obsHelper = new ObsHelper();
     }
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
+    }
+
 
     @Test
     public void shouldHandleResourceTypeOfProcedure() {

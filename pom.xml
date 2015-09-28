@@ -36,13 +36,13 @@
     </modules>
 
     <properties>
-        <openMRSVersion>1.11.4-SNAPSHOT</openMRSVersion>
-        <openMRSRuntimeVersion>1.11.4-SNAPSHOT</openMRSRuntimeVersion>
+        <openMRSVersion>1.11.4</openMRSVersion>
+        <openMRSRuntimeVersion>1.11.4</openMRSRuntimeVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <webservicesRestModuleVersion>2.9</webservicesRestModuleVersion>
-        <openmrsAtomfeedVersion>2.3</openmrsAtomfeedVersion>
-        <openmrs.address.hierarchy.version>2.4</openmrs.address.hierarchy.version>
-        <atomfeed.version>1.6</atomfeed.version>
+        <webservicesRestModuleVersion>2.12</webservicesRestModuleVersion>
+        <openmrsAtomfeedVersion>2.5-SNAPSHOT</openmrsAtomfeedVersion>
+        <openmrs.address.hierarchy.version>2.7</openmrs.address.hierarchy.version>
+        <atomfeed.version>1.9-SNAPSHOT</atomfeed.version>
         <jackson.version>2.3.3</jackson.version>
         <httpclient.version>4.3.3</httpclient.version>
         <log4j.version>1.2.15</log4j.version>
@@ -64,7 +64,6 @@
                 <type>jar</type>
                 <scope>provided</scope>
             </dependency>
-
             <dependency>
                 <groupId>org.openmrs.module</groupId>
                 <artifactId>addresshierarchy-api</artifactId>
@@ -137,13 +136,14 @@
                 <groupId>org.openmrs.module</groupId>
                 <artifactId>webservices.rest-omod</artifactId>
                 <version>${webservicesRestModuleVersion}</version>
+                <type>jar</type>
                 <scope>provided</scope>
             </dependency>
 
             <dependency>
                 <groupId>org.openmrs.module</groupId>
                 <artifactId>uiframework-api</artifactId>
-                <version>3.2</version>
+                <version>3.3.1</version>
                 <type>jar</type>
                 <scope>provided</scope>
             </dependency>
@@ -232,18 +232,6 @@
             <id>sonatype-nexus-snapshots</id>
             <name>Sonatype Nexus Snapshots</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-
-        <repository>
-            <id>openmrs-nexus-snapshots</id>
-            <name>Openmrs Nexus Snapshots</name>
-            <url>http://mavenrepo.openmrs.org/nexus/content/repositories/snapshots</url>
             <releases>
                 <enabled>false</enabled>
             </releases>

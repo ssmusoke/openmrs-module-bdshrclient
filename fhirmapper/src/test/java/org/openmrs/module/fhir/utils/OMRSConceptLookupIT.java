@@ -2,6 +2,7 @@ package org.openmrs.module.fhir.utils;
 
 
 import org.hl7.fhir.instance.model.Coding;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
@@ -32,6 +33,12 @@ public class OMRSConceptLookupIT extends BaseModuleWebContextSensitiveTest {
     public void setUp() throws Exception {
         executeDataSet("testDataSets/omrsConceptLookupTestDS.xml");
     }
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
+    }
+
 
     @Test
     public void shouldFindConceptFromCoding_ThatHasConcept() {

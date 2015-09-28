@@ -2,6 +2,7 @@ package org.openmrs.module.fhir.mapper.bundler.condition;
 
 import org.hl7.fhir.instance.model.*;
 import org.hl7.fhir.instance.model.Boolean;
+import org.junit.After;
 import org.junit.Test;
 import org.openmrs.Concept;
 import org.openmrs.ConceptName;
@@ -28,6 +29,11 @@ public class ObservationValueMapperTest extends BaseModuleWebContextSensitiveTes
 
     @Autowired
     private ObservationValueMapper observationValueMapper;
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
+    }
 
     @Test
     public void shouldMapDateValues() throws Exception {

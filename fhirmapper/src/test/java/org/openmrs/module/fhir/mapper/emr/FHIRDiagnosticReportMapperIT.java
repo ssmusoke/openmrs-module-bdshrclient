@@ -4,6 +4,7 @@ import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.DiagnosticReport;
 import org.hl7.fhir.instance.model.Observation;
 import org.hl7.fhir.instance.model.Resource;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
@@ -48,6 +49,12 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
     public void setUp() throws Exception {
         executeDataSet("testDataSets/labResultDS.xml");
     }
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
+    }
+
 
     @Test
     public void shouldMapDiagnosticReportForTestResult() throws Exception {

@@ -4,6 +4,7 @@ import org.hl7.fhir.instance.model.Coding;
 import org.hl7.fhir.instance.model.Decimal;
 import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.Observation;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Obs;
@@ -33,6 +34,11 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/shrClientObservationsTestDs.xml");
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
     }
 
     @Test

@@ -4,6 +4,7 @@ import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.FamilyHistory;
 import org.hl7.fhir.instance.model.ResourceType;
+import org.junit.After;
 import org.junit.Test;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
@@ -36,6 +37,12 @@ public class FHIRFamilyHistoryMapperIT extends BaseModuleWebContextSensitiveTest
 
     @Autowired
     private ConceptService conceptService;
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
+    }
+
 
     @Test
     public void shouldMapFamilyHistoryResource() throws Exception {

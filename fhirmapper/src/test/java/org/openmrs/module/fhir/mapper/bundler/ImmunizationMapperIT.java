@@ -2,6 +2,7 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.hl7.fhir.instance.model.*;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Obs;
@@ -30,6 +31,11 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/immunizationDS.xml");
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
     }
 
     @Test

@@ -4,6 +4,7 @@ import org.hl7.fhir.instance.model.*;
 import org.hl7.fhir.instance.model.MedicationPrescription.MedicationPrescriptionDosageInstructionComponent;
 import org.hl7.fhir.instance.model.Schedule.ScheduleRepeatComponent;
 import org.hl7.fhir.instance.model.Schedule.UnitsOfTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Order;
@@ -35,6 +36,11 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/drugOrderDS.xml");
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
     }
 
     @Test

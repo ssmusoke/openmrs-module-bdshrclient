@@ -1,6 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import org.hl7.fhir.instance.model.*;
+import org.junit.After;
 import org.junit.Test;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.ObsService;
@@ -31,6 +32,11 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
     private OrderService orderService;
     @Autowired
     private ConceptService conceptService;
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
+    }
 
     @Test
     public void shouldMapLabTestResults() throws Exception {

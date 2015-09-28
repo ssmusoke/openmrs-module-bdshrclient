@@ -3,6 +3,7 @@ package org.openmrs.module.fhir.mapper.bundler;
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.Coding;
 import org.hl7.fhir.instance.model.Composition;
+import org.junit.After;
 import org.junit.Test;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
@@ -26,6 +27,11 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
 
     @Autowired
     CompositionBundle compositionBundle;
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
+    }
 
     @Test
     public void shouldWireAllResourceHandlers() throws Exception {

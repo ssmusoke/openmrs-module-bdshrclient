@@ -108,7 +108,7 @@ public class ProviderMapperTest extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldUnRetireProviderIfRetired() throws Exception {
         String identifier = "1025";
-        ProviderEntry providerEntry = getProviderEntry(identifier, "1",true);
+        ProviderEntry providerEntry = getProviderEntry(identifier, "1", true);
         Provider existingProvider = providerService.getProvider(24);
         assertEquals(identifier, existingProvider.getIdentifier());
         assertTrue(existingProvider.isRetired());
@@ -125,7 +125,7 @@ public class ProviderMapperTest extends BaseModuleWebContextSensitiveTest {
         providerEntry.setId(identifier);
         providerEntry.setName("Provider Name");
         providerEntry.setActive(active);
-        if(isOrganizationMapped){
+        if (isOrganizationMapped) {
             ProviderEntry.Organization organization = providerEntry.new Organization();
             organization.setReference("http://something/2222.json");
             organization.setDisplay("facility-name");

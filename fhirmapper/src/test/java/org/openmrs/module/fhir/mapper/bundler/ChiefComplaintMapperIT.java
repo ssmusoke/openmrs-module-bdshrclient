@@ -2,6 +2,7 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.ResourceReference;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openmrs.Obs;
@@ -24,6 +25,11 @@ public class ChiefComplaintMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     EncounterService encounterService;
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
+    }
 
     @Test
     public void shouldCreateFHIRConditionFromChiefComplaint() throws Exception {

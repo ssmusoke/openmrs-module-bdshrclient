@@ -1,5 +1,6 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Encounter;
@@ -24,6 +25,11 @@ public class EncounterMapperIT extends BaseModuleWebContextSensitiveTest {
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/encounterServiceProviderDS.xml");
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
     }
 
     @Test

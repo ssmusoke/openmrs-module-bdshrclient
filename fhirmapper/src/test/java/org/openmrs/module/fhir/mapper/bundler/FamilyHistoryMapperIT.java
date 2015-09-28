@@ -7,6 +7,7 @@ import org.hl7.fhir.instance.model.Encounter;
 import org.hl7.fhir.instance.model.FamilyHistory;
 import org.hl7.fhir.instance.model.ResourceReference;
 import org.hl7.fhir.instance.model.ResourceType;
+import org.junit.After;
 import org.junit.Test;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
@@ -32,6 +33,11 @@ public class FamilyHistoryMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     private FamilyHistoryMapper familyHistoryMapper;
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
+    }
 
     @Test
     public void shouldCreateFHIRFamilyHistoryFromOpenMrsFamilyHistory() throws Exception {

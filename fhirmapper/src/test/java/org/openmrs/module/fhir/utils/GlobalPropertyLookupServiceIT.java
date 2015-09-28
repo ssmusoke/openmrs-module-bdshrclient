@@ -1,5 +1,6 @@
 package org.openmrs.module.fhir.utils;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -19,6 +20,12 @@ public class GlobalPropertyLookupServiceIT extends BaseModuleWebContextSensitive
     public void setUp() throws Exception {
         executeDataSet("testDataSets/omrsGlobalPropertyTestDS.xml");
     }
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
+    }
+
 
     @Test
     public void shouldReturnConfiguredGlobalPropertyValue() throws Exception {

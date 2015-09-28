@@ -1,6 +1,7 @@
 package org.openmrs.module.fhir.mapper.emr;
 
 import org.hl7.fhir.instance.model.AtomFeed;
+import org.junit.After;
 import org.junit.Test;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
@@ -36,6 +37,12 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
     
     @Autowired
     private GlobalPropertyLookUpService globalPropertyLookUpService;
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
+    }
+
 
     @Test
     public void shouldMapObservations() throws Exception {

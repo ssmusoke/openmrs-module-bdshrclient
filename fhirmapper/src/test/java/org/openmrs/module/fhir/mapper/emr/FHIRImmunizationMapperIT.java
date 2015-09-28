@@ -6,6 +6,7 @@ import org.hl7.fhir.instance.model.Resource;
 import org.hl7.fhir.instance.model.ResourceType;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Encounter;
@@ -60,6 +61,10 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
         obsHelper = new ObsHelper();
     }
 
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
+    }
 
     @Test
     public void shouldHandleResourceOfTypeImmnunization() throws Exception {
