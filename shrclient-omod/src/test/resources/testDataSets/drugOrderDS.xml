@@ -19,9 +19,6 @@
     <person_name person_name_id="1" preferred="true" person_id="110" given_name="firstName"
                  family_name="lastName" creator="1" date_created="2005-09-22 00:00:00.0"
                  voided="false" uuid="399e3a7b-6482-487d-94ce-c07bb3ca3cca"/>
-    <patient_identifier date_created="2005-09-22 00:00:00" patient_identifier_id="1" patient_id="110"
-                        identifier="GAN200000" identifier_type="2" creator="1"
-                        uuid="7cb74fd1-128d-4584-842f-81d3535da3a6" preferred="1" voided="0"/>
     <person_attribute person_attribute_id="1" person_id="1" value="1234512345123" person_attribute_type_id="100"
                       creator="1"
                       date_created="2005-09-22 00:00:00" uuid="399e3a7b-6482-487d-94ce-c0zbbzcazcca"></person_attribute>
@@ -127,7 +124,7 @@
                             uuid="baef67ac-b24e-ab04-7028-c3b994132b85"></concept_reference_term>
     <concept_reference_map concept_map_id="9" concept_id="301" concept_reference_term_id="9" concept_map_type_id="1"
                            creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_map>
-    <drug drug_id="301" concept_id="301" dosage_form="51" name="Lactic Acid" combination="true" route="901" creator="2"
+    <drug drug_id="301" concept_id="301" dosage_form="51" name="Lactic Acid" combination="true" route="701" creator="1"
           strength="200"
           date_created="2005-02-24 00:00:00.0" retired="false" uuid="42f00b94-26fe-102b-80cb-0017a47871b2"/>
     <shr_id_mapping id="1" internal_id="baef67ac-b24e-ab04-7028-c3b994132b85" external_id="101"
