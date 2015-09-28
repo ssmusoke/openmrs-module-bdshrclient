@@ -1,5 +1,6 @@
 package org.openmrs.module.shrclient.mapper;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Provider;
@@ -132,5 +133,10 @@ public class ProviderMapperTest extends BaseModuleWebContextSensitiveTest {
             providerEntry.setOrganization(organization);
         }
         return providerEntry;
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
     }
 }

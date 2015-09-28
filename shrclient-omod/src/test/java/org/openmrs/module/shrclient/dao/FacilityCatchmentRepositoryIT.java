@@ -1,5 +1,6 @@
 package org.openmrs.module.shrclient.dao;
 
+import org.junit.After;
 import org.junit.Test;
 import org.openmrs.module.shrclient.model.FacilityCatchment;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -85,4 +86,9 @@ public class FacilityCatchmentRepositoryIT extends BaseModuleWebContextSensitive
         assertEquals(0, facilityCatchments.size());
     }
 
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
+
+    }
 }

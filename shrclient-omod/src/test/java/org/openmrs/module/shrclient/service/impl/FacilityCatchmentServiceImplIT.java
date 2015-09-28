@@ -1,5 +1,6 @@
 package org.openmrs.module.shrclient.service.impl;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.module.shrclient.dao.FacilityCatchmentRepository;
@@ -46,5 +47,10 @@ public class FacilityCatchmentServiceImplIT extends BaseModuleWebContextSensitiv
         executeDataSet("testDataSets/facilityCatchmentsDS.xml");
         List<FacilityCatchment> facilityCatchments = facilityCatchmentService.getFacilitiesForCatchment("3020");
         assertEquals(2, facilityCatchments.size() );
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
     }
 }

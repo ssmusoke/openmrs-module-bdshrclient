@@ -3,6 +3,7 @@ package org.openmrs.module.shrclient.service.impl;
 import org.hl7.fhir.instance.formats.ParserBase;
 import org.hl7.fhir.instance.formats.XmlParser;
 import org.hl7.fhir.instance.model.Date;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
@@ -189,6 +190,11 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         ParserBase.ResourceOrFeed parsedResource =
                 new XmlParser().parseGeneral(resource.getInputStream());
         return parsedResource;
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        deleteAllData();
     }
 
 }
