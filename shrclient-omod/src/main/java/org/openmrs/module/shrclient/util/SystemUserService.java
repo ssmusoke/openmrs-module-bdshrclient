@@ -7,6 +7,7 @@ import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.Visit;
 import org.openmrs.api.UserService;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,9 +26,15 @@ public class SystemUserService {
 
     private Logger logger = Logger.getLogger(SystemUserService.class);
 
-    @Autowired
     public SystemUserService(UserService userService, Database database, GlobalPropertyLookUpService globalPropertyLookUpService) {
         this.userService = userService;
+        this.database = database;
+        this.globalPropertyLookUpService = globalPropertyLookUpService;
+    }
+
+    @Autowired
+    public SystemUserService(Database database, GlobalPropertyLookUpService globalPropertyLookUpService) {
+        this.userService = Context.getUserService();
         this.database = database;
         this.globalPropertyLookUpService = globalPropertyLookUpService;
     }
