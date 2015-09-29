@@ -84,6 +84,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
         Observation fhirObservation = buildObservationResource(openmrsObs, fhirEncounter, systemProperties);
         mapCode(openmrsObs, fhirObservation);
         mapValue(openmrsObs, fhirObservation);
+        fhirObservation.setStatus(ObservationStatusEnum.PRELIMINARY);
         return buildFhirResource(fhirObservation, openmrsObs);
     }
 
@@ -91,7 +92,6 @@ public class ObservationMapper implements EmrObsResourceHandler {
         Observation fhirObservation = new Observation();
         fhirObservation.setSubject(fhirEncounter.getPatient());
         fhirObservation.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValue()));
-        fhirObservation.setStatus(ObservationStatusEnum.FINAL);
         String id = new EntityReference().build(IResource.class, systemProperties, openmrsObs.getUuid());
         fhirObservation.setId(id);
         fhirObservation.addIdentifier(new IdentifierDt().setValue(id));

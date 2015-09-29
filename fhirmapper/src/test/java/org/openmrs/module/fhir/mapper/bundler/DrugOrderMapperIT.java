@@ -12,11 +12,8 @@ import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
 import ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum;
 import ca.uhn.fhir.model.primitive.BooleanDt;
-<<<<<<< HEAD
-import org.junit.After;
-=======
 import ca.uhn.fhir.model.primitive.DateTimeDt;
->>>>>>> Neha | bdshr-772 | using duration for MedicationOrder.bounds, added extention for scheduled date
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Order;

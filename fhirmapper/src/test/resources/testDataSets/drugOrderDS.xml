@@ -78,11 +78,30 @@
     <shr_id_mapping id="805" internal_id="7h7379ba-eee8-a1a3-bh2b-a8a02a1vava5" external_id="805" type="concept"
                     uri="/concepts/805"></shr_id_mapping>
     <!--Creating Units-->
+    <concept concept_id="307" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
+             date_created="2004-08-12 00:00:00.0"
+             version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4xv3-bz88-8z22a1dx1zt"/>
+    <concept_name concept_name_id="307" concept_id="307" name="Quantity Units" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazhyu-e1y4-5zz0-z9z6-bc4335851j1i"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <shr_id_mapping id="50" internal_id="juydg80f-1yz9-4xv3-bz88-8z22a1dx1zt" external_id="150" type="concept"
+                    uri="/concepts/150"></shr_id_mapping>
+    <concept_set concept_set_id="815" concept_id="50" concept_set="307" creator="1"
+                 date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
 
     <shr_id_mapping id="50" internal_id="557b9699-68a3-11e3-bd76-0800271c1b75" external_id="50" type="concept"
                     uri="/concepts/50"></shr_id_mapping>
 
     <!-- Creating dose-->
+    <concept concept_id="307" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
+             date_created="2004-08-12 00:00:00.0"
+             version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4xv3-bz88-8z22a1dx1zt"/>
+    <concept_name concept_name_id="307" concept_id="307" name="Quantity Units" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazhyu-e1y4-5zz0-z9z6-bc4335851j1i"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <shr_id_mapping id="50" internal_id="557b9699-68a3-11e3-bd76-0800271c1b75" external_id="50" type="concept"
+                    uri="/concepts/50"></shr_id_mapping>
+
     <concept concept_id="806" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1"
              date_created="2005-01-01 00:00:00.0" uuid="7h7379ba-eee8-a1a3-bh2b-a8a02a1vafyl"/>
     <concept_name concept_name_id="806" concept_id="806" name="Thousand Units" locale="en" creator="1"
@@ -107,8 +126,8 @@
     <concept_name concept_name_id="701" concept_id="701" name="Oral" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a37ae9a9-e1a4-41d4-b2d6-bc4335835ea9"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
-    <shr_id_mapping id="701" internal_id="7f7379ba-3ca8-11e3-bf2b-a8a02a1cab75" external_id="101" type="concept"
-                    uri="/concepts/101"></shr_id_mapping>
+    <shr_id_mapping id="701" internal_id="7f7379ba-3ca8-11e3-bf2b-a8a02a1cab75" external_id="1011" type="concept"
+                    uri="/concepts/1011"></shr_id_mapping>
     <!--Creating Routes-->
 
     <!--Creating Frequency-->
@@ -160,7 +179,7 @@
                             uuid="baef67ac-b24e-ab04-7028-c3b994132b85"></concept_reference_term>
     <concept_reference_map concept_map_id="9" concept_id="301" concept_reference_term_id="9" concept_map_type_id="1"
                            creator="1" date_created="2004-08-12 00:00:00.0" uuid="baef67ac-b24e-93kf-ix3d-c3b994132b85"/>
-    <drug drug_id="301" concept_id="301" dosage_form="51" name="Lactic Acid" combination="true" route="901" creator="2"
+    <drug drug_id="301" concept_id="301" dosage_form="51" name="Lactic Acid" combination="true" route="701" creator="1"
           strength="200"
           date_created="2005-02-24 00:00:00.0" retired="false" uuid="42f00b94-26fe-102b-80cb-0017a47871b2"/>
     <shr_id_mapping id="1" internal_id="baef67ac-b24e-ab04-7028-c3b994132b85" external_id="101"

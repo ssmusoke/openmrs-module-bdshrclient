@@ -177,12 +177,16 @@ public class OMRSConceptLookup {
                 }
             }
         }
+        return createConceptForDisplayName(referenceTermMapping, refTerm, displayString);
+    }
 
+    private Concept createConceptForDisplayName(Map<ConceptReferenceTerm, String> referenceTermMapping, ConceptReferenceTerm refTerm, String displayString) {
         if (displayString == null) return null;
         final String conceptName = referenceTermMapping.get(refTerm);
         Concept concept = new Concept();
         concept.addName(new ConceptName(conceptName, Locale.ENGLISH));
         concept.addConceptMapping(new ConceptMap(refTerm, conceptService.getConceptMapTypeByUuid(ConceptMapType.SAME_AS_MAP_TYPE_UUID)));
+        concept.setVersion("Local");
         return conceptService.saveConcept(concept);
     }
 

@@ -30,12 +30,9 @@ import org.openmrs.module.fhir.utils.UnitsHelpers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Component
 public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
     private static final int DEFAULT_NUM_REFILLS = 0;
-    private static final String URL_SEPERATOR = "/";
     private static final String ROUTE_NOT_SPECIFIED = "NOT SPECIFIED";
 
     @Autowired
@@ -66,12 +63,13 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         if (drug == null) return;
         drugOrder.setDrug(drug);
         if (medicationOrder.getDosageInstruction().isEmpty()) return;
-        List<MedicationOrder.DosageInstruction> dosageInstructions = medicationOrder.getDosageInstruction();
-        drugOrder.setRoute(mapRoute(dosageInstructions.get(0)));
-        mapFrequencyAndDose(drugOrder, dosageInstructions);
-        setOrderDuration(drugOrder, dosageInstructions.get(0));
-        setScheduledDateAndUrgency(drugOrder, dosageInstructions.get(0));
-        drugOrder.setAsNeeded(((BooleanDt) dosageInstructions.get(0).getAsNeeded()).getValue());
+        MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.getDosageInstructionFirstRep();
+//        System.out.println(dosageInstruction);
+        mapFrequencyAndDose(drugOrder, dosageInstruction);
+        setOrderDuration(drugOrder, dosageInstruction);
+        setScheduledDateAndUrgency(drugOrder, dosageInstruction);
+        drugOrder.setRoute(mapRoute(dosageInstruction));
+        drugOrder.setAsNeeded(((BooleanDt) dosageInstruction.getAsNeeded()).getValue());
         drugOrder.setOrderer(getOrderer(medicationOrder));
         drugOrder.setNumRefills(DEFAULT_NUM_REFILLS);
         drugOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(bundle));
@@ -103,21 +101,18 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         return provider;
     }
 
-    private void mapFrequencyAndDose(DrugOrder drugOrder, List<MedicationOrder.DosageInstruction> dosageInstructions) {
-        for (MedicationOrder.DosageInstruction dosageInstruction : dosageInstructions) {
-            TimingDt.Repeat repeat = dosageInstruction.getTiming().getRepeat();
-            if (repeat.getFrequency() != null) {
-                UnitsHelpers.FrequencyUnit frequencyUnit = unitsHelpers.getFrequencyUnitsFromRepeat(repeat);
-                Concept frequencyConcept = conceptService.getConceptByName(frequencyUnit.getConceptName());
-                OrderFrequency orderFrequency = orderService.getOrderFrequencyByConcept(frequencyConcept);
-                drugOrder.setFrequency(orderFrequency);
+    private void mapFrequencyAndDose(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction) {
+        TimingDt.Repeat repeat = dosageInstruction.getTiming().getRepeat();
+        if (repeat.getFrequency() != null) {
+            UnitsHelpers.FrequencyUnit frequencyUnit = unitsHelpers.getFrequencyUnitsFromRepeat(repeat);
+            Concept frequencyConcept = conceptService.getConceptByName(frequencyUnit.getConceptName());
+            OrderFrequency orderFrequency = orderService.getOrderFrequencyByConcept(frequencyConcept);
+            drugOrder.setFrequency(orderFrequency);
 
-                SimpleQuantityDt dose = (SimpleQuantityDt) dosageInstruction.getDose();
-                drugOrder.setDose(dose.getValue().doubleValue());
-                Concept doseUnitConcept = omrsConceptLookup.findConceptFromValueSetCode(dose.getSystem(), dose.getCode());
-                drugOrder.setDoseUnits(doseUnitConcept);
-                break;
-            }
+            SimpleQuantityDt dose = (SimpleQuantityDt) dosageInstruction.getDose();
+            drugOrder.setDose(dose.getValue().doubleValue());
+            Concept doseUnitConcept = omrsConceptLookup.findConceptFromValueSetCode(dose.getSystem(), dose.getCode());
+            drugOrder.setDoseUnits(doseUnitConcept);
         }
     }
 

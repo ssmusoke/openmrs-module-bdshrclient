@@ -56,7 +56,7 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
         }
     }
 
-    Obs mapObs(Bundle bundle, Encounter emrEncounter, Observation observation) {
+    public Obs mapObs(Bundle bundle, Encounter emrEncounter, Observation observation) {
         Concept concept = mapConcept(observation);
         if (concept == null) return null;
         Obs result = new Obs();
