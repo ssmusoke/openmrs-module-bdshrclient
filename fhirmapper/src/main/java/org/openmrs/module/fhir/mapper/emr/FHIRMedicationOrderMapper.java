@@ -64,7 +64,6 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         drugOrder.setDrug(drug);
         if (medicationOrder.getDosageInstruction().isEmpty()) return;
         MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.getDosageInstructionFirstRep();
-//        System.out.println(dosageInstruction);
         mapFrequencyAndDose(drugOrder, dosageInstruction);
         setOrderDuration(drugOrder, dosageInstruction);
         setScheduledDateAndUrgency(drugOrder, dosageInstruction);

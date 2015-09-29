@@ -2,8 +2,10 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
+import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +32,8 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     ObservationMapper observationMapper;
+    private String prUrl = "http://pr.com/23.json";
+    private String prDisplay = "Doc 23";
 
     @Before
     public void setUp() throws Exception {
@@ -46,11 +50,14 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
         Obs vitalsObs = obsService.getObs(11);
         assertTrue(observationMapper.canHandle(vitalsObs));
 
-        List<FHIRResource> FHIRResources = observationMapper.map(vitalsObs, new Encounter(), getSystemProperties("1"));
+        Encounter fhirEncounter = new Encounter();
+        fhirEncounter.addParticipant().setIndividual(new ResourceReferenceDt().setReference(prUrl).setDisplay(prDisplay));
+        List<FHIRResource> FHIRResources = observationMapper.map(vitalsObs, fhirEncounter, getSystemProperties("1"));
         assertEquals(4, FHIRResources.size());
         for (FHIRResource FHIRResource : FHIRResources) {
             Observation observation = (Observation) FHIRResource.getResource();
             assertTrue(isNotEmpty(observation.getCode().getCoding()));
+            assertObservation(observation);
             if (FHIRResource.getResourceName().equals("Vitals")) {
                 assertVitalsObservation(observation);
             } else if (FHIRResource.getResourceName().equals("Blood Pressure")) {
@@ -61,6 +68,14 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
                 assertPulseObservation(observation);
             }
         }
+    }
+
+    private void assertObservation(Observation observation) {
+        assertEquals(1, observation.getPerformer().size());
+        assertEquals(prUrl, observation.getPerformer().get(0).getReference().getValue());
+        assertEquals(prDisplay, observation.getPerformer().get(0).getDisplay().getValue());
+
+        assertEquals(ObservationStatusEnum.PRELIMINARY, observation.getStatusElement().getValueAsEnum());
     }
 
     private void assertPulseObservation(Observation observation) {

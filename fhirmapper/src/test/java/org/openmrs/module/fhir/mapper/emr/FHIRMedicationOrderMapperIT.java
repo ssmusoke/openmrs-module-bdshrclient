@@ -51,7 +51,6 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
         deleteAllData();
     }
 
-
     @Test
     public void shouldHandleResourceOfTypeMedicationPrescription() throws Exception {
         assertTrue(mapper.canHandle(medicationOrder));

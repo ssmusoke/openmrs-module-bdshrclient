@@ -16,7 +16,6 @@ import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.FhirBundleContextHolder;
-import org.openmrs.module.shrclient.util.FhirBundleUtil;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;

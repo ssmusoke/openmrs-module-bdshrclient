@@ -2,9 +2,6 @@ package org.openmrs.module.shrclient.advice;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.ict4h.atomfeed.server.repository.AllEventRecordsQueue;
-import org.ict4h.atomfeed.server.repository.jdbc.AllEventRecordsJdbcImpl;
 import org.ict4h.atomfeed.server.repository.jdbc.AllEventRecordsQueueJdbcImpl;
 import org.ict4h.atomfeed.server.service.Event;
 import org.ict4h.atomfeed.server.service.EventService;
@@ -23,7 +20,6 @@ import java.util.UUID;
 
 public class ShrEncounterAdvice implements AfterReturningAdvice {
 
-    private static final Logger log = Logger.getLogger(ShrEncounterAdvice.class);
     public static final String ENCOUNTER_REST_URL = "/openmrs/ws/rest/v1/encounter/%s?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))";
     public static final String TITLE = "OpenMRSEncounter";
     public static final String CATEGORY = "OpenMRSEncounter";

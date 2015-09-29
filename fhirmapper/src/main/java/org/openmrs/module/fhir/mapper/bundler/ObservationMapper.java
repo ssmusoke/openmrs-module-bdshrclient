@@ -84,8 +84,18 @@ public class ObservationMapper implements EmrObsResourceHandler {
         Observation fhirObservation = buildObservationResource(openmrsObs, fhirEncounter, systemProperties);
         mapCode(openmrsObs, fhirObservation);
         mapValue(openmrsObs, fhirObservation);
+        mapPerformer(fhirEncounter, fhirObservation);
         fhirObservation.setStatus(ObservationStatusEnum.PRELIMINARY);
         return buildFhirResource(fhirObservation, openmrsObs);
+    }
+
+    private void mapPerformer(Encounter fhirEncounter, Observation fhirObservation) {
+        for (Encounter.Participant participant : fhirEncounter.getParticipant()) {
+            ResourceReferenceDt individual = participant.getIndividual();
+            ResourceReferenceDt performer = fhirObservation.addPerformer();
+            performer.setReference(individual.getReference());
+            performer.setDisplay(individual.getDisplay());
+        }
     }
 
     private Observation buildObservationResource(Obs openmrsObs, Encounter fhirEncounter, SystemProperties systemProperties) {
