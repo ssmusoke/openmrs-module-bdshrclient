@@ -593,7 +593,7 @@
 
         </addColumn>
     </changeSet>
-    <changeSet id="bdshrclient-29092015-1121" author="Dubey,Sukreet" context="setup">
+    <changeSet id="bdshrclient-29092015-1125" author="Dubey,Sukreet" context="setup">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="failed_event_retry_log"/>
