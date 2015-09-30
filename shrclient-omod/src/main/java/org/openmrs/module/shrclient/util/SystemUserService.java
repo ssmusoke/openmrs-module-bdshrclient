@@ -34,14 +34,20 @@ public class SystemUserService {
 
     @Autowired
     public SystemUserService(Database database, GlobalPropertyLookUpService globalPropertyLookUpService) {
-        this.userService = Context.getUserService();
         this.database = database;
         this.globalPropertyLookUpService = globalPropertyLookUpService;
     }
 
     public User getOpenMRSShrSystemUser() {
         Integer shrSystemUserId = Integer.parseInt(globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_SHR_SYSTEM_USER_TAG));
-        return userService.getUser(shrSystemUserId);
+        return getUserService().getUser(shrSystemUserId);
+    }
+
+    public UserService getUserService() {
+        if (userService == null) {
+            userService = Context.getUserService();
+        }
+        return userService;
     }
 
     public boolean isUpdatedByOpenMRSShrSystemUser(BaseOpenmrsData openMrsEntity) {
