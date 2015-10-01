@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -69,12 +70,12 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         immunization.setPatient(fhirEncounter.getPatient());
         immunization.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValue()));
         Obs vaccineObs = immunizationIncidentObs.getMemberObsForConceptName(MRS_CONCEPT_VACCINE);
-        List<Drug> drugs = conceptService.getDrugsByConcept(vaccineObs.getValueCoded());
+        List<Drug> drugs = identifyDrugs(vaccineObs);
         if (CollectionUtils.isEmpty(drugs)) {
             return null;
         }
         immunization.setStatus(getImmunizationStatus(immunizationIncidentObs));
-        immunization.setVaccineCode(getVaccineType(drugs));
+        immunization.setVaccineCode(getVaccineCode(drugs));
         setIdentifier(immunizationIncidentObs, systemProperties, immunization);
         immunization.setDate(getVaccinationDate(immunizationIncidentObs), TemporalPrecisionEnum.MILLI);
         immunization.setWasNotGiven(getIndicator(immunizationIncidentObs, MRS_CONCEPT_VACCINATION_REFUSED));
@@ -85,6 +86,16 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         setRoute(immunizationIncidentObs, immunization, systemProperties);
 
         return immunization;
+    }
+
+    private List<Drug> identifyDrugs(Obs vaccineObs) {
+        Drug vaccineDrug = vaccineObs.getValueDrug();
+        Concept vaccineConcept = vaccineObs.getValueCoded();
+        if (vaccineDrug != null) {
+            return Arrays.asList(vaccineDrug);
+        } else {
+            return conceptService.getDrugsByConcept(vaccineConcept);
+        }
     }
 
     private String getImmunizationStatus(CompoundObservation immunizationIncidentObs) {
@@ -175,7 +186,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         return vaccinationDateObs.getValueDate();
     }
 
-    private CodeableConceptDt getVaccineType(List<Drug> drugs) {
+    private CodeableConceptDt getVaccineCode(List<Drug> drugs) {
         Drug drugsByConcept = drugs.get(0);
         IdMapping idMapping = idMappingsRepository.findByInternalId(drugsByConcept.getUuid());
         CodeableConceptDt codeableConcept = new CodeableConceptDt();
