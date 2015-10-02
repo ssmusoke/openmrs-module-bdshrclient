@@ -34,6 +34,8 @@ public class Constants {
     public static final String ID_MAPPING_PATIENT_TYPE = "patient";
 
     public final static String ORGANIZATION_ATTRIBUTE_TYPE_NAME = "Organization";
+    public final static String FATHER_NAME_ATTRIBUTE_TYPE = "fatherName";
+    public final static String SPOUSE_NAME_ATTRIBUTE_TYPE = "spouseName";
 
     public final static int CACHE_TTL = 60 * 1000 * 5;
 }

@@ -8,6 +8,7 @@ import org.openmrs.Provider;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.PhoneNumber;
+import org.openmrs.module.shrclient.model.Relation;
 import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.util.AddressHelper;
@@ -15,8 +16,11 @@ import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.util.SystemProperties;
 
 import java.util.Collection;
+import java.util.List;
 
 import static org.openmrs.module.fhir.utils.Constants.*;
+import static org.openmrs.module.shrclient.mapper.PersonAttributeMapper.getAttribute;
+import static org.openmrs.module.shrclient.mapper.PersonAttributeMapper.getAttributeValue;
 
 public class PatientMapper {
     private static final String DOB_TYPE_DECLARED = "1";
@@ -89,6 +93,10 @@ public class PatientMapper {
 
         patient.setAddress(addressHelper.getMciAddress(openMrsPatient));
         patient.setStatus(getMciPatientStatus(openMrsPatient));
+        List<Relation> relations = RelationshipMapper.map(openMrsPatient);
+        if (CollectionUtils.isNotEmpty(relations)) {
+            patient.setRelations(relations.toArray(new Relation[relations.size()]));
+        }
 
         setProvider(patient, openMrsPatient, systemProperties);
         patient.setDobType(getDobType(openMrsPatient));
@@ -102,7 +110,8 @@ public class PatientMapper {
 
     private void setProvider(Patient patient, org.openmrs.Patient openMrsPatient, SystemProperties systemProperties) {
         Person person = null;
-        person = openMrsPatient.getChangedBy() != null ? openMrsPatient.getChangedBy().getPerson() : openMrsPatient.getCreator().getPerson();
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    person = openMrsPatient.getChangedBy() != null ? openMrsPatient.getChangedBy().getPerson() : openMrsPatient.getCreator().getPerson();
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    person = openMrsPatient.getChangedBy() != null ? openMrsPatient.getChangedBy().getPerson() : openMrsPatient.getCreator().getPerson();
         if (null == person) return;
         Collection<Provider> providers = Context.getProviderService().getProvidersByPerson(person);
         if (CollectionUtils.isEmpty(providers)) return;
@@ -116,15 +125,6 @@ public class PatientMapper {
                 return;
             }
         }
-    }
-
-    private String getAttributeValue(org.openmrs.Patient openMrsPatient, String attributeName) {
-        PersonAttribute attribute = getAttribute(openMrsPatient, attributeName);
-        return attribute != null ? attribute.getValue() : null;
-    }
-
-    private PersonAttribute getAttribute(org.openmrs.Patient openMrsPatient, String attributeName) {
-        return openMrsPatient.getAttribute(attributeName);
     }
 
     private Status getMciPatientStatus(org.openmrs.Patient openMrsPatient) {
