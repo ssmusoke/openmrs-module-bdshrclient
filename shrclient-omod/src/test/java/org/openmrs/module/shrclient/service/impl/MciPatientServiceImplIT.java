@@ -198,6 +198,24 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         assertEquals("Azad", spouseName.getValue());
     }
 
+    @Test
+    public void shouldUpdatePatientAttributesOnDownloadIfPresentAlready() throws Exception {
+        executeDataSet("testDataSets/patientUpdateDS.xml");
+        org.openmrs.module.shrclient.model.Patient patient = getPatientFromJson("patients_response/patientWithRelations.json");
+
+        mciPatientService.createOrUpdatePatient(patient);
+        //updated twice
+        mciPatientService.createOrUpdatePatient(patient);
+
+        Patient savedPatient = patientService.getPatient(1);
+
+        List<PersonAttribute> fatherName = savedPatient.getAttributes(Constants.FATHER_NAME_ATTRIBUTE_TYPE);
+        assertEquals(1, fatherName.size());
+
+        List<PersonAttribute> spouseName = savedPatient.getAttributes(Constants.SPOUSE_NAME_ATTRIBUTE_TYPE);
+        assertEquals(1, spouseName.size());
+          }
+
     private org.openmrs.module.shrclient.model.Patient getPatientFromJson(String patientJson) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

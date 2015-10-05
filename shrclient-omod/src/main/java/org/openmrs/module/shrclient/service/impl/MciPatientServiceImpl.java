@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 import static org.openmrs.module.fhir.mapper.model.Confidentiality.getConfidentiality;
@@ -111,7 +112,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         addPersonAttribute(emrPatient, GIVEN_NAME_LOCAL, getGivenNameLocal(banglaName));
         addPersonAttribute(emrPatient, FAMILY_NAME_LOCAL, getFamilyNameLocal(banglaName));
         addPersonAttribute(emrPatient, PHONE_NUMBER, PhoneNumberMapper.map(mciPatient.getPhoneNumber()));
-        emrPatient.getAttributes().addAll(new RelationshipMapper().map(mciPatient.getRelations()));
+        mapRelations(emrPatient, mciPatient);
 
         String occupationConceptName = bbsCodeService.getOccupationConceptName(mciPatient.getOccupation());
         String occupationConceptId = getConceptId(occupationConceptName);
@@ -147,6 +148,13 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         systemUserService.setOpenmrsShrSystemUserAsCreator(emrPatient);
         addPatientToIdMapping(patient, mciPatient.getHealthId());
         return emrPatient;
+    }
+
+    private void mapRelations(org.openmrs.Patient emrPatient, Patient mciPatient) {
+        Set<PersonAttribute> relations = new RelationshipMapper().map(mciPatient.getRelations());
+        for (PersonAttribute relation : relations) {
+            emrPatient.addAttribute(relation);
+        }
     }
 
     @Override
