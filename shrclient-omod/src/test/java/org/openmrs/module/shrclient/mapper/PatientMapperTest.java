@@ -102,13 +102,18 @@ public class PatientMapperTest {
     @Test
     public void shouldMapRelationsWhenPresent() throws Exception {
         openMrsPatient.getAttributes().add(createAttribute(FATHER_NAME_ATTRIBUTE_TYPE, "Oh My Daddy"));
+        openMrsPatient.getAttributes().add(createAttribute(SPOUSE_NAME_ATTRIBUTE_TYPE, "OhMyDear"));
         Patient mappedPatient = patientMapper.map(openMrsPatient, systemProperties);
         org.openmrs.module.shrclient.model.Relation[] mappedRelations = mappedPatient.getRelations();
 
-        assertEquals(1,mappedRelations.length);
+        assertEquals(2,mappedRelations.length);
         assertEquals("Oh My", mappedRelations[0].getGivenName());
         assertEquals("Daddy", mappedRelations[0].getSurName());
         assertEquals("FTH", mappedRelations[0].getType());
+
+        assertEquals("OhMyDear", mappedRelations[1].getGivenName());
+        assertNull(mappedRelations[1].getSurName());
+        assertEquals("SPS", mappedRelations[1].getType());
     }
 
     @Test

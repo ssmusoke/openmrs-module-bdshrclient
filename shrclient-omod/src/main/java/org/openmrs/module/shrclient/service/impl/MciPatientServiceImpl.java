@@ -4,22 +4,8 @@ import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Composition;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.openmrs.Concept;
-import org.openmrs.Encounter;
-import org.openmrs.Obs;
-import org.openmrs.Order;
-import org.openmrs.PatientIdentifier;
-import org.openmrs.PatientIdentifierType;
-import org.openmrs.PersonAttribute;
-import org.openmrs.PersonAttributeType;
-import org.openmrs.PersonName;
-import org.openmrs.api.AdministrationService;
-import org.openmrs.api.ConceptService;
-import org.openmrs.api.ObsService;
-import org.openmrs.api.OrderService;
-import org.openmrs.api.PatientService;
-import org.openmrs.api.PersonService;
-import org.openmrs.api.VisitService;
+import org.openmrs.*;
+import org.openmrs.api.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.fhir.mapper.MRSProperties;
@@ -31,17 +17,15 @@ import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.mapper.PersonAttributeMapper;
 import org.openmrs.module.shrclient.mapper.PhoneNumberMapper;
+import org.openmrs.module.shrclient.mapper.RelationshipMapper;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.MciPatientService;
-import org.openmrs.module.shrclient.util.AddressHelper;
-import org.openmrs.module.shrclient.util.PropertiesReader;
-import org.openmrs.module.shrclient.util.StringUtil;
-import org.openmrs.module.shrclient.util.SystemProperties;
-import org.openmrs.module.shrclient.util.SystemUserService;
+import org.openmrs.module.shrclient.util.*;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -73,6 +57,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     private ObsService obsService;
     private ConceptService conceptService;
     private GlobalPropertyLookUpService globalPropertyLookUpService;
+    private PersonAttributeMapper personAttributeMapper;
 
     @Autowired
     public MciPatientServiceImpl(BbsCodeService bbsCodeService,
@@ -99,6 +84,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         this.obsService = obsService;
         this.conceptService = conceptService;
         this.globalPropertyLookUpService = globalPropertyLookUpService;
+        this.personAttributeMapper = new PersonAttributeMapper(personService);
     }
 
     @Override
@@ -114,22 +100,23 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         setDeathInfo(emrPatient, mciPatient);
         emrPatient.addAddress(addressHelper.setPersonAddress(emrPatient.getPersonAddress(), mciPatient.getAddress()));
 
-        addPersonAttribute(personService, emrPatient, NATIONAL_ID_ATTRIBUTE, mciPatient.getNationalId());
-        addPersonAttribute(personService, emrPatient, HEALTH_ID_ATTRIBUTE, mciPatient.getHealthId());
-        addPersonAttribute(personService, emrPatient, BIRTH_REG_NO_ATTRIBUTE, mciPatient.getBirthRegNumber());
-        addPersonAttribute(personService, emrPatient, HOUSE_HOLD_CODE_ATTRIBUTE, mciPatient.getHouseHoldCode());
+        addPersonAttribute(emrPatient, NATIONAL_ID_ATTRIBUTE, mciPatient.getNationalId());
+        addPersonAttribute(emrPatient, HEALTH_ID_ATTRIBUTE, mciPatient.getHealthId());
+        addPersonAttribute(emrPatient, BIRTH_REG_NO_ATTRIBUTE, mciPatient.getBirthRegNumber());
+        addPersonAttribute(emrPatient, HOUSE_HOLD_CODE_ATTRIBUTE, mciPatient.getHouseHoldCode());
         String banglaName = mciPatient.getBanglaName();
         if (StringUtils.isNotBlank(banglaName)) {
             banglaName = banglaName.replaceAll(REGEX_TO_MATCH_MULTIPLE_WHITE_SPACE, " ");
         }
-        addPersonAttribute(personService, emrPatient, GIVEN_NAME_LOCAL, getGivenNameLocal(banglaName));
-        addPersonAttribute(personService, emrPatient, FAMILY_NAME_LOCAL, getFamilyNameLocal(banglaName));
-        addPersonAttribute(personService, emrPatient, PHONE_NUMBER, PhoneNumberMapper.map(mciPatient.getPhoneNumber()));
+        addPersonAttribute(emrPatient, GIVEN_NAME_LOCAL, getGivenNameLocal(banglaName));
+        addPersonAttribute(emrPatient, FAMILY_NAME_LOCAL, getFamilyNameLocal(banglaName));
+        addPersonAttribute(emrPatient, PHONE_NUMBER, PhoneNumberMapper.map(mciPatient.getPhoneNumber()));
+        emrPatient.getAttributes().addAll(new RelationshipMapper().map(mciPatient.getRelations()));
 
         String occupationConceptName = bbsCodeService.getOccupationConceptName(mciPatient.getOccupation());
         String occupationConceptId = getConceptId(occupationConceptName);
         if (occupationConceptId != null) {
-            addPersonAttribute(personService, emrPatient, OCCUPATION_ATTRIBUTE, occupationConceptId);
+            addPersonAttribute(emrPatient, OCCUPATION_ATTRIBUTE, occupationConceptId);
         } else {
             logger.warn(String.format("Can't update occupation for patient. " +
                             "Can't identify relevant concept for patient hid:%s, occupation:%s, code:%s",
@@ -140,7 +127,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         String educationConceptName = bbsCodeService.getEducationConceptName(mciPatient.getEducationLevel());
         String educationConceptId = getConceptId(educationConceptName);
         if (educationConceptId != null) {
-            addPersonAttribute(personService, emrPatient, EDUCATION_ATTRIBUTE, educationConceptId);
+            addPersonAttribute(emrPatient, EDUCATION_ATTRIBUTE, educationConceptId);
         } else {
             logger.warn(String.format("Can't update education for patient. " +
                             "Can't identify relevant concept for patient hid:%s, education:%s, code:%s",
@@ -149,7 +136,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
         Date dob = mciPatient.getDateOfBirth();
         emrPatient.setBirthdate(dob);
-        if (mciPatient.getDobType().equals(DOB_TYPE_ESTIMATED)){
+        if (DOB_TYPE_ESTIMATED.equals(mciPatient.getDobType())){
             emrPatient.setBirthdateEstimated(Boolean.TRUE);
         }
         else {
@@ -349,12 +336,9 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         emrPersonName.setFamilyName(mciPatient.getSurName());
     }
 
-    private void addPersonAttribute(PersonService personService, org.openmrs.Patient emrPatient, String attributeName, String attributeValue) {
-        PersonAttribute attribute = new PersonAttribute();
-        PersonAttributeType attributeType = personService.getPersonAttributeTypeByName(attributeName);
-        if (attributeType != null) {
-            attribute.setAttributeType(attributeType);
-            attribute.setValue(attributeValue);
+    private void addPersonAttribute(org.openmrs.Patient emrPatient, String attributeName, String attributeValue) {
+        PersonAttribute attribute = personAttributeMapper.getAttribute(attributeName, attributeValue);
+        if (attribute != null) {
             emrPatient.addAttribute(attribute);
         } else {
             System.out.println("Attribute not defined: " + attributeName);

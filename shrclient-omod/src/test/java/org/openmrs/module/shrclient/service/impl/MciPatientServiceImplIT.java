@@ -1,19 +1,21 @@
 package org.openmrs.module.shrclient.service.impl;
 
-import org.junit.After;
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openmrs.Concept;
-import org.openmrs.Encounter;
-import org.openmrs.Order;
+import org.openmrs.*;
 import org.openmrs.Patient;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
+import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.*;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.FhirBundleContextHolder;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
@@ -22,6 +24,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -170,6 +176,36 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         assertEquals("CANCER", actualCauseOfDeath.getName().getName());
 
 
+    }
+
+    @Test
+    public void shouldMapRelationsToPatientAttributesWhenPresent() throws Exception {
+        executeDataSet("testDataSets/patientUpdateDS.xml");
+        org.openmrs.module.shrclient.model.Patient patient = getPatientFromJson("patients_response/patientWithRelations.json");
+
+        mciPatientService.createOrUpdatePatient(patient);
+
+        Patient savedPatient = patientService.getPatient(1);
+
+        PersonAttribute fatherName = savedPatient.getAttribute(Constants.FATHER_NAME_ATTRIBUTE_TYPE);
+        assertNotNull(fatherName);
+        assertEquals(Constants.FATHER_NAME_ATTRIBUTE_TYPE, fatherName.getAttributeType().getName());
+        assertEquals("Md. Sakib Ali Khan", fatherName.getValue());
+
+        PersonAttribute spouseName = savedPatient.getAttribute(Constants.SPOUSE_NAME_ATTRIBUTE_TYPE);
+        assertNotNull(spouseName);
+        assertEquals(Constants.SPOUSE_NAME_ATTRIBUTE_TYPE, spouseName.getAttributeType().getName());
+        assertEquals("Azad", spouseName.getValue());
+    }
+
+    private org.openmrs.module.shrclient.model.Patient getPatientFromJson(String patientJson) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        URL resource = URLClassLoader.getSystemResource(patientJson);
+        final String patientResponse = FileUtils.readFileToString(new File(resource.getPath()));
+
+        return mapper.readValue(patientResponse, org.openmrs.module.shrclient.model.Patient.class);
     }
 
     private List<EncounterBundle> getEncounterBundles(String healthId, String shrEncounterId, String encounterBundleFilePath) throws Exception {

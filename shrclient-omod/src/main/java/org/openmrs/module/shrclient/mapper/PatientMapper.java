@@ -19,49 +19,50 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.openmrs.module.fhir.utils.Constants.*;
-import static org.openmrs.module.shrclient.mapper.PersonAttributeMapper.getAttribute;
-import static org.openmrs.module.shrclient.mapper.PersonAttributeMapper.getAttributeValue;
 
 public class PatientMapper {
     private static final String DOB_TYPE_DECLARED = "1";
     private static final String DOB_TYPE_ESTIMATED = "3";
     private BbsCodeService bbsCodeService;
-    private final AddressHelper addressHelper;
+    private AddressHelper addressHelper;
+    private PersonAttributeMapper personAttributeMapper;
 
     public PatientMapper(BbsCodeService bbsCodeService) {
         this.bbsCodeService = bbsCodeService;
         this.addressHelper = new AddressHelper();
+        this.personAttributeMapper = new PersonAttributeMapper();
     }
 
     public PatientMapper(BbsCodeService bbsCodeService, AddressHelper addressHelper) {
         this.bbsCodeService = bbsCodeService;
         this.addressHelper = addressHelper;
+        this.personAttributeMapper = new PersonAttributeMapper();
     }
 
     public Patient map(org.openmrs.Patient openMrsPatient, SystemProperties systemProperties) {
         Patient patient = new Patient();
-        String nationalId = getAttributeValue(openMrsPatient, NATIONAL_ID_ATTRIBUTE);
+        String nationalId = personAttributeMapper.getAttributeValue(openMrsPatient, NATIONAL_ID_ATTRIBUTE);
         if (nationalId != null) {
             patient.setNationalId(nationalId);
         }
 
-        String healthId = getAttributeValue(openMrsPatient, HEALTH_ID_ATTRIBUTE);
+        String healthId = personAttributeMapper.getAttributeValue(openMrsPatient, HEALTH_ID_ATTRIBUTE);
         if (healthId != null) {
             patient.setHealthId(healthId);
         }
 
-        String birthRegNo = getAttributeValue(openMrsPatient, BIRTH_REG_NO_ATTRIBUTE);
+        String birthRegNo = personAttributeMapper.getAttributeValue(openMrsPatient, BIRTH_REG_NO_ATTRIBUTE);
         if (birthRegNo != null) {
             patient.setBirthRegNumber(birthRegNo);
         }
 
-        String houseHoldCode = getAttributeValue(openMrsPatient, HOUSE_HOLD_CODE_ATTRIBUTE);
+        String houseHoldCode = personAttributeMapper.getAttributeValue(openMrsPatient, HOUSE_HOLD_CODE_ATTRIBUTE);
         if (houseHoldCode != null) {
             patient.setHouseHoldCode(houseHoldCode);
         }
 
-        String givenNameLocal = getAttributeValue(openMrsPatient, GIVEN_NAME_LOCAL);
-        String familyNameLocal = getAttributeValue(openMrsPatient, FAMILY_NAME_LOCAL);
+        String givenNameLocal = personAttributeMapper.getAttributeValue(openMrsPatient, GIVEN_NAME_LOCAL);
+        String familyNameLocal = personAttributeMapper.getAttributeValue(openMrsPatient, FAMILY_NAME_LOCAL);
         String banglaName = (StringUtils.isNotBlank(givenNameLocal) ? givenNameLocal : "")
                 .concat(" ")
                 .concat((StringUtils.isNotBlank(familyNameLocal) ? familyNameLocal : "")).trim();
@@ -70,7 +71,7 @@ public class PatientMapper {
             patient.setBanglaName(banglaName);
         }
 
-        String openmrsPhoneNumber = getAttributeValue(openMrsPatient, PHONE_NUMBER);
+        String openmrsPhoneNumber = personAttributeMapper.getAttributeValue(openMrsPatient, PHONE_NUMBER);
         if (StringUtils.isNotBlank(openmrsPhoneNumber)) {
             PhoneNumber mciPhoneNumber = PhoneNumberMapper.map(openmrsPhoneNumber);
             patient.setPhoneNumber(mciPhoneNumber);
@@ -81,19 +82,19 @@ public class PatientMapper {
         patient.setGender(openMrsPatient.getGender());
         patient.setDateOfBirth(openMrsPatient.getBirthdate());
 
-        PersonAttribute occupation = getAttribute(openMrsPatient, OCCUPATION_ATTRIBUTE);
+        PersonAttribute occupation = openMrsPatient.getAttribute(OCCUPATION_ATTRIBUTE);
         if (occupation != null) {
             patient.setOccupation(bbsCodeService.getOccupationCode(occupation.toString()));
         }
 
-        PersonAttribute education = getAttribute(openMrsPatient, EDUCATION_ATTRIBUTE);
+        PersonAttribute education = openMrsPatient.getAttribute(EDUCATION_ATTRIBUTE);
         if (education != null) {
             patient.setEducationLevel(bbsCodeService.getEducationCode(education.toString()));
         }
 
         patient.setAddress(addressHelper.getMciAddress(openMrsPatient));
         patient.setStatus(getMciPatientStatus(openMrsPatient));
-        List<Relation> relations = RelationshipMapper.map(openMrsPatient);
+        List<Relation> relations = new RelationshipMapper().map(openMrsPatient);
         if (CollectionUtils.isNotEmpty(relations)) {
             patient.setRelations(relations.toArray(new Relation[relations.size()]));
         }
