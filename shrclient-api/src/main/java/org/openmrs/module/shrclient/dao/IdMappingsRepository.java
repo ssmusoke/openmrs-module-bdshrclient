@@ -23,7 +23,7 @@ public class IdMappingsRepository {
     @Autowired
     private Database database;
 
-    public void saveMapping(final IdMapping idMapping) {
+    public void saveOrUpdateMapping(final IdMapping idMapping) {
         database.executeInTransaction(new TxWork<Object>() {
             @Override
             public Object execute(Connection connection) {

@@ -206,7 +206,7 @@ public class FacilityPullTest {
         assertEquals(locationTagId, new ArrayList<>(location.getTags()).get(0).getId());
 
         ArgumentCaptor<IdMapping> idMappingArgumentCaptor = ArgumentCaptor.forClass(IdMapping.class);
-        verify(idMappingsRepository).saveMapping(idMappingArgumentCaptor.capture());
+        verify(idMappingsRepository).saveOrUpdateMapping(idMappingArgumentCaptor.capture());
         IdMapping idMapping = idMappingArgumentCaptor.getValue();
         assertEquals(String.valueOf(frLocationEntryId), idMapping.getExternalId());
         assertEquals(newLocationUuid, idMapping.getInternalId());
@@ -236,7 +236,7 @@ public class FacilityPullTest {
         verify(locationService).getLocationTag(locationTagId);
         verify(idMappingsRepository, times(10)).findByExternalId(any(String.class));
         verify(locationService, times(10)).saveLocation(any(Location.class));
-        verify(idMappingsRepository, times(10)).saveMapping(any(IdMapping.class));
+        verify(idMappingsRepository, times(10)).saveOrUpdateMapping(any(IdMapping.class));
 
     }
 
@@ -264,7 +264,7 @@ public class FacilityPullTest {
         verify(idMappingsRepository, times(0)).findByExternalId(any(String.class));
         verify(locationService, times(1)).getLocationTag(locationTagId);
         verify(locationService, times(0)).saveLocation(any(Location.class));
-        verify(idMappingsRepository, times(0)).saveMapping(any(IdMapping.class));
+        verify(idMappingsRepository, times(0)).saveOrUpdateMapping(any(IdMapping.class));
 
     }
 
@@ -288,7 +288,7 @@ public class FacilityPullTest {
         facilityPull.synchronize();
 
         ArgumentCaptor<IdMapping> captor = ArgumentCaptor.forClass(IdMapping.class);
-        verify(idMappingsRepository).saveMapping(captor.capture());
+        verify(idMappingsRepository).saveOrUpdateMapping(captor.capture());
         assertEquals("http://hrmtest.dghs.gov.bd/api/1.0/facilities/100001.json", captor.getValue().getUri());
     }
 

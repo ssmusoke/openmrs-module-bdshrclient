@@ -1,21 +1,16 @@
 package org.openmrs.module.shrclient.mapper;
 
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.openmrs.Person;
 import org.openmrs.PersonAttribute;
-import org.openmrs.Provider;
-import org.openmrs.api.context.Context;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.PhoneNumber;
 import org.openmrs.module.shrclient.model.Relation;
 import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.util.AddressHelper;
-import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.util.SystemProperties;
 
-import java.util.Collection;
 import java.util.List;
 
 import static org.openmrs.module.fhir.utils.Constants.*;
@@ -99,7 +94,6 @@ public class PatientMapper {
             patient.setRelations(relations.toArray(new Relation[relations.size()]));
         }
 
-        setProvider(patient, openMrsPatient, systemProperties);
         patient.setDobType(getDobType(openMrsPatient));
 
         return patient;
@@ -107,25 +101,6 @@ public class PatientMapper {
 
     public String getDobType(org.openmrs.Patient openMrsPatient) {
         return openMrsPatient.getBirthdateEstimated() ? DOB_TYPE_ESTIMATED : DOB_TYPE_DECLARED;
-    }
-
-    private void setProvider(Patient patient, org.openmrs.Patient openMrsPatient, SystemProperties systemProperties) {
-        Person person = null;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    person = openMrsPatient.getChangedBy() != null ? openMrsPatient.getChangedBy().getPerson() : openMrsPatient.getCreator().getPerson();
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    person = openMrsPatient.getChangedBy() != null ? openMrsPatient.getChangedBy().getPerson() : openMrsPatient.getCreator().getPerson();
-        if (null == person) return;
-        Collection<Provider> providers = Context.getProviderService().getProvidersByPerson(person);
-        if (CollectionUtils.isEmpty(providers)) return;
-
-        for (Provider provider : providers) {
-            String identifier = provider.getIdentifier();
-            if (!StringUtils.isBlank(identifier)) {
-                String providerUrl = String.format("%s/%s.json",
-                        StringUtil.removeSuffix(systemProperties.getProviderResourcePath(), "/"), provider.getIdentifier());
-                patient.setProviderReference(providerUrl);
-                return;
-            }
-        }
     }
 
     private Status getMciPatientStatus(org.openmrs.Patient openMrsPatient) {

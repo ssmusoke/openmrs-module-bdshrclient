@@ -3,10 +3,11 @@ package org.openmrs.module.shrclient.mapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.openmrs.*;
-import org.openmrs.api.ProviderService;
-import org.openmrs.api.context.Context;
-import org.openmrs.api.context.ServiceContext;
+import org.openmrs.Person;
+import org.openmrs.PersonAddress;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
+import org.openmrs.PersonName;
 import org.openmrs.module.addresshierarchy.AddressField;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
@@ -21,9 +22,12 @@ import org.openmrs.module.shrclient.util.AddressHelper;
 import org.openmrs.module.shrclient.util.SystemProperties;
 
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
@@ -38,8 +42,6 @@ public class PatientMapperTest {
     private AddressHierarchyService addressHierarchyService;
     @Mock
     private SystemProperties systemProperties;
-    @Mock
-    private ProviderService providerService;
 
     private AddressHelper addressHelper;
     private BbsCodeService bbsCodeService;
@@ -62,11 +64,6 @@ public class PatientMapperTest {
         this.bbsCodeService = new BbsCodeServiceImpl();
         addressHelper = new AddressHelper(addressHierarchyService);
         patientMapper = new PatientMapper(bbsCodeService, addressHelper);
-        Context context = new Context();
-        ServiceContext serviceContext = ServiceContext.getInstance();
-        serviceContext.setService(ProviderService.class, providerService);
-        context.setServiceContext(serviceContext);
-
         setUpAddressHierarchy();
         setupData();
     }
@@ -83,20 +80,6 @@ public class PatientMapperTest {
         patient.setDobType("3");
         Patient expectedPatient = patientMapper.map(openMrsPatient, systemProperties);
         assertEquals(this.patient, expectedPatient);
-    }
-
-    @Test
-    public void shouldGetProviderFromChangedBy() throws Exception {
-        Person changedByPerson = new Person(12);
-        openMrsPatient.setChangedBy(new User(changedByPerson));
-
-        Provider provider = new Provider(104);
-        provider.setIdentifier("1234");
-        provider.setPerson(changedByPerson);
-        when(providerService.getProvidersByPerson(changedByPerson)).thenReturn(asList(provider));
-
-        Patient expectedPatient = patientMapper.map(openMrsPatient, systemProperties);
-        assertEquals("http://pr.com/1234.json", expectedPatient.getProviderReference());
     }
 
     @Test
@@ -141,16 +124,6 @@ public class PatientMapperTest {
         person.setBirthdateEstimated(Boolean.FALSE);
         openMrsPatient = new org.openmrs.Patient(person);
 
-        Person userPerson = new Person(101);
-        Provider provider = new Provider(101);
-        User user = new User(userPerson);
-        String providerIdentifier = "4321";
-        provider.setIdentifier(providerIdentifier);
-        provider.setPerson(userPerson);
-        when(providerService.getProvidersByPerson(userPerson)).thenReturn(asList(provider));
-        openMrsPatient.setCreator(user);
-        when(systemProperties.getProviderResourcePath()).thenReturn("http://pr.com/");
-
         openMrsPatient.setAttributes(createOpenMrsPersonAttributes());
 
         patient = new Patient();
@@ -164,7 +137,6 @@ public class PatientMapperTest {
         patient.setDateOfBirth(dateOfBirth);
         patient.setOccupation(bbsCodeService.getOccupationCode(occupation));
         patient.setEducationLevel(bbsCodeService.getEducationCode(educationLevel));
-        patient.setProviderReference("http://pr.com/" + providerIdentifier + ".json");
 
         Status status = new Status();
         status.setType('2');

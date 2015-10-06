@@ -293,7 +293,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         //TODO : put the right url
         String shrBaseUrl = StringUtil.ensureSuffix(propertiesReader.getShrBaseUrl(), "/");
         String url = shrBaseUrl + "patients/" + healthId + "/encounters/" + externalUuid;
-        idMappingsRepository.saveMapping(new IdMapping(internalUuid, externalUuid, ID_MAPPING_ENCOUNTER_TYPE, url));
+        idMappingsRepository.saveOrUpdateMapping(new IdMapping(internalUuid, externalUuid, ID_MAPPING_ENCOUNTER_TYPE, url));
     }
 
     private boolean shouldSyncEncounter(String encounterId, Bundle bundle) {
@@ -369,6 +369,6 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
                 propertiesReader.getFacilityInstanceProperties(),
                 propertiesReader.getMciProperties());
         String url = new EntityReference().build(org.openmrs.Patient.class, systemProperties, healthId);
-        idMappingsRepository.saveMapping(new IdMapping(patientUuid, healthId, ID_MAPPING_PATIENT_TYPE, url));
+        idMappingsRepository.saveOrUpdateMapping(new IdMapping(patientUuid, healthId, ID_MAPPING_PATIENT_TYPE, url, new Date()));
     }
 }

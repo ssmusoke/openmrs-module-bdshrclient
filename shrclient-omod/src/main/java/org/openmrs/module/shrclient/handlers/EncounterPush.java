@@ -89,7 +89,7 @@ public class EncounterPush implements EventWorker {
     }
 
     private void saveIdMapping(Encounter openMrsEncounter, String healthId, String shrEncounterId) {
-        idMappingsRepository.saveMapping(new IdMapping(openMrsEncounter.getUuid(), shrEncounterId,
+        idMappingsRepository.saveOrUpdateMapping(new IdMapping(openMrsEncounter.getUuid(), shrEncounterId,
                 Constants.ID_MAPPING_ENCOUNTER_TYPE, formatEncounterUrl(healthId, shrEncounterId), new Date()));
     }
 

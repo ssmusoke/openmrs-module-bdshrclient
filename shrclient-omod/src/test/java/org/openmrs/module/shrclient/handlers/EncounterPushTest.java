@@ -101,7 +101,7 @@ public class EncounterPushTest {
         verify(encounterService).getEncounterByUuid(uuid);
         verify(shrClient).post("patients/1234567890123/encounters", bundle);
         ArgumentCaptor<IdMapping> idMappingArgumentCaptor = ArgumentCaptor.forClass(IdMapping.class);
-        verify(idMappingsRepository).saveMapping(idMappingArgumentCaptor.capture());
+        verify(idMappingsRepository).saveOrUpdateMapping(idMappingArgumentCaptor.capture());
 
         IdMapping idmapping = idMappingArgumentCaptor.getValue();
         assertEquals("shr-uuid", idmapping.getExternalId());
@@ -130,7 +130,7 @@ public class EncounterPushTest {
         encounterPush.process(event);
 
         verify(shrClient).put("patients/1234567890123/encounters/shr-uuid", bundle);
-        verify(idMappingsRepository, times(1)).saveMapping(any(IdMapping.class));
+        verify(idMappingsRepository, times(1)).saveOrUpdateMapping(any(IdMapping.class));
 
     }
 
@@ -154,7 +154,7 @@ public class EncounterPushTest {
 
         verify(shrClient, never()).put("patients/1234567890123/encounters/shr-uuid", bundle);
         verify(shrClient, never()).post("patients/1234567890123/encounters/shr-uuid", bundle);
-        verify(idMappingsRepository, never()).saveMapping(any(IdMapping.class));
+        verify(idMappingsRepository, never()).saveOrUpdateMapping(any(IdMapping.class));
     }
 
     @Test

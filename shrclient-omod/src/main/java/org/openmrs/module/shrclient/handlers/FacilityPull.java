@@ -157,7 +157,7 @@ public class FacilityPull {
             facilityCatchmentRepository.saveMappings(location.getLocationId(), frLocationEntry.getProperties().getCatchments());
 
             String locationUrl = StringUtil.ensureSuffix(propertiesReader.getFrBaseUrl(), "/") + frLocationEntry.getId() + ".json";
-            idMappingsRepository.saveMapping(new IdMapping(location.getUuid(), frLocationEntry.getId(),
+            idMappingsRepository.saveOrUpdateMapping(new IdMapping(location.getUuid(), frLocationEntry.getId(),
                     ID_MAPPING_TYPE, locationUrl));
 
         } catch (Exception e) {
