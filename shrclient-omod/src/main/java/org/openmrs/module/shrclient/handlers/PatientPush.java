@@ -75,24 +75,24 @@ public class PatientPush implements EventWorker {
 
             org.openmrs.Patient openMrsPatient = patientService.getPatientByUuid(uuid);
 
-            if (!shouldUploadPatient(openMrsPatient, event.getUpdatedDate())) {
+            IdMapping idMapping = idMappingsRepository.findByInternalId(openMrsPatient.getUuid());
+            if (!shouldUploadPatient(openMrsPatient, event.getUpdatedDate(), idMapping)) {
                 return;
             }
 
             SystemProperties systemProperties = getSystemProperties();
             Patient patient = patientMapper.map(openMrsPatient, systemProperties);
-            PersonAttribute healthIdAttribute = openMrsPatient.getAttribute(HEALTH_ID_ATTRIBUTE);
             log.debug("Patient: [ " + patient + "]");
 
-            if (healthIdAttribute == null) {
+            if (idMapping == null) {
                 setProvider(patient, openMrsPatient, systemProperties);
                 MciPatientUpdateResponse response = newPatient(patient);
                 updateOpenMrsPatientHealthId(openMrsPatient, response.getHealthId());
             } else {
-                String healthId = healthIdAttribute.getValue();
+                String healthId = idMapping.getExternalId();
                 String url = StringUtil.ensureSuffix(propertiesReader.getMciPatientContext(), "/") + healthId;
                 MciPatientUpdateResponse response = updatePatient(patient, url);
-                saveOrUpdateIdMapping(openMrsPatient, healthId);
+                updateOpenMrsPatientHealthId(openMrsPatient, healthId);
             }
             patientUuidsProcessed.add(openMrsPatient.getUuid());
         } catch (Exception e) {
@@ -128,13 +128,12 @@ public class PatientPush implements EventWorker {
         return true;
     }
 
-    private boolean shouldUploadPatient(org.openmrs.Patient openMrsPatient, Date eventDate) {
+    private boolean shouldUploadPatient(org.openmrs.Patient openMrsPatient, Date eventDate, IdMapping idMapping) {
         if (openMrsPatient == null) {
             log.debug(String.format("Invalid event. Patient does not exist."));
             return false;
         }
 
-        IdMapping idMapping = idMappingsRepository.findByInternalId(openMrsPatient.getUuid());
         if(eventDate != null && idMapping != null) {
             if(DateUtil.isLaterThan(idMapping.getLastSyncDateTime(), eventDate)) {
                 log.debug(String.format("Patient [%s] already uploaded to MCI.", openMrsPatient.getUuid()));
@@ -175,7 +174,7 @@ public class PatientPush implements EventWorker {
     }
 
     void updateOpenMrsPatientHealthId(org.openmrs.Patient openMrsPatient, String healthId) {
-        log.debug(String.format("Trying to update OpenMRS patient [%s] with health id [%s]", openMrsPatient, healthId));
+        log.debug(String.format("Trying to update OpenMRS patient [%s] with health id [%s]", openMrsPatient.getUuid(), healthId));
 
         if (StringUtils.isBlank(healthId)) {
             log.debug("Health id is blank. Hence, not updated.");
@@ -185,6 +184,7 @@ public class PatientPush implements EventWorker {
         PersonAttribute healthIdAttribute = openMrsPatient.getAttribute(HEALTH_ID_ATTRIBUTE);
         if (healthIdAttribute != null && healthId.equals(healthIdAttribute.getValue())) {
             log.debug("OpenMRS patient health id is same as the health id provided. Hence, not updated.");
+            saveOrUpdateIdMapping(openMrsPatient, healthId);
             return;
         }
 
@@ -194,12 +194,11 @@ public class PatientPush implements EventWorker {
             healthIdAttribute.setAttributeType(healthAttrType);
             healthIdAttribute.setValue(healthId);
             openMrsPatient.addAttribute(healthIdAttribute);
-
         } else {
             healthIdAttribute.setValue(healthId);
         }
-        saveOrUpdateIdMapping(openMrsPatient, healthId);
         patientService.savePatient(openMrsPatient);
+        saveOrUpdateIdMapping(openMrsPatient, healthId);
         systemUserService.setOpenmrsShrSystemUserAsCreator(openMrsPatient);
 
         log.debug(String.format("OpenMRS patient updated."));

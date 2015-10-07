@@ -110,6 +110,7 @@ public class PatientPushTest {
 
         patientPush.updateOpenMrsPatientHealthId(openMrsPatient, healthId);
         verify(patientService, never()).savePatient(any(org.openmrs.Patient.class));
+        verify(idMappingsRepository, times(1)).saveOrUpdateMapping(any(IdMapping.class));
     }
 
     @Test
@@ -123,6 +124,7 @@ public class PatientPushTest {
         when(personService.getPersonAttributeTypeByName(HEALTH_ID_ATTRIBUTE)).thenReturn(healthIdAttributeType);
         patientPush.updateOpenMrsPatientHealthId(openMrsPatient, healthId);
         verify(patientService).savePatient(any(org.openmrs.Patient.class));
+        verify(idMappingsRepository, times(1)).saveOrUpdateMapping(any(IdMapping.class));
     }
 
     @Test
@@ -168,6 +170,7 @@ public class PatientPushTest {
 
         verify(mockMciRestClient, times(1))
                 .post(propertiesReader.getMciPatientContext(), patient, MciPatientUpdateResponse.class);
+        verify(idMappingsRepository, times(1)).saveOrUpdateMapping(any(IdMapping.class));
     }
 
     private PersonAttribute createHealthIdAttribute() {

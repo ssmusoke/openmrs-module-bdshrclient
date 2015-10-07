@@ -10,10 +10,8 @@ import org.apache.log4j.Logger;
 import org.openmrs.EncounterProvider;
 import org.openmrs.Location;
 import org.openmrs.Patient;
-import org.openmrs.PersonAttribute;
 import org.openmrs.Provider;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.fhir.utils.OMRSLocationService;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +26,12 @@ public class EncounterMapper {
     @Autowired
     private OMRSLocationService omrsLocationService;
 
-
     private Logger logger = Logger.getLogger(EncounterMapper.class);
-    public Encounter map(org.openmrs.Encounter openMrsEncounter, SystemProperties systemProperties) {
+    public Encounter map(org.openmrs.Encounter openMrsEncounter, String healthId, SystemProperties systemProperties) {
         Encounter encounter = new Encounter();
         encounter.setStatus(EncounterStateEnum.FINISHED);
         setClass(openMrsEncounter, encounter);
-        setPatientReference(openMrsEncounter, encounter, systemProperties);
+        setPatientReference(healthId, encounter, systemProperties);
         setParticipant(openMrsEncounter, encounter, systemProperties);
         encounter.setServiceProvider(getServiceProvider(openMrsEncounter, systemProperties));
         setIdentifiers(encounter, openMrsEncounter, systemProperties);
@@ -83,12 +80,11 @@ public class EncounterMapper {
         return null;
     }
 
-    private void setPatientReference(org.openmrs.Encounter openMrsEncounter, Encounter encounter, SystemProperties systemProperties) {
-        PersonAttribute healthId = openMrsEncounter.getPatient().getAttribute(Constants.HEALTH_ID_ATTRIBUTE);
+    private void setPatientReference(String healthId, Encounter encounter, SystemProperties systemProperties) {
         if (null != healthId) {
             ResourceReferenceDt subject = new ResourceReferenceDt()
-                    .setDisplay(healthId.getValue())
-                    .setReference(getReference(Patient.class, systemProperties, healthId.getValue()));
+                    .setDisplay(healthId)
+                    .setReference(getReference(Patient.class, systemProperties, healthId));
             encounter.setPatient(subject);
         } else {
             throw new RuntimeException("The patient has not been synced yet");

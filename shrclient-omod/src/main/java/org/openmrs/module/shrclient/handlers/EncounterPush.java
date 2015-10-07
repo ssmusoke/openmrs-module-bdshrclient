@@ -2,14 +2,12 @@ package org.openmrs.module.shrclient.handlers;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.exceptions.AtomFeedClientException;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
-import org.openmrs.PersonAttribute;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
 import org.openmrs.module.fhir.utils.Constants;
@@ -72,7 +70,7 @@ public class EncounterPush implements EventWorker {
                 return;
             }
 
-            String healthId = getHealthIdAttribute(openMrsEncounter.getPatient());
+            String healthId = getPatientHealthId(openMrsEncounter.getPatient());
             log.debug("Uploading patient encounter to SHR : [ " + openMrsEncounter.getUuid() + "]");
             String shrEncounterId = mapping != null ? mapping.getExternalId() : null;
             if (shrEncounterId != null) {
@@ -120,7 +118,7 @@ public class EncounterPush implements EventWorker {
         try {
             String encPathPattern = StringUtil.removePrefix(propertiesReader.getShrPatientEncPathPattern(), "/");
             String shrEncounterCreateResponse = shrClient.post(String.format(encPathPattern, healthId),
-                    compositionBundle.create(openMrsEncounter,
+                    compositionBundle.create(openMrsEncounter, healthId,
                             new SystemProperties(propertiesReader.getBaseUrls(),
                                     propertiesReader.getFrProperties(),
                                     propertiesReader.getTrProperties(),
@@ -143,7 +141,7 @@ public class EncounterPush implements EventWorker {
             String encUpdateUrl = String.format("%s/%s", encPath, shrEncounterId);
             shrClient.put(encUpdateUrl,
                     compositionBundle.create(openMrsEncounter,
-                            new SystemProperties(propertiesReader.getBaseUrls(),
+                            healthId, new SystemProperties(propertiesReader.getBaseUrls(),
                                     propertiesReader.getFrProperties(),
                                     propertiesReader.getTrProperties(),
                                     propertiesReader.getPrProperties(),
@@ -169,14 +167,14 @@ public class EncounterPush implements EventWorker {
         return objectMapper;
     }
 
-    private String getHealthIdAttribute(Patient emrPatient) {
-        PersonAttribute healthIdAttribute = emrPatient.getAttribute(Constants.HEALTH_ID_ATTRIBUTE);
-        if ((healthIdAttribute == null) || (StringUtils.isBlank(healthIdAttribute.getValue()))) {
+    private String getPatientHealthId(Patient emrPatient) {
+        IdMapping patientIdMapping = idMappingsRepository.findByInternalId(emrPatient.getUuid());
+        if (patientIdMapping == null) {
             throw new AtomFeedClientException(String.format("Patient [%s] is not yet synced to MCI.",
                     emrPatient.getUuid()));
         }
 
-        return healthIdAttribute.getValue();
+        return patientIdMapping.getExternalId();
     }
 
     private IdMapping getEncounterMapping(Encounter openMrsEncounter) {

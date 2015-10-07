@@ -9,8 +9,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
-import org.openmrs.PersonAttribute;
-import org.openmrs.PersonAttributeType;
 import org.openmrs.User;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
@@ -24,10 +22,8 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
@@ -40,6 +36,8 @@ import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_ID;
 
 public class EncounterPushTest {
 
+    private static final String HEALTH_ID = "1234567890123";
+    private static final String patientUrl = "patients/" + HEALTH_ID + "/encounters";
     @Mock
     private EncounterService encounterService;
 
@@ -90,16 +88,17 @@ public class EncounterPushTest {
         when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
         when(propertiesReader.getShrBaseUrl()).thenReturn("http://172.18.46.54:8080");
 
-
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(shrClient.post(anyString(), eq(bundle))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
-        when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(bundle);
+        when(compositionBundle.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
         when(idMappingsRepository.findByExternalId(facilityId)).thenReturn(null);
+        IdMapping patientIdMapping = new IdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, Constants.ID_MAPPING_PATIENT_TYPE, patientUrl);
+        when(idMappingsRepository.findByInternalId(openMrsEncounter.getPatient().getUuid())).thenReturn(patientIdMapping);
 
         encounterPush.process(event);
 
         verify(encounterService).getEncounterByUuid(uuid);
-        verify(shrClient).post("patients/1234567890123/encounters", bundle);
+        verify(shrClient).post(patientUrl, bundle);
         ArgumentCaptor<IdMapping> idMappingArgumentCaptor = ArgumentCaptor.forClass(IdMapping.class);
         verify(idMappingsRepository).saveOrUpdateMapping(idMappingArgumentCaptor.capture());
 
@@ -107,7 +106,7 @@ public class EncounterPushTest {
         assertEquals("shr-uuid", idmapping.getExternalId());
         assertEquals("shr-uuid", idmapping.getExternalId());
         assertEquals("encounter", idmapping.getType());
-        assertEquals("http://172.18.46.54:8080/patients/1234567890123/encounters/shr-uuid", idmapping.getUri());
+        assertEquals("http://172.18.46.54:8080/patients/" + HEALTH_ID + "/encounters/shr-uuid", idmapping.getUri());
     }
 
     @Test
@@ -125,11 +124,13 @@ public class EncounterPushTest {
         when(propertiesReader.getShrBaseUrl()).thenReturn("http://172.18.46.54:8080");
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid", "encounter", null, openMrsEncounter.getDateCreated()));
-        when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(bundle);
+        when(compositionBundle.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
+        IdMapping patientIdMapping = new IdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, Constants.ID_MAPPING_PATIENT_TYPE, patientUrl);
+        when(idMappingsRepository.findByInternalId(openMrsEncounter.getPatient().getUuid())).thenReturn(patientIdMapping);
 
         encounterPush.process(event);
 
-        verify(shrClient).put("patients/1234567890123/encounters/shr-uuid", bundle);
+        verify(shrClient).put("patients/" + HEALTH_ID + "/encounters/shr-uuid", bundle);
         verify(idMappingsRepository, times(1)).saveOrUpdateMapping(any(IdMapping.class));
 
     }
@@ -147,22 +148,38 @@ public class EncounterPushTest {
 
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid", "encounter", null));
-        when(compositionBundle.create(any(Encounter.class), any(SystemProperties.class))).thenReturn(bundle);
+        when(compositionBundle.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
         when(systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsEncounter)).thenReturn(true);
+        IdMapping patientIdMapping = new IdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, Constants.ID_MAPPING_PATIENT_TYPE, patientUrl);
+        when(idMappingsRepository.findByInternalId(openMrsEncounter.getPatient().getUuid())).thenReturn(patientIdMapping);
 
         encounterPush.process(event);
 
-        verify(shrClient, never()).put("patients/1234567890123/encounters/shr-uuid", bundle);
-        verify(shrClient, never()).post("patients/1234567890123/encounters/shr-uuid", bundle);
+        verify(shrClient, never()).put("patients/" + HEALTH_ID + "/encounters/shr-uuid", bundle);
+        verify(shrClient, never()).post("patients/" + HEALTH_ID + "/encounters/shr-uuid", bundle);
         verify(idMappingsRepository, never()).saveOrUpdateMapping(any(IdMapping.class));
     }
 
     @Test
-    public void shouldGetEncounterUuidFromEventContent() {
+    public void shouldGetEncounterUuidFromEventContent() throws Exception{
         final String uuid = "123abc456";
         final String content = "/openmrs/ws/rest/v1/encounter/" + uuid +
                 "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))";
         assertEquals(uuid, encounterPush.getUuid(content));
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void shouldNotProcessEncounterIfPatientIsNotSynced() throws Exception{
+        final String uuid = "123abc456";
+
+        final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + uuid
+                + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
+        org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter(uuid);
+
+        when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
+        when(idMappingsRepository.findByInternalId(openMrsEncounter.getPatient().getUuid())).thenReturn(null);
+
+        encounterPush.process(event);
     }
 
     private org.openmrs.Encounter getOpenMrsEncounter(String uuid) {
@@ -172,9 +189,6 @@ public class EncounterPushTest {
         openMrsEncounter.setDateCreated(new Date());
         final Patient patient = new Patient();
         openMrsEncounter.setPatient(patient);
-        final PersonAttributeType personAttributeType = new PersonAttributeType();
-        personAttributeType.setName(Constants.HEALTH_ID_ATTRIBUTE);
-        patient.setAttributes(new HashSet<>(Arrays.asList(new PersonAttribute(personAttributeType, "1234567890123"))));
         return openMrsEncounter;
     }
 

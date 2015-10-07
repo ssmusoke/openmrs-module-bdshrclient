@@ -36,7 +36,7 @@ public class EncounterMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldTakeTheLocationIdAsServiceProviderIdWhenLocationIsTaggedAsADGHSFacility() throws Exception {
         Encounter savedEncounter = encounterService.getEncounter(36);
 
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = encounterMapper.map(savedEncounter, getSystemProperties("1"));
+        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
 
         assertEquals("http://hrmtest.dghs.gov.bd/api/1.0/facilities/1300012.json",fhirEncounter.getServiceProvider().getReference().getValue());
     }
@@ -45,7 +45,7 @@ public class EncounterMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldTakeConfiguredFacilityIdAsServiceProviderIdWhenLocationIsNotTaggedAsADGHSFacility() throws Exception {
         Encounter savedEncounter = encounterService.getEncounter(37);
 
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = encounterMapper.map(savedEncounter, getSystemProperties("1"));
+        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
 
         assertEquals("http://hrmtest.dghs.gov.bd/api/1.0/facilities/1.json",fhirEncounter.getServiceProvider().getReference().getValue());
 

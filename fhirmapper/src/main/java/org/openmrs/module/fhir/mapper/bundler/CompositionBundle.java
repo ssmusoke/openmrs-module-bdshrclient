@@ -44,9 +44,9 @@ public class CompositionBundle {
     @Autowired
     private CodeableConceptService codeableConceptService;
 
-    public Bundle create(org.openmrs.Encounter emrEncounter, SystemProperties systemProperties) {
+    public Bundle create(org.openmrs.Encounter emrEncounter, String healthId, SystemProperties systemProperties) {
         Bundle bundle = new Bundle();
-        Encounter fhirEncounter = encounterMapper.map(emrEncounter, systemProperties);
+        Encounter fhirEncounter = encounterMapper.map(emrEncounter, healthId, systemProperties);
         Composition composition = createComposition(emrEncounter.getEncounterDatetime(), fhirEncounter, systemProperties);
         bundle.setType(BundleTypeEnum.COLLECTION);
         //TODO: bundle.setBase("urn:uuid:");
