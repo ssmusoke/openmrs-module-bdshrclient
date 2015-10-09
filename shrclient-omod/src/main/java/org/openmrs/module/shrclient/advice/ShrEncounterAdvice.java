@@ -2,6 +2,7 @@ package org.openmrs.module.shrclient.advice;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.server.repository.jdbc.AllEventRecordsQueueJdbcImpl;
 import org.ict4h.atomfeed.server.service.Event;
 import org.ict4h.atomfeed.server.service.EventService;
@@ -27,6 +28,7 @@ public class ShrEncounterAdvice implements AfterReturningAdvice {
     private final EventService eventService;
     private AtomFeedSpringTransactionManager atomFeedSpringTransactionManager;
     private EncounterAdviceState encounterAdviceState;
+    private static final Logger logger = Logger.getLogger(ShrEncounterAdvice.class);
 
     public ShrEncounterAdvice() {
         atomFeedSpringTransactionManager = findTransactionManager();
@@ -48,6 +50,7 @@ public class ShrEncounterAdvice implements AfterReturningAdvice {
         final boolean alreadyRaisedEvent = encounterAdviceState.hasAlreadyProcessedEncounter((String) encounterUuid);
         if (alreadyRaisedEvent) {
             //we have already raised an event
+            logger.warn("Not creating an Event since it is deduced that its already raised for Encounter:"+encounterUuid);
             return;
         }
 
