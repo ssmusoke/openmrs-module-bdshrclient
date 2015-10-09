@@ -57,7 +57,11 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     @Override
     public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> resources = new ArrayList<>();
-        Immunization immunization = createImmunizationResource(new CompoundObservation(obs), fhirEncounter, systemProperties);
+        CompoundObservation immunizationTemplateObs = new CompoundObservation(obs);
+        Obs obsForConceptName = immunizationTemplateObs.getMemberObsForConceptName(MRS_CONCEPT_IMMUNIZATION_INCIDENT_GROUP);
+        if (obsForConceptName == null) return new ArrayList<>();
+
+        Immunization immunization = createImmunizationResource(new CompoundObservation(obsForConceptName), fhirEncounter, systemProperties);
         if (immunization != null) {
             FHIRResource immunizationResource = new FHIRResource("Immunization", immunization.getIdentifier(), immunization);
             resources.add(immunizationResource);

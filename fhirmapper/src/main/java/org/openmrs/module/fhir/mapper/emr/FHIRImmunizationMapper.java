@@ -40,21 +40,24 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
     public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
         Immunization immunization = (Immunization) resource;
 
-        Obs immunizationIncidentObs = new Obs();
-        immunizationIncidentObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_IMMUNIZATION_INCIDENT_TEMPLATE));
+        Obs immunizationIncidentTmpl = new Obs();
+        immunizationIncidentTmpl.setConcept(conceptService.getConceptByName(MRS_CONCEPT_IMMUNIZATION_INCIDENT_TEMPLATE));
 
-        immunizationIncidentObs.addGroupMember(getVaccinationDate(immunization));
-        immunizationIncidentObs.addGroupMember(getVaccineReported(immunization));
-        immunizationIncidentObs.addGroupMember(getVaccineRefused(immunization));
-        immunizationIncidentObs.addGroupMember(getImmunizationStatus(immunization));
-        immunizationIncidentObs.addGroupMember(getDosage(immunization));
-        immunizationIncidentObs.addGroupMember(getQuantityUnits(immunization));
-        immunizationIncidentObs.addGroupMember(getVaccineCode(immunization));
-        immunizationIncidentObs.addGroupMember(getRoute(immunization));
-        addImmunizationReasons(immunization, immunizationIncidentObs);
-        addImmunizationRefusalReasons(immunization, immunizationIncidentObs);
+        Obs immunizationIncidentGroup = new Obs();
+        immunizationIncidentGroup.setConcept(conceptService.getConceptByName(MRS_CONCEPT_IMMUNIZATION_INCIDENT_GROUP));
+        immunizationIncidentGroup.addGroupMember(getVaccinationDate(immunization));
+        immunizationIncidentGroup.addGroupMember(getVaccineReported(immunization));
+        immunizationIncidentGroup.addGroupMember(getVaccineRefused(immunization));
+        immunizationIncidentGroup.addGroupMember(getImmunizationStatus(immunization));
+        immunizationIncidentGroup.addGroupMember(getDosage(immunization));
+        immunizationIncidentGroup.addGroupMember(getQuantityUnits(immunization));
+        immunizationIncidentGroup.addGroupMember(getVaccineCode(immunization));
+        immunizationIncidentGroup.addGroupMember(getRoute(immunization));
+        addImmunizationReasons(immunization, immunizationIncidentGroup);
+        addImmunizationRefusalReasons(immunization, immunizationIncidentGroup);
 
-        newEmrEncounter.addObs(immunizationIncidentObs);
+        immunizationIncidentTmpl.addGroupMember(immunizationIncidentGroup);
+        newEmrEncounter.addObs(immunizationIncidentTmpl);
     }
 
     private Obs getImmunizationStatus(Immunization immunization) {
@@ -65,7 +68,7 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
         return statusObs;
     }
 
-    private Obs addImmunizationReasons(Immunization immunization, Obs immunizationIncidentObs) {
+    private Obs addImmunizationReasons(Immunization immunization, Obs immunizationIncident) {
         Immunization.Explanation explanation = immunization.getExplanation();
         if (explanation != null && !explanation.isEmpty()) {
             List<BoundCodeableConceptDt<ImmunizationReasonCodesEnum>> reasons = explanation.getReason();
@@ -75,14 +78,14 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
                     Obs immunizationReasonObs = new Obs();
                     immunizationReasonObs.setConcept(immunizationReasonConcept);
                     immunizationReasonObs.setValueCoded(omrsConceptLookup.findConceptByCodeOrDisplay(reason.getCoding()));
-                    immunizationIncidentObs.addGroupMember(immunizationReasonObs);
+                    immunizationIncident.addGroupMember(immunizationReasonObs);
                 }
             }
         }
         return null;
     }
 
-    private Obs addImmunizationRefusalReasons(Immunization immunization, Obs immunizationIncidentObs) {
+    private Obs addImmunizationRefusalReasons(Immunization immunization, Obs immunizationIncident) {
         Immunization.Explanation explanation = immunization.getExplanation();
         if (explanation != null && !explanation.isEmpty()) {
             List<CodeableConceptDt> reasons = explanation.getReasonNotGiven();
@@ -92,7 +95,7 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
                     Obs immunizationRefusalReasonObs = new Obs();
                     immunizationRefusalReasonObs.setConcept(immunizationRefusalReasonConcept);
                     immunizationRefusalReasonObs.setValueCoded(omrsConceptLookup.findConceptByCodeOrDisplay(reason.getCoding()));
-                    immunizationIncidentObs.addGroupMember(immunizationRefusalReasonObs);
+                    immunizationIncident.addGroupMember(immunizationRefusalReasonObs);
                 }
             }
         }
