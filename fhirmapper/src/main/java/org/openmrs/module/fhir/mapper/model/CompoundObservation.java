@@ -26,6 +26,16 @@ public class CompoundObservation {
         return null;
     }
 
+    public List<Obs> getAllObsForConceptName(String conceptName) {
+        List<Obs> obsList = new ArrayList<>();
+        for (Obs groupMember : this.observation.getGroupMembers()) {
+            if (conceptName.equals(groupMember.getConcept().getName().getName())) {
+                obsList.add(groupMember);
+            }
+        }
+        return obsList;
+    }
+
     public Obs getMemberObsForConcept(Concept concept) {
         for (Obs groupMember : this.observation.getGroupMembers()) {
             if (concept.equals(groupMember.getConcept())) {
