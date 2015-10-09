@@ -36,7 +36,6 @@ public class PersonAttributeMapper {
     }
 
     private PersonService getPersonService() {
-
         if(personService == null){
             personService = Context.getPersonService();
         }

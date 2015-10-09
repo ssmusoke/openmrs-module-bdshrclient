@@ -13,6 +13,7 @@ import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.utils.DateUtil;
+import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.Address;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.Status;
@@ -42,18 +43,20 @@ public class PatientMapperTest {
     private AddressHierarchyService addressHierarchyService;
     @Mock
     private SystemProperties systemProperties;
+    @Mock
+    private IdMappingsRepository idMappingRepository;
 
     private AddressHelper addressHelper;
     private BbsCodeService bbsCodeService;
-    private PatientMapper patientMapper;
 
+    private PatientMapper patientMapper;
     private String nationalId = "nid-100";
     private String healthId = "hid-200";
     private String brnId = "brn-200";
     private String occupation = "agriculture";
     private String educationLevel = "6th to 9th";
-    private String houseHoldCode = "house4";
 
+    private String houseHoldCode = "house4";
     private org.openmrs.Patient openMrsPatient;
     private Patient patient;
     private PersonAddress address;
@@ -63,7 +66,7 @@ public class PatientMapperTest {
         initMocks(this);
         this.bbsCodeService = new BbsCodeServiceImpl();
         addressHelper = new AddressHelper(addressHierarchyService);
-        patientMapper = new PatientMapper(bbsCodeService, addressHelper);
+        patientMapper = new PatientMapper(bbsCodeService, addressHelper, idMappingRepository);
         setUpAddressHierarchy();
         setupData();
     }
@@ -84,8 +87,11 @@ public class PatientMapperTest {
 
     @Test
     public void shouldMapRelationsWhenPresent() throws Exception {
-        openMrsPatient.getAttributes().add(createAttribute(FATHER_NAME_ATTRIBUTE_TYPE, "Oh My Daddy"));
-        openMrsPatient.getAttributes().add(createAttribute(SPOUSE_NAME_ATTRIBUTE_TYPE, "OhMyDear"));
+        PersonAttribute fatherAttribute = createAttribute(FATHER_NAME_ATTRIBUTE_TYPE, "Oh My Daddy");
+        openMrsPatient.getAttributes().add(fatherAttribute);
+        PersonAttribute spouseAttribute = createAttribute(SPOUSE_NAME_ATTRIBUTE_TYPE, "OhMyDear");
+        openMrsPatient.getAttributes().add(spouseAttribute);
+
         Patient mappedPatient = patientMapper.map(openMrsPatient, systemProperties);
         org.openmrs.module.shrclient.model.Relation[] mappedRelations = mappedPatient.getRelations();
 
@@ -209,10 +215,10 @@ public class PatientMapperTest {
         return attributes;
     }
 
-    private PersonAttribute createAttribute(String attributeName, String aattributeValue) {
+    private PersonAttribute createAttribute(String attributeName, String attributeValue) {
         final PersonAttributeType attributeType = new PersonAttributeType();
         attributeType.setName(attributeName);
-        return new PersonAttribute(attributeType, aattributeValue);
+        return new PersonAttribute(attributeType, attributeValue);
     }
 
     private List<AddressHierarchyEntry> createAddressHierarchyEntries(String id) {

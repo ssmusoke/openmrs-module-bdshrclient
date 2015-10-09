@@ -30,16 +30,21 @@ public class Relation {
     @JsonInclude(NON_EMPTY)
     private String hid;
 
+    @JsonProperty("id")
+    @JsonInclude(NON_EMPTY)
+    private String id;
+
     public Relation() {
 
     }
 
-    public Relation(String type, String givenName, String surName, String nid, String hid) {
+    public Relation(String type, String givenName, String surName, String nid, String hid, String id) {
         this.type = type;
         this.givenName = givenName;
         this.surName = surName;
         this.nid = nid;
         this.hid = hid;
+        this.id = id;
     }
 
     public String getType() {
@@ -82,6 +87,14 @@ public class Relation {
         this.hid = hid;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -91,6 +104,7 @@ public class Relation {
 
         if (givenName != null ? !givenName.equals(relation.givenName) : relation.givenName != null) return false;
         if (hid != null ? !hid.equals(relation.hid) : relation.hid != null) return false;
+        if (id != null ? !id.equals(relation.id) : relation.id != null) return false;
         if (nid != null ? !nid.equals(relation.nid) : relation.nid != null) return false;
         if (surName != null ? !surName.equals(relation.surName) : relation.surName != null) return false;
         if (type != null ? !type.equals(relation.type) : relation.type != null) return false;
@@ -105,6 +119,7 @@ public class Relation {
         result = 31 * result + (surName != null ? surName.hashCode() : 0);
         result = 31 * result + (nid != null ? nid.hashCode() : 0);
         result = 31 * result + (hid != null ? hid.hashCode() : 0);
+        result = 31 * result + (id != null ? id.hashCode() : 0);
         return result;
     }
 
@@ -116,6 +131,7 @@ public class Relation {
                 ", surName='" + surName + '\'' +
                 ", nid='" + nid + '\'' +
                 ", hid='" + hid + '\'' +
+                ", id='" + id + '\'' +
                 '}';
     }
 }

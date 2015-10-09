@@ -81,4 +81,28 @@ public class IdMapping {
     public void setLastSyncDateTime(Date lastSyncDateTime) {
         this.lastSyncDateTime = lastSyncDateTime;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof IdMapping)) return false;
+
+        IdMapping idMapping = (IdMapping) o;
+
+        if (!externalId.equals(idMapping.externalId)) return false;
+        if (!internalId.equals(idMapping.internalId)) return false;
+        if (!type.equals(idMapping.type)) return false;
+        if (uri != null ? !uri.equals(idMapping.uri) : idMapping.uri != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = internalId.hashCode();
+        result = 31 * result + externalId.hashCode();
+        result = 31 * result + type.hashCode();
+        result = 31 * result + (uri != null ? uri.hashCode() : 0);
+        return result;
+    }
 }

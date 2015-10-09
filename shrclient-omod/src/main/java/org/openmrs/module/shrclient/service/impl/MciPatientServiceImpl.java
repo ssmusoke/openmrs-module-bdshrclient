@@ -4,8 +4,21 @@ import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Composition;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.openmrs.*;
-import org.openmrs.api.*;
+import org.openmrs.Concept;
+import org.openmrs.Encounter;
+import org.openmrs.Obs;
+import org.openmrs.Order;
+import org.openmrs.PatientIdentifier;
+import org.openmrs.PatientIdentifierType;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonName;
+import org.openmrs.api.AdministrationService;
+import org.openmrs.api.ConceptService;
+import org.openmrs.api.ObsService;
+import org.openmrs.api.OrderService;
+import org.openmrs.api.PatientService;
+import org.openmrs.api.PersonService;
+import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.fhir.mapper.MRSProperties;
@@ -25,14 +38,17 @@ import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.MciPatientService;
-import org.openmrs.module.shrclient.util.*;
+import org.openmrs.module.shrclient.util.AddressHelper;
+import org.openmrs.module.shrclient.util.PropertiesReader;
+import org.openmrs.module.shrclient.util.StringUtil;
+import org.openmrs.module.shrclient.util.SystemProperties;
+import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 import static org.openmrs.module.fhir.mapper.model.Confidentiality.getConfidentiality;
@@ -42,7 +58,7 @@ import static org.openmrs.module.fhir.utils.Constants.*;
 public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPatientService {
     private static final String DOB_TYPE_DECLARED = "1";
     private static final String DOB_TYPE_ESTIMATED = "3";
-    
+
     private static final Logger logger = Logger.getLogger(MciPatientServiceImpl.class);
     public static final String REGEX_TO_MATCH_MULTIPLE_WHITE_SPACE = "\\s+";
 
@@ -137,10 +153,9 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
         Date dob = mciPatient.getDateOfBirth();
         emrPatient.setBirthdate(dob);
-        if (DOB_TYPE_ESTIMATED.equals(mciPatient.getDobType())){
+        if (DOB_TYPE_ESTIMATED.equals(mciPatient.getDobType())) {
             emrPatient.setBirthdateEstimated(Boolean.TRUE);
-        }
-        else {
+        } else {
             emrPatient.setBirthdateEstimated(Boolean.FALSE);
         }
 
@@ -151,10 +166,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     private void mapRelations(org.openmrs.Patient emrPatient, Patient mciPatient) {
-        Set<PersonAttribute> relations = new RelationshipMapper().map(mciPatient.getRelations());
-        for (PersonAttribute relation : relations) {
-            emrPatient.addAttribute(relation);
-        }
+        new RelationshipMapper().addRelationAttributes(mciPatient.getRelations(), emrPatient, idMappingsRepository);
     }
 
     @Override
@@ -311,7 +323,8 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         String confidentialityCode = composition.getConfidentiality();
         if (null == confidentialityCode) {
             return Confidentiality.Normal;
-        };
+        }
+        ;
         return getConfidentiality(confidentialityCode);
     }
 

@@ -707,4 +707,10 @@
             <column name="uuid" valueComputed="uuid()"/>
         </insert>
     </changeSet>
+    <changeSet id="bdshrclient-09102015-1504" author="Neha" context="setup">
+        <comment>Increasing length of internal id column</comment>
+        <modifyDataType tableName="shr_id_mapping"
+                        columnName="internal_id"
+                        newDataType="varchar(100)" />
+    </changeSet>
 </databaseChangeLog>
