@@ -1,6 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
@@ -136,10 +137,10 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldMapFollowUp() throws Exception {
         Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
         assertEquals(1, procedure.getFollowUp().size());
-        CodingDt followUpCoding = procedure.getFollowUp().get(0).getCoding().get(0);
-        assertEquals("385669000", followUpCoding.getCode());
-        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Procedure-Followup", followUpCoding.getSystem());
-        assertEquals("Change of dressing", followUpCoding.getDisplay());
+        CodeableConceptDt followUpCode = procedure.getFollowUp().get(0);
+        assertEquals(2, followUpCode.getCoding().size());
+        assertTrue(containsCoding(followUpCode.getCoding(), "18949003", "http://tr.com/12345", "Change of dressing"));
+        assertTrue(containsCoding(followUpCode.getCoding(), "6831", "http://tr.com/6831", "Change of dressing"));
     }
 
     @Test
@@ -215,29 +216,14 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         List<CodingDt> codings = diagnosticReport.getCodedDiagnosis().get(0).getCoding();
         assertTrue(codings.size() == 2);
 
-        CodingDt referenceTermCoding = codings.get(0);
-        assertEquals("http://tr.com/Viral-Pneumonia-LOINC", referenceTermCoding.getSystem());
-        assertEquals("Viral pneumonia 406475", referenceTermCoding.getDisplay());
-        assertEquals("J19.406475", referenceTermCoding.getCode());
-
-        CodingDt termCoding = codings.get(1);
-        assertEquals("http://tr.com/Viral-Pneumonia", termCoding.getSystem());
-        assertEquals("Viral pneumonia 406475", termCoding.getDisplay());
-        assertEquals("Viral-Pneumonia", termCoding.getCode());
+        assertTrue(containsCoding(codings, "J19.406475", "http://tr.com/Viral-Pneumonia-LOINC", "Viral pneumonia 406475"));
+        assertTrue(containsCoding(codings, "Viral-Pneumonia", "http://tr.com/Viral-Pneumonia", "Viral pneumonia 406475"));
     }
 
     private void assertTestCoding(List<CodingDt> codings) {
         assertTrue(codings.size() == 2);
-
-        CodingDt referenceTermCoding = codings.get(0);
-        assertEquals("Test A", referenceTermCoding.getDisplay());
-        assertEquals("http://tr.com/Test-A-LOINC", referenceTermCoding.getSystem());
-        assertEquals("Test A-LOINC", referenceTermCoding.getCode());
-
-        CodingDt termCoding = codings.get(1);
-        assertEquals("Test A", termCoding.getDisplay());
-        assertEquals("http://tr.com/Test-A", termCoding.getSystem());
-        assertEquals("Test A", termCoding.getCode());
+        assertTrue(containsCoding(codings, "Test A-LOINC", "http://tr.com/Test-A-LOINC", "Test A"));
+        assertTrue(containsCoding(codings, "Test A", "http://tr.com/Test-A", "Test A"));
     }
 
     private List<FHIRResource> mapProcedure(int observationId, Encounter fhirEncounter) {
@@ -253,5 +239,16 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         participant.setIndividual(new ResourceReferenceDt().setReference("Provider 1"));
         fhirEncounter.setId("urn:uuid:6d0af6767-707a-4629-9850-f15206e63ab0");
         return fhirEncounter;
+    }
+
+    private boolean containsCoding(List<CodingDt> coding, String code, String system, String display) {
+        for (CodingDt codingDt : coding) {
+            if(codingDt.getCode().equals(code)
+                    && codingDt.getSystem().equals(system)
+                    && codingDt.getDisplay().equals(display)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

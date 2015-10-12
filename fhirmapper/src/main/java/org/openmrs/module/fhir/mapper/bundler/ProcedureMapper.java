@@ -74,7 +74,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
             procedure.setCode(procedureType);
             setIdentifier(obs, systemProperties, procedure);
             procedure.setOutcome(getProcedureOutcome(compoundObservationProcedure, systemProperties));
-            procedure.setFollowUp(getProcedureFollowUp(compoundObservationProcedure, systemProperties));
+            procedure.setFollowUp(getProcedureFollowUp(compoundObservationProcedure));
             procedure.setStatus(getProcedureStatus(compoundObservationProcedure));
             procedure.setNotes(getProcedureNotes(compoundObservationProcedure));
             procedure.setPerformed(getProcedurePeriod(compoundObservationProcedure));
@@ -144,16 +144,14 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         return null;
     }
 
-    private List<CodeableConceptDt> getProcedureFollowUp(CompoundObservation compoundObservationProcedure, SystemProperties systemProperties) {
-        Concept followUpConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.PROCEDURE_FOLLOWUP);
-        List<Obs> followupObses = compoundObservationProcedure.findAllMemberObsForConcept(followUpConcept);
+    private List<CodeableConceptDt> getProcedureFollowUp(CompoundObservation compoundObservationProcedure) {
+        List<Obs> followupObses = compoundObservationProcedure.findAllMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_FOLLOWUP);
         List<CodeableConceptDt> followUpCodeableConcepts = new ArrayList<>();
         for (Obs followupObs : followupObses) {
-            followUpCodeableConcepts.add(codeableConceptService.getTRValueSetCodeableConcept(followupObs.getValueCoded(), TrValueSetType.PROCEDURE_FOLLOWUP.getTrPropertyValueSetUrl(systemProperties)));
+            followUpCodeableConcepts.add(codeableConceptService.addTRCodingOrDisplay(followupObs.getValueCoded(), idMappingsRepository));
         }
         return followUpCodeableConcepts.isEmpty() ? null : followUpCodeableConcepts;
     }
-
 
     private PeriodDt getProcedurePeriod(CompoundObservation compoundObservationProcedure) {
         Obs startDateObs = compoundObservationProcedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_START_DATE);

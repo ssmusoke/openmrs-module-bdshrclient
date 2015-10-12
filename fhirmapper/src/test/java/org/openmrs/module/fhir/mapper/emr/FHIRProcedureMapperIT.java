@@ -34,9 +34,9 @@ import static org.openmrs.module.fhir.mapper.MRSProperties.*;
 public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
-    FHIRProcedureMapper fhirProcedureMapper;
+    private FHIRProcedureMapper fhirProcedureMapper;
     @Autowired
-    ConceptService conceptService;
+    private ConceptService conceptService;
     @Autowired
     private ApplicationContext springContext;
 
@@ -93,7 +93,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldMapFollowUp() throws Exception {
         Obs proceduresObs = mapProceduresObs();
-        Obs followUpObs = obsHelper.findMemberObsByConceptName(proceduresObs, TrValueSetType.PROCEDURE_FOLLOWUP.getDefaultConceptName());
+        Obs followUpObs = obsHelper.findMemberObsByConceptName(proceduresObs, MRS_CONCEPT_PROCEDURE_FOLLOWUP);
         assertEquals(conceptService.getConcept(607), followUpObs.getValueCoded());
     }
 

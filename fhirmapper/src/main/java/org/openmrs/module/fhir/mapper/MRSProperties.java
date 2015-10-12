@@ -44,21 +44,22 @@ public class MRSProperties {
     public static final String MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_TEST = "Procedure Diagnostic Test";
     public static final String MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_RESULT = "Procedure Diagnostic Result";
     public static final String MRS_CONCEPT_PROCEDURE_NOTES = "Procedure Notes";
+    public static final String MRS_CONCEPT_PROCEDURE_FOLLOWUP = "Procedure Followup";
 
     public static final String MRS_CONCEPT_NAME_LAB_NOTES = "LAB_NOTES";
+
     public static final String MRS_CARE_SETTING_FOR_OUTPATIENT = "Outpatient";
 
     public static final String MRS_CARE_SETTING_FOR_INPATIENT = "Inpatient";
 
     public static final String MRS_ENC_TYPE_LAB_RESULT = "LAB_RESULT";
-
     public static final String MRS_CONCEPT_CLASS_LAB_SET = "LabSet";
+
     public static final String MRS_DRUG_ORDER_TYPE = "Drug Order";
 
     public static final String MRS_LAB_ORDER_TYPE = "Lab Order";
 
     public static final String DRUG_ORDER_QUANTITY_UNITS_CONCEPT_NAME = "Unit(s)";
-
     public static final String TR_VALUESET_RELATIONSHIP_TYPE = "Relationship Type";
     public static final String TR_VALUESET_QUANTITY_UNITS = "Quantity Units";
     public static final String TR_VALUESET_IMMUNIZATION_REASON = "Immunization Reason";
@@ -66,7 +67,6 @@ public class MRSProperties {
     public static final String TR_VALUESET_ROUTE_OF_ADMINSTRATION = "Route of Administration";
     public static final String TR_VALUESET_IMMUNIZATION_STATUS = "Immunization Status";
     public static final String TR_VALUESET_PROCEDURE_OUTCOME = "Procedure Outcome";
-    public static final String TR_VALUESET_PROCEDURE_FOLLOWUP = "Procedure Followup";
     public static final String TR_VALUESET_PROCEDURE_STATUS = "Procedure Status";
 
     public static final String TR_CONCEPT_CAUSE_OF_DEATH = "Cause of Death";
@@ -78,7 +78,6 @@ public class MRSProperties {
     public static final String GLOBAL_PROPERTY_CONCEPT_IMMUNIZATION_REFUSAL_REASON = "shr.concept.immunizationRefusalReason";
     public static final String GLOBAL_PROPERTY_CONCEPT_ROUTE_OF_ADMINISTRATION = "shr.concept.routeOfAdministration";
     public static final String GLOBAL_PROPERTY_CONCEPT_PROCEDURE_OUTCOME = "shr.concept.procedureOutcome";
-    public static final String GLOBAL_PROPERTY_CONCEPT_PROCEDURE_FOLLOWUP = "shr.concept.procedureFollowUp";
     public static final String GLOBAL_PROPERTY_CONCEPT_PROCEDURE_STATUS = "shr.concept.procedureStatus";
     public static final String GLOBAL_PROPERTY_CONCEPT_IMMUNIZATION_STATUS = "shr.concept.immunizationStatus";
 

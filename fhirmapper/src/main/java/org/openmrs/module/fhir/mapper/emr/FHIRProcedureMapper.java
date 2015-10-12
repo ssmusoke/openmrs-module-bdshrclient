@@ -87,7 +87,7 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
         diagnosisStudyObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_STUDY));
 
         Obs diagnosticTest = mapObservationForConcept(diagnosticReport.getCode(), MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_TEST);
-        diagnosisStudyObs.addGroupMember(diagnosticTest);
+        if (diagnosticTest != null) diagnosisStudyObs.addGroupMember(diagnosticTest);
 
         addDiagnosticResults(diagnosticReport, bundle, diagnosisStudyObs);
         addCodedDiagnoses(diagnosticReport, diagnosisStudyObs);
@@ -97,7 +97,7 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
     private void addCodedDiagnoses(DiagnosticReport diagnosticReport, Obs diagnosisStudyObs) {
         for (CodeableConceptDt diagnosis : diagnosticReport.getCodedDiagnosis()) {
             Obs diagnosisObs = mapObservationForConcept(diagnosis, MRS_CONCEPT_PROCEDURE_DIAGNOSIS);
-            diagnosisStudyObs.addGroupMember(diagnosisObs);
+            if (diagnosisObs != null) diagnosisStudyObs.addGroupMember(diagnosisObs);
         }
     }
 
@@ -151,17 +151,20 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
 
     private void setFollowUpObses(Procedure procedure, Obs procedureObs) {
         for (CodeableConceptDt followUp : procedure.getFollowUp()) {
-            Obs followUpObs = new Obs();
-            followUpObs.setConcept(omrsConceptLookup.findTRConceptOfType(TrValueSetType.PROCEDURE_FOLLOWUP));
-            followUpObs.setValueCoded(omrsConceptLookup.findConceptByCodeOrDisplay(followUp.getCoding()));
-            procedureObs.addGroupMember(followUpObs);
+            Obs followUpObs = mapObservationForConcept(followUp, MRS_CONCEPT_PROCEDURE_FOLLOWUP);
+            if (followUpObs != null) procedureObs.addGroupMember(followUpObs);
         }
     }
 
     private Obs mapObservationForConcept(CodeableConceptDt codeableConcept, String conceptName) {
-        Obs obs = new Obs();
-        obs.setConcept(conceptService.getConceptByName(conceptName));
-        obs.setValueCoded(omrsConceptLookup.findConceptByCodeOrDisplay(codeableConcept.getCoding()));
-        return obs;
+        Concept concept = conceptService.getConceptByName(conceptName);
+        Concept answerConcept = omrsConceptLookup.findConceptByCodeOrDisplay(codeableConcept.getCoding());
+        if (concept != null && answerConcept != null) {
+            Obs obs = new Obs();
+            obs.setConcept(concept);
+            obs.setValueCoded(answerConcept);
+            return obs;
+        }
+        return null;
     }
 }

@@ -713,4 +713,11 @@
                         columnName="internal_id"
                         newDataType="varchar(100)" />
     </changeSet>
+    <changeSet id="bdshrclient-12102015-1212" author="Neha" context="setup">
+        <comment>Deleting valueset procedure followup global property</comment>
+        <sql>
+            delete from global_property where
+            property='shr.concept.procedureFollowUp';
+        </sql>
+    </changeSet>
 </databaseChangeLog>
