@@ -7,6 +7,7 @@ import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.FamilyMemberHistory;
+import ca.uhn.fhir.model.dstu2.valueset.FamilyHistoryStatusEnum;
 import ca.uhn.fhir.model.primitive.DateDt;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +66,7 @@ public class FamilyMemberHistoryMapper implements EmrObsResourceHandler {
     private FamilyMemberHistory createFamilyMemberHistory(Obs person, Encounter fhirEncounter, SystemProperties systemProperties) {
         FamilyMemberHistory familyMemberHistory = new FamilyMemberHistory();
         familyMemberHistory.setPatient(fhirEncounter.getPatient());
-        familyMemberHistory.setStatus("partial");
+        familyMemberHistory.setStatus(FamilyHistoryStatusEnum.PARTIAL);
         String familyMemberHistoryId = new EntityReference().build(Obs.class, systemProperties, person.getUuid());
         familyMemberHistory.addIdentifier().setValue(familyMemberHistoryId);
         familyMemberHistory.setId(familyMemberHistoryId);
