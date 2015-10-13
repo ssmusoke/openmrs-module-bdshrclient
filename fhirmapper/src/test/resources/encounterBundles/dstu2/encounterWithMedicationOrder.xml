@@ -106,11 +106,11 @@
                 <dosageInstruction>
                     <timing>
                         <repeat>
-                            <boundsDuration>
+                            <boundsQuantity>
                                 <value value="10"/>
                                 <system value="http://unitsofmeasure.org"/>
                                 <code value="wk"/>
-                            </boundsDuration>
+                            </boundsQuantity>
                             <frequency value="2"/>
                             <period value="1"/>
                             <periodUnits value="wk"/>

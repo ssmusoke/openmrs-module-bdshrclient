@@ -4,7 +4,6 @@ import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openmrs.DrugOrder;
 import org.openmrs.Encounter;
@@ -57,7 +56,6 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
     }
 
     @Test
-    @Ignore
     public void shouldMapMedicationToDrug() throws Exception {
         Order order = getOrder(medicationOrderBundle, medicationOrder);
         assertTrue(order instanceof DrugOrder);
@@ -68,14 +66,12 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
     }
 
     @Test
-    @Ignore
     public void shouldMapProviderToDrug() throws Exception {
         Order order = getOrder(medicationOrderBundle, medicationOrder);
         assertThat(order.getOrderer().getProviderId(), is(22));
     }
 
     @Test
-    @Ignore
     public void shouldSetCareSettingAndNumRefills() throws Exception {
         Order order = getOrder(medicationOrderBundle, medicationOrder);
         assertEquals("OutPatient", order.getCareSetting().getName());
@@ -83,7 +79,6 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
     }
 
     @Test
-    @Ignore
     public void shouldMapPatient() throws Exception {
         Encounter mappedEncounter = new Encounter();
         Patient patient = new Patient();
@@ -98,7 +93,6 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
     }
 
     @Test
-    @Ignore
     public void shouldMapDurationAndScheduledDateToDrug() throws Exception {
         Bundle bundle = (Bundle) mapperTestHelper.loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithMedicationOrderWithScheduledDate.xml", springContext);
         MedicationOrder resource = (MedicationOrder) FHIRFeedHelper.identifyResource(bundle.getEntry(), new MedicationOrder().getResourceName());
@@ -112,7 +106,6 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
     }
 
     @Test
-    @Ignore
     public void shouldMapDrugRouteAndAsNeeded() throws Exception {
         Order order = getOrder(medicationOrderBundle, medicationOrder);
         assertTrue(order instanceof DrugOrder);
@@ -123,7 +116,6 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
     }
 
     @Test
-    @Ignore
     public void shouldMapDrugDosageAndFrequency() throws Exception {
         Order order = getOrder(medicationOrderBundle, medicationOrder);
         assertTrue(order instanceof DrugOrder);
