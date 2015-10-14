@@ -720,4 +720,18 @@
             property='shr.concept.procedureFollowUp';
         </sql>
     </changeSet>
+    <changeSet id="bdshrclient-15102015-1729" author="Dubey,sukreet" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from global_property where
+                property='shr.ignoreConceptList';
+            </sqlCheck>
+        </preConditions>
+        <comment>Adding a global property which saves the concept ids for ignored concepts</comment>
+        <insert tableName="global_property">
+            <column name="property" value="shr.ignoreConceptList"/>
+            <column name="description" value="Comma separated ignored concept ids"/>
+            <column name="uuid" valueComputed="uuid()"/>
+        </insert>
+    </changeSet>
 </databaseChangeLog>

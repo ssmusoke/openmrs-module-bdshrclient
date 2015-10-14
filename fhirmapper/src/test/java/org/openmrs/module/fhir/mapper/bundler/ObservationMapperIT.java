@@ -59,15 +59,80 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
             assertTrue(isNotEmpty(observation.getCode().getCoding()));
             assertObservation(observation);
             if (FHIRResource.getResourceName().equals("Vitals")) {
-                assertVitalsObservation(observation);
+                assertVitalsObservation(observation, 2);
             } else if (FHIRResource.getResourceName().equals("Blood Pressure")) {
-                assertBloodPressureObservation(observation);
+                assertBloodPressureObservation(observation, 1);
             } else if (FHIRResource.getResourceName().equals("Diastolic")) {
                 assertDiastolicObservation(observation);
             } else if (FHIRResource.getResourceName().equals("Pulse")) {
                 assertPulseObservation(observation);
             }
         }
+    }
+
+    @Test
+    public void shouldNotMapAllIgnoredObservation() throws Exception {
+        executeDataSet("testDataSets/globalProperties/ignoreConceptListForDiastolicAndPulse.xml");
+        int numberOfObsAsserted = 0;
+        Obs vitalsObs = obsService.getObs(11);
+        assertTrue(observationMapper.canHandle(vitalsObs));
+
+        Encounter fhirEncounter = new Encounter();
+        fhirEncounter.addParticipant().setIndividual(new ResourceReferenceDt().setReference(prUrl).setDisplay(prDisplay));
+        List<FHIRResource> FHIRResources = observationMapper.map(vitalsObs, fhirEncounter, getSystemProperties("1"));
+        assertEquals(2, FHIRResources.size());
+        for (FHIRResource FHIRResource : FHIRResources) {
+            Observation observation = (Observation) FHIRResource.getResource();
+            assertTrue(isNotEmpty(observation.getCode().getCoding()));
+            assertObservation(observation);
+            if (FHIRResource.getResourceName().equals("Vitals")) {
+                assertVitalsObservation(observation, 1);
+                numberOfObsAsserted++;
+            } else if (FHIRResource.getResourceName().equals("Blood Pressure")) {
+                assertBloodPressureObservation(observation, 0);
+                numberOfObsAsserted++;
+            }
+        }
+        assertEquals(2, numberOfObsAsserted);
+    }
+
+    @Test
+    public void shouldNotMapAnIgnoredObservationAndItsChildren() throws Exception {
+        executeDataSet("testDataSets/globalProperties/ignoreConceptListForBP.xml");
+        int numberOfObsAsserted = 0;
+        Obs vitalsObs = obsService.getObs(11);
+        assertTrue(observationMapper.canHandle(vitalsObs));
+
+        Encounter fhirEncounter = new Encounter();
+        fhirEncounter.addParticipant().setIndividual(new ResourceReferenceDt().setReference(prUrl).setDisplay(prDisplay));
+        List<FHIRResource> FHIRResources = observationMapper.map(vitalsObs, fhirEncounter, getSystemProperties("1"));
+        assertEquals(2, FHIRResources.size());
+        for (FHIRResource FHIRResource : FHIRResources) {
+            Observation observation = (Observation) FHIRResource.getResource();
+            assertTrue(isNotEmpty(observation.getCode().getCoding()));
+            assertObservation(observation);
+            if (FHIRResource.getResourceName().equals("Vitals")) {
+                assertVitalsObservation(observation, 1);
+                numberOfObsAsserted++;
+            } else if (FHIRResource.getResourceName().equals("Pulse")) {
+                assertPulseObservation(observation);
+                numberOfObsAsserted++;
+            }
+        }
+        assertEquals(2, numberOfObsAsserted);
+    }
+
+    @Test
+    public void shouldNotMapRootLevelIgnoredObservations() throws Exception {
+        executeDataSet("testDataSets/globalProperties/ignoreConceptListForVitals.xml");
+        Obs vitalsObs = obsService.getObs(11);
+        assertTrue(observationMapper.canHandle(vitalsObs));
+
+
+        Encounter fhirEncounter = new Encounter();
+        fhirEncounter.addParticipant().setIndividual(new ResourceReferenceDt().setReference(prUrl).setDisplay(prDisplay));
+        List<FHIRResource> FHIRResources = observationMapper.map(vitalsObs, fhirEncounter, getSystemProperties("1"));
+        assertTrue(isEmpty(FHIRResources));
     }
 
     private void assertObservation(Observation observation) {
@@ -99,20 +164,20 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
         assertTrue(isEmpty(observation.getRelated()));
     }
 
-    private void assertBloodPressureObservation(Observation observation) {
+    private void assertBloodPressureObservation(Observation observation, int expectedRelatedSize) {
         List<CodingDt> coding = observation.getCode().getCoding();
         assertEquals(1, coding.size());
         assertTrue(null == coding.get(0).getCode());
         assertTrue(null == coding.get(0).getSystem());
         assertEquals("Blood Pressure", coding.get(0).getDisplay());
-        assertEquals(1, observation.getRelated().size());
+        assertEquals(expectedRelatedSize, observation.getRelated().size());
     }
 
-    private void assertVitalsObservation(Observation observation) {
+    private void assertVitalsObservation(Observation observation, int expectedRelatedSize) {
         List<CodingDt> coding = observation.getCode().getCoding();
         assertEquals(1, coding.size());
         assertTrue(assertCoding(coding.get(0), "101", "/concepts/101"));
-        assertEquals(2, observation.getRelated().size());
+        assertEquals(expectedRelatedSize, observation.getRelated().size());
     }
 
     private boolean assertCoding(CodingDt code, String expectedCode, String expectedSystem) {

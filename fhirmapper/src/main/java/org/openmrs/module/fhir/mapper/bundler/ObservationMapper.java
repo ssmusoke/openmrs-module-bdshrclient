@@ -10,12 +10,15 @@ import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Obs;
+import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.RelatedObservation;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_ENC_TYPE_LAB_RESULT;
 import static org.openmrs.module.fhir.mapper.model.ObservationType.*;
 
@@ -33,12 +37,14 @@ public class ObservationMapper implements EmrObsResourceHandler {
     private ObservationValueMapper observationValueMapper;
     private IdMappingsRepository idMappingsRepository;
     private final CodeableConceptService codeableConceptService;
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Autowired
-    public ObservationMapper(ObservationValueMapper observationValueMapper, IdMappingsRepository idMappingsRepository, CodeableConceptService codeableConceptService) {
+    public ObservationMapper(ObservationValueMapper observationValueMapper, IdMappingsRepository idMappingsRepository, CodeableConceptService codeableConceptService, GlobalPropertyLookUpService globalPropertyLookUpService) {
         this.observationValueMapper = observationValueMapper;
         this.idMappingsRepository = idMappingsRepository;
         this.codeableConceptService = codeableConceptService;
+        this.globalPropertyLookUpService = globalPropertyLookUpService;
     }
 
     @Override
@@ -62,10 +68,23 @@ public class ObservationMapper implements EmrObsResourceHandler {
     @Override
     public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> result = new ArrayList<>();
-        if (null != obs) {
+
+        if (null != obs && !hasIgnoredConcept(obs)) {
             result = mapToFhirObservation(obs, fhirEncounter, systemProperties);
         }
         return result;
+    }
+
+    private boolean hasIgnoredConcept(Obs obs) {
+        String globalPropertyValue = globalPropertyLookUpService.getGlobalPropertyValue(MRSProperties.GLOBAL_PROPERTY_IGNORED_CONCEPT_LIST);
+        if (StringUtils.isBlank(globalPropertyValue)) return false;
+        List<String> conceptIds = asList(StringUtils.split(globalPropertyValue, ","));
+        for (String conceptId : conceptIds) {
+            if(obs.getConcept().getId().equals(Integer.parseInt(conceptId.trim()))){
+                return true;
+            }
+        }
+        return false;
     }
 
     public List<FHIRResource> mapToFhirObservation(Obs observation, Encounter fhirEncounter, SystemProperties systemProperties) {
@@ -113,6 +132,9 @@ public class ObservationMapper implements EmrObsResourceHandler {
     }
 
     private void mapGroupMember(Obs obs, Encounter fhirEncounter, Observation parentObservation, List<FHIRResource> result, SystemProperties systemProperties) {
+        if (hasIgnoredConcept(obs)) {
+            return;
+        }
         FHIRResource entry = mapObservation(obs, fhirEncounter, systemProperties);
         Observation observation = (Observation) entry.getResource();
         mapRelatedObservation(observation).mergeWith(parentObservation, systemProperties);

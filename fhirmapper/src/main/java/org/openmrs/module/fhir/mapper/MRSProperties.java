@@ -81,6 +81,8 @@ public class MRSProperties {
     public static final String GLOBAL_PROPERTY_CONCEPT_PROCEDURE_STATUS = "shr.concept.procedureStatus";
     public static final String GLOBAL_PROPERTY_CONCEPT_IMMUNIZATION_STATUS = "shr.concept.immunizationStatus";
 
+    public static final String GLOBAL_PROPERTY_IGNORED_CONCEPT_LIST = "shr.ignoreConceptList";
+
     public static final String GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH = "concept.causeOfDeath";
     public static final String GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH = "concept.unspecifiedCauseOfDeath";
 
