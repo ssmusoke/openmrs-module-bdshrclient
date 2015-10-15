@@ -103,7 +103,15 @@
                         <display value="Lactic Acid"/>
                     </coding>
                 </medicationCodeableConcept>
+                <note value="additional instructions notes"/>
                 <dosageInstruction>
+                    <additionalInstructions>
+                        <coding>
+                            <system value="/concepts/1101"/>
+                            <code value="1101"/>
+                            <display value="As directed"/>
+                        </coding>
+                    </additionalInstructions>
                     <timing>
                         <repeat>
                             <boundsQuantity>
@@ -119,17 +127,23 @@
                     <asNeededBoolean value="true"/>
                     <route>
                         <coding>
-                            <system value="http://localhost:9080/openmrs/concepts/1011" />
-                            <code value="1011" />
+                            <system value="http://localhost:9080/openmrs/concepts/1011"/>
+                            <code value="1011"/>
                             <display value="Oral"/>
                         </coding>
                     </route>
                     <doseQuantity>
-                        <system value="http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Quantity-Units" />
-                        <code value="mg" />
                         <value value="10"/>
+                        <system value="http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Quantity-Units"/>
+                        <code value="mg"/>
                     </doseQuantity>
                 </dosageInstruction>
+                <dispenseRequest>
+                    <quantity>
+                        <value value="192.0"/>
+                        <unit value="mg"/>
+                    </quantity>
+                </dispenseRequest>
             </MedicationOrder>
         </resource>
     </entry>

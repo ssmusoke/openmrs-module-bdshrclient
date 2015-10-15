@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import static org.openmrs.module.fhir.MapperTestHelper.containsCoding;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 import static org.openmrs.module.fhir.TestFhirFeedHelper.getResourceByReference;
 import static org.openmrs.module.fhir.TestFhirFeedHelper.getResourceByType;
@@ -249,16 +250,5 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         participant.setIndividual(new ResourceReferenceDt().setReference("Provider 1"));
         fhirEncounter.setId("urn:uuid:6d0af6767-707a-4629-9850-f15206e63ab0");
         return fhirEncounter;
-    }
-
-    private boolean containsCoding(List<CodingDt> coding, String code, String system, String display) {
-        for (CodingDt codingDt : coding) {
-            if(codingDt.getCode().equals(code)
-                    && codingDt.getSystem().equals(system)
-                    && codingDt.getDisplay().equals(display)) {
-                return true;
-            }
-        }
-        return false;
     }
 }

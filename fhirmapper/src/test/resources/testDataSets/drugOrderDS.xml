@@ -78,39 +78,59 @@
     <shr_id_mapping id="805" internal_id="7h7379ba-eee8-a1a3-bh2b-a8a02a1vava5" external_id="805" type="concept"
                     uri="/concepts/805"></shr_id_mapping>
     <!--Creating Units-->
-    <concept concept_id="307" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
+
+    <!--creating valuesets for dose units-->
+    <concept concept_id="1207" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4xv3-bz88-8z22a1dx1zt"/>
-    <concept_name concept_name_id="307" concept_id="307" name="Quantity Units" locale="en" creator="1"
+    <concept_name concept_name_id="1207" concept_id="1207" name="Quantity Units" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazhyu-e1y4-5zz0-z9z6-bc4335851j1i"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <shr_id_mapping id="50" internal_id="juydg80f-1yz9-4xv3-bz88-8z22a1dx1zt" external_id="150" type="concept"
                     uri="/concepts/150"></shr_id_mapping>
-    <concept_set concept_set_id="815" concept_id="50" concept_set="307" creator="1"
-                 date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
 
-    <shr_id_mapping id="50" internal_id="557b9699-68a3-11e3-bd76-0800271c1b75" external_id="50" type="concept"
-                    uri="/concepts/50"></shr_id_mapping>
+    <concept concept_id="1208" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
+             date_created="2004-08-12 00:00:00.0"
+             version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4xv3-bz88-cz2ca1cx1zz"/>
+    <concept_name concept_name_id="1208" concept_id="1208" name="Orderable Drug Forms" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazhyu-e1y4-5zz0-z9z6-bc433585zj1z"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <shr_id_mapping id="50" internal_id="juydg80f-1yz9-4xv3-bz88-cz2ca1cx1zz" external_id="150" type="concept"
+                    uri="/concepts/150"></shr_id_mapping>
+    <!--creating valuesets for dose units-->
 
     <!-- Creating dose-->
-    <concept concept_id="307" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
-             date_created="2004-08-12 00:00:00.0"
-             version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4xv3-bz88-8z22a1dx1zt"/>
-    <concept_name concept_name_id="307" concept_id="307" name="Quantity Units" locale="en" creator="1"
-                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazhyu-e1y4-5zz0-z9z6-bc4335851j1i"
-                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <shr_id_mapping id="50" internal_id="557b9699-68a3-11e3-bd76-0800271c1b75" external_id="50" type="concept"
                     uri="/concepts/50"></shr_id_mapping>
+    <concept_set concept_set_id="815" concept_id="50" concept_set="1207" creator="1"
+                 date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
 
     <concept concept_id="806" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1"
              date_created="2005-01-01 00:00:00.0" uuid="7h7379ba-eee8-a1a3-bh2b-a8a02a1vafyl"/>
     <concept_name concept_name_id="806" concept_id="806" name="Thousand Units" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="g3zazzv9-e1w4-41d4-b2d6-bc4335835bbe"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
-    <concept_name concept_name_id="806" concept_id="806" name="TU" locale="en" creator="1"
-                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="g3zazzv9-e1w4-41d4-b2d6-bc4335835bbe"
+    <concept_name concept_name_id="1806" concept_id="806" name="TU" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="g3zazzv9-e1w4-41d4-b2d6-bc43x58x5bbe"
                   concept_name_type="SHORT" locale_preferred="0"/>
+    <concept_set concept_set_id="816" concept_id="806" concept_set="1207" creator="1"
+                 date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
+    <shr_id_mapping id="50" internal_id="7h7379ba-eee8-a1a3-bh2b-a8a02a1vafyl" external_id="51" type="concept"
+                    uri="/concepts/51"></shr_id_mapping>
 
+    <concept concept_id="807" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1"
+             date_created="2005-01-01 00:00:00.0" uuid="7h7379ba-eee8-a1a3-bh2b-a8ax2axvafyl"/>
+    <concept_name concept_name_id="807" concept_id="807" name="Drop" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="g3zazzv9-e1w4-41d4-b2d6-bx43x5835bbe"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <concept_set concept_set_id="817" concept_id="807" concept_set="1208" creator="1"
+                 date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
+    <shr_id_mapping id="52" internal_id="7h7379ba-eee8-a1a3-bh2b-a8ax2axvafyl" external_id="52" type="concept"
+                    uri="/concepts/52"></shr_id_mapping>
+
+    <!--Creationg dose-->
+
+    <!--creating quantity units-->
     <concept concept_id="810" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1"
              date_created="2005-01-01 00:00:00.0" uuid="7hz379bz-eee8-a1a3-bz2b-a8a02a1vafyl"/>
     <concept_name concept_name_id="810" concept_id="810" name="Unit(s)" locale="en" creator="1"
@@ -118,7 +138,7 @@
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <concept_set concept_set_id="810" concept_id="810" concept_set="25" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="2"></concept_set>
     <concept_set concept_set_id="811" concept_id="810" concept_set="26" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
-    <!--Creationg dose-->
+    <!--creating quantity units-->
 
     <!--Creating Routes-->
     <concept concept_id="701" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1"
@@ -128,6 +148,16 @@
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <shr_id_mapping id="701" internal_id="7f7379ba-3ca8-11e3-bf2b-a8a02a1cab75" external_id="1011" type="concept"
                     uri="/concepts/1011"></shr_id_mapping>
+    <!--Creating Routes-->
+
+    <!--Creating Additional Instructions Set-->
+    <concept concept_id="1101" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1"
+             date_created="2005-01-01 00:00:00.0" uuid="cc75c9ba-3ca8-11e3-bf2b-a8a02a1cab75"/>
+    <concept_name concept_name_id="1101" concept_id="1101" name="As directed" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="c3cae9a9-e1a4-41d4-b2d6-bc4335835ea9"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <shr_id_mapping id="1101" internal_id="cc75c9ba-3ca8-11e3-bf2b-a8a02a1cab75" external_id="1101" type="concept"
+                    uri="/concepts/1101"></shr_id_mapping>
     <!--Creating Routes-->
 
     <!--Creating Frequency-->
@@ -229,7 +259,7 @@
             auto_expire_date="2008-10-09 23:59:59" uuid="amebea86-awaa-g1f3-98w0-f152w6e63ab0"/>
     <drug_order order_id="19" drug_inventory_id="301" dose="4" as_needed="false" quantity="192" duration="2"
                 duration_units="803" route="701" frequency="4"
-                quantity_units="50" dispense_as_written="true" dose_units="50"/>
+                quantity_units="50" dispense_as_written="true" dose_units="807"/>
 
     <orders order_id="20" order_type_id="1" encounter_id="36" urgency="ON_SCHEDULED_DATE" concept_id="301"
             date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
@@ -239,5 +269,12 @@
                 duration_units="804" route="701" frequency="2"
                 quantity_units="50" dispense_as_written="true" dose_units="50"/>
 
+    <orders order_id="21" order_type_id="1" encounter_id="36" urgency="ROUTINE" concept_id="301"
+            date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
+            care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
+            auto_expire_date="2008-10-09 23:59:59" uuid="amkbja86-awaa-g1f3-98w0-f152w6e63ab0"/>
+    <drug_order order_id="21" drug_inventory_id="301" dose="4" as_needed="false" quantity="192" duration="2"
+                duration_units="803" route="701" frequency="4" dosing_instructions="{&quot;instructions&quot;:&quot;As directed&quot;,&quot;additionalInstructions&quot;:&quot;additional instructions notes&quot;}"
+                quantity_units="50" dispense_as_written="true" dose_units="806"/>
     <!--Drug Orders for patients-->
 </dataset>

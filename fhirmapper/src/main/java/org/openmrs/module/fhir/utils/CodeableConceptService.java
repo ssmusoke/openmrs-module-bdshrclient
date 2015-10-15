@@ -91,5 +91,4 @@ public class CodeableConceptService {
         coding.setDisplay(concept.getName().getName());
         return codeableConcept;
     }
-
 }

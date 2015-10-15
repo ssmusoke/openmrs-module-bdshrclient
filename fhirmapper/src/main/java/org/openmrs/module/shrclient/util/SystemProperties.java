@@ -57,5 +57,4 @@ public class SystemProperties {
     public String getFacilityResourcePath() {
         return frProperties.getProperty(FACILITY_REFERENCE_PATH).trim();
     }
-
 }

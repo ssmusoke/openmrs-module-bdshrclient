@@ -62,6 +62,7 @@ public class MRSProperties {
     public static final String DRUG_ORDER_QUANTITY_UNITS_CONCEPT_NAME = "Unit(s)";
     public static final String TR_VALUESET_RELATIONSHIP_TYPE = "Relationship Type";
     public static final String TR_VALUESET_QUANTITY_UNITS = "Quantity Units";
+    public static final String TR_VALUESET_ORDERABLE_DRUG_FORMS = "Orderable Drug Forms";
     public static final String TR_VALUESET_IMMUNIZATION_REASON = "Immunization Reason";
     public static final String TR_VALUESET_IMMUNIZATION_REFUSAL_REASON = "No Immunization Reason";
     public static final String TR_VALUESET_ROUTE_OF_ADMINSTRATION = "Route of Administration";
@@ -74,6 +75,7 @@ public class MRSProperties {
 
     public static final String GLOBAL_PROPERTY_CONCEPT_RELATIONSHIP_TYPE = "shr.concept.relationshipType";
     public static final String GLOBAL_PROPERTY_CONCEPT_QUANTITY_UNITS = "shr.concept.quantityUnits";
+    public static final String GLOBAL_PROPERTY_CONCEPT_ORDERABLE_DRUG_FORMS = "shr.concept.orderableMedicationForms";
     public static final String GLOBAL_PROPERTY_CONCEPT_IMMUNIZATION_REASON = "shr.concept.immunizationReason";
     public static final String GLOBAL_PROPERTY_CONCEPT_IMMUNIZATION_REFUSAL_REASON = "shr.concept.immunizationRefusalReason";
     public static final String GLOBAL_PROPERTY_CONCEPT_ROUTE_OF_ADMINISTRATION = "shr.concept.routeOfAdministration";
@@ -89,4 +91,7 @@ public class MRSProperties {
     public static final String GLOBAL_PROPERTY_CONCEPT_SHR_HIE_FACILITY_LOCATION_TAG = "shr.hie.facilities.location.tag";
     public static final String GLOBAL_PROPERTY_SHR_SYSTEM_USER_TAG = "shr.system.user";
     public static final String GLOBAL_PROPERTY_EMR_PRIMARY_IDENTIFIER_TYPE = "emr.primaryIdentifierType";
+
+    public static final String BAHMNI_DRUG_ORDER_ADDITIONAL_INSTRCTIONS_KEY = "additionalInstructions";
+    public static final String BAHMNI_DRUG_ORDER_INSTRCTIONS_KEY = "instructions";
 }

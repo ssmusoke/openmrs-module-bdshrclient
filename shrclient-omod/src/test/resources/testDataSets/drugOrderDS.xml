@@ -19,15 +19,17 @@
     <person_name person_name_id="1" preferred="true" person_id="110" given_name="firstName"
                  family_name="lastName" creator="1" date_created="2005-09-22 00:00:00.0"
                  voided="false" uuid="399e3a7b-6482-487d-94ce-c07bb3ca3cca"/>
-    <person_attribute person_attribute_id="1" person_id="1" value="1234512345123" person_attribute_type_id="100"
+    <person_attribute person_attribute_id="1" person_id="1" value="98104750156" person_attribute_type_id="100"
                       creator="1"
                       date_created="2005-09-22 00:00:00" uuid="399e3a7b-6482-487d-94ce-c0zbbzcazcca"></person_attribute>
     <care_setting care_setting_id="1" name="OutPatient" description="OutPatient" care_setting_type="OUTPATIENT"
                   creator="1" date_created="2008-08-19 12:35:30.0" retired="false"
                   uuid="6f0c9a92-6f24-11e3-af88-005056821db0"/>
 
+    <visit_type visit_type_id="100" name="outpatient" description="OPD" creator="1" date_created="2005-01-01 00:00:00.0" retired="false" uuid="c0c579b0-8e59-401d-aaaa-976a0b183519"/>
+
     <visit visit_id="1" date_started="2014-07-10 00:00:00" date_created="2014-07-10 00:00:00" patient_id="110"
-           visit_type_id="1" location_id="2" creator="1" changed_by="1"
+           visit_type_id="1" date_stopped="2014-07-10 23:59:59" location_id="2" creator="1" changed_by="1"
            voided_by="1" uuid="ad41fb41-a41a-4ad6-8835-2f59099acf5a" voided="0"/>
 
     <person person_id="2" gender="M" dead="false" creator="1" birthdate_estimated="0"
@@ -46,6 +48,10 @@
 
     <global_property property="shr.system.user" property_value="777" description="Shr System User" uuid="lkieyg88-efd9-fda3-2b99-z12aalsa677h"/>
 
+
+    <provider provider_id="23" identifier="321" name="demo provider" creator="1" date_created="2005-01-01 00:00:00.0"
+              retired="false" uuid="331c6bf8-7846-11e3-az6a-z9z0z7zc1b75"/>
+
     <concept_reference_source concept_source_id="1" name="ATC" creator="1" date_created="2004-08-12 00:00:00.0"
                               uuid="b5e44116-778f-11e2-ad73-903c7bb72694"/>
 
@@ -57,14 +63,37 @@
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a37ae9v9-e1v4-41d4-b2d6-bc4335835eaa"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <concept_set concept_set_id="803" concept_id="803" concept_set="27" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
-    <concept_reference_term concept_reference_term_id="10" concept_source_id="2" code="258703001" name="days"
-                            creator="1" date_created="2004-08-12 00:00:00.0"
-                            uuid="btet6aac-b2ae-ab04-7028-c3b994132b85"></concept_reference_term>
-    <concept_reference_map concept_map_id="10" concept_id="803" concept_reference_term_id="10" concept_map_type_id="2"
-                           creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_map>
+    <concept_reference_term concept_reference_term_id="19" concept_source_id="2" code="258703001" name="Day(s)"
+                            creator="1" date_created="2004-08-12 00:00:00.0" retired="false"
+                            uuid="baef67ac-b24e-ab04-ider-c3b994132b85"></concept_reference_term>
+    <concept_reference_map concept_map_id="19" concept_id="803" concept_reference_term_id="19" concept_map_type_id="2"
+                           creator="1" date_created="2004-08-12 00:00:00.0" uuid="baef67ac-b24e-ixke-ider-c3b994132b85"/>
+
     <!--Creating Units-->
+    <concept concept_id="307" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
+             date_created="2004-08-12 00:00:00.0"
+             version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4xv3-bz88-8z22a1dx1zt"/>
+    <concept_name concept_name_id="307" concept_id="307" name="Quantity Units" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazhyu-e1y4-5zz0-z9z6-bc4335851j1i"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <shr_id_mapping id="50" internal_id="juydg80f-1yz9-4xv3-bz88-8z22a1dx1zt" external_id="150" type="concept"
+                    uri="/concepts/150"></shr_id_mapping>
+    <concept_set concept_set_id="815" concept_id="50" concept_set="307" creator="1"
+                 date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
+
+    <shr_id_mapping id="50" internal_id="557b9699-68a3-11e3-bd76-0800271c1b75" external_id="50" type="concept"
+                    uri="/concepts/50"></shr_id_mapping>
 
     <!-- Creating dose-->
+    <concept concept_id="307" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
+             date_created="2004-08-12 00:00:00.0"
+             version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4xv3-bz88-8z22a1dx1zt"/>
+    <concept_name concept_name_id="307" concept_id="307" name="Quantity Units" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazhyu-e1y4-5zz0-z9z6-bc4335851j1i"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <shr_id_mapping id="50" internal_id="557b9699-68a3-11e3-bd76-0800271c1b75" external_id="50" type="concept"
+                    uri="/concepts/50"></shr_id_mapping>
+
     <concept concept_id="806" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1"
              date_created="2005-01-01 00:00:00.0" uuid="7h7379ba-eee8-a1a3-bh2b-a8a02a1vafyl"/>
     <concept_name concept_name_id="806" concept_id="806" name="Thousand Units" locale="en" creator="1"
@@ -92,6 +121,8 @@
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a37ae9a9-e1a4-41d4-b2d6-bc4335835ea9"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <concept_set concept_set_id="701" concept_id="701" concept_set="30" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
+    <shr_id_mapping id="701" internal_id="7f7379ba-3ca8-11e3-bf2b-a8a02a1cab75" external_id="1011" type="concept"
+                    uri="/concepts/1011"></shr_id_mapping>
     <!--Creating Routes-->
 
     <!--Creating Frequency-->
@@ -112,6 +143,25 @@
     <order_frequency order_frequency_id="2" concept_id="903" frequency_per_day="0.28571" creator="1"
                      date_created="2005-01-01 00:00:00.0"
                      retired="0" uuid="3d43a5b8-af04-11e4-b9c1-080027b662ec"/>
+
+    <concept concept_id="904" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1"
+             date_created="2005-01-01 00:00:00.0" uuid="7g7779ba-eee8-e8e3-bf2b-a8a02a1caba5"/>
+    <concept_name concept_name_id="904" concept_id="904" name="Every 3 hours" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="a57ae9a9-g1a4-41r4-b2d6-bc4335835eaa"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <order_frequency order_frequency_id="3" concept_id="904" frequency_per_day="8" creator="1"
+                     date_created="2005-01-01 00:00:00.0"
+                     retired="0" uuid="3r43a5b8-af04-11t4-b9c1-080027b662ec"/>
+
+    <concept concept_id="905" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1"
+             date_created="2005-01-01 00:00:00.0" uuid="7g7779ba-eee8-e8e3-bf2b-a8b0zazcaaa5"/>
+    <concept_name concept_name_id="905" concept_id="905" name="Every 2 hours" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="a57ae9a9-g1z4-41r4-b2d6-bz4335835eaa"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <order_frequency order_frequency_id="4" concept_id="905" frequency_per_day="12" creator="1"
+                     date_created="2005-01-01 00:00:00.0"
+                     retired="0" uuid="3r43a5b8-af04-11t4-b9c1-0w00w7bz62zc"/>
+
     <!--Creating Frequency-->
 
     <concept concept_id="301" retired="false" datatype_id="4" class_id="3" is_set="false" creator="1"
@@ -120,10 +170,10 @@
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="637de959-e1c4-41d4-b2d6-bc4335835ea9"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <concept_reference_term concept_reference_term_id="9" concept_source_id="1" code="G01AD01" name="lactic acid"
-                            creator="1" date_created="2004-08-12 00:00:00.0"
+                            creator="1" date_created="2004-08-12 00:00:00.0" retired="0"
                             uuid="baef67ac-b24e-ab04-7028-c3b994132b85"></concept_reference_term>
     <concept_reference_map concept_map_id="9" concept_id="301" concept_reference_term_id="9" concept_map_type_id="1"
-                           creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_map>
+                           creator="1" date_created="2004-08-12 00:00:00.0" uuid="baef67ac-b24e-93kf-ix3d-c3b994132b85"/>
     <drug drug_id="301" concept_id="301" dosage_form="51" name="Lactic Acid" combination="true" route="701" creator="1"
           strength="200"
           date_created="2005-02-24 00:00:00.0" retired="false" uuid="42f00b94-26fe-102b-80cb-0017a47871b2"/>

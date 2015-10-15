@@ -2,6 +2,8 @@ package org.openmrs.module.fhir.mapper.emr;
 
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
+import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,12 +12,17 @@ import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
+import org.openmrs.module.bahmniemrapi.drugorder.dosinginstructions.FlexibleDosingInstructions;
 import org.openmrs.module.fhir.MapperTestHelper;
+import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
+
+import java.io.IOException;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
@@ -63,6 +70,7 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
         assertEquals(conceptService.getDrug(301), drugOrder.getDrug());
         assertEquals(conceptService.getConcept(301), drugOrder.getConcept());
+        assertEquals(FlexibleDosingInstructions.class, drugOrder.getDosingType());
     }
 
     @Test
@@ -125,6 +133,33 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
         assertEquals(conceptService.getConcept(50), drugOrder.getDoseUnits());
 
         assertEquals(conceptService.getConcept(903), drugOrder.getFrequency().getConcept());
+    }
+
+    @Test
+    public void shouldMapQuantityFromDispenseRequest() throws Exception {
+        Order order = getOrder(medicationOrderBundle, medicationOrder);
+        assertTrue(order instanceof DrugOrder);
+        DrugOrder drugOrder = (DrugOrder) order;
+
+        assertThat(drugOrder.getQuantity(), is(192.0));
+        assertEquals(conceptService.getConcept(50), drugOrder.getQuantityUnits());
+    }
+
+    @Test
+    public void shouldMapAdditionalInstructionsAndNotes() throws Exception {
+        Order order = getOrder(medicationOrderBundle, medicationOrder);
+        assertTrue(order instanceof DrugOrder);
+        DrugOrder drugOrder = (DrugOrder) order;
+
+        assertTrue(StringUtils.isNotBlank(drugOrder.getDosingInstructions()));
+        assertEquals("additional instructions notes", readFromJson(drugOrder.getDosingInstructions(), MRSProperties.BAHMNI_DRUG_ORDER_ADDITIONAL_INSTRCTIONS_KEY));
+        String instructionsConceptName = readFromJson(drugOrder.getDosingInstructions(), MRSProperties.BAHMNI_DRUG_ORDER_INSTRCTIONS_KEY);
+        assertEquals(conceptService.getConcept(1101).getName().getName(), instructionsConceptName);
+    }
+
+    private String readFromJson(String json, String key) throws IOException {
+        Map map = new ObjectMapper().readValue(json, Map.class);
+        return (String) map.get(key);
     }
 
     private Order getOrder(Bundle bundle, MedicationOrder resource) {

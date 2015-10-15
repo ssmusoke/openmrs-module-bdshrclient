@@ -1,13 +1,17 @@
 package org.openmrs.module.fhir;
 
 import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
+import org.apache.commons.collections4.Predicate;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.context.ApplicationContext;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 
+import static org.apache.commons.collections4.CollectionUtils.exists;
 import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_ID;
 import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_REFERENCE_PATH;
 
@@ -19,16 +23,15 @@ public class MapperTestHelper {
     }
 
     public static SystemProperties getSystemProperties(String facilityId) {
-
         Properties facilityRegistry = new Properties();
         facilityRegistry.setProperty(FACILITY_REFERENCE_PATH, "http://hrmtest.dghs.gov.bd/api/1.0/facilities");
-        //facilityRegistry.setProperty(FACILITY_URL_FORMAT, "%s.json");
 
         Properties trProperties = new Properties();
         trProperties.setProperty(PropertyKeyConstants.TR_REFERENCE_PATH, "http://localhost:9080");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_PATH_INFO, "openmrs/ws/rest/v1/tr/vs");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_ROUTE, "Route-of-Administration");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_QUANTITY_UNITS, "Quantity-Units");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_ORDERABLE_DRUG_FORMS, "Orderable-Drug-Forms");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_IMMUNIZATION_REASON, "Immunization-Reason");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_IMMUNIZATION_REFUSAL_REASON, "No-Immunization-Reason");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_PROCEDURE_OUTCOME, "Procedure-Outcome");
@@ -49,5 +52,16 @@ public class MapperTestHelper {
         mciProperties.put(PropertyKeyConstants.MCI_PATIENT_CONTEXT, "/api/default/patients");
 
         return new SystemProperties(baseUrls, facilityRegistry, trProperties, providerRegistry, facilityInstanceProperties, mciProperties);
+    }
+
+    public static boolean containsCoding(List<CodingDt> coding, final String code, final String system, final String display) {
+        return exists(coding, new Predicate<CodingDt>() {
+            @Override
+            public boolean evaluate(CodingDt codingDt) {
+                return codingDt.getCode().equals(code)
+                        && codingDt.getSystem().equals(system)
+                        && codingDt.getDisplay().equals(display);
+            }
+        });
     }
 }

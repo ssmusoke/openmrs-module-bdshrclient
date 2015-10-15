@@ -112,26 +112,26 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(1, orders.size());
     }
 
-//    @Test
-//    public void shouldSaveDrugOrders() throws Exception {
-//        executeDataSet("testDataSets/drugOrderDS.xml");
-//        String healthId = "5947482439084408833";
-//        String shrEncounterId = "shr-enc-id";
-//
-//        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/encounterWithMedicationPrescription.xml");
-//        Patient emrPatient = patientService.getPatient(110);
-//        assertEquals(0, encounterService.getEncountersByPatient(emrPatient).size());
-//
-//        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
-//
-//        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
-//        assertNotNull(idMapping);
-//        Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
-//        Set<Order> orders = encounter.getOrders();
-//        assertFalse(orders.isEmpty());
-//        assertEquals(1, orders.size());
-//        assertTrue(orders.iterator().next() instanceof DrugOrder);
-//    }
+    @Test
+    public void shouldSaveDrugOrders() throws Exception {
+        executeDataSet("testDataSets/drugOrderDS.xml");
+        String healthId = "98104750156";
+        String shrEncounterId = "shr-enc-id";
+
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithMedicationOrder.xml");
+        Patient emrPatient = patientService.getPatient(110);
+        assertEquals(0, encounterService.getEncountersByPatient(emrPatient).size());
+
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+
+        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        assertNotNull(idMapping);
+        Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
+        Set<Order> orders = encounter.getOrders();
+        assertFalse(orders.isEmpty());
+        assertEquals(1, orders.size());
+        assertTrue(orders.iterator().next() instanceof DrugOrder);
+    }
 
     @Test
     public void shouldGetCauseOfDeathOfPatientIfAnyObservationCapturedCauseOfDeath() throws Exception {

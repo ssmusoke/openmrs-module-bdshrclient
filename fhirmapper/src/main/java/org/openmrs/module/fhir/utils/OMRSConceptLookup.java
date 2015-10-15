@@ -151,6 +151,15 @@ public class OMRSConceptLookup {
         return null;
     }
 
+    public boolean isSetMemberOf(Concept parentConcept, final Concept childConcept) {
+        return exists(parentConcept.getSetMembers(), new Predicate<Concept>() {
+            @Override
+            public boolean evaluate(Concept concept) {
+                return concept.equals(childConcept);
+            }
+        });
+    }
+
     private boolean fullNameMatchFound(Concept concept, String code) {
         return concept.getName().getName().equals(code);
     }

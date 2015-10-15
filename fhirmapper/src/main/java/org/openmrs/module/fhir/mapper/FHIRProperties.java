@@ -34,5 +34,10 @@ public class FHIRProperties {
     public static final String FHIR_NO_INDICATOR_CODE = "N";
     public static final String FHIR_NO_INDICATOR_DISPLAY = "No";
 
-    public static final String SCHEDULED_DATE_EXTENSION_URL = "ScheduledDate";
+    public static final String FHIR_EXTENSION_URL = "https://sharedhealth.atlassian.net/wiki/display/docs/fhir-extensions";
+    public static final String SCHEDULED_DATE_EXTENSION_NAME = "TimingScheduledDate";
+
+    public static String getFhirExtensionUrl(String extensionName) {
+        return FHIR_EXTENSION_URL + "#" + extensionName;
+    }
 }

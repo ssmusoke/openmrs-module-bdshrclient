@@ -11,15 +11,11 @@ import static ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum.*;
 
 
 @Component
-public class UnitsHelpers {
+public class FrequencyMapperUtil {
     private Map<String, FrequencyUnit> conceptNameToFrequencyUnitMap;
-    private Map<String, UnitsOfTimeEnum> unitsOfTimeMap;
-    private Map<UnitsOfTimeEnum, String> conceptNameToUnitsOfTimeMap;
 
-    public UnitsHelpers() {
+    public FrequencyMapperUtil() {
         buildConceptNameMap();
-        buildUnitOfTimeMap();
-        buildConceptNameToUnitOfTimeMap();
     }
 
     public enum FrequencyUnit {
@@ -91,28 +87,6 @@ public class UnitsHelpers {
         conceptNameToFrequencyUnitMap.put("Every 2 weeks", FrequencyUnit.EVERY_TWO_WEEKS);
         conceptNameToFrequencyUnitMap.put("Every 3 weeks", FrequencyUnit.EVERY_THREE_WEEKS);
         conceptNameToFrequencyUnitMap.put("Once a month", FrequencyUnit.ONCE_A_MONTH);
-    }
-
-    private void buildUnitOfTimeMap() {
-        unitsOfTimeMap = new HashMap<>();
-        unitsOfTimeMap.put("Day(s)", D);
-        unitsOfTimeMap.put("Week(s)", WK);
-        unitsOfTimeMap.put("Month(s)", MO);
-    }
-
-    private void buildConceptNameToUnitOfTimeMap() {
-        conceptNameToUnitsOfTimeMap = new HashMap<>();
-        conceptNameToUnitsOfTimeMap.put(D, "Day(s)");
-        conceptNameToUnitsOfTimeMap.put(WK, "Week(s)");
-        conceptNameToUnitsOfTimeMap.put(MO, "Month(s)");
-    }
-
-    public UnitsOfTimeEnum getUnitOfTime(String conceptName) {
-        return unitsOfTimeMap.get(conceptName);
-    }
-
-    public String getConceptNameFromUnitOfTime(UnitsOfTimeEnum unitsOfTime) {
-        return conceptNameToUnitsOfTimeMap.get(unitsOfTime);
     }
 
     public FrequencyUnit getFrequencyUnits(String conceptName) {

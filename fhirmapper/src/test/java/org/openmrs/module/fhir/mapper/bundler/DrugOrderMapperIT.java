@@ -29,7 +29,9 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
+import static org.openmrs.module.fhir.MapperTestHelper.containsCoding;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -45,6 +47,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     public void tearDown() throws Exception {
         deleteAllData();
     }
+
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/drugOrderDS.xml");
@@ -65,8 +68,8 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(fhirEncounter.getId().getValue(), medicationOrder.getEncounter().getReference().getValue());
         assertEquals(1, medicationOrder.getDosageInstruction().size());
         MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.getDosageInstruction().get(0);
-        assertRoute(dosageInstruction);
-        assertDoseQuantity(dosageInstruction);
+        assertTrue(containsCoding(dosageInstruction.getRoute().getCoding(),
+                "Oral", "http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Route-of-Administration", "Oral"));
         assertSchedule(dosageInstruction, 1, 1, UnitsOfTimeEnum.D,
                 6, UnitsOfTimeEnum.D);
     }
@@ -114,7 +117,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.getDosageInstruction().get(0);
         ExtensionDt scheduledDateExtension = dosageInstruction.getTiming().getUndeclaredExtensions().get(0);
         assertEquals(order.getScheduledDate(), ((DateTimeDt) scheduledDateExtension.getValue()).getValue());
-        assertEquals(FHIRProperties.SCHEDULED_DATE_EXTENSION_URL, scheduledDateExtension.getUrl());
+        assertTrue(scheduledDateExtension.getUrl().endsWith(FHIRProperties.SCHEDULED_DATE_EXTENSION_NAME));
     }
 
     @Test
@@ -130,6 +133,46 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
         assertFalse(((BooleanDt) medicationOrder.getDosageInstruction().get(0).getAsNeeded()).getValue());
+    }
+
+    @Test
+    public void shouldMapDoseFromQuantityUnitsOrOrderableDrugFormsValueset() throws Exception {
+        Encounter fhirEncounter = getFhirEncounter();
+
+        Order order = orderService.getOrder(21);
+        List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+        assertDoseQuantity(medicationOrder.getDosageInstruction().get(0), "http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Quantity-Units", "TU");
+
+        order = orderService.getOrder(19);
+        fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+        assertDoseQuantity(medicationOrder.getDosageInstruction().get(0), "http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Orderable-Drug-Forms", "Drop");
+    }
+
+    @Test
+    public void shouldSetDispenseRequest() throws Exception {
+        Encounter fhirEncounter = getFhirEncounter();
+
+        Order order = orderService.getOrder(19);
+        List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+        SimpleQuantityDt quantity = medicationOrder.getDispenseRequest().getQuantity();
+        assertThat(quantity.getValue().doubleValue(), is(192.0));
+        assertEquals("mg", quantity.getUnit());
+    }
+
+    @Test
+    public void shouldMapAdditionalInstructionsAndNotes() throws Exception {
+        Encounter fhirEncounter = getFhirEncounter();
+
+        Order order = orderService.getOrder(21);
+        List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+        assertTrue(containsCoding(medicationOrder.getDosageInstruction().get(0).getAdditionalInstructions().getCoding(),
+                "1101", "/concepts/1101", "As directed"));
+
+        assertEquals("additional instructions notes", medicationOrder.getNote());
     }
 
     private Encounter getFhirEncounter() {
@@ -155,20 +198,13 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(expectedPeriodUnits, repeat.getPeriodUnitsElement().getValueAsEnum());
     }
 
-    private void assertDoseQuantity(MedicationOrder.DosageInstruction dosageInstruction) {
+    private void assertDoseQuantity(MedicationOrder.DosageInstruction dosageInstruction, String valueSetUrl, String code) {
         assertTrue(dosageInstruction.getDose() instanceof SimpleQuantityDt);
         SimpleQuantityDt doseQuantity = (SimpleQuantityDt) dosageInstruction.getDose();
         assertNotNull(doseQuantity);
-        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Quantity-Units", doseQuantity.getSystem());
-        assertEquals("mg", doseQuantity.getCode());
+        assertEquals(valueSetUrl, doseQuantity.getSystem());
+        assertEquals(code, doseQuantity.getCode());
         assertTrue(4 == doseQuantity.getValue().doubleValue());
-    }
-
-    private void assertRoute(MedicationOrder.DosageInstruction dosageInstruction) {
-        CodingDt routeCode = dosageInstruction.getRoute().getCoding().get(0);
-        assertEquals("Oral", routeCode.getDisplay());
-        assertEquals("Oral", routeCode.getCode());
-        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Route-of-Administration", routeCode.getSystem());
     }
 
     private void assertMedicationOrder(MedicationOrder medicationOrder, Date expectedDate) {
@@ -179,9 +215,8 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(expectedDate, medicationOrder.getDateWritten());
         List<CodingDt> coding = ((CodeableConceptDt) medicationOrder.getMedication()).getCoding();
         assertEquals(1, coding.size());
-        assertEquals("drugs/104", coding.get(0).getSystem());
-        assertEquals("Lactic Acid", coding.get(0).getDisplay());
-        assertEquals("104", coding.get(0).getCode());
+        assertTrue(containsCoding(coding, "104", "drugs/104", "Lactic Acid"));
+
         assertTrue(medicationOrder.getPrescriber().getReference().getValue().endsWith("321.json"));
     }
 }
