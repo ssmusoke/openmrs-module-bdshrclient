@@ -31,7 +31,6 @@ import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.DurationMapperUtil;
 import org.openmrs.module.fhir.utils.FrequencyMapperUtil;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
-import org.openmrs.module.fhir.utils.PropertyKeyConstants;
 import org.openmrs.module.fhir.utils.TrValueSetType;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -132,7 +131,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         if (null != drugOrder.getRoute()) {
             dosageInstruction.setRoute(
                     codeableConceptService.getTRValueSetCodeableConcept(drugOrder.getRoute(),
-                            systemProperties.getTrValuesetUrl(PropertyKeyConstants.TR_VALUESET_ROUTE)));
+                            TrValueSetType.ROUTE_OF_ADMINISTRATION.getTrPropertyValueSetUrl(systemProperties)));
         }
         setDoseQuantity(drugOrder, dosageInstruction, systemProperties);
         dosageInstruction.setAdditionalInstructions(getAdditionalInstructions(drugOrder));
@@ -144,7 +143,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         String doseInstructionsConceptName = readFromDoseInstructions(drugOrder, MRSProperties.BAHMNI_DRUG_ORDER_INSTRCTIONS_KEY);
         if (doseInstructionsConceptName != null) {
             Concept additionalInstructionsConcept = conceptService.getConceptByName(doseInstructionsConceptName);
-            return codeableConceptService.addTRCodingOrDisplay(additionalInstructionsConcept, idMappingsRepository);
+            return codeableConceptService.addTRCodingOrDisplay(additionalInstructionsConcept);
         }
         return null;
     }

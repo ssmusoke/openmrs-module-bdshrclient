@@ -12,9 +12,7 @@ import ca.uhn.fhir.model.primitive.DateDt;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Concept;
-import org.openmrs.ConceptName;
 import org.openmrs.Obs;
-import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
@@ -28,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_UNIT_FOR_YEARS;
@@ -71,7 +68,7 @@ public class FamilyMemberHistoryMapper implements EmrObsResourceHandler {
         familyMemberHistory.addIdentifier().setValue(familyMemberHistoryId);
         familyMemberHistory.setId(familyMemberHistoryId);
 
-        mapRelationship(familyMemberHistory, person);
+        mapRelationship(familyMemberHistory, person, systemProperties);
         mapBornDate(familyMemberHistory, person);
         mapRelationshipConditions(familyMemberHistory, person);
         return familyMemberHistory;
@@ -123,25 +120,11 @@ public class FamilyMemberHistoryMapper implements EmrObsResourceHandler {
         }
     }
 
-    private String getConceptCode(Concept mrsConcept) {
-        Collection<ConceptName> shortNames = mrsConcept.getShortNames();
-        return shortNames.isEmpty() ? mrsConcept.getName().getName() : ((ConceptName) shortNames.toArray()[0]).getName();
-    }
-
-    private String getConceptDisplay(Concept mrsConcept) {
-        return mrsConcept.getName().getName().toLowerCase();
-    }
-
-    private void mapRelationship(FamilyMemberHistory familyMemberHistory, Obs person) {
+    private void mapRelationship(FamilyMemberHistory familyMemberHistory, Obs person, SystemProperties systemProperties) {
         Concept relationshipTypeConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.RELATIONSHIP_TYPE);
         Obs relationshipTypeObs = new CompoundObservation(person).getMemberObsForConcept(relationshipTypeConcept);
-        CodeableConceptDt codeableConcept = new CodeableConceptDt();
         Concept relationshipConcept = relationshipTypeObs.getValueCoded();
-        codeableConceptService.addFHIRCoding(
-                codeableConcept,
-                getConceptCode(relationshipConcept),
-                FHIRProperties.FHIR_SYSTEM_RELATIONSHIP_ROLE,
-                getConceptDisplay(relationshipConcept));
+        CodeableConceptDt codeableConcept = codeableConceptService.getTRValueSetCodeableConcept(relationshipConcept, TrValueSetType.RELATIONSHIP_TYPE.getTrPropertyValueSetUrl(systemProperties));
         familyMemberHistory.setRelationship(codeableConcept);
     }
 

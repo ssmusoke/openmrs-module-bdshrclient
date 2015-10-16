@@ -30,7 +30,7 @@ public class CodeableConceptService {
         coding.setDisplay(display);
     }
 
-    public CodeableConceptDt addTRCodingOrDisplay(Concept concept, IdMappingsRepository idMappingsRepository) {
+    public CodeableConceptDt addTRCodingOrDisplay(Concept concept) {
         CodeableConceptDt codeableConceptDt = addTRCoding(concept, idMappingsRepository);
         if (CollectionUtils.isEmpty(codeableConceptDt.getCoding())) {
             CodingDt coding = codeableConceptDt.addCoding();

@@ -39,7 +39,6 @@ public class FHIRFamilyMemberHistoryMapperIT extends BaseModuleWebContextSensiti
         deleteAllData();
     }
 
-
     @Test
     public void shouldMapFamilyHistoryResource() throws Exception {
         executeDataSet("testDataSets/shrClientFamilyHistoryTestDS.xml");

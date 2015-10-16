@@ -23,6 +23,7 @@ public class PropertyKeyConstants {
 
     public static final String TR_REFERENCE_PATH = "tr.referenceUrl";
     public static final String TR_VALUESET_PATH_INFO = "tr.valueset.url.pathInfo";
+    public static final String TR_VALUESET_RELATIONSHIP_TYPE = "tr.valueset.relationshipType";
     public static final String TR_VALUESET_ROUTE = "tr.valueset.route";
     public static final String TR_VALUESET_QUANTITY_UNITS = "tr.valueset.quantityunits";
     public static final String TR_VALUESET_ORDERABLE_DRUG_FORMS = "tr.valueset.orderableDrugForms";

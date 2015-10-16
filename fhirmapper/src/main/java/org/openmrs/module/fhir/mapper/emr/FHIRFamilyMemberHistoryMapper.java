@@ -8,7 +8,6 @@ import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.FamilyMemberHistory;
 import ca.uhn.fhir.model.primitive.DateDt;
-import org.apache.commons.lang.StringUtils;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
@@ -67,7 +66,7 @@ public class FHIRFamilyMemberHistoryMapper implements FHIRResourceMapper {
     }
 
     private void mapRelationship(Obs personObs, FamilyMemberHistory familyMemberHistory) {
-        Obs relationship = mapRelationship(getCodeSimple(familyMemberHistory));
+        Obs relationship = mapRelationship(familyMemberHistory.getRelationship());
         if (null != relationship) {
             personObs.addGroupMember(relationship);
         }
@@ -133,15 +132,16 @@ public class FHIRFamilyMemberHistoryMapper implements FHIRResourceMapper {
         }
     }
 
-    private Obs mapRelationship(String code) {
-        if (StringUtils.isNotBlank(code)) {
+    private Obs mapRelationship(CodeableConceptDt relationshipCode) {
+        if (relationshipCode != null && !relationshipCode.isEmpty()) {
             Obs result = new Obs();
             result.setConcept(conceptLookup.findTRConceptOfType(TrValueSetType.RELATIONSHIP_TYPE));
-            result.setValueCoded(conceptLookup.findValuesetConceptFromTrValuesetType(TrValueSetType.RELATIONSHIP_TYPE, code));
+            Concept relationshipConcept = conceptLookup.findConceptByCode(relationshipCode.getCoding());
+            if(relationshipConcept == null) return null;
+            result.setValueCoded(relationshipConcept);
             return result;
-        } else {
-            return null;
         }
+        return null;
     }
 
     private Obs setBornOnObs(FamilyMemberHistory familyMemberHistory) {

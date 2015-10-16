@@ -29,6 +29,7 @@ public class MapperTestHelper {
         Properties trProperties = new Properties();
         trProperties.setProperty(PropertyKeyConstants.TR_REFERENCE_PATH, "http://localhost:9080");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_PATH_INFO, "openmrs/ws/rest/v1/tr/vs");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_RELATIONSHIP_TYPE, "Relationship-Type");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_ROUTE, "Route-of-Administration");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_QUANTITY_UNITS, "Quantity-Units");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_ORDERABLE_DRUG_FORMS, "Orderable-Drug-Forms");

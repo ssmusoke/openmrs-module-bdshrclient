@@ -124,7 +124,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         Obs procedureTypeObs = compoundObservationProcedure.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_TYPE);
         if (procedureTypeObs != null) {
             Concept valueCoded = procedureTypeObs.getValueCoded();
-            procedureType = codeableConceptService.addTRCodingOrDisplay(valueCoded, idMappingsRepository);
+            procedureType = codeableConceptService.addTRCodingOrDisplay(valueCoded);
         }
         return procedureType != null && !procedureType.isEmpty() ? procedureType : null;
     }
@@ -148,7 +148,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         List<Obs> followupObses = compoundObservationProcedure.findAllMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_FOLLOWUP);
         List<CodeableConceptDt> followUpCodeableConcepts = new ArrayList<>();
         for (Obs followupObs : followupObses) {
-            followUpCodeableConcepts.add(codeableConceptService.addTRCodingOrDisplay(followupObs.getValueCoded(), idMappingsRepository));
+            followUpCodeableConcepts.add(codeableConceptService.addTRCodingOrDisplay(followupObs.getValueCoded()));
         }
         return followUpCodeableConcepts.isEmpty() ? null : followUpCodeableConcepts;
     }
@@ -194,7 +194,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     private void addDiagnosisToDiagnosticReport(DiagnosticReport diagnosticReport, CompoundObservation compoundDiagnosticStudyObs) {
         List<Obs> diagnosisObses = compoundDiagnosticStudyObs.findAllMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSIS);
         for (Obs diagnosisObs : diagnosisObses) {
-            CodeableConceptDt codeableType = codeableConceptService.addTRCodingOrDisplay(diagnosisObs.getValueCoded(), idMappingsRepository);
+            CodeableConceptDt codeableType = codeableConceptService.addTRCodingOrDisplay(diagnosisObs.getValueCoded());
             if (codeableType != null && !codeableType.isEmpty()) {
                 CodeableConceptDt codedDiagnosis = diagnosticReport.addCodedDiagnosis();
                 codedDiagnosis.getCoding().addAll(codeableType.getCoding());
@@ -225,7 +225,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         CodeableConceptDt name = null;
         if (compoundDiagnosticStudyObs.getRawObservation() != null) {
             Obs diagnosticTestObs = compoundDiagnosticStudyObs.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_TEST);
-            name = diagnosticTestObs != null ? codeableConceptService.addTRCodingOrDisplay(diagnosticTestObs.getValueCoded(), idMappingsRepository) : null;
+            name = diagnosticTestObs != null ? codeableConceptService.addTRCodingOrDisplay(diagnosticTestObs.getValueCoded()) : null;
         }
         return name != null && name.isEmpty() ? null : name;
     }

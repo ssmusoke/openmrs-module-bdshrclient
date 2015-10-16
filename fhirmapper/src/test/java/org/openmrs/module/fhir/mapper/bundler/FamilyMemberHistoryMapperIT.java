@@ -10,7 +10,6 @@ import org.junit.After;
 import org.junit.Test;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
-import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,6 +93,7 @@ public class FamilyMemberHistoryMapperIT extends BaseModuleWebContextSensitiveTe
 
         CodingDt relationship = familyMemberHistory.getRelationship().getCoding().get(0);
         assertEquals("FTH", relationship.getCode());
-        assertEquals(FHIRProperties.FHIR_SYSTEM_RELATIONSHIP_ROLE, relationship.getSystem());
+        assertEquals("Father", relationship.getDisplay());
+        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Relationship-Type", relationship.getSystem());
     }
 }
