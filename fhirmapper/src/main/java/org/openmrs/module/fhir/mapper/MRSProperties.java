@@ -1,6 +1,5 @@
 package org.openmrs.module.fhir.mapper;
 
-
 public class MRSProperties {
     public static final String MRS_OUT_PATIENT_VISIT_TYPE = "OPD";
     public static final String MRS_IN_PATIENT_VISIT_TYPE = "IPD";
@@ -62,7 +61,8 @@ public class MRSProperties {
     public static final String DRUG_ORDER_QUANTITY_UNITS_CONCEPT_NAME = "Unit(s)";
     public static final String TR_VALUESET_RELATIONSHIP_TYPE = "Relationship Type";
     public static final String TR_VALUESET_QUANTITY_UNITS = "Quantity Units";
-    public static final String TR_VALUESET_ORDERABLE_DRUG_FORMS = "Orderable Drug Forms";
+    public static final String TR_VALUESET_MEDICATION_FORMS = "Medication Forms";
+    public static final String TR_VALUESET_MEDICATION_PACKAGE_FORMS = "Medication Package Forms";
     public static final String TR_VALUESET_IMMUNIZATION_REASON = "Immunization Reason";
     public static final String TR_VALUESET_IMMUNIZATION_REFUSAL_REASON = "No Immunization Reason";
     public static final String TR_VALUESET_ROUTE_OF_ADMINSTRATION = "Route of Administration";
@@ -75,7 +75,8 @@ public class MRSProperties {
 
     public static final String GLOBAL_PROPERTY_CONCEPT_RELATIONSHIP_TYPE = "shr.concept.relationshipType";
     public static final String GLOBAL_PROPERTY_CONCEPT_QUANTITY_UNITS = "shr.concept.quantityUnits";
-    public static final String GLOBAL_PROPERTY_CONCEPT_ORDERABLE_DRUG_FORMS = "shr.concept.orderableMedicationForms";
+    public static final String GLOBAL_PROPERTY_CONCEPT_MEDICATION_FORMS = "shr.concept.medicationForms";
+    public static final String GLOBAL_PROPERTY_CONCEPT_MEDICATION_PACKAGE_FORMS = "shr.concept.medicationPackageForms";
     public static final String GLOBAL_PROPERTY_CONCEPT_IMMUNIZATION_REASON = "shr.concept.immunizationReason";
     public static final String GLOBAL_PROPERTY_CONCEPT_IMMUNIZATION_REFUSAL_REASON = "shr.concept.immunizationRefusalReason";
     public static final String GLOBAL_PROPERTY_CONCEPT_ROUTE_OF_ADMINISTRATION = "shr.concept.routeOfAdministration";
@@ -84,6 +85,8 @@ public class MRSProperties {
     public static final String GLOBAL_PROPERTY_CONCEPT_IMMUNIZATION_STATUS = "shr.concept.immunizationStatus";
 
     public static final String GLOBAL_PROPERTY_IGNORED_CONCEPT_LIST = "shr.ignoreConceptList";
+
+    public static final String GLOBAL_PROPERTY_DOSING_FORMS_CONCEPT_UUID = "order.drugDosingUnitsConceptUuid";
 
     public static final String GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH = "concept.causeOfDeath";
     public static final String GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH = "concept.unspecifiedCauseOfDeath";

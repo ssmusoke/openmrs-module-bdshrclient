@@ -134,8 +134,7 @@
                     </route>
                     <doseQuantity>
                         <value value="10"/>
-                        <system value="http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Quantity-Units"/>
-                        <code value="mg"/>
+                        <unit value="mg"/>
                     </doseQuantity>
                 </dosageInstruction>
                 <dispenseRequest>

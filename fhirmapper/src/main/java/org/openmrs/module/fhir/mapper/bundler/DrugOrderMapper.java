@@ -201,27 +201,25 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
             Concept doseUnits = drugOrder.getDoseUnits();
             if (null != doseUnits) {
                 TrValueSetType trValueSetType = determineTrValueSet(doseUnits);
-                if (null != idMappingsRepository.findByInternalId(doseUnits.getUuid())) {
+                if (null != trValueSetType && null != idMappingsRepository.findByInternalId(doseUnits.getUuid())) {
                     String code = codeableConceptService.getTRValueSetCode(doseUnits);
                     doseQuantity.setCode(code);
                     doseQuantity.setSystem(trValueSetType.getTrPropertyValueSetUrl(systemProperties));
-                    doseQuantity.setUnit(doseUnits.getName().getName());
                 }
+                doseQuantity.setUnit(doseUnits.getName().getName());
             }
             dosageInstruction.setDose(doseQuantity.setValue(dose));
         }
     }
 
     private TrValueSetType determineTrValueSet(Concept doseUnits) {
-        Concept quantityUnitsConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.QUANTITY_UNITS);
-        Concept orderableFormsConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.ORDERABLE_DRUG_FORMS);
-        if (omrsConceptLookup.isSetMemberOf(quantityUnitsConcept, doseUnits))
-            return TrValueSetType.QUANTITY_UNITS;
-        else if (omrsConceptLookup.isSetMemberOf(orderableFormsConcept, doseUnits)) {
-            return TrValueSetType.ORDERABLE_DRUG_FORMS;
+        Concept medicationFormsConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.MEDICATION_FORMS);
+        Concept medicationPackageFormsConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.MEDICATION_PACKAGE_FORMS);
+        if (omrsConceptLookup.isSetMemberOf(medicationPackageFormsConcept, doseUnits)) {
+            return TrValueSetType.MEDICATION_PACKAGE_FORMS;
+        } else if (omrsConceptLookup.isSetMemberOf(medicationFormsConcept, doseUnits)) {
+            return TrValueSetType.MEDICATION_FORMS;
         }
-        logger.warn(String.format("Invalid Dose Unit[concept : %s]. Must belong to %s or %s valueset.",
-                doseUnits.getUuid(), TrValueSetType.QUANTITY_UNITS.getDefaultConceptName(), TrValueSetType.ORDERABLE_DRUG_FORMS.getDefaultConceptName()));
         return null;
     }
 

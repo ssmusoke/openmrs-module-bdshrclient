@@ -122,8 +122,9 @@
                     <asNeededBoolean value="false"/>
                     <doseQuantity>
                         <value value="10"/>
-                        <system value="http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Quantity-Units"/>
-                        <code value="mg"/>
+                        <unit value="Pill"/>
+                        <system value="http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Medication-Forms"/>
+                        <code value="Pill"/>
                     </doseQuantity>
                 </dosageInstruction>
                 <dispenseRequest>

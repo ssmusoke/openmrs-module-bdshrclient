@@ -26,7 +26,8 @@ public class PropertyKeyConstants {
     public static final String TR_VALUESET_RELATIONSHIP_TYPE = "tr.valueset.relationshipType";
     public static final String TR_VALUESET_ROUTE = "tr.valueset.route";
     public static final String TR_VALUESET_QUANTITY_UNITS = "tr.valueset.quantityunits";
-    public static final String TR_VALUESET_ORDERABLE_DRUG_FORMS = "tr.valueset.orderableDrugForms";
+    public static final String TR_VALUESET_MEDICATION_FORMS = "tr.valueset.medicationForms";
+    public static final String TR_VALUESET_MEDICATION_PACKAGE_FORMS = "tr.valueset.medicationPackageForms";
     public static final String TR_VALUESET_IMMUNIZATION_REASON = "tr.valueset.immunizationReason";
     public static final String TR_VALUESET_IMMUNIZATION_REFUSAL_REASON = "tr.valueset.refusalReason";
     public static final String TR_VALUESET_PROCEDURE_OUTCOME = "tr.valueset.procedureOutcome";

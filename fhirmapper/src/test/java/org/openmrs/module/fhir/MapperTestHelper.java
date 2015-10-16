@@ -32,7 +32,8 @@ public class MapperTestHelper {
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_RELATIONSHIP_TYPE, "Relationship-Type");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_ROUTE, "Route-of-Administration");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_QUANTITY_UNITS, "Quantity-Units");
-        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_ORDERABLE_DRUG_FORMS, "Orderable-Drug-Forms");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_MEDICATION_FORMS, "Medication-Forms");
+        trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_MEDICATION_PACKAGE_FORMS, "Medication-Package-Forms");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_IMMUNIZATION_REASON, "Immunization-Reason");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_IMMUNIZATION_REFUSAL_REASON, "No-Immunization-Reason");
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_PROCEDURE_OUTCOME, "Procedure-Outcome");

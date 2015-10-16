@@ -30,6 +30,7 @@ import org.openmrs.module.fhir.mapper.FHIRProperties;
 import org.openmrs.module.fhir.mapper.MRSProperties;
 import org.openmrs.module.fhir.utils.DurationMapperUtil;
 import org.openmrs.module.fhir.utils.FrequencyMapperUtil;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.OrderCareSettingLookupService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
@@ -58,6 +59,8 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
     private ProviderLookupService providerLookupService;
     @Autowired
     private OrderCareSettingLookupService orderCareSettingLookupService;
+    @Autowired
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     private static final Logger logger = Logger.getLogger(FHIRMedicationOrderMapper.class);
 
@@ -78,7 +81,8 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         if (medicationOrder.getDosageInstruction().isEmpty()) return;
         MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.getDosageInstructionFirstRep();
         mapFrequency(drugOrder, dosageInstruction);
-        setOrderDurationAndDose(drugOrder, dosageInstruction);
+        setOrderDuration(drugOrder, dosageInstruction);
+        setDose(drugOrder, dosageInstruction);
         setQuantity(drugOrder, medicationOrder.getDispenseRequest());
         setScheduledDateAndUrgency(drugOrder, dosageInstruction);
         drugOrder.setRoute(mapRoute(dosageInstruction));
@@ -90,6 +94,27 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         drugOrder.setDosingType(FlexibleDosingInstructions.class);
 
         newEmrEncounter.addOrder(drugOrder);
+    }
+
+    private void setDose(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction) {
+        SimpleQuantityDt dose = (SimpleQuantityDt) dosageInstruction.getDose();
+        drugOrder.setDose(dose.getValue().doubleValue());
+        String dosingUnitsConceptUuid = globalPropertyLookUpService.getGlobalPropertyValue(MRSProperties.GLOBAL_PROPERTY_DOSING_FORMS_CONCEPT_UUID);
+        if(StringUtils.isBlank(dosingUnitsConceptUuid)) {
+            throw new RuntimeException(String.format("Global property %s is not set", MRSProperties.GLOBAL_PROPERTY_DOSING_FORMS_CONCEPT_UUID));
+        }
+        Concept dosingUnitsConcept = conceptService.getConceptByUuid(dosingUnitsConceptUuid);
+        Concept doseUnitConcept = null;
+        if(StringUtils.isNotBlank(dose.getCode())) {
+            doseUnitConcept = omrsConceptLookup.findMemberConceptFromValueSetCode(dosingUnitsConcept, dose.getCode());
+        }
+        if(doseUnitConcept == null) {
+            doseUnitConcept = omrsConceptLookup.findMemberFromDisplayName(dosingUnitsConcept, dose.getUnit());
+        }
+        if(doseUnitConcept == null) {
+            throw new RuntimeException(String.format("Unable to find the dose units [%s] under dosing units.", StringUtils.isNotBlank(dose.getCode()) ? dose.getCode() : dose.getUnit()));
+        }
+        drugOrder.setDoseUnits(doseUnitConcept);
     }
 
     private String getDosingInstructions(MedicationOrder medicationOrder) {
@@ -155,15 +180,10 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         }
     }
 
-    private void setOrderDurationAndDose(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction) {
+    private void setOrderDuration(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction) {
         DurationDt duration = (DurationDt) dosageInstruction.getTiming().getRepeat().getBounds();
         drugOrder.setDuration(duration.getValue().intValue());
         drugOrder.setDurationUnits(conceptService.getConceptByName(durationMapperUtil.getConceptNameFromUnitOfTime(UnitsOfTimeEnum.VALUESET_BINDER.fromCodeString(duration.getCode()))));
-
-        SimpleQuantityDt dose = (SimpleQuantityDt) dosageInstruction.getDose();
-        drugOrder.setDose(dose.getValue().doubleValue());
-        Concept doseUnitConcept = omrsConceptLookup.findConceptFromValueSetCode(dose.getSystem(), dose.getCode());
-        drugOrder.setDoseUnits(doseUnitConcept);
     }
 
     private Concept mapRoute(MedicationOrder.DosageInstruction dosageInstruction) {

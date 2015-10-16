@@ -136,18 +136,33 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    public void shouldMapDoseFromQuantityUnitsOrOrderableDrugFormsValueset() throws Exception {
+    public void shouldMapDoseFromMedicationFormsFormsValueset() throws Exception {
         Encounter fhirEncounter = getFhirEncounter();
-
-        Order order = orderService.getOrder(21);
+        Order order = orderService.getOrder(19);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
-        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
-        assertDoseQuantity(medicationOrder.getDosageInstruction().get(0), "http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Quantity-Units", "TU");
 
-        order = orderService.getOrder(19);
-        fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
-        medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
-        assertDoseQuantity(medicationOrder.getDosageInstruction().get(0), "http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Orderable-Drug-Forms", "Drop");
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+        assertDoseQuantity(medicationOrder.getDosageInstruction().get(0), "http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Medication-Forms", "Pill", "Pill");
+    }
+
+    @Test
+    public void shouldMapDoseFromMedicationPackageFormsFormsValueset() throws Exception {
+        Encounter fhirEncounter = getFhirEncounter();
+        Order order = orderService.getOrder(18);
+        List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+        assertDoseQuantity(medicationOrder.getDosageInstruction().get(0), "http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Medication-Package-Forms", "Puffs", "Puffs");
+    }
+
+    @Test
+    public void shouldNotSetSystemAndCodeIfDoseFromQuantityUnits() throws Exception {
+        Encounter fhirEncounter = getFhirEncounter();
+        Order order = orderService.getOrder(17);
+        List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+        assertDoseQuantity(medicationOrder.getDosageInstruction().get(0), null, null, "mg");
     }
 
     @Test
@@ -198,12 +213,13 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(expectedPeriodUnits, repeat.getPeriodUnitsElement().getValueAsEnum());
     }
 
-    private void assertDoseQuantity(MedicationOrder.DosageInstruction dosageInstruction, String valueSetUrl, String code) {
+    private void assertDoseQuantity(MedicationOrder.DosageInstruction dosageInstruction, String valueSetUrl, String code, String displayUnit) {
         assertTrue(dosageInstruction.getDose() instanceof SimpleQuantityDt);
         SimpleQuantityDt doseQuantity = (SimpleQuantityDt) dosageInstruction.getDose();
         assertNotNull(doseQuantity);
         assertEquals(valueSetUrl, doseQuantity.getSystem());
         assertEquals(code, doseQuantity.getCode());
+        assertEquals(displayUnit, doseQuantity.getUnit());
         assertTrue(4 == doseQuantity.getValue().doubleValue());
     }
 

@@ -11,6 +11,7 @@ import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -18,6 +19,9 @@ import java.util.Map;
 
 import static org.apache.commons.collections4.CollectionUtils.exists;
 import static org.openmrs.module.fhir.utils.Constants.*;
+import static org.apache.commons.collections4.CollectionUtils.select;
+import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_CONCEPT_TYPE;
+import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_REFERENCE_TERM_TYPE;
 
 @Component
 public class OMRSConceptLookup {
@@ -139,16 +143,40 @@ public class OMRSConceptLookup {
         return answerConcept == null ? conceptService.getConceptByName(valuesetCode) : answerConcept;
     }
 
-
-    public Concept findAnswerConceptFromValueSetCode(Concept valueSetConcept, String valueSetCode) {
-        if (valueSetConcept != null) {
-            for (ConceptAnswer answer : valueSetConcept.getAnswers()) {
-                Concept concept = answer.getAnswerConcept();
-                if (referenceTermCodeFound(concept, valueSetCode) || shortNameFound(concept, valueSetCode) || fullNameMatchFound(concept, valueSetCode))
-                    return concept;
+    public Concept findAnswerConceptFromValueSetCode(Concept codedConcept, String valueSetCode) {
+        if (codedConcept != null) {
+            for (ConceptAnswer answer : codedConcept.getAnswers(false)) {
+                Concept answerConcept = answer.getAnswerConcept();
+                if (isConceptForValuesetCode(valueSetCode, answerConcept))
+                    return answerConcept;
             }
         }
         return null;
+    }
+
+    public Concept findMemberConceptFromValueSetCode(Concept parentConcept, String code) {
+        if (parentConcept != null) {
+            for (Concept memberConcept : parentConcept.getSetMembers()) {
+                if (isConceptForValuesetCode(code, memberConcept))
+                    return memberConcept;
+            }
+        }
+        return null;
+    }
+
+    public Concept findMemberFromDisplayName(Concept parentConcept, final String name) {
+        Collection<Concept> matchedConcepts = select(parentConcept.getSetMembers(), new Predicate<Concept>() {
+            @Override
+            public boolean evaluate(Concept concept) {
+                return exists(concept.getNames(), new Predicate<ConceptName>() {
+                    @Override
+                    public boolean evaluate(ConceptName conceptName) {
+                        return conceptName.getName().equals(name);
+                    }
+                });
+            }
+        });
+        return matchedConcepts.size() > 0 ? matchedConcepts.iterator().next() : null;
     }
 
     public boolean isSetMemberOf(Concept parentConcept, final Concept childConcept) {
@@ -158,6 +186,10 @@ public class OMRSConceptLookup {
                 return concept.equals(childConcept);
             }
         });
+    }
+
+    private boolean isConceptForValuesetCode(String valueSetCode, Concept concept) {
+        return referenceTermCodeFound(concept, valueSetCode) || shortNameFound(concept, valueSetCode) || fullNameMatchFound(concept, valueSetCode);
     }
 
     private boolean fullNameMatchFound(Concept concept, String code) {

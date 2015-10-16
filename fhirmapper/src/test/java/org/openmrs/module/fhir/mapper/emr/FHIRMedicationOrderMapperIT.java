@@ -136,6 +136,19 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
     }
 
     @Test
+    public void shouldMapDoseFromMedicationFormsValueset() throws Exception {
+        Bundle bundle = (Bundle) mapperTestHelper.loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithMedicationOrderWithScheduledDate.xml", springContext);
+        MedicationOrder resource = (MedicationOrder) FHIRFeedHelper.identifyResource(bundle.getEntry(), new MedicationOrder().getResourceName());
+
+        Order order = getOrder(bundle, resource);
+        assertTrue(order instanceof DrugOrder);
+        DrugOrder drugOrder = (DrugOrder) order;
+
+        assertThat(drugOrder.getDose(), is(10.0));
+        assertEquals(conceptService.getConcept(807), drugOrder.getDoseUnits());
+    }
+
+    @Test
     public void shouldMapQuantityFromDispenseRequest() throws Exception {
         Order order = getOrder(medicationOrderBundle, medicationOrder);
         assertTrue(order instanceof DrugOrder);
