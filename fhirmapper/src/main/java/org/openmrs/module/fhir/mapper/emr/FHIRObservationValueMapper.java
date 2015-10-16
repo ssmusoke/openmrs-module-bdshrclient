@@ -55,10 +55,10 @@ public class FHIRObservationValueMapper {
 
     private Boolean checkIfBooleanCoding(List<CodingDt> codings) {
         for (CodingDt coding : codings) {
-            if (coding.getSystem().equals(FHIRProperties.FHIR_YES_NO_INDICATOR_URL)) {
-                if (coding.getCode().equals(FHIRProperties.FHIR_NO_INDICATOR_CODE)) {
+            if (coding.getSystem() != null && coding.getSystem().equals(FHIRProperties.FHIR_YES_NO_INDICATOR_URL)) {
+                if (coding.getCode() != null && coding.getCode().equals(FHIRProperties.FHIR_NO_INDICATOR_CODE)) {
                     return false;
-                } else if (coding.getCode().equals(FHIRProperties.FHIR_YES_INDICATOR_CODE)) {
+                } else if (coding.getCode() != null && coding.getCode().equals(FHIRProperties.FHIR_YES_INDICATOR_CODE)) {
                     return true;
                 }
             }
