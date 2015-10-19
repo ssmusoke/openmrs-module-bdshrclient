@@ -62,7 +62,7 @@ public class FHIRFamilyMemberHistoryMapperIT extends BaseModuleWebContextSensiti
         assertEquals(conceptService.getConcept(400), relationshipTypeObs.getValueCoded());
 
         Obs bornOnObs = identifyObsFromConceptName(MRS_CONCEPT_NAME_BORN_ON, personObs.getGroupMembers());
-        assertEquals(DateUtil.parseDate("2074-12-01T00:00:00+05:30"), bornOnObs.getValueDate());
+        assertEquals(DateUtil.parseDate("2074-12-01 00:00:00"), bornOnObs.getValueDate());
 
         Obs relationshipConditionObs = identifyObsFromConceptName(MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION, personObs.getGroupMembers());
         assertEquals(3, relationshipConditionObs.getGroupMembers().size());
