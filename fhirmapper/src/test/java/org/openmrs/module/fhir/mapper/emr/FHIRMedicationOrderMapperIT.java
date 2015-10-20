@@ -165,14 +165,31 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
         DrugOrder drugOrder = (DrugOrder) order;
 
         assertTrue(StringUtils.isNotBlank(drugOrder.getDosingInstructions()));
-        assertEquals("additional instructions notes", readFromJson(drugOrder.getDosingInstructions(), MRSProperties.BAHMNI_DRUG_ORDER_ADDITIONAL_INSTRCTIONS_KEY));
-        String instructionsConceptName = readFromJson(drugOrder.getDosingInstructions(), MRSProperties.BAHMNI_DRUG_ORDER_INSTRCTIONS_KEY);
+        assertEquals("additional instructions notes", (String) readFromJson(drugOrder.getDosingInstructions(), MRSProperties.BAHMNI_DRUG_ORDER_ADDITIONAL_INSTRCTIONS_KEY));
+        String instructionsConceptName = (String) readFromJson(drugOrder.getDosingInstructions(), MRSProperties.BAHMNI_DRUG_ORDER_INSTRCTIONS_KEY);
         assertEquals(conceptService.getConcept(1101).getName().getName(), instructionsConceptName);
     }
 
-    private String readFromJson(String json, String key) throws IOException {
+    @Test
+    public void shouldMapDosageInstructionExtensionToDosingInstructions() throws Exception {
+        Bundle bundle = (Bundle) mapperTestHelper.loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithMedicationOrderWithCustomDosageInstruction.xml", springContext);
+        MedicationOrder resource = (MedicationOrder) FHIRFeedHelper.identifyResource(bundle.getEntry(), new MedicationOrder().getResourceName());
+
+        Order order = getOrder(bundle, resource);
+        assertTrue(order instanceof DrugOrder);
+        DrugOrder drugOrder = (DrugOrder) order;
+
+        assertNull(drugOrder.getDose());
+        assertEquals(conceptService.getConcept(807), drugOrder.getDoseUnits());
+        String dosingInstructions = drugOrder.getDosingInstructions();
+        assertThat((Integer) readFromJson(dosingInstructions, MRSProperties.BAHMNI_DRUG_ORDER_MORNING_DOSE_KEY), is(11));
+        assertThat((Integer) readFromJson(dosingInstructions, MRSProperties.BAHMNI_DRUG_ORDER_AFTERNOON_DOSE_KEY), is(12));
+        assertThat((Integer) readFromJson(dosingInstructions, MRSProperties.BAHMNI_DRUG_ORDER_EVENING_DOSE_KEY), is(13));
+    }
+
+    private Object readFromJson(String json, String key) throws IOException {
         Map map = new ObjectMapper().readValue(json, Map.class);
-        return (String) map.get(key);
+        return map.get(key);
     }
 
     private Order getOrder(Bundle bundle, MedicationOrder resource) {

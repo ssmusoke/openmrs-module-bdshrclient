@@ -254,6 +254,7 @@
                         date_created="2008-07-01 14:09:05.0"
                         voided="false" uuid="6g0bf6767-707a-4329-9850-f15206e63ab0"/>
 
+    <!--drug order with medication, date and route-->
     <orders order_id="16" order_type_id="1" encounter_id="36" urgency="ROUTINE" concept_id="301"
             date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
             care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
@@ -262,6 +263,7 @@
                 duration_units="803" route="701" frequency="1"
                 quantity_units="50" dispense_as_written="true" dose_units="50"/>
 
+    <!--drug order with frequency TwiceAWeek, mg as dose unit-->
     <orders order_id="17" order_type_id="1" encounter_id="36" urgency="ROUTINE" concept_id="301"
             date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
             care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
@@ -270,6 +272,7 @@
                 duration_units="804" route="701" frequency="2"
                 quantity_units="50" dispense_as_written="true" dose_units="50"/>
 
+    <!--drug order with frequency EveryThreeHoursFor10Weeks, puffs as dose unit-->
     <orders order_id="18" order_type_id="1" encounter_id="36" urgency="ROUTINE" concept_id="301"
             date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
             care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
@@ -278,22 +281,25 @@
                 duration_units="804" route="701" frequency="3"
                 quantity_units="50" dispense_as_written="true" dose_units="808"/>
 
+    <!--drug order with frequency EveryTwoHoursFor48Hours, as needed(false), pills as dose unit, pills as quantity unit-->
     <orders order_id="19" order_type_id="1" encounter_id="36" urgency="ROUTINE" concept_id="301"
             date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
             care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
             auto_expire_date="2008-10-09 23:59:59" uuid="amebea86-awaa-g1f3-98w0-f152w6e63ab0"/>
     <drug_order order_id="19" drug_inventory_id="301" dose="4" as_needed="false" quantity="192" duration="2"
                 duration_units="803" route="701" frequency="4"
-                quantity_units="50" dispense_as_written="true" dose_units="807"/>
+                quantity_units="807" dispense_as_written="true" dose_units="807"/>
 
+    <!--drug order with scheduledDate, as needed(true), local quantity unit-->
     <orders order_id="20" order_type_id="1" encounter_id="36" urgency="ON_SCHEDULED_DATE" concept_id="301"
             date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
             care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
             scheduled_date="2008-08-10 00:00:00.0" auto_expire_date="2008-10-18 23:59:59" uuid="adeaea86-xoel-f123-9850-f15206e63ab0"/>
-    <drug_order order_id="20" drug_inventory_id="301" dose="4" as_needed="true" quantity="192" duration="10"
+    <drug_order order_id="20" drug_inventory_id="301" dose="4" as_needed="true" quantity="190" duration="10"
                 duration_units="804" route="701" frequency="2"
                 quantity_units="50" dispense_as_written="true" dose_units="50"/>
 
+    <!--drug order with additional instructions and notes-->
     <orders order_id="21" order_type_id="1" encounter_id="36" urgency="ROUTINE" concept_id="301"
             date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
             care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
@@ -301,5 +307,32 @@
     <drug_order order_id="21" drug_inventory_id="301" dose="4" as_needed="false" quantity="192" duration="2"
                 duration_units="803" route="701" frequency="4" dosing_instructions="{&quot;instructions&quot;:&quot;As directed&quot;,&quot;additionalInstructions&quot;:&quot;additional instructions notes&quot;}"
                 quantity_units="50" dispense_as_written="true" dose_units="806"/>
+
+    <!--drug order with morning afternoon and evening dose, without route-->
+    <orders order_id="22" order_type_id="1" encounter_id="36" urgency="ROUTINE" concept_id="301"
+            date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
+            care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
+            auto_expire_date="2008-10-09 23:59:59" uuid="amkbja86-awaa-g1f3-98w0-f1c2c6c63ab0"/>
+    <drug_order order_id="22" drug_inventory_id="301" as_needed="false" quantity="192" duration="2"
+                duration_units="803" dosing_instructions="{&quot;instructions&quot;:&quot;As directed&quot;,&quot;morningDose&quot;:1,&quot;afternoonDose&quot;:2,&quot;eveningDose&quot;:3}"
+                quantity_units="50" dispense_as_written="true" dose_units="807"/>
+
+    <!--drug order with morning and afternoon dose only-->
+    <orders order_id="23" order_type_id="1" encounter_id="36" urgency="ROUTINE" concept_id="301"
+            date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
+            care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
+            auto_expire_date="2008-10-09 23:59:59" uuid="amkbja86-awqa-q1f3-q8w0-f1c2c6c63ab0"/>
+    <drug_order order_id="23" drug_inventory_id="301" as_needed="false" quantity="192" duration="2"
+                duration_units="803" dosing_instructions="{&quot;instructions&quot;:&quot;As directed&quot;,&quot;morningDose&quot;:11,&quot;afternoonDose&quot;:12}"
+                quantity_units="50" route="701" dispense_as_written="true" dose_units="807"/>
+
+    <!--drug order with evening dose only, without route-->
+    <orders order_id="24" order_type_id="1" encounter_id="36" urgency="ROUTINE" concept_id="301"
+            date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
+            care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
+            auto_expire_date="2008-10-09 23:59:59" uuid="amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0"/>
+    <drug_order order_id="24" drug_inventory_id="301" as_needed="false" quantity="192" duration="2"
+                duration_units="803" dosing_instructions="{&quot;instructions&quot;:&quot;As directed&quot;,&quot;eveningDose&quot;:30}"
+                quantity_units="50" dispense_as_written="true" dose_units="807"/>
     <!--Drug Orders for patients-->
 </dataset>

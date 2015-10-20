@@ -97,4 +97,7 @@ public class MRSProperties {
 
     public static final String BAHMNI_DRUG_ORDER_ADDITIONAL_INSTRCTIONS_KEY = "additionalInstructions";
     public static final String BAHMNI_DRUG_ORDER_INSTRCTIONS_KEY = "instructions";
+    public static String BAHMNI_DRUG_ORDER_AFTERNOON_DOSE_KEY = "afternoonDose";
+    public static String BAHMNI_DRUG_ORDER_MORNING_DOSE_KEY = "morningDose";
+    public static String BAHMNI_DRUG_ORDER_EVENING_DOSE_KEY = "eveningDose";
 }

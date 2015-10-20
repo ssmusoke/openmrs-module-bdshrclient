@@ -12,6 +12,8 @@ import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
 import ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum;
 import ca.uhn.fhir.model.primitive.BooleanDt;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
+import ca.uhn.fhir.model.primitive.StringDt;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -39,11 +41,14 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
     private static final int DEFAULT_NUM_REFILLS = 0;
     private static final String ROUTE_NOT_SPECIFIED = "NOT SPECIFIED";
+    private final ObjectMapper objectMapper;
 
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
@@ -64,6 +69,10 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
 
     private static final Logger logger = Logger.getLogger(FHIRMedicationOrderMapper.class);
 
+    public FHIRMedicationOrderMapper() {
+        objectMapper = new ObjectMapper();
+    }
+
     @Override
     public boolean canHandle(IResource resource) {
         return resource instanceof MedicationOrder;
@@ -81,44 +90,80 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         if (medicationOrder.getDosageInstruction().isEmpty()) return;
         MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.getDosageInstructionFirstRep();
         mapFrequency(drugOrder, dosageInstruction);
+        HashMap<String, Object> dosingInstructionsMap = new HashMap<>();
+        addNotesAndInstructionsToDosingInstructions(medicationOrder, dosingInstructionsMap);
         setOrderDuration(drugOrder, dosageInstruction);
-        setDose(drugOrder, dosageInstruction);
+        if (((SimpleQuantityDt) dosageInstruction.getDose()).getValue() != null) {
+            drugOrder.setDose(((SimpleQuantityDt) dosageInstruction.getDose()).getValue().doubleValue());
+        } else {
+            addCustomDosageToDosingInstructions(dosageInstruction, dosingInstructionsMap);
+        }
+        setDoseUnits(drugOrder, dosageInstruction);
         setQuantity(drugOrder, medicationOrder.getDispenseRequest());
         setScheduledDateAndUrgency(drugOrder, dosageInstruction);
+
         drugOrder.setRoute(mapRoute(dosageInstruction));
         drugOrder.setAsNeeded(((BooleanDt) dosageInstruction.getAsNeeded()).getValue());
         drugOrder.setOrderer(getOrderer(medicationOrder));
         drugOrder.setNumRefills(DEFAULT_NUM_REFILLS);
         drugOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(bundle));
-        drugOrder.setDosingInstructions(getDosingInstructions(medicationOrder));
+        try {
+            drugOrder.setDosingInstructions(objectMapper.writeValueAsString(dosingInstructionsMap));
+        } catch (IOException e) {
+            logger.warn("Unable to set dosageInstruction");
+        }
         drugOrder.setDosingType(FlexibleDosingInstructions.class);
 
         newEmrEncounter.addOrder(drugOrder);
     }
 
-    private void setDose(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction) {
+    private void addCustomDosageToDosingInstructions(MedicationOrder.DosageInstruction dosageInstruction, HashMap<String, Object> dosingInstructionsMap) {
+        List<ExtensionDt> extensions = dosageInstruction.getUndeclaredExtensionsByUrl(FHIRProperties.getFhirExtensionUrl(FHIRProperties.DOSAGEINSTRUCTION_CUSTOM_DOSAGE_EXTENSION_NAME));
+        if (CollectionUtils.isNotEmpty(extensions)) {
+            String value = ((StringDt) extensions.get(0).getValue()).getValue();
+            if (StringUtils.isNotBlank(value)) {
+                try {
+                    Map map = objectMapper.readValue(value, Map.class);
+                    if (map.containsKey(FHIRProperties.FHIR_DRUG_ORDER_MORNING_DOSE_KEY)) {
+                        Integer morningDose = (Integer) map.get(FHIRProperties.FHIR_DRUG_ORDER_MORNING_DOSE_KEY);
+                        dosingInstructionsMap.put(MRSProperties.BAHMNI_DRUG_ORDER_MORNING_DOSE_KEY, morningDose);
+                    }
+                    if (map.containsKey(FHIRProperties.FHIR_DRUG_ORDER_AFTERNOON_DOSE_KEY)) {
+                        Integer afternoonDose = (Integer) map.get(FHIRProperties.FHIR_DRUG_ORDER_AFTERNOON_DOSE_KEY);
+                        dosingInstructionsMap.put(MRSProperties.BAHMNI_DRUG_ORDER_AFTERNOON_DOSE_KEY, afternoonDose);
+                    }
+                    if (map.containsKey(FHIRProperties.FHIR_DRUG_ORDER_EVENING_DOSE_KEY)) {
+                        Integer eveningDose = (Integer) map.get(FHIRProperties.FHIR_DRUG_ORDER_EVENING_DOSE_KEY);
+                        dosingInstructionsMap.put(MRSProperties.BAHMNI_DRUG_ORDER_EVENING_DOSE_KEY, eveningDose);
+                    }
+                } catch (IOException e) {
+                    logger.warn("Unable to map the Dosage Instructions extension value");
+                }
+            }
+        }
+    }
+
+    private void setDoseUnits(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction) {
         SimpleQuantityDt dose = (SimpleQuantityDt) dosageInstruction.getDose();
-        drugOrder.setDose(dose.getValue().doubleValue());
         String dosingUnitsConceptUuid = globalPropertyLookUpService.getGlobalPropertyValue(MRSProperties.GLOBAL_PROPERTY_DOSING_FORMS_CONCEPT_UUID);
-        if(StringUtils.isBlank(dosingUnitsConceptUuid)) {
+        if (StringUtils.isBlank(dosingUnitsConceptUuid)) {
             throw new RuntimeException(String.format("Global property %s is not set", MRSProperties.GLOBAL_PROPERTY_DOSING_FORMS_CONCEPT_UUID));
         }
         Concept dosingUnitsConcept = conceptService.getConceptByUuid(dosingUnitsConceptUuid);
         Concept doseUnitConcept = null;
-        if(StringUtils.isNotBlank(dose.getCode())) {
+        if (StringUtils.isNotBlank(dose.getCode())) {
             doseUnitConcept = omrsConceptLookup.findMemberConceptFromValueSetCode(dosingUnitsConcept, dose.getCode());
         }
-        if(doseUnitConcept == null) {
+        if (doseUnitConcept == null) {
             doseUnitConcept = omrsConceptLookup.findMemberFromDisplayName(dosingUnitsConcept, dose.getUnit());
         }
-        if(doseUnitConcept == null) {
+        if (doseUnitConcept == null) {
             throw new RuntimeException(String.format("Unable to find the dose units [%s] under dosing units.", StringUtils.isNotBlank(dose.getCode()) ? dose.getCode() : dose.getUnit()));
         }
         drugOrder.setDoseUnits(doseUnitConcept);
     }
 
-    private String getDosingInstructions(MedicationOrder medicationOrder) {
-        HashMap<String, String> map = new HashMap<>();
+    private void addNotesAndInstructionsToDosingInstructions(MedicationOrder medicationOrder, HashMap<String, Object> map) {
         CodeableConceptDt additionalInstructions = medicationOrder.getDosageInstructionFirstRep().getAdditionalInstructions();
         if (additionalInstructions != null && !additionalInstructions.isEmpty()) {
             Concept additionalInstructionsConcept = omrsConceptLookup.findConceptByCodeOrDisplay(additionalInstructions.getCoding());
@@ -126,14 +171,8 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
                 map.put(MRSProperties.BAHMNI_DRUG_ORDER_INSTRCTIONS_KEY, additionalInstructionsConcept.getName().getName());
         }
 
-        if(StringUtils.isNotBlank(medicationOrder.getNote()))
+        if (StringUtils.isNotBlank(medicationOrder.getNote()))
             map.put(MRSProperties.BAHMNI_DRUG_ORDER_ADDITIONAL_INSTRCTIONS_KEY, medicationOrder.getNote());
-        try {
-            return map.size() != 0 ? new ObjectMapper().writeValueAsString(map) : null;
-        } catch (IOException e) {
-            logger.warn("Not able to convert dosingInstructions to JSON.");
-            return null;
-        }
     }
 
     private void setQuantity(DrugOrder drugOrder, MedicationOrder.DispenseRequest dispenseRequest) {

@@ -24,8 +24,13 @@ public class FHIRProperties {
     public static final String FHIR_NO_INDICATOR_CODE = "N";
     public static final String FHIR_NO_INDICATOR_DISPLAY = "No";
 
+    public static String FHIR_DRUG_ORDER_AFTERNOON_DOSE_KEY = "afternoonDose";
+    public static String FHIR_DRUG_ORDER_MORNING_DOSE_KEY = "morningDose";
+    public static String FHIR_DRUG_ORDER_EVENING_DOSE_KEY = "eveningDose";
+
     public static final String FHIR_EXTENSION_URL = "https://sharedhealth.atlassian.net/wiki/display/docs/fhir-extensions";
     public static final String SCHEDULED_DATE_EXTENSION_NAME = "TimingScheduledDate";
+    public static final String DOSAGEINSTRUCTION_CUSTOM_DOSAGE_EXTENSION_NAME = "DosageInstructionCustomDosage";
 
     public static String getFhirExtensionUrl(String extensionName) {
         return FHIR_EXTENSION_URL + "#" + extensionName;
