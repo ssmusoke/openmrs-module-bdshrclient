@@ -62,9 +62,9 @@ public class OMRSConceptLookupIT extends BaseModuleWebContextSensitiveTest {
     public void shouldFindConceptFromCodingThatHasReferenceTermsWithoutAnyMatchingConceptPreferredName() {
         List<CodingDt> codings = asList(buildCoding(REF_TERM_URI, "1101", "A001", "xyz concept"),
                 buildCoding(REF_TERM_URI, "1102", "B001", "pqr concept"));
-        Concept concept = omrsConceptLookup.findConceptByCode(codings);
+        Concept concept = omrsConceptLookup.findConceptByCodings(codings, "101");
         assertNotNull(concept);
-        assertTrue(concept.getName().getName().equals("xyz concept") || concept.getName().getName().equals("pqr concept"));
+        assertTrue(concept.getName().getName().startsWith("xyz concept") || concept.getName().getName().startsWith("pqr concept"));
     }
 
     @Test

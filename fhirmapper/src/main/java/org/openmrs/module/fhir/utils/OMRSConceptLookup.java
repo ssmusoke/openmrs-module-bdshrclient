@@ -3,13 +3,8 @@ package org.openmrs.module.fhir.utils;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import org.apache.commons.collections4.Predicate;
 import org.apache.commons.lang.StringUtils;
-import org.openmrs.Concept;
-import org.openmrs.ConceptAnswer;
-import org.openmrs.ConceptMap;
-import org.openmrs.ConceptMapType;
-import org.openmrs.ConceptName;
-import org.openmrs.ConceptReferenceTerm;
-import org.openmrs.Drug;
+import org.apache.log4j.Logger;
+import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -22,8 +17,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import static org.apache.commons.collections4.CollectionUtils.exists;
-import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_CONCEPT_TYPE;
-import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_REFERENCE_TERM_TYPE;
+import static org.openmrs.module.fhir.utils.Constants.*;
 
 @Component
 public class OMRSConceptLookup {
@@ -31,6 +25,10 @@ public class OMRSConceptLookup {
     private ConceptService conceptService;
     private IdMappingsRepository idMappingsRepository;
     private GlobalPropertyLookUpService globalPropertyLookUpService;
+
+    public static final String WS_REST_V1_TR_CONCEPTS = "/ws/rest/v1/tr/concepts/";
+
+    private Logger logger = Logger.getLogger(OMRSConceptLookup.class);
 
     @Autowired
     public OMRSConceptLookup(ConceptService conceptService, IdMappingsRepository repository, GlobalPropertyLookUpService globalPropertyLookUpService) {
@@ -177,20 +175,64 @@ public class OMRSConceptLookup {
                 }
             }
         }
-        return createConceptForDisplayName(referenceTermMapping, refTerm, displayString);
-    }
-
-    private Concept createConceptForDisplayName(Map<ConceptReferenceTerm, String> referenceTermMapping, ConceptReferenceTerm refTerm, String displayString) {
-        if (displayString == null) return null;
-        final String conceptName = referenceTermMapping.get(refTerm);
-        Concept concept = new Concept();
-        concept.addName(new ConceptName(conceptName, Locale.ENGLISH));
-        concept.addConceptMapping(new ConceptMap(refTerm, conceptService.getConceptMapTypeByUuid(ConceptMapType.SAME_AS_MAP_TYPE_UUID)));
-        concept.setVersion("Local");
-        return conceptService.saveConcept(concept);
+        return null;
     }
 
     private static String getUuid(String content) {
         return StringUtils.substringAfterLast(content, "/");
+    }
+
+    public Concept findConceptByCodings(List<CodingDt> codings, String facilityId) {
+        String conceptName = codings.get(0).getDisplay();
+        if (hasTRConceptReference(codings)) {
+            String message = String.format("Can not create observation, concept %s not yet synced", conceptName);
+            logger.error(message);
+            throw new RuntimeException(message);
+        }
+        String fullySpecifiedName = conceptName + UNVERIFIED_BY_TR;
+        Concept concept = conceptService.getConceptByName(fullySpecifiedName);
+        if (concept != null) return concept;
+        else {
+            concept = createNewConcept(conceptName, facilityId);
+            addReferenceTermMappings(concept, codings);
+            return conceptService.saveConcept(concept);
+        }
+    }
+
+    private void addReferenceTermMappings(Concept concept, List<CodingDt> codings) {
+        for (CodingDt coding : codings) {
+            if (isValueSetUrl(coding.getSystem())) continue;
+            String uuid = getUuid(coding.getSystem());
+            if (StringUtils.isNotBlank(uuid)) {
+                IdMapping idMapping = idMappingsRepository.findByExternalId(uuid);
+                if (idMapping == null) continue;
+                if (ID_MAPPING_REFERENCE_TERM_TYPE.equalsIgnoreCase(idMapping.getType())) {
+                    ConceptMapType mapTypeMayBe = conceptService.getConceptMapTypeByName(CONCEPT_MAP_TYPE_MAY_BE_A);
+                    ConceptReferenceTerm refTerm = conceptService.getConceptReferenceTermByUuid(idMapping.getInternalId());
+                    concept.addConceptMapping(new ConceptMap(refTerm, mapTypeMayBe));
+                }
+            }
+        }
+    }
+
+    private boolean hasTRConceptReference(List<CodingDt> codings) {
+        for (CodingDt coding : codings) {
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(coding.getSystem()) && coding.getSystem().contains(WS_REST_V1_TR_CONCEPTS)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Concept createNewConcept(String conceptName, String facilityId) {
+        Concept concept;
+        concept = new Concept();
+        concept.setFullySpecifiedName(new ConceptName(conceptName + UNVERIFIED_BY_TR, Locale.ENGLISH));
+        concept.addName(new ConceptName(conceptName, Locale.ENGLISH));
+        concept.setConceptClass(conceptService.getConceptClassByUuid(ConceptClass.MISC_UUID));
+        concept.setDatatype(conceptService.getConceptDatatypeByUuid(ConceptDatatype.TEXT_UUID));
+        String version = String.format("%s%s", LOCAL_CONCEPT_VERSION_PREFIX, facilityId);
+        concept.setVersion(version);
+        return concept;
     }
 }
