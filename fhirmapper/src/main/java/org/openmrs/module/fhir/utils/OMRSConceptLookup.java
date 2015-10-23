@@ -29,6 +29,9 @@ public class OMRSConceptLookup {
     public static final String WS_REST_V1_TR_CONCEPTS = "/ws/rest/v1/tr/concepts/";
 
     private Logger logger = Logger.getLogger(OMRSConceptLookup.class);
+    private ConceptMapType conceptMapTypeByName;
+    private ConceptClass conceptClassByUuid;
+    private ConceptDatatype conceptDatatypeByUuid;
 
     @Autowired
     public OMRSConceptLookup(ConceptService conceptService, IdMappingsRepository repository, GlobalPropertyLookUpService globalPropertyLookUpService) {
@@ -207,12 +210,18 @@ public class OMRSConceptLookup {
                 IdMapping idMapping = idMappingsRepository.findByExternalId(uuid);
                 if (idMapping == null) continue;
                 if (ID_MAPPING_REFERENCE_TERM_TYPE.equalsIgnoreCase(idMapping.getType())) {
-                    ConceptMapType mapTypeMayBe = conceptService.getConceptMapTypeByName(CONCEPT_MAP_TYPE_MAY_BE_A);
+                    ConceptMapType mapTypeMayBe = getMayBeAConceptMapType();
                     ConceptReferenceTerm refTerm = conceptService.getConceptReferenceTermByUuid(idMapping.getInternalId());
                     concept.addConceptMapping(new ConceptMap(refTerm, mapTypeMayBe));
                 }
             }
         }
+    }
+
+    private ConceptMapType getMayBeAConceptMapType() {
+        if (conceptMapTypeByName != null) return conceptMapTypeByName;
+        conceptMapTypeByName = conceptService.getConceptMapTypeByName(CONCEPT_MAP_TYPE_MAY_BE_A);
+        return conceptMapTypeByName;
     }
 
     private boolean hasTRConceptReference(List<CodingDt> codings) {
@@ -229,10 +238,22 @@ public class OMRSConceptLookup {
         concept = new Concept();
         concept.setFullySpecifiedName(new ConceptName(conceptName + UNVERIFIED_BY_TR, Locale.ENGLISH));
         concept.addName(new ConceptName(conceptName, Locale.ENGLISH));
-        concept.setConceptClass(conceptService.getConceptClassByUuid(ConceptClass.MISC_UUID));
-        concept.setDatatype(conceptService.getConceptDatatypeByUuid(ConceptDatatype.TEXT_UUID));
+        concept.setConceptClass(getMiscConceptClass());
+        concept.setDatatype(getTextConceptDatatype());
         String version = String.format("%s%s", LOCAL_CONCEPT_VERSION_PREFIX, facilityId);
         concept.setVersion(version);
         return concept;
+    }
+
+    private ConceptDatatype getTextConceptDatatype() {
+        if(conceptDatatypeByUuid != null) return conceptDatatypeByUuid;
+        conceptDatatypeByUuid = conceptService.getConceptDatatypeByUuid(ConceptDatatype.TEXT_UUID);
+        return conceptDatatypeByUuid;
+    }
+
+    private ConceptClass getMiscConceptClass() {
+        if (conceptClassByUuid != null) return conceptClassByUuid;
+        conceptClassByUuid = conceptService.getConceptClassByUuid(ConceptClass.MISC_UUID);
+        return conceptClassByUuid;
     }
 }

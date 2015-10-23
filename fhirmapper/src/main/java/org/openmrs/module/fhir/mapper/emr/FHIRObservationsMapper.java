@@ -102,7 +102,6 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
         if (concept != null) {
             return concept;
         }
-        String displayName = observationName.getCoding().get(0).getDisplay();
 
         return omrsConceptLookup.findConceptByCodings(observationName.getCoding(), facilityId);
     }
