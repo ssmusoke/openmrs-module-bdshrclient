@@ -4,7 +4,15 @@ import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import org.apache.commons.collections4.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.openmrs.*;
+import org.openmrs.Concept;
+import org.openmrs.ConceptAnswer;
+import org.openmrs.ConceptClass;
+import org.openmrs.ConceptDatatype;
+import org.openmrs.ConceptMap;
+import org.openmrs.ConceptMapType;
+import org.openmrs.ConceptName;
+import org.openmrs.ConceptReferenceTerm;
+import org.openmrs.Drug;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -18,10 +26,8 @@ import java.util.Locale;
 import java.util.Map;
 
 import static org.apache.commons.collections4.CollectionUtils.exists;
-import static org.openmrs.module.fhir.utils.Constants.*;
 import static org.apache.commons.collections4.CollectionUtils.select;
-import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_CONCEPT_TYPE;
-import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_REFERENCE_TERM_TYPE;
+import static org.openmrs.module.fhir.Constants.*;
 
 @Component
 public class OMRSConceptLookup {

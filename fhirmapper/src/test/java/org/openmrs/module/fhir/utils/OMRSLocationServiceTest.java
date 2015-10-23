@@ -14,7 +14,7 @@ import java.util.HashSet;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_SHR_HIE_FACILITY_LOCATION_TAG;
+import static org.openmrs.module.fhir.MRSProperties.GLOBAL_PROPERTY_CONCEPT_SHR_HIE_FACILITY_LOCATION_TAG;
 
 public class OMRSLocationServiceTest {
 

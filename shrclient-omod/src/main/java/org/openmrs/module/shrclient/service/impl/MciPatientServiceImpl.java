@@ -21,7 +21,7 @@ import org.openmrs.api.PersonService;
 import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
-import org.openmrs.module.fhir.mapper.MRSProperties;
+import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.Confidentiality;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
@@ -40,7 +40,6 @@ import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.AddressHelper;
 import org.openmrs.module.shrclient.util.PropertiesReader;
-import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
@@ -49,10 +48,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 
-import static org.openmrs.module.fhir.mapper.MRSProperties.*;
+import static org.openmrs.module.fhir.Constants.*;
+import static org.openmrs.module.fhir.MRSProperties.*;
 import static org.openmrs.module.fhir.mapper.model.Confidentiality.getConfidentiality;
-import static org.openmrs.module.fhir.utils.Constants.*;
 
 @Component
 public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPatientService {
@@ -237,12 +237,18 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), fhirEncounterId));
 
         if (!shouldSyncEncounter(fhirEncounterId, bundle)) return;
-        org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, bundle);
+        SystemProperties systemProperties = new SystemProperties(
+                propertiesReader.getFrProperties(),
+                propertiesReader.getTrProperties(),
+                propertiesReader.getPrProperties(),
+                propertiesReader.getFacilityInstanceProperties(),
+                propertiesReader.getMciProperties(),
+                propertiesReader.getShrProperties());
+        org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, healthId, fhirEncounterId, bundle, systemProperties);
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
         systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter);
         systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter.getVisit());
-        addEncounterToIdMapping(newEmrEncounter, fhirEncounterId, healthId);
         savePatientDeathInfo(emrPatient);
     }
 
@@ -298,14 +304,6 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         for (Order order : newEmrEncounter.getOrders()) {
             orderService.saveOrder(order, null);
         }
-    }
-
-    private void addEncounterToIdMapping(Encounter newEmrEncounter, String externalUuid, String healthId) {
-        String internalUuid = newEmrEncounter.getUuid();
-        //TODO : put the right url
-        String shrBaseUrl = StringUtil.ensureSuffix(propertiesReader.getShrBaseUrl(), "/");
-        String url = shrBaseUrl + "patients/" + healthId + "/encounters/" + externalUuid;
-        idMappingsRepository.saveOrUpdateMapping(new IdMapping(internalUuid, externalUuid, ID_MAPPING_ENCOUNTER_TYPE, url));
     }
 
     private boolean shouldSyncEncounter(String encounterId, Bundle bundle) {
@@ -375,12 +373,12 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     private void addPatientToIdMapping(org.openmrs.Patient emrPatient, String healthId) {
         String patientUuid = emrPatient.getUuid();
-        SystemProperties systemProperties = new SystemProperties(propertiesReader.getBaseUrls(),
+        SystemProperties systemProperties = new SystemProperties(
                 propertiesReader.getFrProperties(),
                 propertiesReader.getTrProperties(),
                 propertiesReader.getPrProperties(),
                 propertiesReader.getFacilityInstanceProperties(),
-                propertiesReader.getMciProperties());
+                propertiesReader.getMciProperties(), new Properties());
         String url = new EntityReference().build(org.openmrs.Patient.class, systemProperties, healthId);
         idMappingsRepository.saveOrUpdateMapping(new IdMapping(patientUuid, healthId, ID_MAPPING_PATIENT_TYPE, url, new Date()));
     }

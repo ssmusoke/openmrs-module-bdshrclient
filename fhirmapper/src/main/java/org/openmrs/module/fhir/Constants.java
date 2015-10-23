@@ -1,10 +1,7 @@
-package org.openmrs.module.fhir.utils;
+package org.openmrs.module.fhir;
 
 
 public class Constants {
-
-    public static final String SHR_CLIENT_SYSTEM_NAME = "shrclientsystem";
-
     public static final String NATIONAL_ID_ATTRIBUTE = "nationalId";
 
     public static final String HEALTH_ID_ATTRIBUTE = "healthId";
@@ -36,6 +33,9 @@ public class Constants {
     public static final String ID_MAPPING_PERSON_RELATION_TYPE = "PERSON_RELATION";
 
     public final static String ORGANIZATION_ATTRIBUTE_TYPE_NAME = "Organization";
+
+    public static final String ID_MAPPING_ORDER_TYPE = "order";
+
     public final static String FATHER_NAME_ATTRIBUTE_TYPE = "fatherName";
     public final static String SPOUSE_NAME_ATTRIBUTE_TYPE = "spouseName";
 

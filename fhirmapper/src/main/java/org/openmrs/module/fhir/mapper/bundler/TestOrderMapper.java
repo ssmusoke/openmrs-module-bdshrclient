@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
-import static org.openmrs.module.fhir.mapper.FHIRProperties.LOINC_SOURCE_NAME;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_LAB_ORDER_TYPE;
+import static org.openmrs.module.fhir.FHIRProperties.LOINC_SOURCE_NAME;
+import static org.openmrs.module.fhir.MRSProperties.MRS_LAB_ORDER_TYPE;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.identifyResource;
 

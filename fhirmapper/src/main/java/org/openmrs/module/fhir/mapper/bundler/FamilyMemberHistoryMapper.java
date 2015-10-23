@@ -13,7 +13,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Concept;
 import org.openmrs.Obs;
-import org.openmrs.module.fhir.mapper.MRSProperties;
+import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
@@ -28,9 +28,9 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_UNIT_FOR_YEARS;
-import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_URL;
-import static org.openmrs.module.fhir.mapper.MRSProperties.*;
+import static org.openmrs.module.fhir.FHIRProperties.UCUM_UNIT_FOR_YEARS;
+import static org.openmrs.module.fhir.FHIRProperties.UCUM_URL;
+import static org.openmrs.module.fhir.MRSProperties.*;
 
 @Component
 public class FamilyMemberHistoryMapper implements EmrObsResourceHandler {

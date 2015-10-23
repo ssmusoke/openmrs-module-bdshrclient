@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static java.util.Arrays.asList;
-import static org.openmrs.module.fhir.mapper.MRSProperties.*;
+import static org.openmrs.module.fhir.MRSProperties.*;
 
 @Component
 public class FHIRProcedureMapper implements FHIRResourceMapper {

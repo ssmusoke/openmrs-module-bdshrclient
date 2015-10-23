@@ -1,6 +1,6 @@
 package org.openmrs.module.fhir.mapper.model;
 
-import static org.openmrs.module.fhir.mapper.MRSProperties.*;
+import static org.openmrs.module.fhir.MRSProperties.*;
 
 public enum ObservationType {
 

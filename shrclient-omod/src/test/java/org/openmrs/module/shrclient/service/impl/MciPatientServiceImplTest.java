@@ -17,13 +17,14 @@ import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.PropertiesReader;
+import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.openmrs.module.fhir.mapper.MRSProperties.*;
+import static org.openmrs.module.fhir.MRSProperties.*;
 
 public class MciPatientServiceImplTest {
     @Mock
@@ -57,6 +58,7 @@ public class MciPatientServiceImplTest {
     @Test
     public void shouldNotSyncAlreadyProcessedEncounter() throws Exception {
         EncounterBundle encounterBundle = new EncounterBundle();
+        encounterBundle.setTitle("Encounter:shr-enc-id");
         Bundle bundle = new Bundle();
         Composition composition = new Composition();
         Bundle.Entry atomEntry = new Bundle.Entry();
@@ -68,12 +70,13 @@ public class MciPatientServiceImplTest {
         when(mockIdMappingsRepository.findByExternalId(any(String.class))).thenReturn(new IdMapping());
         mciPatientService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
 
-        verify(mockFhirmapper, times(0)).map(emrPatient, bundle);
+        verify(mockFhirmapper, times(0)).map(eq(emrPatient), eq("health_id"), eq("shr-enc-id"), eq(bundle), any(SystemProperties.class));
     }
 
     @Test
     public void shouldNotSyncConfidentialEncounter() throws Exception {
         EncounterBundle encounterBundle = new EncounterBundle();
+        encounterBundle.setTitle("Encounter:shr-enc-id");
         Bundle bundle = new Bundle();
         Composition composition = new Composition();
         composition.setConfidentiality("R");
@@ -87,7 +90,7 @@ public class MciPatientServiceImplTest {
 
         mciPatientService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
 
-        verify(mockFhirmapper, times(0)).map(emrPatient, bundle);
+        verify(mockFhirmapper, times(0)).map(eq(emrPatient), eq("health_id"), eq("shr-enc-id"), eq(bundle), any(SystemProperties.class));
     }
 
     @Test
@@ -104,12 +107,12 @@ public class MciPatientServiceImplTest {
         Patient emrPatient = new Patient();
 
         when(mockIdMappingsRepository.findByExternalId(any(String.class))).thenReturn(null);
-        when(mockFhirmapper.map(emrPatient, bundle)).thenReturn(new Encounter());
+        when(mockFhirmapper.map(eq(emrPatient), eq("health_id"), eq("shr_encounter_id"), eq(bundle), any(SystemProperties.class))).thenReturn(new Encounter());
         when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://shr.com/");
 
         mciPatientService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
 
-        verify(mockFhirmapper, times(1)).map(emrPatient, bundle);
+        verify(mockFhirmapper, times(1)).map(eq(emrPatient), eq("health_id"), eq("shr_encounter_id"), eq(bundle), any(SystemProperties.class));
     }
 
     @Test

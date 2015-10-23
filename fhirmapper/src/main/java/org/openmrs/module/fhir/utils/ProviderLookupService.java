@@ -6,6 +6,7 @@ import org.openmrs.User;
 import org.openmrs.api.ProviderService;
 import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,7 @@ public class ProviderLookupService {
 
     private User getShrClientSystemUser() {
         UserService userService = Context.getUserService();
-        return userService.getUserByUsername(Constants.SHR_CLIENT_SYSTEM_NAME);
+        return userService.getUserByUsername(MRSProperties.SHR_CLIENT_SYSTEM_NAME);
     }
 
     private Provider getProviderById(String providerId) {

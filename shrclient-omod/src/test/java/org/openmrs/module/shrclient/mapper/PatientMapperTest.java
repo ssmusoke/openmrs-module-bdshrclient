@@ -35,7 +35,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.openmrs.module.fhir.utils.Constants.*;
+import static org.openmrs.module.fhir.Constants.*;
 
 public class PatientMapperTest {
 

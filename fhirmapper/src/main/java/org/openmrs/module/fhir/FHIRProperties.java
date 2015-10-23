@@ -1,4 +1,4 @@
-package org.openmrs.module.fhir.mapper;
+package org.openmrs.module.fhir;
 
 public class FHIRProperties {
 

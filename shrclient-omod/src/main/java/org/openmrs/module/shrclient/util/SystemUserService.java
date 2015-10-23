@@ -16,7 +16,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_SHR_SYSTEM_USER_TAG;
+import static org.openmrs.module.fhir.MRSProperties.GLOBAL_PROPERTY_SHR_SYSTEM_USER_TAG;
 
 @Component
 public class SystemUserService {

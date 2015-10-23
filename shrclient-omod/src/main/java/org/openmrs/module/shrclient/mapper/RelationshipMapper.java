@@ -6,7 +6,7 @@ import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
-import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.Relation;
@@ -19,7 +19,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
-import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_PERSON_RELATION_TYPE;
+import static org.openmrs.module.fhir.Constants.ID_MAPPING_PERSON_RELATION_TYPE;
 
 public class RelationshipMapper {
 

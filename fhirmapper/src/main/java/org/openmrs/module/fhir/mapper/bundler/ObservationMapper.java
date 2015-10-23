@@ -12,7 +12,7 @@ import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Obs;
-import org.openmrs.module.fhir.mapper.MRSProperties;
+import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_ENC_TYPE_LAB_RESULT;
+import static org.openmrs.module.fhir.MRSProperties.MRS_ENC_TYPE_LAB_RESULT;
 import static org.openmrs.module.fhir.mapper.model.ObservationType.*;
 
 @Component("FHIRObservationMapper")
@@ -80,7 +80,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
         if (StringUtils.isBlank(globalPropertyValue)) return false;
         List<String> conceptIds = asList(StringUtils.split(globalPropertyValue, ","));
         for (String conceptId : conceptIds) {
-            if(obs.getConcept().getId().equals(Integer.parseInt(conceptId.trim()))){
+            if (obs.getConcept().getId().equals(Integer.parseInt(conceptId.trim()))) {
                 return true;
             }
         }

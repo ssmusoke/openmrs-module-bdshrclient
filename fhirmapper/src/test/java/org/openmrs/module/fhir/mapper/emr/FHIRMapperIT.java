@@ -3,7 +3,11 @@ package org.openmrs.module.fhir.mapper.emr;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import org.junit.After;
 import org.junit.Test;
-import org.openmrs.*;
+import org.openmrs.Concept;
+import org.openmrs.ConceptClass;
+import org.openmrs.Encounter;
+import org.openmrs.Obs;
+import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.MapperTestHelper;
@@ -17,11 +21,12 @@ import java.util.Locale;
 import java.util.Set;
 
 import static org.junit.Assert.*;
-import static org.openmrs.module.fhir.utils.Constants.UNVERIFIED_BY_TR;
+import static org.openmrs.module.fhir.Constants.UNVERIFIED_BY_TR;
+import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
+public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     private ApplicationContext springContext;
@@ -40,7 +45,6 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
         deleteAllData();
     }
 
-
     @Test
     public void shouldMapObservations() throws Exception {
         executeDataSet("testDataSets/shrClientObservationsTestDs.xml");
@@ -48,7 +52,7 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
 
         Patient patient = patientService.getPatient(1);
 
-        Encounter encounter = fhirMapper.map(patient, encounterBundle);
+        Encounter encounter = fhirMapper.map(patient, "98101039678", "shr_enc_id", encounterBundle, getSystemProperties("1"));
         assertEquals(4, encounter.getAllObs().size());
 
         Set<Obs> topLevelObs = encounter.getObsAtTopLevel(false);
@@ -77,7 +81,7 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
 
         Patient patient = patientService.getPatient(1);
 
-        Encounter encounter = fhirMapper.map(patient, encounterBundle);
+        Encounter encounter = fhirMapper.map(patient, "98101039678", "shr-enc-id", encounterBundle, getSystemProperties("1"));
         assertEquals(6, encounter.getAllObs().size());
 
         Set<Obs> topLevelObs = encounter.getObsAtTopLevel(false);
@@ -119,7 +123,7 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
         Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithNotSyncedTRConcepts.xml", springContext);
 
         Patient patient = patientService.getPatient(1);
-        fhirMapper.map(patient, encounterBundle);
+        fhirMapper.map(patient, "98101039678", "shr-enc-id", encounterBundle, getSystemProperties("1"));
     }
 
 
@@ -137,7 +141,7 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
         assertNull(conceptService.getConceptByName(conceptNameHeightAndWeight));
 
         Patient patient = patientService.getPatient(1);
-        Encounter emrEncounter = fhirMapper.map(patient, encounterBundle);
+        Encounter emrEncounter = fhirMapper.map(patient, "98101039678", "shr-enc-id", encounterBundle, getSystemProperties("1"));
 
         assertEquals(3, emrEncounter.getAllObs().size());
         final Set<Obs> topLevelObs = emrEncounter.getObsAtTopLevel(false);
@@ -170,7 +174,7 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
 
         Patient patient = patientService.getPatient(1);
 
-        Encounter encounter = fhirMapper.map(patient, encounterBundle);
+        Encounter encounter = fhirMapper.map(patient, "98101039678", "shr-enc-id", encounterBundle, getSystemProperties("1"));
         assertEquals(6, encounter.getAllObs().size());
 
         Set<Obs> topLevelObs = encounter.getObsAtTopLevel(false);

@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static org.openmrs.module.fhir.mapper.MRSProperties.*;
+import static org.openmrs.module.fhir.MRSProperties.*;
 
 @Component
 public class FHIRImmunizationMapper implements FHIRResourceMapper {

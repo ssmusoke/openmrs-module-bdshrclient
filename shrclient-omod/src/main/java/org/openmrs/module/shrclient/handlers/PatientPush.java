@@ -30,11 +30,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.openmrs.module.fhir.utils.Constants.HEALTH_ID_ATTRIBUTE;
-import static org.openmrs.module.fhir.utils.Constants.ID_MAPPING_PATIENT_TYPE;
+import static org.openmrs.module.fhir.Constants.HEALTH_ID_ATTRIBUTE;
+import static org.openmrs.module.fhir.Constants.ID_MAPPING_PATIENT_TYPE;
 
 public class PatientPush implements EventWorker {
 
@@ -211,12 +212,12 @@ public class PatientPush implements EventWorker {
     }
 
     private SystemProperties getSystemProperties() {
-        return new SystemProperties(propertiesReader.getBaseUrls(),
+        return new SystemProperties(
                 propertiesReader.getFrProperties(),
                 propertiesReader.getTrProperties(),
                 propertiesReader.getPrProperties(),
                 propertiesReader.getFacilityInstanceProperties(),
-                propertiesReader.getMciProperties());
+                propertiesReader.getMciProperties(), new Properties());
     }
 
     String getPatientUuid(Event event) {

@@ -10,6 +10,7 @@ import ca.uhn.fhir.model.dstu2.composite.TimingDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
+import ca.uhn.fhir.model.dstu2.valueset.MedicationOrderStatusEnum;
 import ca.uhn.fhir.model.dstu2.valueset.TimingAbbreviationEnum;
 import ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum;
 import ca.uhn.fhir.model.primitive.BooleanDt;
@@ -21,7 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Order;
 import org.openmrs.api.OrderService;
-import org.openmrs.module.fhir.mapper.FHIRProperties;
+import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -255,6 +256,42 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertNull(map.get(FHIRProperties.FHIR_DRUG_ORDER_AFTERNOON_DOSE_KEY));
         assertEquals(30, map.get(FHIRProperties.FHIR_DRUG_ORDER_EVENING_DOSE_KEY));
         assertEquals(TimingAbbreviationEnum.QD.getCode(), dosageInstruction.getTiming().getCode().getCodingFirstRep().getCode());
+    }
+
+    @Test
+    public void shouldSetStatusAndDateEndedForStoppedDrugOrders() throws Exception {
+        Encounter fhirEncounter = getFhirEncounter();
+
+        Order order = orderService.getOrder(25);
+        List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+
+        assertEquals(MedicationOrderStatusEnum.STOPPED.getCode(), medicationOrder.getStatus());
+        assertEquals(DateUtil.parseDate("2008-10-09 13:59:59"), medicationOrder.getDateEnded());
+    }
+
+    @Test
+    public void shouldSetPreviousOrderReferenceForEditedDrugOrders() throws Exception {
+        Encounter fhirEncounter = getFhirEncounter();
+
+        Order order = orderService.getOrder(26);
+        List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+
+        assertEquals(MedicationOrderStatusEnum.ACTIVE.getCode(), medicationOrder.getStatus());
+        assertEquals("urn:uuid:amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc", medicationOrder.getPriorPrescription().getReference().getValue());
+    }
+
+    @Test
+    public void shouldSetPreviousOrderEncounterUrlForEditedDrugOrdersInDifferentEncounters() throws Exception {
+        Encounter fhirEncounter = getFhirEncounter();
+
+        Order order = orderService.getOrder(27);
+        List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+
+        assertEquals(MedicationOrderStatusEnum.ACTIVE.getCode(), medicationOrder.getStatus());
+        assertEquals("encounters/shr_enc_id_1#MedicationOrder/amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc", medicationOrder.getPriorPrescription().getReference().getValue());
     }
 
     private Encounter getFhirEncounter() {

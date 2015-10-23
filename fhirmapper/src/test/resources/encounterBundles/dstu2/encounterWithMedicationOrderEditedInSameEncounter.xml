@@ -41,7 +41,13 @@
                 </section>
                 <section>
                     <entry>
-                        <reference value="urn:uuid:6c08551e-3d98-4ae6-8e28-bcba2f648919"/>
+                        <reference value="urn:uuid:amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc"/>
+                        <display value="Medication Order"/>
+                    </entry>
+                </section>
+                <section>
+                    <entry>
+                        <reference value="zmkbja86-awaa-11f3-9qw4-ccc26cc6cabc"/>
                         <display value="Medication Order"/>
                     </entry>
                 </section>
@@ -77,15 +83,16 @@
         </resource>
     </entry>
     <entry>
-        <fullUrl value="urn:uuid:6c08551e-3d98-4ae6-8e28-bcba2f648919"/>
+        <fullUrl value="urn:uuid:amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc"/>
         <resource>
             <MedicationOrder xmlns="http://hl7.org/fhir">
-                <id value="6c08551e-3d98-4ae6-8e28-bcba2f648919"/>
+                <id value="amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc"/>
                 <identifier>
-                    <value value="urn:uuid:6c08551e-3d98-4ae6-8e28-bcba2f648919"/>
+                    <value value="urn:uuid:amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc"/>
                 </identifier>
                 <dateWritten value="2008-08-19T12:20:22.000+05:30"/>
                 <status value="stopped"/>
+                <dateEnded value="2008-10-09T13:59:59.000+05:30"/>
                 <patient>
                     <reference value="hid"/>
                 </patient>
@@ -103,17 +110,6 @@
                     </coding>
                 </medicationCodeableConcept>
                 <dosageInstruction>
-                    <extension
-                            url="https://sharedhealth.atlassian.net/wiki/display/docs/fhir-extensions#DosageInstructionCustomDosage">
-                        <valueString value="{&quot;morningDose&quot;:11,&quot;afternoonDose&quot;:12,&quot;eveningDose&quot;:13}"/>
-                    </extension>
-                    <additionalInstructions>
-                        <coding>
-                            <system value="/concepts/1101"/>
-                            <code value="1101"/>
-                            <display value="As directed"/>
-                        </coding>
-                    </additionalInstructions>
                     <timing>
                         <repeat>
                             <boundsQuantity>
@@ -121,13 +117,10 @@
                                 <system value="http://unitsofmeasure.org"/>
                                 <code value="d"/>
                             </boundsQuantity>
+                            <frequency value="1"/>
+                            <period value="2"/>
+                            <periodUnits value="h"/>
                         </repeat>
-                        <code>
-                            <coding>
-                                <system value="http://hl7.org/fhir/v3/GTSAbbreviation"/>
-                                <code value="BID"/>
-                            </coding>
-                        </code>
                     </timing>
                     <asNeededBoolean value="false"/>
                     <route>
@@ -138,6 +131,7 @@
                         </coding>
                     </route>
                     <doseQuantity>
+                        <value value="4"/>
                         <unit value="Pill"/>
                         <system value="http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Medication-Forms"/>
                         <code value="Pill"/>
@@ -146,9 +140,75 @@
                 <dispenseRequest>
                     <quantity>
                         <value value="192.0"/>
-                        <unit value="mg"/>
+                        <unit value="Pill"/>
                     </quantity>
                 </dispenseRequest>
+            </MedicationOrder>
+        </resource>
+    </entry>
+    <entry>
+        <fullUrl value="urn:uuid:zmkbja86-awaa-11f3-9qw4-ccc26cc6cabc"/>
+        <resource>
+            <MedicationOrder xmlns="http://hl7.org/fhir">
+                <id value="zmkbja86-awaa-11f3-9qw4-ccc26cc6cabc"/>
+                <identifier>
+                    <value value="urn:uuid:zmkbja86-awaa-11f3-9qw4-ccc26cc6cabc"/>
+                </identifier>
+                <dateWritten value="2008-08-19T12:20:22.000+05:30"/>
+                <status value="active"/>
+                <patient>
+                    <reference value="hid"/>
+                </patient>
+                <prescriber>
+                    <reference value="http://hrmtest.dghs.gov.bd/api/1.0/providers/321.json"/>
+                </prescriber>
+                <encounter>
+                    <reference value="shrEncId"/>
+                </encounter>
+                <medicationCodeableConcept>
+                    <coding>
+                        <system value="drugs/104"/>
+                        <code value="104"/>
+                        <display value="Lactic Acid"/>
+                    </coding>
+                </medicationCodeableConcept>
+                <dosageInstruction>
+                    <timing>
+                        <repeat>
+                            <boundsQuantity>
+                                <value value="2"/>
+                                <system value="http://unitsofmeasure.org"/>
+                                <code value="d"/>
+                            </boundsQuantity>
+                            <frequency value="1"/>
+                            <period value="2"/>
+                            <periodUnits value="h"/>
+                        </repeat>
+                    </timing>
+                    <asNeededBoolean value="false"/>
+                    <route>
+                        <coding>
+                            <system value="http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Route-of-Administration"/>
+                            <code value="Oral"/>
+                            <display value="Oral"/>
+                        </coding>
+                    </route>
+                    <doseQuantity>
+                        <value value="4"/>
+                        <unit value="Pill"/>
+                        <system value="http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Medication-Forms"/>
+                        <code value="Pill"/>
+                    </doseQuantity>
+                </dosageInstruction>
+                <dispenseRequest>
+                    <quantity>
+                        <value value="190.0"/>
+                        <unit value="Pill"/>
+                    </quantity>
+                </dispenseRequest>
+                <priorPrescription>
+                    <reference value="urn:uuid:amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc"/>
+                </priorPrescription>
             </MedicationOrder>
         </resource>
     </entry>

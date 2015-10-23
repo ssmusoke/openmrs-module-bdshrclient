@@ -18,7 +18,7 @@ import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static org.openmrs.module.fhir.mapper.FHIRProperties.*;
+import static org.openmrs.module.fhir.FHIRProperties.*;
 
 @Component
 public class ObservationValueMapper {

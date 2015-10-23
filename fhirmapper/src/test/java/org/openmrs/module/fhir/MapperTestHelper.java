@@ -53,7 +53,11 @@ public class MapperTestHelper {
         mciProperties.put(PropertyKeyConstants.MCI_REFERENCE_PATH, "http://public.com/");
         mciProperties.put(PropertyKeyConstants.MCI_PATIENT_CONTEXT, "/api/default/patients");
 
-        return new SystemProperties(baseUrls, facilityRegistry, trProperties, providerRegistry, facilityInstanceProperties, mciProperties);
+        Properties shrProperties = new Properties();
+        shrProperties.put(PropertyKeyConstants.SHR_REFERENCE_PATH, "http://shr.com/");
+        shrProperties.put(PropertyKeyConstants.SHR_PATIENT_ENC_PATH_PATTERN, "/patients/%s/encounters");
+
+        return new SystemProperties(facilityRegistry, trProperties, providerRegistry, facilityInstanceProperties, mciProperties, shrProperties);
     }
 
     public static boolean containsCoding(List<CodingDt> coding, final String code, final String system, final String display) {

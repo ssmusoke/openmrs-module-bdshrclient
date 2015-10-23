@@ -249,8 +249,19 @@
     <encounter encounter_id="36" encounter_type="1" patient_id="1" visit_id="1" location_id="2"
                encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
                voided="false" uuid="6d0af6767-707a-4629-9850-f15206e63ab0"/>
+    <shr_id_mapping id="1111" internal_id="6d0af6767-707a-4629-9850-f15206e63ab0" external_id="shr_enc_id_1" type="encounter" uri="http://shr.com/patients/1234512345123/encounters/shr_enc_id_1" />
 
     <encounter_provider encounter_provider_id="2" encounter_id="36" provider_id="22" creator="1"
+                        date_created="2008-07-01 14:09:05.0"
+                        voided="false" uuid="6g0bf6767-707a-4329-9850-f15206e63ab0"/>
+
+    <!--Empty encounter for download-->
+    <encounter encounter_id="37" encounter_type="1" patient_id="1" visit_id="1" location_id="2"
+               encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
+               voided="false" uuid="6d0af6767-707a-4629-9850-ttc2c6e63ab0"/>
+    <shr_id_mapping id="1111" internal_id="6d0af6767-707a-4629-9850-ttc2c6e63ab0" external_id="shr_enc_id_2" type="encounter" uri="http://shr.com/patients/1234512345123/encounters/shr_enc_id_2" />
+
+    <encounter_provider encounter_provider_id="2" encounter_id="37" provider_id="22" creator="1"
                         date_created="2008-07-01 14:09:05.0"
                         voided="false" uuid="6g0bf6767-707a-4329-9850-f15206e63ab0"/>
 
@@ -334,5 +345,41 @@
     <drug_order order_id="24" drug_inventory_id="301" as_needed="false" quantity="192" duration="2"
                 duration_units="803" dosing_instructions="{&quot;instructions&quot;:&quot;As directed&quot;,&quot;eveningDose&quot;:30}"
                 quantity_units="50" dispense_as_written="true" dose_units="807"/>
+
+    <!--stopped drug order-->
+    <orders order_id="25" order_type_id="1" encounter_id="36" urgency="ROUTINE" concept_id="301"
+            date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="DISCONTINUE"
+            care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
+            date_stopped="2008-10-09 13:59:59" auto_expire_date="2008-10-09 23:59:59" uuid="amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc"/>
+    <drug_order order_id="25" drug_inventory_id="301" dose="4" as_needed="false" quantity="192" duration="2"
+                duration_units="803" route="701" frequency="4"
+                quantity_units="807" dispense_as_written="true" dose_units="807"/>
+    <shr_id_mapping internal_id="amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc" external_id="amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc"
+                    type="order" uri="encounters/shr_enc_id_1#MedicationOrder/amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc"/>
+
+    <!--edited drug order, previous order 25-->
+    <orders order_id="26" order_type_id="1" encounter_id="36" urgency="ROUTINE" concept_id="301"
+            date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="REVISE"
+            care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
+            previous_order_id="25" auto_expire_date="2008-10-09 23:59:59" uuid="amkbja86-awaa-11f3-9qw4-ccc26cc6cabc"/>
+    <drug_order order_id="26" drug_inventory_id="301" dose="4" as_needed="false" quantity="192" duration="2"
+                duration_units="803" route="701" frequency="4"
+                quantity_units="807" dispense_as_written="true" dose_units="807"/>
+
+    <!--edited drug order, previous order 25 (edited in different encounter)-->
+    <encounter encounter_id="38" encounter_type="1" patient_id="1" visit_id="1" location_id="2"
+               encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
+               voided="false" uuid="6d0af67c7-707c-4629-9850-f15206e63ab0"/>
+    <encounter_provider encounter_provider_id="2" encounter_id="38" provider_id="22" creator="1"
+                        date_created="2008-07-01 14:09:05.0"
+                        voided="false" uuid="6g0bf6767-707a-43c9-c850-f15206e63ab0"/>
+
+    <orders order_id="27" order_type_id="1" encounter_id="38" urgency="ROUTINE" concept_id="301"
+            date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="REVISE"
+            care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
+            previous_order_id="25" auto_expire_date="2008-10-09 23:59:59" uuid="amkbja86-awaa-11f3-9qw4-ccc26cc6ccbc"/>
+    <drug_order order_id="27" drug_inventory_id="301" dose="4" as_needed="false" quantity="192" duration="2"
+                duration_units="803" route="701" frequency="4"
+                quantity_units="807" dispense_as_written="true" dose_units="807"/>
     <!--Drug Orders for patients-->
 </dataset>

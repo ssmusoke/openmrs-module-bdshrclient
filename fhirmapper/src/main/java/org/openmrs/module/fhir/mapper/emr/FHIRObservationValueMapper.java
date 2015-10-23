@@ -10,7 +10,7 @@ import org.openmrs.Concept;
 import org.openmrs.Drug;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
-import org.openmrs.module.fhir.mapper.FHIRProperties;
+import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

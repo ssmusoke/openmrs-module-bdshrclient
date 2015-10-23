@@ -2,7 +2,7 @@ package org.openmrs.module.fhir.utils;
 
 import org.openmrs.module.shrclient.util.SystemProperties;
 
-import static org.openmrs.module.fhir.mapper.MRSProperties.*;
+import static org.openmrs.module.fhir.MRSProperties.*;
 
 public enum TrValueSetType {
     RELATIONSHIP_TYPE(TR_VALUESET_RELATIONSHIP_TYPE, GLOBAL_PROPERTY_CONCEPT_RELATIONSHIP_TYPE, PropertyKeyConstants.TR_VALUESET_RELATIONSHIP_TYPE),

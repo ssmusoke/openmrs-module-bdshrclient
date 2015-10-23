@@ -18,7 +18,7 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
-import static org.openmrs.module.fhir.mapper.FHIRProperties.*;
+import static org.openmrs.module.fhir.FHIRProperties.*;
 
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)

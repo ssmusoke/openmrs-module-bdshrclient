@@ -21,8 +21,8 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
-import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_UNIT_FOR_YEARS;
-import static org.openmrs.module.fhir.mapper.FHIRProperties.UCUM_URL;
+import static org.openmrs.module.fhir.FHIRProperties.UCUM_UNIT_FOR_YEARS;
+import static org.openmrs.module.fhir.FHIRProperties.UCUM_URL;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)

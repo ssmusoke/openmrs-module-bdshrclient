@@ -1,5 +1,6 @@
 package org.openmrs.module.shrclient.handlers;
 
+import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
@@ -7,10 +8,12 @@ import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.exceptions.AtomFeedClientException;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.Encounter;
+import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.api.EncounterService;
+import org.openmrs.module.fhir.Constants;
+import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
-import org.openmrs.module.fhir.utils.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.EncounterResponse;
@@ -25,6 +28,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -73,22 +77,40 @@ public class EncounterPush implements EventWorker {
             String healthId = getPatientHealthId(openMrsEncounter.getPatient());
             log.debug("Uploading patient encounter to SHR : [ " + openMrsEncounter.getUuid() + "]");
             String shrEncounterId = mapping != null ? mapping.getExternalId() : null;
+            SystemProperties systemProperties = new SystemProperties(
+                    propertiesReader.getFrProperties(),
+                    propertiesReader.getTrProperties(),
+                    propertiesReader.getPrProperties(),
+                    propertiesReader.getFacilityInstanceProperties(),
+                    propertiesReader.getMciProperties(),
+                    propertiesReader.getShrProperties());
             if (shrEncounterId != null) {
-                pushEncounterUpdate(openMrsEncounter, shrEncounterId, healthId);
+                pushEncounterUpdate(openMrsEncounter, shrEncounterId, healthId, systemProperties);
             } else {
-                shrEncounterId = pushEncounterCreate(openMrsEncounter, healthId);
+                shrEncounterId = pushEncounterCreate(openMrsEncounter, healthId, systemProperties);
             }
             encounterUuidsProcessed.add(openMrsEncounter.getUuid());
-            saveIdMapping(openMrsEncounter, healthId, shrEncounterId);
+            String encounterUrl = formatEncounterUrl(healthId, shrEncounterId, systemProperties);
+            saveEncounterIdMapping(openMrsEncounter, shrEncounterId, encounterUrl);
+            saveOrderIdMapping(openMrsEncounter.getOrders(), encounterUrl);
         } catch (Exception e) {
             log.error("Error while processing encounter sync event.", e);
             throw new RuntimeException(e);
         }
     }
 
-    private void saveIdMapping(Encounter openMrsEncounter, String healthId, String shrEncounterId) {
+    private void saveOrderIdMapping(Set<Order> orders, String encounterUrl) {
+        for (Order order : orders) {
+            if(order.getOrderType().getName().equals(MRSProperties.MRS_DRUG_ORDER_TYPE)) {
+                String orderUrl = String.format("%s#%s/%s", encounterUrl,new MedicationOrder().getResourceName(), order.getUuid());
+                idMappingsRepository.saveOrUpdateMapping(new IdMapping(order.getUuid(), order.getUuid(), Constants.ID_MAPPING_ORDER_TYPE, orderUrl));
+            }
+        }
+    }
+
+    private void saveEncounterIdMapping(Encounter openMrsEncounter, String shrEncounterId, String encounterUrl) {
         idMappingsRepository.saveOrUpdateMapping(new IdMapping(openMrsEncounter.getUuid(), shrEncounterId,
-                Constants.ID_MAPPING_ENCOUNTER_TYPE, formatEncounterUrl(healthId, shrEncounterId), new Date()));
+                Constants.ID_MAPPING_ENCOUNTER_TYPE, encounterUrl, new Date()));
     }
 
     private boolean shouldUploadEncounter(Encounter openMrsEncounter, IdMapping mapping) {
@@ -108,24 +130,16 @@ public class EncounterPush implements EventWorker {
     }
 
 
-    private String formatEncounterUrl(String healthId, String externalUuid) {
-        String shrBaseUrl = StringUtil.ensureSuffix(propertiesReader.getShrBaseUrl(), "/");
-        String encPathPattern = StringUtil.removePrefix(propertiesReader.getShrPatientEncPathPattern(), "/");
-        return StringUtil.ensureSuffix(shrBaseUrl + String.format(encPathPattern, healthId), "/") + externalUuid;
+    private String formatEncounterUrl(String healthId, String externalUuid, SystemProperties systemProperties) {
+        String shrEncounterUrl = systemProperties.getShrEncounterUrl();
+        return StringUtil.ensureSuffix(String.format(shrEncounterUrl, healthId), "/") + externalUuid;
     }
 
-    private String pushEncounterCreate(Encounter openMrsEncounter, String healthId) throws IOException {
+    private String pushEncounterCreate(Encounter openMrsEncounter, String healthId, SystemProperties systemProperties) throws IOException {
         try {
             String encPathPattern = StringUtil.removePrefix(propertiesReader.getShrPatientEncPathPattern(), "/");
             String shrEncounterCreateResponse = shrClient.post(String.format(encPathPattern, healthId),
-                    compositionBundle.create(openMrsEncounter, healthId,
-                            new SystemProperties(propertiesReader.getBaseUrls(),
-                                    propertiesReader.getFrProperties(),
-                                    propertiesReader.getTrProperties(),
-                                    propertiesReader.getPrProperties(),
-                                    propertiesReader.getFacilityInstanceProperties(),
-                                    propertiesReader.getMciProperties()
-                            )));
+                    compositionBundle.create(openMrsEncounter, healthId, systemProperties));
             return getEncounterIdFromResponse(shrEncounterCreateResponse);
         } catch (IdentityUnauthorizedException e) {
             log.error("Clearing unauthorized identity token.");
@@ -134,19 +148,13 @@ public class EncounterPush implements EventWorker {
         }
     }
 
-    private void pushEncounterUpdate(Encounter openMrsEncounter, String shrEncounterId, String healthId) throws IOException {
+    private void pushEncounterUpdate(Encounter openMrsEncounter, String shrEncounterId, String healthId, SystemProperties systemProperties) throws IOException {
         try {
             String encPathPattern = StringUtil.removePrefix(propertiesReader.getShrPatientEncPathPattern(), "/");
             String encPath = String.format(encPathPattern, healthId);
             String encUpdateUrl = String.format("%s/%s", encPath, shrEncounterId);
             shrClient.put(encUpdateUrl,
-                    compositionBundle.create(openMrsEncounter,
-                            healthId, new SystemProperties(propertiesReader.getBaseUrls(),
-                                    propertiesReader.getFrProperties(),
-                                    propertiesReader.getTrProperties(),
-                                    propertiesReader.getPrProperties(),
-                                    propertiesReader.getFacilityInstanceProperties(),
-                                    propertiesReader.getMciProperties())));
+                    compositionBundle.create(openMrsEncounter, healthId, systemProperties));
         } catch (IdentityUnauthorizedException e) {
             log.error("Clearing unauthorized identity token.");
             clientRegistry.clearIdentityToken();

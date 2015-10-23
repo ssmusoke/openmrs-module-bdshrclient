@@ -26,8 +26,8 @@ import org.openmrs.DrugOrder;
 import org.openmrs.Order;
 import org.openmrs.Provider;
 import org.openmrs.api.ConceptService;
-import org.openmrs.module.fhir.mapper.FHIRProperties;
-import org.openmrs.module.fhir.mapper.MRSProperties;
+import org.openmrs.module.fhir.FHIRProperties;
+import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.DurationMapperUtil;
@@ -47,10 +47,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.openmrs.module.fhir.mapper.FHIRProperties.FHIR_DRUG_ORDER_AFTERNOON_DOSE_KEY;
-import static org.openmrs.module.fhir.mapper.FHIRProperties.FHIR_DRUG_ORDER_EVENING_DOSE_KEY;
-import static org.openmrs.module.fhir.mapper.FHIRProperties.FHIR_DRUG_ORDER_MORNING_DOSE_KEY;
-import static org.openmrs.module.fhir.mapper.MRSProperties.*;
+import static org.openmrs.module.fhir.FHIRProperties.*;
+import static org.openmrs.module.fhir.MRSProperties.*;
 
 @Component
 public class DrugOrderMapper implements EmrOrderResourceHandler {
@@ -90,7 +88,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         medicationOrder.setMedication(getMedication(drugOrder));
         medicationOrder.setPrescriber(getOrdererReference(drugOrder, fhirEncounter, systemProperties));
         medicationOrder.addDosageInstruction(getDoseInstructions(drugOrder, medicationOrder, systemProperties));
-        setStatus(drugOrder, medicationOrder);
+        setStatusAndPriorPrescription(drugOrder, medicationOrder, systemProperties);
         setDispenseRequest(drugOrder, medicationOrder);
         medicationOrder.setNote(getNotes(drugOrder));
 
@@ -114,13 +112,33 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         medicationOrder.setDispenseRequest(dispenseRequest);
     }
 
-    private void setStatus(DrugOrder drugOrder, MedicationOrder medicationOrder) {
+    private void setStatusAndPriorPrescription(DrugOrder drugOrder, MedicationOrder medicationOrder, SystemProperties systemProperties) {
         if (drugOrder.getDateStopped() != null) {
             medicationOrder.setStatus(MedicationOrderStatusEnum.STOPPED);
             medicationOrder.setDateEnded(drugOrder.getDateStopped(), TemporalPrecisionEnum.MILLI);
         } else {
             medicationOrder.setStatus(MedicationOrderStatusEnum.ACTIVE);
         }
+        if (drugOrder.getPreviousOrder() != null) {
+            String priorPresecription = setPriorPrescriptionReference(drugOrder, systemProperties);
+            medicationOrder.setPriorPrescription(new ResourceReferenceDt(priorPresecription));
+        }
+    }
+
+    private String setPriorPrescriptionReference(DrugOrder drugOrder, SystemProperties systemProperties) {
+        if (isEditedInDifferentEncounter(drugOrder)) {
+            IdMapping orderIdMapping = idMappingsRepository.findByInternalId(drugOrder.getPreviousOrder().getUuid());
+            if (orderIdMapping == null) {
+                throw new RuntimeException("Previous order encounter with id [" + drugOrder.getPreviousOrder().getEncounter().getUuid() + "] is not synced to SHR yet.");
+            }
+            return orderIdMapping.getUri();
+        } else {
+            return new EntityReference().build(Order.class, systemProperties, drugOrder.getPreviousOrder().getUuid());
+        }
+    }
+
+    private boolean isEditedInDifferentEncounter(DrugOrder drugOrder) {
+        return !drugOrder.getEncounter().equals(drugOrder.getPreviousOrder().getEncounter());
     }
 
     private ResourceReferenceDt getOrdererReference(Order order, Encounter encounter, SystemProperties systemProperties) {
@@ -151,7 +169,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         } else {
             dosageInstruction = getDosageInstructionsWithPredifinedFrequency(drugOrder, doseQuantity);
         }
-        if(dosageInstruction == null) return null;
+        if (dosageInstruction == null) return null;
         if (route != null) dosageInstruction.setRoute(route);
         dosageInstruction.setAdditionalInstructions(additionalInstructions);
         dosageInstruction.setAsNeeded(asNeeded);
@@ -181,7 +199,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
             map.put(FHIR_DRUG_ORDER_EVENING_DOSE_KEY, eveningDose);
         }
         TimingAbbreviationEnum timingAbbreviationEnum = null;
-        if(count == 0) return null;
+        if (count == 0) return null;
         else if (count == 1) timingAbbreviationEnum = TimingAbbreviationEnum.QD;
         else if (count == 2) timingAbbreviationEnum = TimingAbbreviationEnum.BID;
         else if (count == 3) timingAbbreviationEnum = TimingAbbreviationEnum.TID;

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
-import static org.openmrs.module.fhir.mapper.MRSProperties.GLOBAL_PROPERTY_CONCEPT_SHR_HIE_FACILITY_LOCATION_TAG;
+import static org.openmrs.module.fhir.MRSProperties.GLOBAL_PROPERTY_CONCEPT_SHR_HIE_FACILITY_LOCATION_TAG;
 
 @Component
 public class OMRSLocationService {

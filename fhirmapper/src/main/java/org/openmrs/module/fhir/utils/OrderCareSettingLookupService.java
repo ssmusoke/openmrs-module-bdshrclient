@@ -8,8 +8,8 @@ import org.openmrs.api.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CARE_SETTING_FOR_INPATIENT;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_CARE_SETTING_FOR_OUTPATIENT;
+import static org.openmrs.module.fhir.MRSProperties.MRS_CARE_SETTING_FOR_INPATIENT;
+import static org.openmrs.module.fhir.MRSProperties.MRS_CARE_SETTING_FOR_OUTPATIENT;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.getEncounter;
 
 @Component

@@ -9,6 +9,7 @@ import ca.uhn.fhir.model.dstu2.composite.SimpleQuantityDt;
 import ca.uhn.fhir.model.dstu2.composite.TimingDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
+import ca.uhn.fhir.model.dstu2.valueset.MedicationOrderStatusEnum;
 import ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum;
 import ca.uhn.fhir.model.primitive.BooleanDt;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
@@ -28,14 +29,18 @@ import org.openmrs.Provider;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.bahmniemrapi.drugorder.dosinginstructions.FlexibleDosingInstructions;
-import org.openmrs.module.fhir.mapper.FHIRProperties;
-import org.openmrs.module.fhir.mapper.MRSProperties;
+import org.openmrs.module.fhir.Constants;
+import org.openmrs.module.fhir.FHIRProperties;
+import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.utils.DurationMapperUtil;
+import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.fhir.utils.FrequencyMapperUtil;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.OrderCareSettingLookupService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
+import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +48,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.Arrays.asList;
 
 @Component
 public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
@@ -66,6 +73,8 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
     private OrderCareSettingLookupService orderCareSettingLookupService;
     @Autowired
     private GlobalPropertyLookUpService globalPropertyLookUpService;
+    @Autowired
+    private IdMappingsRepository idMappingsRepository;
 
     private static final Logger logger = Logger.getLogger(FHIRMedicationOrderMapper.class);
 
@@ -80,14 +89,22 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
 
     @Override
     public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
-        MedicationOrder medicationOrder = (MedicationOrder) resource;
+        DrugOrder drugOrder = mapDrugOrder(bundle, (MedicationOrder) resource, emrPatient, newEmrEncounter);
+        newEmrEncounter.addOrder(drugOrder);
+    }
 
+    private DrugOrder mapDrugOrder(Bundle bundle, MedicationOrder medicationOrder, Patient emrPatient, Encounter newEmrEncounter) {
         DrugOrder drugOrder = new DrugOrder();
+        DrugOrder previousDrugOrder = createOrFetchPreviousOrder(bundle, medicationOrder, emrPatient, newEmrEncounter);
+        if (previousDrugOrder != null) {
+            drugOrder.setPreviousOrder(previousDrugOrder);
+        }
+
         drugOrder.setPatient(emrPatient);
         Drug drug = mapDrug(medicationOrder);
-        if (drug == null) return;
+        if (drug == null) return drugOrder;
         drugOrder.setDrug(drug);
-        if (medicationOrder.getDosageInstruction().isEmpty()) return;
+        if (medicationOrder.getDosageInstruction().isEmpty()) return null;
         MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.getDosageInstructionFirstRep();
         mapFrequency(drugOrder, dosageInstruction);
         HashMap<String, Object> dosingInstructionsMap = new HashMap<>();
@@ -101,6 +118,7 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         setDoseUnits(drugOrder, dosageInstruction);
         setQuantity(drugOrder, medicationOrder.getDispenseRequest());
         setScheduledDateAndUrgency(drugOrder, dosageInstruction);
+        setOrderAction(drugOrder, medicationOrder);
 
         drugOrder.setRoute(mapRoute(dosageInstruction));
         drugOrder.setAsNeeded(((BooleanDt) dosageInstruction.getAsNeeded()).getValue());
@@ -114,7 +132,60 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         }
         drugOrder.setDosingType(FlexibleDosingInstructions.class);
 
-        newEmrEncounter.addOrder(drugOrder);
+        addDrugOrderToIdMapping(drugOrder, medicationOrder, newEmrEncounter);
+        return drugOrder;
+    }
+
+    private DrugOrder createOrFetchPreviousOrder(Bundle bundle, MedicationOrder medicationOrder, Patient emrPatient, Encounter newEmrEncounter) {
+        if (hasPriorPrescription(medicationOrder)) {
+            if (shouldCreatePreviousOrder(medicationOrder)) {
+                DrugOrder previousDrugOrder = mapDrugOrder(bundle, (MedicationOrder) FHIRFeedHelper.findResourceByReference(bundle, asList(medicationOrder.getPriorPrescription())), emrPatient, newEmrEncounter);
+                newEmrEncounter.addOrder(previousDrugOrder);
+                return previousDrugOrder;
+            } else {
+                String previousOrderRefId = StringUtils.substringAfterLast(medicationOrder.getPriorPrescription().getReference().getValue(), "/");
+                IdMapping previousOrderMapping = idMappingsRepository.findByExternalId(previousOrderRefId);
+                if(previousOrderMapping == null) {
+                    throw new RuntimeException(String.format("The previous order with SHR reference [%s] is not yet synced to SHR", medicationOrder.getPriorPrescription().getReference().getValue()));
+                }
+                return (DrugOrder) orderService.getOrderByUuid(previousOrderMapping.getInternalId());
+            }
+        }
+        return null;
+    }
+
+    private void addDrugOrderToIdMapping(DrugOrder drugOrder, MedicationOrder medicationOrder, Encounter newEmrEncounter) {
+        IdMapping encounterIdMapping = idMappingsRepository.findByInternalId(newEmrEncounter.getUuid());
+        String externalId = StringUtils.substringAfter(medicationOrder.getId().getValue(), "urn:uuid:");
+        IdMapping orderIdMapping = new IdMapping(drugOrder.getUuid(), externalId,
+                Constants.ID_MAPPING_ORDER_TYPE,
+                String.format("%s#%s/%s", encounterIdMapping.getUri(),
+                        new MedicationOrder().getResourceName(), externalId));
+        idMappingsRepository.saveOrUpdateMapping(orderIdMapping);
+    }
+
+    private boolean shouldCreatePreviousOrder(MedicationOrder medicationOrder) {
+        ResourceReferenceDt priorPrescription = medicationOrder.getPriorPrescription();
+        if (priorPrescription != null && !priorPrescription.isEmpty()) {
+            if (priorPrescription.getReference().getValue().startsWith("urn:uuid")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void setOrderAction(DrugOrder drugOrder, MedicationOrder medicationOrder) {
+        if (hasPriorPrescription(medicationOrder)) {
+            drugOrder.setAction(Order.Action.REVISE);
+        } else if (medicationOrder.getStatus().equals(MedicationOrderStatusEnum.STOPPED.getCode())) {
+            drugOrder.setAction(Order.Action.DISCONTINUE);
+        } else {
+            drugOrder.setAction(Order.Action.NEW);
+        }
+    }
+
+    private boolean hasPriorPrescription(MedicationOrder medicationOrder) {
+        return medicationOrder.getPriorPrescription() != null && !medicationOrder.getPriorPrescription().getReference().isEmpty();
     }
 
     private void addCustomDosageToDosingInstructions(MedicationOrder.DosageInstruction dosageInstruction, HashMap<String, Object> dosingInstructionsMap) {
@@ -185,8 +256,6 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
     }
 
     private void setScheduledDateAndUrgency(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction) {
-        drugOrder.setAction(Order.Action.NEW);
-
         TimingDt timing = dosageInstruction.getTiming();
         String fhirScheduledDateExtensionUrl = FHIRProperties.getFhirExtensionUrl(FHIRProperties.SCHEDULED_DATE_EXTENSION_NAME);
         if (timing.getUndeclaredExtensions().size() > 0

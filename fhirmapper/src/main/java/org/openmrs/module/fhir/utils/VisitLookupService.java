@@ -19,8 +19,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_IN_PATIENT_VISIT_TYPE;
-import static org.openmrs.module.fhir.mapper.MRSProperties.MRS_OUT_PATIENT_VISIT_TYPE;
+import static org.openmrs.module.fhir.MRSProperties.MRS_IN_PATIENT_VISIT_TYPE;
+import static org.openmrs.module.fhir.MRSProperties.MRS_OUT_PATIENT_VISIT_TYPE;
 
 @Component
 public class VisitLookupService {

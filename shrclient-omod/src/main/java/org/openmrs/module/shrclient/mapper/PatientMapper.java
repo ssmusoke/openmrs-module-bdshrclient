@@ -14,7 +14,7 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 
 import java.util.List;
 
-import static org.openmrs.module.fhir.utils.Constants.*;
+import static org.openmrs.module.fhir.Constants.*;
 
 public class PatientMapper {
     private static final String DOB_TYPE_DECLARED = "1";

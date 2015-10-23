@@ -13,7 +13,7 @@ import org.openmrs.Patient;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
-import org.openmrs.module.fhir.utils.Constants;
+import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.*;
 import org.openmrs.module.shrclient.service.MciPatientService;

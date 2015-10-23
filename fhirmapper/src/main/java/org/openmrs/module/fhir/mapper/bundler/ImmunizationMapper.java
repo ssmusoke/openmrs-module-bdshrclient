@@ -34,7 +34,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import static org.openmrs.module.fhir.mapper.MRSProperties.*;
+import static org.openmrs.module.fhir.MRSProperties.*;
 
 @Component
 public class ImmunizationMapper implements EmrObsResourceHandler {

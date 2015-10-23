@@ -1,8 +1,10 @@
-package org.openmrs.module.fhir.mapper;
+package org.openmrs.module.fhir;
 
 public class MRSProperties {
     public static final String MRS_OUT_PATIENT_VISIT_TYPE = "OPD";
     public static final String MRS_IN_PATIENT_VISIT_TYPE = "IPD";
+
+    public static final String SHR_CLIENT_SYSTEM_NAME = "shrclientsystem";
 
     public static final String MRS_DIAGNOSIS_STATUS_PRESUMED = "Presumed";
     public static final String MRS_DIAGNOSIS_STATUS_CONFIRMED = "Confirmed";

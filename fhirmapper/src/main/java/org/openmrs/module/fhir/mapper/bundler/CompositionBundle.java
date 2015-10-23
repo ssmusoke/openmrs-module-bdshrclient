@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
-import static org.openmrs.module.fhir.mapper.FHIRProperties.*;
+import static org.openmrs.module.fhir.FHIRProperties.*;
 
 @Component
 @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
