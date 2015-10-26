@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 
+import java.util.Collection;
 import java.util.Locale;
 import java.util.Set;
 
@@ -92,10 +93,15 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
         assertTrue(75 == pulseObs.getValueNumeric());
 
         Concept temperatureConcept = conceptService.getConceptByName("Temperature" + UNVERIFIED_BY_TR);
+        Collection<ConceptName> shortNames = temperatureConcept.getShortNames();
+        assertFalse(shortNames.isEmpty());
+        assertEquals(1, shortNames.size());
+        assertEquals("Temperature", shortNames.iterator().next().getName());
         Obs temperatureObs = identifyObsByConcept(vitalsObs.getGroupMembers(), temperatureConcept);
         assertEquals("97.0 Deg F", temperatureObs.getValueAsString(Locale.ENGLISH));
 
         Concept bpConcept = conceptService.getConceptByName("Blood Pressure" + UNVERIFIED_BY_TR);
+        assertEquals("Blood Pressure", bpConcept.getShortNames().iterator().next().getName());
         Obs bpObs = identifyObsByConcept(vitalsObs.getGroupMembers(), bpConcept);
         assertEquals(2, bpObs.getGroupMembers().size());
 

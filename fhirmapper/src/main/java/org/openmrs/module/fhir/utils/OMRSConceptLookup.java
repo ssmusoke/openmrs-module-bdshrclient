@@ -237,7 +237,7 @@ public class OMRSConceptLookup {
         Concept concept;
         concept = new Concept();
         concept.setFullySpecifiedName(new ConceptName(conceptName + UNVERIFIED_BY_TR, Locale.ENGLISH));
-        concept.addName(new ConceptName(conceptName, Locale.ENGLISH));
+        concept.setShortName(new ConceptName(conceptName, Locale.ENGLISH));
         concept.setConceptClass(getMiscConceptClass());
         concept.setDatatype(getTextConceptDatatype());
         String version = String.format("%s%s", LOCAL_CONCEPT_VERSION_PREFIX, facilityId);
