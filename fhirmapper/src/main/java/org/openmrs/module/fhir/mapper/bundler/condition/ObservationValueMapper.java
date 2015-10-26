@@ -11,6 +11,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Concept;
 import org.openmrs.ConceptNumeric;
 import org.openmrs.Obs;
+import org.openmrs.api.ConceptService;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,8 @@ public class ObservationValueMapper {
 
     private final CodeableConceptService codeableConceptService;
     private IdMappingsRepository idMappingsRepository;
+    private static ConceptService conceptService;
+    private static Object monitor = new Object();
 
     private enum ValueReader {
 
@@ -32,9 +36,13 @@ public class ObservationValueMapper {
                 if (obs.getConcept().getDatatype().isNumeric() && obs.getValueNumeric() != null) {
                     QuantityDt quantity = new QuantityDt();
                     quantity.setValue(obs.getValueNumeric());
-                    if (obs.getConcept() instanceof ConceptNumeric) {
-                        String units = ((ConceptNumeric) obs.getConcept()).getUnits();
-                        if (units != null) quantity.setUnit(units);
+                    if (obs.getConcept().isNumeric()) {
+                        Integer conceptId = obs.getConcept().getConceptId();
+                        ConceptNumeric conceptNumeric = getConceptService().getConceptNumeric(conceptId);
+                        if (conceptNumeric != null) {
+                            String units = conceptNumeric.getUnits();
+                            if (units != null) quantity.setUnit(units);
+                        }
                     }
                     return quantity;
                 }
@@ -103,6 +111,8 @@ public class ObservationValueMapper {
             }
         };
 
+        
+
         public abstract IDatatype readValue(Obs obs, IdMappingsRepository idMappingsRepository, CodeableConceptService codeableConceptService);
     }
 
@@ -110,6 +120,17 @@ public class ObservationValueMapper {
     public ObservationValueMapper(IdMappingsRepository idMappingsRepository, CodeableConceptService codeableConceptService) {
         this.codeableConceptService = codeableConceptService;
         this.idMappingsRepository = idMappingsRepository;
+    }
+
+    private static ConceptService getConceptService() {
+        if (conceptService == null) {
+            synchronized (monitor) {
+                if (conceptService == null) {
+                    conceptService = Context.getConceptService();
+                }
+            }
+        }
+        return conceptService;
     }
 
     public IDatatype map(Obs observation) {

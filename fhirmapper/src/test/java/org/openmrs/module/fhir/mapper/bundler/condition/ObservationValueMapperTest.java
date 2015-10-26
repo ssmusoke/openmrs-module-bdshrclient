@@ -20,6 +20,7 @@ import org.springframework.test.annotation.DirtiesContext;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import static java.lang.Boolean.FALSE;
 import static org.junit.Assert.assertEquals;
@@ -57,10 +58,12 @@ public class ObservationValueMapperTest extends BaseModuleWebContextSensitiveTes
     @Test
     public void shouldMapNumericValues() throws Exception {
         Obs obs = new Obs();
-        ConceptNumeric concept = new ConceptNumeric();
-        String units = "units";
+        ConceptNumeric concept = new ConceptNumeric(123);
+        String units = "Kg";
         concept.setUnits(units);
         concept.setDatatype(conceptService.getConceptDatatypeByName("Numeric"));
+        concept.setFullySpecifiedName(new ConceptName("Test Concept", Locale.ENGLISH));
+        conceptService.saveConcept(concept);
         obs.setConcept(concept);
         double valueNumeric = 10.0;
         obs.setValueNumeric(valueNumeric);
