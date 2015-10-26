@@ -212,7 +212,7 @@
                 </code>
                 <valueQuantity>
                     <value value="97.0"/>
-                    <unit value="ºF"/>
+                    <unit value="Deg F"/>
                 </valueQuantity>
                 <status value="final"/>
                 <identifier>

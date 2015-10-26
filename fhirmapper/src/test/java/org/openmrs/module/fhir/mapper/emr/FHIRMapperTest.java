@@ -93,7 +93,7 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
 
         Concept temperatureConcept = conceptService.getConceptByName("Temperature" + UNVERIFIED_BY_TR);
         Obs temperatureObs = identifyObsByConcept(vitalsObs.getGroupMembers(), temperatureConcept);
-        assertEquals("97.0 ºF", temperatureObs.getValueAsString(Locale.ENGLISH));
+        assertEquals("97.0 Deg F", temperatureObs.getValueAsString(Locale.ENGLISH));
 
         Concept bpConcept = conceptService.getConceptByName("Blood Pressure" + UNVERIFIED_BY_TR);
         Obs bpObs = identifyObsByConcept(vitalsObs.getGroupMembers(), bpConcept);
@@ -181,7 +181,7 @@ public class FHIRMapperTest extends BaseModuleWebContextSensitiveTest {
 
         Concept temperatureConcept = conceptService.getConceptByName("Temperature" + UNVERIFIED_BY_TR);
         Obs temperatureObs = identifyObsByConcept(vitalsObs.getGroupMembers(), temperatureConcept);
-        assertEquals("97.0 ºF", temperatureObs.getValueAsString(Locale.ENGLISH));
+        assertEquals("97.0 Deg F", temperatureObs.getValueAsString(Locale.ENGLISH));
 
         Concept bpConcept = conceptService.getConceptByName("Blood Pressure" + UNVERIFIED_BY_TR);
         Obs bpObs = identifyObsByConcept(vitalsObs.getGroupMembers(), bpConcept);
