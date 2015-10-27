@@ -734,4 +734,32 @@
             <column name="uuid" valueComputed="uuid()"/>
         </insert>
     </changeSet>
+    <changeSet id="bdshrclient-27102015-1601" author="Neha" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from global_property where
+                property='shr.concept.medicationForms';
+            </sqlCheck>
+        </preConditions>
+        <comment>Adding a global property which saves the concept id for Medication Forms</comment>
+        <insert tableName="global_property">
+            <column name="property" value="shr.concept.medicationForms"/>
+            <column name="description" value="Concept Id for Medication Forms"/>
+            <column name="uuid" valueComputed="uuid()"/>
+        </insert>
+    </changeSet>
+    <changeSet id="bdshrclient-27102015-1602" author="Neha" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from global_property where
+                property='shr.concept.medicationPackageForms';
+            </sqlCheck>
+        </preConditions>
+        <comment>Adding a global property which saves the concept id for Medication Package Forms</comment>
+        <insert tableName="global_property">
+            <column name="property" value="shr.concept.medicationPackageForms"/>
+            <column name="description" value="Concept Id for Medication Package Forms"/>
+            <column name="uuid" valueComputed="uuid()"/>
+        </insert>
+    </changeSet>
 </databaseChangeLog>

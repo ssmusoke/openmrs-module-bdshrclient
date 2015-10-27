@@ -88,7 +88,7 @@ public class EncounterPushTest {
         final Bundle bundle = new Bundle();
 
         when(propertiesReader.getShrProperties()).thenReturn(getShrProperties(facilityId));
-
+        when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(shrClient.post(anyString(), eq(bundle))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
         when(compositionBundle.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
@@ -99,7 +99,7 @@ public class EncounterPushTest {
         encounterPush.process(event);
 
         verify(encounterService).getEncounterByUuid(uuid);
-        verify(shrClient).post("http://localhost:9997/" + patientUrl, bundle);
+        verify(shrClient).post(patientUrl, bundle);
         ArgumentCaptor<IdMapping> idMappingArgumentCaptor = ArgumentCaptor.forClass(IdMapping.class);
         verify(idMappingsRepository).saveOrUpdateMapping(idMappingArgumentCaptor.capture());
 
@@ -126,6 +126,7 @@ public class EncounterPushTest {
         final Bundle bundle = new Bundle();
 
         when(propertiesReader.getShrProperties()).thenReturn(getShrProperties(facilityId));
+        when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(shrClient.post(anyString(), eq(bundle))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
         when(compositionBundle.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
@@ -136,7 +137,7 @@ public class EncounterPushTest {
         encounterPush.process(event);
 
         verify(encounterService).getEncounterByUuid(uuid);
-        verify(shrClient).post("http://localhost:9997/" + patientUrl, bundle);
+        verify(shrClient).post(patientUrl, bundle);
         ArgumentCaptor<IdMapping> idMappingArgumentCaptor = ArgumentCaptor.forClass(IdMapping.class);
         verify(idMappingsRepository, times(2)).saveOrUpdateMapping(idMappingArgumentCaptor.capture());
 
@@ -158,6 +159,7 @@ public class EncounterPushTest {
         final Bundle bundle = new Bundle();
 
         when(propertiesReader.getShrProperties()).thenReturn(getShrProperties(facilityId));
+        when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid, "shr-uuid", "encounter", null, openMrsEncounter.getDateCreated()));
         when(compositionBundle.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
@@ -166,7 +168,7 @@ public class EncounterPushTest {
 
         encounterPush.process(event);
 
-        verify(shrClient).put("http://localhost:9997/patients/" + HEALTH_ID + "/encounters/shr-uuid", bundle);
+        verify(shrClient).put("patients/" + HEALTH_ID + "/encounters/shr-uuid", bundle);
         verify(idMappingsRepository, times(1)).saveOrUpdateMapping(any(IdMapping.class));
     }
 
