@@ -156,8 +156,8 @@
             function searchPatient() {
                 jq(".errorMessage").hide();
                 jq('#searchResults').hide();
-                var idType = jq( "#idType" ).val();
-                var patientId = jq( "#patientId" ).val();
+                var idType = jq( "#idType" ).val().trim();
+                var patientId = jq( "#patientId" ).val().trim();
                 if(!isPatientIdValid(idType,patientId)) return;
                 jq.ajax({
                    type: "GET",
