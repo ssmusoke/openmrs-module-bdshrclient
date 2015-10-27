@@ -3,11 +3,7 @@ package org.openmrs.module.fhir.utils;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import org.apache.commons.collections.CollectionUtils;
-import org.openmrs.Concept;
-import org.openmrs.ConceptMap;
-import org.openmrs.ConceptMapType;
-import org.openmrs.ConceptName;
-import org.openmrs.ConceptReferenceTerm;
+import org.openmrs.*;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +43,9 @@ public class CodeableConceptService {
         CodeableConceptDt codeableConcept = new CodeableConceptDt();
         Collection<ConceptMap> conceptMappings = concept.getConceptMappings();
         for (ConceptMap mapping : conceptMappings) {
-            addTRCodingsForReferenceTerms(concept, idMappingsRepository, codeableConcept, mapping);
+            if (mapping.getConceptMapType().getUuid().equals(ConceptMapType.SAME_AS_MAP_TYPE_UUID)) {
+                addTRCodingsForReferenceTerms(concept, idMappingsRepository, codeableConcept, mapping);
+            }
         }
         addTRCodingForConcept(concept, idMappingsRepository, codeableConcept);
         return codeableConcept;

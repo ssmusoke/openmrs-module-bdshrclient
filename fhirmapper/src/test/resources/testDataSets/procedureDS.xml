@@ -61,12 +61,16 @@
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zayyv9-e1v4-41t6-b2d6-bc4335835eaaa"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
 
+
     <concept concept_id="607" retired="false" datatype_id="1" class_id="11" is_set="false" creator="1"
              date_created="2005-01-01 00:00:00.0" uuid="cbd43a8e-8djw-4b43-6293-29e54ad07afc"/>
     <concept_name concept_name_id="607" concept_id="607" name="Change of dressing" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="dzs4za8d-icke-icme-8263-89e54ad07bfg"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <concept_answer concept_answer_id="607" concept_id="303" answer_concept="607" sort_weight="1" date_created="2004-08-12 00:00:00.0" creator="1" uuid="y2y42a2d-8sk3-483-uces-89e54ad07trw" />
+    <shr_id_mapping id="67" internal_id="cbd43a8e-8djw-4b43-6293-29e54ad07afc" external_id="6831" type="concept"
+                    uri="http://tr.com/6831"></shr_id_mapping>
+    
     <concept_reference_term concept_reference_term_id="36" concept_source_id="1" code="18949003" name="Change of dressing"
                             creator="1" date_created="2004-08-12 00:00:00.0" retired="false"
                             uuid="alkjdf34-usjw-wawa-4893-cjb004132b89"></concept_reference_term>
@@ -74,8 +78,13 @@
                            creator="1" date_created="2004-08-12 00:00:00.0" uuid="alkjdf34-oxkw-ab04-uxhw-x3x004132x89"></concept_reference_map>
     <shr_id_mapping id="66" internal_id="alkjdf34-usjw-wawa-4893-cjb004132b89" external_id="12345" type="concept_reference_term"
                     uri="http://tr.com/12345"></shr_id_mapping>
-    <shr_id_mapping id="67" internal_id="cbd43a8e-8djw-4b43-6293-29e54ad07afc" external_id="6831" type="concept"
-                    uri="http://tr.com/6831"></shr_id_mapping>
+    <concept_reference_term concept_reference_term_id="37" concept_source_id="1" code="18949003" name="Change of dressing"
+                            creator="1" date_created="2004-08-12 00:00:00.0" retired="false"
+                            uuid="alkjdf34-usjw-wawa-34rf-cjb004132b89"></concept_reference_term>
+    <concept_reference_map concept_map_id="37" concept_id="607" concept_reference_term_id="37" concept_map_type_id="3"
+                           creator="1" date_created="2004-08-12 00:00:00.0" uuid="alkjdf34-oxkw-q23e-uxhw-x3x004132x89"></concept_reference_map>
+    <shr_id_mapping id="68" internal_id="alkjdf34-usjw-wawa-34rf-cjb004132b89" external_id="12346" type="concept_reference_term"
+                    uri="http://tr.com/12346"></shr_id_mapping>
 
     <concept concept_id="304" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
              date_created="2004-08-12 00:00:00.0"
@@ -131,7 +140,7 @@
     <concept_reference_term concept_reference_term_id="10" concept_source_id="1" code="Test A-LOINC" name="Sugar Test"
                             creator="1" date_created="2004-08-12 00:00:00.0" retired="false"
                             uuid="flat67ac-b24e-ab04-7028-c3b004132b89"></concept_reference_term>
-    <concept_reference_map concept_map_id="10" concept_id="602" concept_reference_term_id="10" concept_map_type_id="1"
+    <concept_reference_map concept_map_id="10" concept_id="602" concept_reference_term_id="10" concept_map_type_id="2"
                            creator="1" date_created="2004-08-12 00:00:00.0" uuid="alkjdf34-3892-ab04-4893-c3c0c4333x89"></concept_reference_map>
     <shr_id_mapping id="42" internal_id="cbd43a8d-cf4f-4b13-8daf-89e54ad07afc" external_id="Test A" type="concept"
                     uri="http://tr.com/Test-A"></shr_id_mapping>
@@ -162,7 +171,7 @@
     <concept_reference_term concept_reference_term_id="9" concept_source_id="1" code="J19.406475" name="Viral pneumonia 406475"
                             creator="1" date_created="2004-08-12 00:00:00.0" retired="false"
                             uuid="stream67ac-b24e-ab04-7028-c3b004132b82"></concept_reference_term>
-    <concept_reference_map concept_map_id="9" concept_id="603" concept_reference_term_id="9" concept_map_type_id="1"
+    <concept_reference_map concept_map_id="9" concept_id="603" concept_reference_term_id="9" concept_map_type_id="2"
                            creator="1" date_created="2004-08-12 00:00:00.0" uuid="alkjdf34-w8w2-wb04-4893-x3x004132x89"></concept_reference_map>
     <shr_id_mapping id="44" internal_id="stream67ac-b24e-ab04-7028-c3b004132b82" external_id="Viral-Pneumonia-LOINC" type="concept"
                     uri="http://tr.com/Viral-Pneumonia-LOINC"></shr_id_mapping>

@@ -49,7 +49,7 @@
     <concept_set concept_set_id="2" concept_id="303" concept_set="301" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="1"></concept_set>
     <concept_reference_term concept_reference_term_id="1" concept_source_id="1" code="M54.418965" creator="1"
                             date_created="2004-08-12 00:00:00.0" uuid="baef67ac-b24e-ab04-7028-c3b9941hji94"></concept_reference_term>
-    <concept_reference_map concept_map_id="1" concept_id="303" concept_reference_term_id="1" concept_map_type_id="1" creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_map>
+    <concept_reference_map concept_map_id="1" concept_id="303" concept_reference_term_id="1" concept_map_type_id="2" creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_map>
     <shr_id_mapping id="3" internal_id="juydg80f-1yz9-4da3-bb88-8122ctpulse" external_id="103" type="concept" uri="/concepts/103"></shr_id_mapping>
     <shr_id_mapping id="4" internal_id="baef67ac-b24e-ab04-7028-c3b9941hji94" external_id="201" type="concept_reference_term" uri="referenceterms/201"></shr_id_mapping>
 

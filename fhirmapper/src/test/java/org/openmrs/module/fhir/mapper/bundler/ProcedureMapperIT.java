@@ -201,6 +201,16 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         assertDiagnosisResult(resultResource, fhirEncounter);
     }
 
+    @Test
+    public void shouldNotMapReferenceTermWhenMapTypeIsNotSAMEAS() throws Exception {
+        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
+        assertEquals(1, procedure.getFollowUp().size());
+        CodeableConceptDt followUpCode = procedure.getFollowUp().get(0);
+        assertEquals(2, followUpCode.getCoding().size());
+        assertTrue(containsCoding(followUpCode.getCoding(), "18949003", "http://tr.com/12345", "Change of dressing"));
+        assertTrue(containsCoding(followUpCode.getCoding(), "6831", "http://tr.com/6831", "Change of dressing"));
+    }
+
     private void assertDiagnosisResult(Observation result, Encounter fhirEncounter) {
         assertNotNull(result);
         assertEquals(fhirEncounter.getId().getValue(), result.getEncounter().getReference().getValue());
