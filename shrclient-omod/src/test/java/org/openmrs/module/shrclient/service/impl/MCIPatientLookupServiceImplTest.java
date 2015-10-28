@@ -123,7 +123,7 @@ public class MCIPatientLookupServiceImplTest {
         Object[] patients = (Object[]) lookupService.searchPatientInRegistry(request);
         assertEquals(3, patients.length);
         assertPatient((Map<String, Object>) patients[0], "11408769630", "brn", "F");
-        assertPatient((Map<String, Object>) patients[1], "11408953847", "brn1", "F");
+        assertPatient((Map<String, Object>) patients[1], "11408953847", "brn1", "T");
         assertPatient((Map<String, Object>) patients[2], "11420126616", "New", "M");
 
     }

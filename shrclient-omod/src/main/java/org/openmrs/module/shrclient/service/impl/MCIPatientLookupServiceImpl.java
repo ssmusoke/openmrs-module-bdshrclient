@@ -123,7 +123,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
         Map<String, Object> patientModel = new HashMap<>();
         patientModel.put("firstName", mciPatient.getGivenName());
         patientModel.put("lastName", mciPatient.getSurName());
-        patientModel.put("gender", mciPatient.getGender());
+        patientModel.put("gender", getGender(mciPatient));
         patientModel.put("nationalId", mciPatient.getNationalId());
         patientModel.put("healthId", mciPatient.getHealthId());
 
@@ -142,6 +142,11 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
         }
         patientModel.put("address", addressModel);
         return patientModel;
+    }
+
+    private String getGender(Patient mciPatient) {
+        if(mciPatient.getGender().equals("O")) return "T";
+        return mciPatient.getGender();
     }
 
     private String getAddressEntryText(String code) {
