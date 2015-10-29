@@ -88,7 +88,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         medicationOrder.setMedication(getMedication(drugOrder));
         medicationOrder.setPrescriber(getOrdererReference(drugOrder, fhirEncounter, systemProperties));
         medicationOrder.addDosageInstruction(getDoseInstructions(drugOrder, medicationOrder, systemProperties));
-        setStatusAndPriorPrescription(drugOrder, medicationOrder, systemProperties);
+        setStatusAndPriorPrescriptionAndOrderAction(drugOrder, medicationOrder, systemProperties);
         setDispenseRequest(drugOrder, medicationOrder);
         medicationOrder.setNote(getNotes(drugOrder));
 
@@ -97,6 +97,14 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         medicationOrder.setId(id);
         fhirResources.add(new FHIRResource("Medication Order", medicationOrder.getIdentifier(), medicationOrder));
         return fhirResources;
+    }
+
+    private void setOrderAction(DrugOrder drugOrder, MedicationOrder medicationOrder) {
+        ExtensionDt orderActionExtension = new ExtensionDt();
+        orderActionExtension.setUrl(FHIRProperties.getFhirExtensionUrl(FHIRProperties.MEDICATIONORDER_ACTION_EXTENSION_NAME));
+        Order.Action action = drugOrder.getAction();
+        orderActionExtension.setValue(new StringDt(action.name()));
+        medicationOrder.addUndeclaredExtension(orderActionExtension);
     }
 
     private String getNotes(DrugOrder drugOrder) {
@@ -112,13 +120,15 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         medicationOrder.setDispenseRequest(dispenseRequest);
     }
 
-    private void setStatusAndPriorPrescription(DrugOrder drugOrder, MedicationOrder medicationOrder, SystemProperties systemProperties) {
-        if (drugOrder.getDateStopped() != null) {
+    private void setStatusAndPriorPrescriptionAndOrderAction(DrugOrder drugOrder, MedicationOrder medicationOrder, SystemProperties systemProperties) {
+        if (drugOrder.getDateStopped() != null || drugOrder.getAction().equals(Order.Action.DISCONTINUE)) {
             medicationOrder.setStatus(MedicationOrderStatusEnum.STOPPED);
-            medicationOrder.setDateEnded(drugOrder.getDateStopped(), TemporalPrecisionEnum.MILLI);
+            if (drugOrder.getDateStopped() != null) medicationOrder.setDateEnded(drugOrder.getDateStopped(), TemporalPrecisionEnum.MILLI);
+            else medicationOrder.setDateEnded(drugOrder.getAutoExpireDate(), TemporalPrecisionEnum.MILLI);
         } else {
             medicationOrder.setStatus(MedicationOrderStatusEnum.ACTIVE);
         }
+        setOrderAction(drugOrder, medicationOrder);
         if (drugOrder.getPreviousOrder() != null) {
             String priorPresecription = setPriorPrescriptionReference(drugOrder, systemProperties);
             medicationOrder.setPriorPrescription(new ResourceReferenceDt(priorPresecription));
@@ -320,9 +330,9 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
     private TrValueSetType determineTrValueSet(Concept doseUnits) {
         Concept medicationFormsConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.MEDICATION_FORMS);
         Concept medicationPackageFormsConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.MEDICATION_PACKAGE_FORMS);
-        if (omrsConceptLookup.isSetMemberOf(medicationPackageFormsConcept, doseUnits)) {
+        if (omrsConceptLookup.isAnswerOf(medicationPackageFormsConcept, doseUnits)) {
             return TrValueSetType.MEDICATION_PACKAGE_FORMS;
-        } else if (omrsConceptLookup.isSetMemberOf(medicationFormsConcept, doseUnits)) {
+        } else if (omrsConceptLookup.isAnswerOf(medicationFormsConcept, doseUnits)) {
             return TrValueSetType.MEDICATION_FORMS;
         }
         return null;

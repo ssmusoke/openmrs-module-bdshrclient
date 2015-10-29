@@ -81,11 +81,16 @@
         <resource>
             <MedicationOrder xmlns="http://hl7.org/fhir">
                 <id value="6c08551e-3d98-4ae6-8e28-bcba2f648919"/>
+                <extension
+                        url="https://sharedhealth.atlassian.net/wiki/display/docs/fhir-extensions#MedicationOrderAction">
+                    <valueString value="DISCONTINUE"/>
+                </extension>
                 <identifier>
                     <value value="urn:uuid:6c08551e-3d98-4ae6-8e28-bcba2f648919"/>
                 </identifier>
                 <dateWritten value="2008-08-19T12:20:22.000+05:30"/>
                 <status value="stopped"/>
+                <dateEnded value="2008-08-20T12:20:22.000+05:30"/>
                 <patient>
                     <reference value="hid"/>
                 </patient>

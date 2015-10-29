@@ -7,15 +7,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.openmrs.*;
+import org.openmrs.Concept;
+import org.openmrs.DrugOrder;
+import org.openmrs.Encounter;
+import org.openmrs.Order;
 import org.openmrs.Patient;
+import org.openmrs.PersonAttribute;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.model.*;
+import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.FhirBundleContextHolder;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
@@ -120,7 +125,6 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
 
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithMedicationOrder.xml");
         Patient emrPatient = patientService.getPatient(110);
-        assertEquals(0, encounterService.getEncountersByPatient(emrPatient).size());
 
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
@@ -130,6 +134,87 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         Set<Order> orders = encounter.getOrders();
         assertFalse(orders.isEmpty());
         assertEquals(1, orders.size());
+        assertTrue(orders.iterator().next() instanceof DrugOrder);
+    }
+
+    @Test
+    public void shouldSaveDrugOrderWithCustomDosageAndStoppedOrder() throws Exception {
+        executeDataSet("testDataSets/drugOrderDS.xml");
+        String healthId = "98104750156";
+        String shrEncounterId = "shr-enc-id";
+
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithStoppedMedicationOrderAndCustomDosage.xml");
+        Patient emrPatient = patientService.getPatient(110);
+
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+
+        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        assertNotNull(idMapping);
+        Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
+        Set<Order> orders = encounter.getOrders();
+        assertFalse(orders.isEmpty());
+        assertEquals(1, orders.size());
+        assertTrue(orders.iterator().next() instanceof DrugOrder);
+    }
+
+    @Test
+    public void shouldSaveDrugOrderWithScheduledDate() throws Exception {
+        executeDataSet("testDataSets/drugOrderDS.xml");
+        String healthId = "98104750156";
+        String shrEncounterId = "shr-enc-id";
+
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithMedicationOrderWithScheduledDate.xml");
+        Patient emrPatient = patientService.getPatient(110);
+
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+
+        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        assertNotNull(idMapping);
+        Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
+        Set<Order> orders = encounter.getOrders();
+        assertFalse(orders.isEmpty());
+        assertEquals(1, orders.size());
+        assertTrue(orders.iterator().next() instanceof DrugOrder);
+    }
+
+    @Test
+    @Ignore("Ignored because of a bug on OpenMRS which doesn't let you revise a retrospective drug order edit")
+    public void shouldSaveDrugOrderEditedInDifferentEncounter() throws Exception {
+        executeDataSet("testDataSets/drugOrderDS.xml");
+        String healthId = "98104750156";
+        String shrEncounterId = "shr-enc-id";
+
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithMedicationOrderEditedInDifferentEncounter.xml");
+        Patient emrPatient = patientService.getPatient(110);
+
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+
+        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        assertNotNull(idMapping);
+        Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
+        Set<Order> orders = encounter.getOrders();
+        assertFalse(orders.isEmpty());
+        assertEquals(1, orders.size());
+        assertTrue(orders.iterator().next() instanceof DrugOrder);
+    }
+
+    @Test
+    public void shouldSaveDrugOrderEditedInSameEncounter() throws Exception {
+        executeDataSet("testDataSets/drugOrderDS.xml");
+        String healthId = "98104750156";
+        String shrEncounterId = "shr-enc-id";
+
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithMedicationOrderEditedInSameEncounter.xml");
+        Patient emrPatient = patientService.getPatient(110);
+
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+
+        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        assertNotNull(idMapping);
+        Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
+        Set<Order> orders = encounter.getOrders();
+        assertFalse(orders.isEmpty());
+        assertEquals(2, orders.size());
         assertTrue(orders.iterator().next() instanceof DrugOrder);
     }
 

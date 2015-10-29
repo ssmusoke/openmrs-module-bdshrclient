@@ -18,6 +18,7 @@ import org.openmrs.api.OrderService;
 import org.openmrs.module.bahmniemrapi.drugorder.dosinginstructions.FlexibleDosingInstructions;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.MapperTestHelper;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -128,6 +129,9 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
         assertEquals(5, drugOrder.getDuration().intValue());
         assertEquals(conceptService.getConcept(803), drugOrder.getDurationUnits());
+
+        assertEquals(DateUtil.parseDate("2015-09-24T00:00:00.000+05:30"), drugOrder.getScheduledDate());
+        assertEquals(Order.Urgency.ON_SCHEDULED_DATE, drugOrder.getUrgency());
     }
 
     @Test
@@ -213,13 +217,13 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
         assertTrue(order instanceof DrugOrder);
         DrugOrder drugOrder = (DrugOrder) order;
 
-        assertEquals(orderService.getOrder(25), drugOrder.getPreviousOrder());
+        assertEquals(orderService.getOrder(24), drugOrder.getPreviousOrder());
     }
 
     @Test
     public void shouldMapPriorPrescriptionCreateAndMapOrdersEditedInSameEncounter() throws Exception {
         Bundle bundle = (Bundle) mapperTestHelper.loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithMedicationOrderEditedInSameEncounter.xml", springContext);
-        String editedOrderId = "amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc";
+        String editedOrderId = "vmkbja86-awaa-g1f3-9qv0-cccvc6c63ab0";
         String newOrderId = "zmkbja86-awaa-11f3-9qw4-ccc26cc6cabc";
         MedicationOrder resource = (MedicationOrder) FHIRFeedHelper.findResourceByReference(bundle, asList(new ResourceReferenceDt("urn:uuid:" + newOrderId)));
 

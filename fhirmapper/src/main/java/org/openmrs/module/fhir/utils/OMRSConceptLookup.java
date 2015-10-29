@@ -194,6 +194,15 @@ public class OMRSConceptLookup {
         });
     }
 
+    public boolean isAnswerOf(Concept parentConcept, final Concept childConcept) {
+        return exists(parentConcept.getAnswers(), new Predicate<ConceptAnswer>() {
+            @Override
+            public boolean evaluate(ConceptAnswer conceptAnswer) {
+                return conceptAnswer.getAnswerConcept().equals(childConcept);
+            }
+        });
+    }
+
     private boolean isConceptForValuesetCode(String valueSetCode, Concept concept) {
         return referenceTermCodeFound(concept, valueSetCode) || shortNameFound(concept, valueSetCode) || fullNameMatchFound(concept, valueSetCode);
     }

@@ -31,6 +31,7 @@ public class FHIRProperties {
     public static final String FHIR_EXTENSION_URL = "https://sharedhealth.atlassian.net/wiki/display/docs/fhir-extensions";
     public static final String SCHEDULED_DATE_EXTENSION_NAME = "TimingScheduledDate";
     public static final String DOSAGEINSTRUCTION_CUSTOM_DOSAGE_EXTENSION_NAME = "DosageInstructionCustomDosage";
+    public static final String MEDICATIONORDER_ACTION_EXTENSION_NAME = "MedicationOrderAction";
 
     public static String getFhirExtensionUrl(String extensionName) {
         return FHIR_EXTENSION_URL + "#" + extensionName;

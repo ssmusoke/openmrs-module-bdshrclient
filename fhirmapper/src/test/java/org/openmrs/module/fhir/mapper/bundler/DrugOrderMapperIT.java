@@ -141,7 +141,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    public void shouldMapDoseFromMedicationFormsFormsValueset() throws Exception {
+    public void shouldMapDoseFromMedicationFormsValueset() throws Exception {
         Encounter fhirEncounter = getFhirEncounter();
         Order order = orderService.getOrder(19);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
@@ -279,7 +279,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
 
         assertEquals(MedicationOrderStatusEnum.ACTIVE.getCode(), medicationOrder.getStatus());
-        assertEquals("urn:uuid:amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc", medicationOrder.getPriorPrescription().getReference().getValue());
+        assertEquals("urn:uuid:amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0", medicationOrder.getPriorPrescription().getReference().getValue());
     }
 
     @Test
@@ -291,7 +291,30 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
 
         assertEquals(MedicationOrderStatusEnum.ACTIVE.getCode(), medicationOrder.getStatus());
-        assertEquals("encounters/shr_enc_id_1#MedicationOrder/amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc", medicationOrder.getPriorPrescription().getReference().getValue());
+        assertEquals("encounters/shr_enc_id_1#MedicationOrder/amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0", medicationOrder.getPriorPrescription().getReference().getValue());
+    }
+
+    @Test
+    public void shouldSetOrderActionExtension() throws Exception {
+        Encounter fhirEncounter = getFhirEncounter();
+
+        Order order = orderService.getOrder(24);
+        List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+        ExtensionDt orderActionExtension = medicationOrder.getUndeclaredExtensionsByUrl(FHIRProperties.getFhirExtensionUrl(FHIRProperties.MEDICATIONORDER_ACTION_EXTENSION_NAME)).get(0);
+        assertEquals(((StringDt)orderActionExtension.getValue()).getValue(), Order.Action.NEW.name());
+
+        order = orderService.getOrder(25);
+        fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+        orderActionExtension = medicationOrder.getUndeclaredExtensionsByUrl(FHIRProperties.getFhirExtensionUrl(FHIRProperties.MEDICATIONORDER_ACTION_EXTENSION_NAME)).get(0);
+        assertEquals(((StringDt)orderActionExtension.getValue()).getValue(), Order.Action.DISCONTINUE.name());
+
+        order = orderService.getOrder(26);
+        fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+        orderActionExtension = medicationOrder.getUndeclaredExtensionsByUrl(FHIRProperties.getFhirExtensionUrl(FHIRProperties.MEDICATIONORDER_ACTION_EXTENSION_NAME)).get(0);
+        assertEquals(((StringDt)orderActionExtension.getValue()).getValue(), Order.Action.REVISE.name());
     }
 
     private Encounter getFhirEncounter() {

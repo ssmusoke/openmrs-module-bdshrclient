@@ -9,7 +9,6 @@ import ca.uhn.fhir.model.dstu2.composite.SimpleQuantityDt;
 import ca.uhn.fhir.model.dstu2.composite.TimingDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
-import ca.uhn.fhir.model.dstu2.valueset.MedicationOrderStatusEnum;
 import ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum;
 import ca.uhn.fhir.model.primitive.BooleanDt;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
@@ -136,20 +135,39 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         return drugOrder;
     }
 
+    private void setOrderAction(DrugOrder drugOrder, MedicationOrder medicationOrder) {
+        List<ExtensionDt> extensions = medicationOrder.getUndeclaredExtensionsByUrl(FHIRProperties.getFhirExtensionUrl(FHIRProperties.MEDICATIONORDER_ACTION_EXTENSION_NAME));
+        if(extensions == null || extensions.isEmpty()) {
+            drugOrder.setAction(Order.Action.NEW);
+            return;
+        }
+        ExtensionDt orderActionExtension = extensions.get(0);
+        StringDt orderAction = (StringDt) orderActionExtension.getValue();
+        drugOrder.setAction(getOrderAction(orderAction.getValue()));
+    }
+
+    private Order.Action getOrderAction(String orderAction) {
+        for (Order.Action action : Order.Action.values()) {
+            if(action.name().equals(orderAction)) return action;
+        }
+        return Order.Action.NEW;
+    }
+
     private DrugOrder createOrFetchPreviousOrder(Bundle bundle, MedicationOrder medicationOrder, Patient emrPatient, Encounter newEmrEncounter) {
         if (hasPriorPrescription(medicationOrder)) {
+            DrugOrder previousDrugOrder;
             if (shouldCreatePreviousOrder(medicationOrder)) {
-                DrugOrder previousDrugOrder = mapDrugOrder(bundle, (MedicationOrder) FHIRFeedHelper.findResourceByReference(bundle, asList(medicationOrder.getPriorPrescription())), emrPatient, newEmrEncounter);
+                previousDrugOrder = mapDrugOrder(bundle, (MedicationOrder) FHIRFeedHelper.findResourceByReference(bundle, asList(medicationOrder.getPriorPrescription())), emrPatient, newEmrEncounter);
                 newEmrEncounter.addOrder(previousDrugOrder);
-                return previousDrugOrder;
             } else {
                 String previousOrderRefId = StringUtils.substringAfterLast(medicationOrder.getPriorPrescription().getReference().getValue(), "/");
                 IdMapping previousOrderMapping = idMappingsRepository.findByExternalId(previousOrderRefId);
-                if(previousOrderMapping == null) {
+                if (previousOrderMapping == null) {
                     throw new RuntimeException(String.format("The previous order with SHR reference [%s] is not yet synced to SHR", medicationOrder.getPriorPrescription().getReference().getValue()));
                 }
-                return (DrugOrder) orderService.getOrderByUuid(previousOrderMapping.getInternalId());
+                previousDrugOrder = (DrugOrder) orderService.getOrderByUuid(previousOrderMapping.getInternalId());
             }
+            return previousDrugOrder;
         }
         return null;
     }
@@ -172,16 +190,6 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
             }
         }
         return false;
-    }
-
-    private void setOrderAction(DrugOrder drugOrder, MedicationOrder medicationOrder) {
-        if (hasPriorPrescription(medicationOrder)) {
-            drugOrder.setAction(Order.Action.REVISE);
-        } else if (medicationOrder.getStatus().equals(MedicationOrderStatusEnum.STOPPED.getCode())) {
-            drugOrder.setAction(Order.Action.DISCONTINUE);
-        } else {
-            drugOrder.setAction(Order.Action.NEW);
-        }
     }
 
     private boolean hasPriorPrescription(MedicationOrder medicationOrder) {

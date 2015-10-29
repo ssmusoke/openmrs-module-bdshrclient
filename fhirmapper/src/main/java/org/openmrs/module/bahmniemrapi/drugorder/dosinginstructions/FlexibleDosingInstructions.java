@@ -36,7 +36,6 @@ public class FlexibleDosingInstructions implements DosingInstructions {
 
     @Override
     public void validate(DrugOrder order, Errors errors) {
-        System.out.println("in validate method");
     }
 
     @Override

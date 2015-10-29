@@ -5,6 +5,7 @@ import org.junit.After;
 import org.junit.Test;
 import org.openmrs.Concept;
 import org.openmrs.ConceptClass;
+import org.openmrs.ConceptName;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
@@ -125,7 +126,6 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
         Patient patient = patientService.getPatient(1);
         fhirMapper.map(patient, "98101039678", "shr-enc-id", encounterBundle, getSystemProperties("1"));
     }
-
 
     @Test
     public void shouldCreateRootConceptsAndItsChildrenWhenNeeded() throws Exception {
