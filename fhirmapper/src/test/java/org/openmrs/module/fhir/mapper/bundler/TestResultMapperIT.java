@@ -86,17 +86,16 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
         assertNotNull(observationResource);
         assertFalse(report.getResult().isEmpty());
         assertNotNull(report.getIdentifier());
-
         assertEquals(DiagnosticReportStatusEnum.FINAL.getCode(), report.getStatus());
         assertFalse(report.getRequest().isEmpty());
         assertTrue(report.getRequest().get(0).getReference().getValue().startsWith("http://172.18.46.57:8081/patients/hid/encounters/shrEncounterId"));
         assertEquals(observationResource.getIdentifier().getValue(), report.getResult().get(0).getReference().getValue());
         Observation observation = (Observation) observationResource.getResource();
         assertNotNull(observation.getValue());
+            assertEquals("Lab Notes",observation.getComments());
         if (observation.getValue() instanceof DecimalDt) {
             assertTrue(120.0 == ((DecimalDt) observation.getValue()).getValue().doubleValue());
         }
-        assertEquals(obsService.getObs(4).getValueText(), report.getConclusion());
     }
 
     private Encounter buildEncounter() {
