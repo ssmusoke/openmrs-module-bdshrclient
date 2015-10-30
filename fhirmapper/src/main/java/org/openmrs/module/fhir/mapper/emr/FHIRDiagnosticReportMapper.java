@@ -6,11 +6,7 @@ import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 import org.apache.commons.lang3.StringUtils;
-import org.openmrs.Concept;
-import org.openmrs.Encounter;
-import org.openmrs.Obs;
-import org.openmrs.Order;
-import org.openmrs.Patient;
+import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
@@ -20,25 +16,37 @@ import org.openmrs.module.shrclient.model.IdMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 
 import static org.openmrs.module.fhir.MRSProperties.MRS_CONCEPT_CLASS_LAB_SET;
 import static org.openmrs.module.fhir.MRSProperties.MRS_CONCEPT_NAME_LAB_NOTES;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
+import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourcesByReference;
+
 
 @Component
 public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
-    @Autowired
     private OMRSConceptLookup omrsConceptLookup;
-    @Autowired
     private FHIRObservationsMapper observationsMapper;
-    @Autowired
     private ConceptService conceptService;
-    @Autowired
     private EncounterService encounterService;
-    @Autowired
     private IdMappingsRepository idMappingsRepository;
+
+    @Autowired
+    public FHIRDiagnosticReportMapper(OMRSConceptLookup omrsConceptLookup,
+                                      FHIRObservationsMapper observationsMapper,
+                                      ConceptService conceptService,
+                                      EncounterService encounterService,
+                                      IdMappingsRepository idMappingsRepository) {
+        this.omrsConceptLookup = omrsConceptLookup;
+        this.observationsMapper = observationsMapper;
+        this.conceptService = conceptService;
+        this.encounterService = encounterService;
+        this.idMappingsRepository = idMappingsRepository;
+    }
 
     @Override
     public boolean canHandle(IResource resource) {
@@ -56,27 +64,21 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
         if (order == null) {
             return;
         }
-        Obs topLevelObs = buildObs(concept, order);
+        Obs topLevelResultObsGroup = buildObs(concept, order);
 
-        Obs secondLevelObs = buildObs(concept, order);
-        topLevelObs.addGroupMember(secondLevelObs);
+        Set<Obs> resultObsGroups = buildResultObsGroup(bundle, newEmrEncounter, diagnosticReport, order, concept);
 
-        Obs resultObs = buildResultObs(bundle, newEmrEncounter, diagnosticReport);
-        resultObs.setOrder(order);
-        secondLevelObs.addGroupMember(resultObs);
-
-        Obs notesObs = addNotes(diagnosticReport, order);
-        secondLevelObs.addGroupMember(notesObs);
+        topLevelResultObsGroup.setGroupMembers(resultObsGroups);
 
         if (order.getConcept().getConceptClass().getName().equals(MRS_CONCEPT_CLASS_LAB_SET)) {
             Obs panelObs = findObsByOrder(newEmrEncounter, order);
             if (panelObs == null) {
                 panelObs = buildObs(order.getConcept(), order);
             }
-            panelObs.addGroupMember(topLevelObs);
+            panelObs.addGroupMember(topLevelResultObsGroup);
             newEmrEncounter.addObs(panelObs);
         }
-        newEmrEncounter.addObs(topLevelObs);
+        newEmrEncounter.addObs(topLevelResultObsGroup);
     }
 
     private Order getOrder(DiagnosticReport diagnosticReport, Concept concept) {
@@ -109,20 +111,35 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
         return null;
     }
 
-    private Obs addNotes(DiagnosticReport diagnosticReport, Order order) {
-        String conclusion = diagnosticReport.getConclusion();
-        if (StringUtils.isNotBlank(conclusion)) {
+    private Obs getNotes(Observation observation, Order order) {
+        String comments = observation.getComments();
+        if (StringUtils.isNotBlank(comments)) {
             Concept labNotesConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_LAB_NOTES);
             Obs notesObs = buildObs(labNotesConcept, order);
-            notesObs.setValueText(conclusion);
+            notesObs.setValueText(comments);
             return notesObs;
         }
         return null;
     }
 
-    private Obs buildResultObs(Bundle bundle, Encounter newEmrEncounter, DiagnosticReport diagnosticReport) {
-        Observation observationResource = (Observation) findResourceByReference(bundle, diagnosticReport.getResult());
-        return observationsMapper.mapObs(bundle, newEmrEncounter, observationResource);
+    private Set<Obs> buildResultObsGroup(Bundle bundle, Encounter newEmrEncounter, DiagnosticReport diagnosticReport, Order order, Concept concept) {
+        Set<Obs> resultObsGroups = new HashSet<>();
+        List<IResource> resultObservationList = findResourcesByReference(bundle, diagnosticReport.getResult());
+
+        for (IResource resultObservation : resultObservationList) {
+            Obs resultObsGroup = buildObs(concept, order);
+            populateResultsAndNotes(bundle, newEmrEncounter, order, (Observation) resultObservation, resultObsGroup);
+            resultObsGroups.add(resultObsGroup);
+        }
+        return resultObsGroups;
+    }
+
+    private void populateResultsAndNotes(Bundle bundle, Encounter newEmrEncounter, Order order, Observation resultObservation, Obs resultObsGroup) {
+        Observation observationResource = resultObservation;
+        Obs resultObs = observationsMapper.mapObs(bundle, newEmrEncounter, observationResource);
+        resultObs.setOrder(order);
+        resultObsGroup.addGroupMember(resultObs);
+        resultObsGroup.addGroupMember(getNotes(observationResource, order));
     }
 
     private Obs findObsByOrder(Encounter encounter, Order order) {

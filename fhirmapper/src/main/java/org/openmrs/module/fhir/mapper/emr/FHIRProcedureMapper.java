@@ -57,7 +57,7 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
         proceduresObs.addGroupMember(getProcedureStatusObs(procedure));
 
         for (ResourceReferenceDt reportReference : procedure.getReport()) {
-            IResource diagnosticReportResource = FHIRFeedHelper.findResourceByReference(bundle, asList(reportReference));
+            IResource diagnosticReportResource = FHIRFeedHelper.findResourceByReference(bundle, reportReference);
             if (diagnosticReportResource != null && diagnosticReportResource instanceof DiagnosticReport) {
                 proceduresObs.addGroupMember(getDiagnosisStudyObs((DiagnosticReport) diagnosticReportResource, bundle));
             }
@@ -106,7 +106,7 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
         for (ResourceReferenceDt resultReference : diagnosticReport.getResult()) {
             Obs result = new Obs();
             result.setConcept(diagnosticResultConcept);
-            Observation resultObservation = (Observation) FHIRFeedHelper.findResourceByReference(bundle, asList(resultReference));
+            Observation resultObservation = (Observation) FHIRFeedHelper.findResourceByReference(bundle, resultReference);
             observationValueMapper.map(resultObservation.getValue(), result);
             diagnosisStudyObs.addGroupMember(result);
         }

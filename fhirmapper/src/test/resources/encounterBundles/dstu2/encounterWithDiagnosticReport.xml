@@ -97,6 +97,7 @@
                 <valueQuantity>
                     <value value="20.0"/>
                 </valueQuantity>
+                <comments value="changed"/>
                 <status value="final"/>
                 <identifier>
                     <value value="urn:uuid:b052c4dc-d425-4ef7-90f8-0376d6e9e29a"/>
@@ -147,7 +148,6 @@
                 <result>
                     <reference value="urn:uuid:b052c4dc-d425-4ef7-90f8-0376d6e9e29a"/>
                 </result>
-                <conclusion value="changed"/>
             </DiagnosticReport>
         </resource>
     </entry>
