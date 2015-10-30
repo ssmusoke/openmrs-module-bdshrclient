@@ -6,7 +6,6 @@ import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Composition;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.primitive.IdDt;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -55,12 +54,23 @@ public class FHIRFeedHelper {
     }
 
     public static Encounter getEncounter(Bundle bundle) {
-        IResource resource = findResourceByReference(bundle, asList(getComposition(bundle).getEncounter()));
+        IResource resource = findResourceByReference(bundle, getComposition(bundle).getEncounter());
         return resource != null ? (Encounter) resource : null;
     }
 
+    public static IResource findResourceByReference(Bundle bundle, ResourceReferenceDt reference) {
+        List<IResource> matchedResources = findResourcesByReference(bundle, asList(reference));
+        return matchedResources != null && !matchedResources.isEmpty() ? matchedResources.get(0) : null;
+    }
 
-    public static IResource findResourceByReference(Bundle bundle, List<ResourceReferenceDt> references) {
+
+    public static IResource findResourceByFirstReference(Bundle bundle, List<ResourceReferenceDt> references) {
+        List<IResource> matchedResources = findResourcesByReference(bundle, references);
+        return matchedResources != null && !matchedResources.isEmpty() ? matchedResources.get(0) : null;
+    }
+
+    public static List<IResource> findResourcesByReference(Bundle bundle, List<ResourceReferenceDt> references) {
+        ArrayList<IResource> matchedResources = new ArrayList<>();
         for (Bundle.Entry entry : bundle.getEntry()) {
             for (ResourceReferenceDt reference : references) {
                 IdDt resourceReference = reference.getReference();
@@ -69,17 +79,17 @@ public class FHIRFeedHelper {
                 boolean hasFullUrlDefined = !org.apache.commons.lang3.StringUtils.isBlank(entry.getFullUrl());
                 if (resourceReference.hasResourceType() && entryResourceId.hasResourceType()
                         && entryResourceId.getValue().equals(resourceReference.getValue()) ) {
-                    return entryResource;
+                    matchedResources.add(entryResource);
                 } else if (entryResourceId.getIdPart().equals(resourceReference.getIdPart())) {
-                    return entryResource;
+                    matchedResources.add(entryResource);
                 } else if (hasFullUrlDefined) {
                     if (entry.getFullUrl().endsWith(resourceReference.getIdPart())) {
-                        return entryResource;
+                        matchedResources.add(entryResource);
                     }
                 }
             }
         }
-        return null;
+        return matchedResources.isEmpty() ? null : matchedResources;
     }
 
     private static boolean isChildReference(HashSet<ResourceReferenceDt> childReferenceDts, String resourceRef) {
@@ -95,7 +105,7 @@ public class FHIRFeedHelper {
         List<IResource> resources = new ArrayList<>();
         Composition composition = getComposition(bundle);
         for (Composition.Section section : composition.getSection()) {
-            IResource resourceForReference = findResourceByReference(bundle, section.getEntry());
+            IResource resourceForReference = findResourceByFirstReference(bundle, section.getEntry());
             if (!(resourceForReference instanceof Encounter)) {
                 resources.add(resourceForReference);
             }

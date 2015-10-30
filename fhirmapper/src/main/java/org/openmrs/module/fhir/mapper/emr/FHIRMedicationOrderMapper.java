@@ -157,7 +157,7 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         if (hasPriorPrescription(medicationOrder)) {
             DrugOrder previousDrugOrder;
             if (shouldCreatePreviousOrder(medicationOrder)) {
-                previousDrugOrder = mapDrugOrder(bundle, (MedicationOrder) FHIRFeedHelper.findResourceByReference(bundle, asList(medicationOrder.getPriorPrescription())), emrPatient, newEmrEncounter);
+                previousDrugOrder = mapDrugOrder(bundle, (MedicationOrder) FHIRFeedHelper.findResourceByReference(bundle, medicationOrder.getPriorPrescription()), emrPatient, newEmrEncounter);
                 newEmrEncounter.addOrder(previousDrugOrder);
             } else {
                 String previousOrderRefId = StringUtils.substringAfterLast(medicationOrder.getPriorPrescription().getReference().getValue(), "/");

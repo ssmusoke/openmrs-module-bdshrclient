@@ -80,7 +80,8 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         assertEquals(testOrder, resultObs.getOrder());
         assertEquals(Double.valueOf(20), resultObs.getValueNumeric());
 
-        Obs notesObs = findObsByConcept(secondLevelObs.getGroupMembers(), conceptService.getConcept(103));
+        Concept labNotesConcept = conceptService.getConcept(103);
+        Obs notesObs = findObsByConcept(secondLevelObs.getGroupMembers(), labNotesConcept);
         assertNotNull(notesObs);
         assertEquals(testOrder, notesObs.getOrder());
         assertEquals("changed", notesObs.getValueText());

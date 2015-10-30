@@ -225,7 +225,7 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
         Bundle bundle = (Bundle) mapperTestHelper.loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithMedicationOrderEditedInSameEncounter.xml", springContext);
         String editedOrderId = "vmkbja86-awaa-g1f3-9qv0-cccvc6c63ab0";
         String newOrderId = "zmkbja86-awaa-11f3-9qw4-ccc26cc6cabc";
-        MedicationOrder resource = (MedicationOrder) FHIRFeedHelper.findResourceByReference(bundle, asList(new ResourceReferenceDt("urn:uuid:" + newOrderId)));
+        MedicationOrder resource = (MedicationOrder) FHIRFeedHelper.findResourceByReference(bundle, new ResourceReferenceDt("urn:uuid:" + newOrderId));
 
         Encounter mappedEncounter = encounterService.getEncounter(37);
         Patient patient = new Patient();

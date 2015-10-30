@@ -11,11 +11,7 @@ import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Specimen;
 import ca.uhn.fhir.model.dstu2.valueset.DiagnosticOrderStatusEnum;
 import org.apache.commons.collections.CollectionUtils;
-import org.openmrs.Concept;
-import org.openmrs.ConceptMap;
-import org.openmrs.ConceptReferenceTerm;
-import org.openmrs.Order;
-import org.openmrs.Provider;
+import org.openmrs.*;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -28,9 +24,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+
 import static java.util.Arrays.asList;
 import static org.openmrs.module.fhir.FHIRProperties.LOINC_SOURCE_NAME;
 import static org.openmrs.module.fhir.MRSProperties.MRS_LAB_ORDER_TYPE;
+
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.identifyResource;
 
@@ -94,7 +92,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
 
     private Specimen getIfSpecimenExists(Bundle bundle, List<ResourceReferenceDt> specimenList, Order order, SystemProperties systemProperties) {
         for (ResourceReferenceDt resourceReference : specimenList) {
-            IResource resource = findResourceByReference(bundle, asList(resourceReference));
+            IResource resource = findResourceByReference(bundle, resourceReference);
             if (resource != null) {
                 Specimen specimenResource = (Specimen) resource;
 
