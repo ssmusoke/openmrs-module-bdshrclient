@@ -68,7 +68,9 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
 
         Set<Obs> resultObsGroups = buildResultObsGroup(bundle, newEmrEncounter, diagnosticReport, order, concept);
 
-        topLevelResultObsGroup.setGroupMembers(resultObsGroups);
+        for (Obs resultObs : resultObsGroups) {
+            topLevelResultObsGroup.addGroupMember(resultObs);
+        }
 
         if (order.getConcept().getConceptClass().getName().equals(MRS_CONCEPT_CLASS_LAB_SET)) {
             Obs panelObs = findObsByOrder(newEmrEncounter, order);
