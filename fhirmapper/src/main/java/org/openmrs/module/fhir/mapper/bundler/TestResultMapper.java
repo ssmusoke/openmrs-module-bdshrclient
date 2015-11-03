@@ -90,7 +90,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
 
     private void setObservationNotes(CompoundObservation resultGroupObservation, Observation fhirObservation) {
         Obs labNotesObs = resultGroupObservation.getMemberObsForConceptName(MRS_CONCEPT_NAME_LAB_NOTES);
-        if (null != labNotesObs.getValueText())
+        if (null != labNotesObs && null != labNotesObs.getValueText())
             fhirObservation.setComments(labNotesObs.getValueText());
     }
 
