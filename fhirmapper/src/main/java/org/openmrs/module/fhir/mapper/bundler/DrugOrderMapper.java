@@ -24,7 +24,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.openmrs.Concept;
 import org.openmrs.DrugOrder;
 import org.openmrs.Order;
-import org.openmrs.Provider;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
@@ -33,6 +32,7 @@ import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.DurationMapperUtil;
 import org.openmrs.module.fhir.utils.FrequencyMapperUtil;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
+import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.fhir.utils.TrValueSetType;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -65,6 +65,8 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
     private ConceptService conceptService;
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
+    @Autowired
+    private ProviderLookupService providerLookupService;
 
     private static final Logger logger = Logger.getLogger(DrugOrderMapper.class);
 
@@ -153,7 +155,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 
     private ResourceReferenceDt getOrdererReference(Order order, Encounter encounter, SystemProperties systemProperties) {
         if (order.getOrderer() != null) {
-            String providerUrl = new EntityReference().build(Provider.class, systemProperties, order.getOrderer().getIdentifier());
+            String providerUrl = providerLookupService.getProviderRegistryUrl(systemProperties, order.getOrderer());
             if (providerUrl != null) {
                 return new ResourceReferenceDt().setReference(providerUrl);
             }
@@ -287,10 +289,6 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 
         setFrequencyAndPeriod(drugOrder, repeat);
         timing.setRepeat(repeat);
-
-        if (drugOrder.getScheduledDate() != null) {
-
-        }
         return timing;
     }
 

@@ -59,7 +59,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    public void shouldMapMedicationOrderDateAndRoute() throws Exception {
+    public void shouldMapMedicationOrderDateAndRouteAndOrderer() throws Exception {
         Order order = orderService.getOrder(16);
         Encounter fhirEncounter = getFhirEncounter();
 
@@ -77,6 +77,19 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
                 "Oral", "http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Route-of-Administration", "Oral"));
         assertSchedule(dosageInstruction, 1, 1, UnitsOfTimeEnum.D,
                 6, UnitsOfTimeEnum.D);
+        assertTrue(medicationOrder.getPrescriber().getReference().getValue().endsWith("321.json"));
+    }
+
+    @Test
+    public void shouldNotSetPrescriberIfNotHIEProvider() throws Exception {
+        Order order = orderService.getOrder(17);
+        Encounter fhirEncounter = getFhirEncounter();
+
+        List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        assertEquals(1, fhirResources.size());
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+
+        assertTrue(medicationOrder.getPrescriber().isEmpty());
     }
 
     @Test
@@ -321,8 +334,6 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         Encounter fhirEncounter = new Encounter();
         fhirEncounter.setId("shrEncId");
         fhirEncounter.setPatient(new ResourceReferenceDt().setReference("hid"));
-        Encounter.Participant encounterParticipantComponent = fhirEncounter.addParticipant();
-        encounterParticipantComponent.setIndividual(new ResourceReferenceDt().setReference("provider"));
         return fhirEncounter;
     }
 

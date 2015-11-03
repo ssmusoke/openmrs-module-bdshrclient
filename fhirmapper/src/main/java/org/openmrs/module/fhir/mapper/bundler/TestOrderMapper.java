@@ -11,9 +11,13 @@ import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Specimen;
 import ca.uhn.fhir.model.dstu2.valueset.DiagnosticOrderStatusEnum;
 import org.apache.commons.collections.CollectionUtils;
-import org.openmrs.*;
+import org.openmrs.Concept;
+import org.openmrs.ConceptMap;
+import org.openmrs.ConceptReferenceTerm;
+import org.openmrs.Order;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
+import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +28,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-
-import static java.util.Arrays.asList;
 import static org.openmrs.module.fhir.FHIRProperties.LOINC_SOURCE_NAME;
 import static org.openmrs.module.fhir.MRSProperties.MRS_LAB_ORDER_TYPE;
-
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.identifyResource;
 
@@ -42,6 +43,8 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
 
     @Autowired
     private CodeableConceptService codeableConceptService;
+    @Autowired
+    private ProviderLookupService providerLookupService;
     private List<FHIRResource> resources;
 
     @Override
@@ -188,7 +191,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
 
     private ResourceReferenceDt getOrdererReference(Order order, Encounter encounter, SystemProperties systemProperties) {
         if (order.getOrderer() != null) {
-            String providerUrl = new EntityReference().build(Provider.class, systemProperties, order.getOrderer().getIdentifier());
+            String providerUrl = providerLookupService.getProviderRegistryUrl(systemProperties, order.getOrderer());
             if (providerUrl != null) {
                 return new ResourceReferenceDt().setReference(providerUrl);
             }

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -24,7 +25,7 @@ public class EncounterMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Before
     public void setUp() throws Exception {
-        executeDataSet("testDataSets/encounterServiceProviderDS.xml");
+        executeDataSet("testDataSets/encounterMapperTestDS.xml");
     }
 
     @After
@@ -37,8 +38,7 @@ public class EncounterMapperIT extends BaseModuleWebContextSensitiveTest {
         Encounter savedEncounter = encounterService.getEncounter(36);
 
         ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
-
-        assertEquals("http://hrmtest.dghs.gov.bd/api/1.0/facilities/1300012.json",fhirEncounter.getServiceProvider().getReference().getValue());
+        assertEquals("http://localhost:9997/api/1.0/facilities/1300012.json",fhirEncounter.getServiceProvider().getReference().getValue());
     }
 
     @Test
@@ -46,8 +46,28 @@ public class EncounterMapperIT extends BaseModuleWebContextSensitiveTest {
         Encounter savedEncounter = encounterService.getEncounter(37);
 
         ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
+        assertEquals("http://localhost:9997/api/1.0/facilities/1.json",fhirEncounter.getServiceProvider().getReference().getValue());
+    }
 
-        assertEquals("http://hrmtest.dghs.gov.bd/api/1.0/facilities/1.json",fhirEncounter.getServiceProvider().getReference().getValue());
+    @Test
+    public void shouldNotSetParticipantIfEncounterHasNoProvider() throws Exception {
+        Encounter savedEncounter = encounterService.getEncounter(37);
+        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
+        assertTrue(fhirEncounter.getParticipant().isEmpty());
+    }
 
+    @Test
+    public void shouldNotSetParticipantIfEncounterHasNoHIEProvider() throws Exception {
+        Encounter savedEncounter = encounterService.getEncounter(36);
+        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
+        assertTrue(fhirEncounter.getParticipant().isEmpty());
+    }
+
+    @Test
+    public void shouldSetParticipantIfEncounterHasHIEProvider() throws Exception {
+        Encounter savedEncounter = encounterService.getEncounter(38);
+        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
+        assertEquals(1, fhirEncounter.getParticipant().size());
+        assertEquals("http://localhost:9997/api/1.0/providers/23.json", fhirEncounter.getParticipant().get(0).getIndividual().getReference().getValue());
     }
 }
