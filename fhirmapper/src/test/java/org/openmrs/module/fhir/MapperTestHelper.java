@@ -24,7 +24,7 @@ public class MapperTestHelper {
 
     public static SystemProperties getSystemProperties(String facilityId) {
         Properties facilityRegistry = new Properties();
-        facilityRegistry.setProperty(FACILITY_REFERENCE_PATH, "http://hrmtest.dghs.gov.bd/api/1.0/facilities");
+        facilityRegistry.setProperty(FACILITY_REFERENCE_PATH, "http://localhost:9997/api/1.0/facilities");
 
         Properties trProperties = new Properties();
         trProperties.setProperty(PropertyKeyConstants.TR_REFERENCE_PATH, "http://localhost:9080");
@@ -40,7 +40,7 @@ public class MapperTestHelper {
         trProperties.setProperty(PropertyKeyConstants.TR_VALUESET_PROCEDURE_FOLLOWUP, "Procedure-Followup");
 
         Properties providerRegistry = new Properties();
-        providerRegistry.setProperty(PropertyKeyConstants.PROVIDER_REFERENCE_PATH, "http://hrmtest.dghs.gov.bd/api/1.0/providers");
+        providerRegistry.setProperty(PropertyKeyConstants.PROVIDER_REFERENCE_PATH, "http://localhost:9997/api/1.0/providers");
 
         Properties facilityInstanceProperties = new Properties();
         facilityInstanceProperties.setProperty(FACILITY_ID, facilityId);

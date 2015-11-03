@@ -13,6 +13,7 @@ import org.openmrs.Patient;
 import org.openmrs.Provider;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.OMRSLocationService;
+import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,8 @@ public class EncounterMapper {
 
     @Autowired
     private OMRSLocationService omrsLocationService;
+    @Autowired
+    private ProviderLookupService providerLookupService;
 
     private Logger logger = Logger.getLogger(EncounterMapper.class);
     public Encounter map(org.openmrs.Encounter openMrsEncounter, String healthId, SystemProperties systemProperties) {
@@ -99,24 +102,11 @@ public class EncounterMapper {
         final Set<EncounterProvider> encounterProviders = openMrsEncounter.getEncounterProviders();
         for (EncounterProvider encounterProvider : encounterProviders) {
             Provider provider = encounterProvider.getProvider();
-            if (provider == null) return;
-            String identifier = provider.getIdentifier();
-            if (!isHIEProvider(identifier)) continue;
-            String providerUrl = getReference(Provider.class, systemProperties, identifier);
+            String providerUrl = providerLookupService.getProviderRegistryUrl(systemProperties, provider);
             if (providerUrl == null)
                 continue;
             Encounter.Participant participant = encounter.addParticipant();
             participant.setIndividual(new ResourceReferenceDt().setReference(providerUrl));
         }
-    }
-
-    private boolean isHIEProvider(String identifier) {
-        try {
-            Integer.parseInt(identifier);
-        } catch (Exception e) {
-            logger.warn("Provider is not an HIE provider.");
-            return false;
-        }
-        return true;
     }
 }

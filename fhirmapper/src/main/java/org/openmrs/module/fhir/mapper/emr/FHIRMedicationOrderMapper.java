@@ -48,8 +48,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Arrays.asList;
-
 @Component
 public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
     private static final int DEFAULT_NUM_REFILLS = 0;
