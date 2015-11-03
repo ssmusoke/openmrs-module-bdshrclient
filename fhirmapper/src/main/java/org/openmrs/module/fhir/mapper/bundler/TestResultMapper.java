@@ -62,11 +62,11 @@ public class TestResultMapper implements EmrObsResourceHandler {
     }
 
     private void buildTestResult(Obs topLevelTestObs, Encounter fhirEncounter, List<FHIRResource> fhirResourceList, SystemProperties systemProperties) {
-        DiagnosticReport diagnosticReport = build(topLevelTestObs, fhirEncounter,  systemProperties);
+        DiagnosticReport diagnosticReport = build(topLevelTestObs, fhirEncounter, systemProperties);
         if (diagnosticReport != null) {
             for (Obs resultObsGroup : topLevelTestObs.getGroupMembers()) {
                 FHIRResource resultResource = getResultResource(resultObsGroup, fhirEncounter, systemProperties);
-                if(resultResource == null) return;
+                if (resultResource == null) return;
                 ResourceReferenceDt resourceReference = diagnosticReport.addResult();
                 resourceReference.setReference(resultResource.getIdentifier().getValue());
                 fhirResourceList.add(resultResource);
@@ -90,7 +90,8 @@ public class TestResultMapper implements EmrObsResourceHandler {
 
     private void setObservationNotes(CompoundObservation resultGroupObservation, Observation fhirObservation) {
         Obs labNotesObs = resultGroupObservation.getMemberObsForConceptName(MRS_CONCEPT_NAME_LAB_NOTES);
-        fhirObservation.setComments(labNotesObs.getValueText());
+        if (null != labNotesObs.getValueText())
+            fhirObservation.setComments(labNotesObs.getValueText());
     }
 
     private void setObservationStatusForResult(Observation resultObservation) {
