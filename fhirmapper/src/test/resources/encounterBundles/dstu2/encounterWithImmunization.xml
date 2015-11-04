@@ -20,7 +20,7 @@
                         <display value="Details Document"/>
                     </coding>
                 </type>
-                <title value="Patient Clinical Encounter" />
+                <title value="Patient Clinical Encounter"/>
                 <status value="final"/>
                 <confidentiality value="N"/>
                 <subject>
@@ -84,7 +84,7 @@
                 <identifier>
                     <value value="urn:uuid:b0a0aaba-23d6-42e9-912e-635f3a8a4b0a"/>
                 </identifier>
-                <status value="in-progress" />
+                <status value="in-progress"/>
                 <date value="2015-08-17T00:00:00.000+05:30"/>
                 <vaccineCode>
                     <coding>
@@ -133,6 +133,9 @@
                         <display value="Oral"/>
                     </coding>
                 </route>
+                <note>
+                    <text value="immunization notes"/>
+                </note>
             </Immunization>
         </resource>
     </entry>

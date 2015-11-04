@@ -1,12 +1,14 @@
 package org.openmrs.module.fhir.mapper.emr;
 
 import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.AnnotationDt;
 import ca.uhn.fhir.model.dstu2.composite.BoundCodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Immunization;
 import ca.uhn.fhir.model.dstu2.valueset.ImmunizationReasonCodesEnum;
+import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Concept;
 import org.openmrs.Drug;
 import org.openmrs.Encounter;
@@ -55,9 +57,21 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
         immunizationIncidentGroup.addGroupMember(getRoute(immunization));
         addImmunizationReasons(immunization, immunizationIncidentGroup);
         addImmunizationRefusalReasons(immunization, immunizationIncidentGroup);
+        addImmunizationNotes(immunization, immunizationIncidentGroup);
 
         immunizationIncidentTmpl.addGroupMember(immunizationIncidentGroup);
         newEmrEncounter.addObs(immunizationIncidentTmpl);
+    }
+
+    private void addImmunizationNotes(Immunization immunization, Obs immunizationIncidentGroup) {
+        for (AnnotationDt annotationDt : immunization.getNote()) {
+            if (StringUtils.isNotBlank(annotationDt.getText())) {
+                Obs notesObs = new Obs();
+                notesObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_IMMUNIZATION_NOTE));
+                notesObs.setValueText(annotationDt.getText());
+                immunizationIncidentGroup.addGroupMember(notesObs);
+            }
+        }
     }
 
     private Obs getImmunizationStatus(Immunization immunization) {
@@ -131,7 +145,7 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
         Obs quantityUnitsObs = null;
         if (doseQuantity != null && !doseQuantity.isEmpty()) {
             Concept quantityUnit = omrsConceptLookup.findConceptFromValueSetCode(doseQuantity.getSystem(), doseQuantity.getCode());
-            if(quantityUnit != null) {
+            if (quantityUnit != null) {
                 quantityUnitsObs = new Obs();
                 Concept quantityUnitsConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.QUANTITY_UNITS);
                 quantityUnitsObs.setConcept(quantityUnitsConcept);

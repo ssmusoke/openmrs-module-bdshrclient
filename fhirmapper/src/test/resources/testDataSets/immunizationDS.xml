@@ -185,6 +185,14 @@
                   concept_name_type="SHORT" locale_preferred="0"/>
     <concept_answer concept_answer_id="604" concept_id="312" answer_concept="604" sort_weight="1" date_created="2004-08-12 00:00:00.0" creator="1" uuid="eachro8f-uom3-6cu3-873d-qa3a3lz36ans" />
 
+    <concept concept_id="313" retired="false" datatype_id="2" class_id="11" is_set="false" creator="1"
+             date_created="2004-08-12 00:00:00.0" version="" changed_by="1"
+             date_changed="2005-02-25 11:43:43.0" uuid="cca993-78i3-zhem-ucme-8122sis" />
+    <concept_name concept_name_id="313" concept_id="313" name="Immunization Note" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="ciatcpv9-cche-cejd-uce3-bc433583sis"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0" />
+    <concept_set concept_set_id="313" concept_id="313" concept_set="3011" creator="1" date_created="2004-08-12 00:00:00.0" sort_weight="1" />
+
     <!--Immunization concepts -->
 
     <!--Immunization observations-->
@@ -243,6 +251,10 @@
          date_created="2008-08-18 15:09:05.0"
          uuid="ezes54cb-2afa-40z0-9zyz-yqzyzi2u556c2" creator="1" obs_group_id="12" concept_id="312" voided="0"
          value_coded="604"/>
+    <obs obs_id="23" encounter_id="36" person_id="1" obs_datetime="2008-08-18 15:09:05.0"
+         date_created="2008-08-18 15:09:05.0"
+         uuid="czesc4cb-2afa-c0c0-9zyz-yqzyzi2u556c2" creator="1" obs_group_id="12" concept_id="313" voided="0"
+         value_text="immunization notes"/>
     <!--immunization with all feilds-->
 
     <!--immunization with only mandatory feilds-->

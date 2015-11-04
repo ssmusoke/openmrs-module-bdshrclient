@@ -171,15 +171,23 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
         assertEquals(route.getValueCoded(), conceptService.getConcept(oral));
     }
 
+    @Test
+    public void shouldMapImmunizationNote() throws Exception {
+        Obs obs = mapImmunizationIncidentObs();
+        Obs immunizationGroupObs = obsHelper.findMemberObsByConceptName(obs, MRS_CONCEPT_IMMUNIZATION_INCIDENT_GROUP);
+        Obs immunizationNoteObs = obsHelper.findMemberObsByConceptName(immunizationGroupObs, MRS_CONCEPT_IMMUNIZATION_NOTE);
+        assertEquals("immunization notes", immunizationNoteObs.getValueText());
+    }
+
     private Obs mapImmunizationIncidentObs() {
         Encounter mrsEncounter = new Encounter();
         mapper.map(bundle, resource, null, mrsEncounter);
 
         Set<Obs> allObs = mrsEncounter.getAllObs();
         assertEquals(1, allObs.size());
-        Obs obs = allObs.iterator().next();
-        assertEquals(MRS_CONCEPT_IMMUNIZATION_INCIDENT_TEMPLATE, obs.getConcept().getName().getName());
+        Obs immunizationIncidentObs = allObs.iterator().next();
+        assertEquals(MRS_CONCEPT_IMMUNIZATION_INCIDENT_TEMPLATE, immunizationIncidentObs.getConcept().getName().getName());
 
-        return obs;
+        return immunizationIncidentObs;
     }
 }

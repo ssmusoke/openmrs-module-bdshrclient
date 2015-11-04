@@ -64,6 +64,13 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
+    public void shouldMapImmunizationNotes() throws Exception {
+        Immunization immunization = mapImmunization(11, new Encounter());
+        assertEquals(1, immunization.getNote().size());
+        assertEquals("immunization notes", immunization.getNote().get(0).getText());
+    }
+
+    @Test
     public void shouldMapRefusedIndicator() throws Exception {
         Immunization immunization = mapImmunization(11, new Encounter());
         assertTrue(immunization.getWasNotGiven());
