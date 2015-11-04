@@ -276,12 +276,11 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
 
     private Provider getOrderer(MedicationOrder medicationOrder) {
         ResourceReferenceDt prescriber = medicationOrder.getPrescriber();
-        Provider provider = null;
-        if (prescriber != null) {
-            String presciberReferenceUrl = prescriber.getReference().getValue();
-            provider = providerLookupService.getProviderByReferenceUrl(presciberReferenceUrl);
+        String presciberReferenceUrl = null;
+        if (prescriber != null && !prescriber.isEmpty()) {
+            presciberReferenceUrl = prescriber.getReference().getValue();
         }
-        return provider;
+        return providerLookupService.getProviderByReferenceUrlOrDefault(presciberReferenceUrl);
     }
 
     private void mapFrequency(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction) {

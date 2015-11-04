@@ -29,7 +29,7 @@
            visit_type_id="1" date_stopped="2014-07-10 23:59:59" location_id="2" creator="1" changed_by="1"
            voided_by="1" uuid="ad41fb41-a41a-4ad6-8835-2f59099acf5a" voided="0"/>
 
-
+    <!--local system provider-->
     <person person_id="2" gender="M" dead="false" creator="1" birthdate_estimated="0"
             date_created="2008-08-15 15:57:09.0" voided="false" void_reason=""
             uuid="75e04d42-3ca8-11e3-bf2b-080009861b75"/>
@@ -43,14 +43,17 @@
 
     <provider provider_id="22" person_id="2" name="shrclientsystem" creator="1" date_created="2005-01-01 00:00:00.0"
               retired="false" uuid="331c6bf8-7846-11e3-a96a-0900271c1b75"/>
+    <!--local system provider-->
 
     <provider_attribute_type provider_attribute_type_id="1" name="Organization" datatype="org.openmrs.customdatatype.datatype.FreeTextDatatype"
                              creator="1" date_created="2015-02-17 15:06:06" retired="0" min_occurs="0" uuid="5b19584d-10ab-11e4-b4e1-1e55d8e9e2ae" />
 
-    <provider_attribute provider_attribute_id="23" provider_id="22" attribute_type_id="1" value_reference="10000069"
-                        creator="1" voided="0" date_created="2015-02-17 15:06:06" uuid="b5e44116-778f-46d4-ad73-903c7bb72694" />
-
-
+    <!--hie provider-->
+    <provider provider_id="23" identifier="23" name="" creator="1" date_created="2005-01-01 00:00:00.0"
+              retired="false" uuid="3c1ccbf8-7c46-11ec-a96a-0900271c1b7c"/>
+    <provider_attribute provider_attribute_id="23" provider_id="23" attribute_type_id="1" value_reference="10000069"
+                        creator="1" voided="0" date_created="2015-02-17 15:06:06" uuid="c5e4c1c6-778f-46d4-ad73-90cccbbc2694" />
+    <!--hie provider-->
 
     <concept_reference_source concept_source_id="1" name="ICD10-BD" creator="1" date_created="2004-08-12 00:00:00.0" uuid="b5e44116-778f-11e2-ad73-903c7bb72694"/>
 

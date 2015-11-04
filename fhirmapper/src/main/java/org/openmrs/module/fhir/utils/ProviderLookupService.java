@@ -23,7 +23,19 @@ public class ProviderLookupService {
         return providerService.getProvidersByPerson(systemUser.getPerson()).iterator().next();
     }
 
-    public Provider getProviderByReferenceUrl(String providerReferenceUrl){
+    public Provider getProviderByReferenceUrlOrDefault(String providerReferenceUrl) {
+        Provider provider = null;
+        if (providerReferenceUrl != null) {
+            String providerId = new EntityReference().parse(Provider.class, providerReferenceUrl);
+            provider = getProviderById(providerId);
+        }
+        if (provider == null) {
+            provider = getShrClientSystemProvider();
+        }
+        return provider;
+    }
+
+    public Provider getProviderByReferenceUrl(String providerReferenceUrl) {
         String providerId = new EntityReference().parse(Provider.class, providerReferenceUrl);
         return getProviderById(providerId);
     }
@@ -45,14 +57,9 @@ public class ProviderLookupService {
     }
 
     private Provider getProviderById(String providerId) {
-        Provider provider;
-        if (StringUtils.isEmpty(providerId) || !providerId.matches("[0-9]+")) {
-            provider = getShrClientSystemProvider();
-        } else {
+        Provider provider = null;
+        if (!StringUtils.isEmpty(providerId)) {
             provider = providerService.getProviderByIdentifier(providerId);
-        }
-        if (provider == null) {
-            provider = getShrClientSystemProvider();
         }
         return provider;
     }

@@ -1,12 +1,12 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.junit.After;
-import org.junit.Test;
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Composition;
 import ca.uhn.fhir.model.dstu2.resource.Condition;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
+import org.junit.After;
+import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.PatientService;
@@ -22,9 +22,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -51,7 +50,6 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
     public void tearDown() throws Exception {
         deleteAllData();
     }
-
 
     @Test
     public void shouldMapFhirEncounter() throws Exception {
@@ -106,11 +104,24 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
     @Test
     public void shouldMapAnEncounterWhichDoesNotHaveServiceProvider() throws Exception {
         executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
-        Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/testFHIREncounterWithoutServiceProvider.xml", springContext);
+        Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithoutServiceProvider.xml", springContext);
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
         org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map("HIDA764177", "shr_enc_id", emrPatient, encounterBundle, getSystemProperties("1"));
 
         assertNotNull(emrEncounter);
         assertTrue(3 == emrEncounter.getLocation().getId());
+    }
+
+    @Test
+    public void shouldSetShrClientSystemAsProviderIfNoParticipantsArePresent() throws Exception {
+        executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
+        Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithoutParticipants.xml", springContext);
+        org.openmrs.Patient emrPatient = patientService.getPatient(1);
+        int shrClientSystemProviderId = 22;
+        org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map("HIDA764177", "shr_enc_id", emrPatient, encounterBundle, getSystemProperties("1"));
+
+        assertNotNull(emrEncounter);
+        assertEquals(1, emrEncounter.getEncounterProviders().size());
+        assertThat(emrEncounter.getEncounterProviders().iterator().next().getProvider().getId(), is(shrClientSystemProviderId));
     }
 }

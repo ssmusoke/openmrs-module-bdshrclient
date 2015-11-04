@@ -52,7 +52,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder)TestFhirFeedHelper.getResourceByType(new DiagnosticOrder().getResourceName(), mappedResources).getResource();
         assertNotNull(diagnosticOrder);
         assertNotNull(TestFhirFeedHelper.getResourceByType(new Specimen().getResourceName(), mappedResources));
-        assertTrue(diagnosticOrder.getOrderer().getReference().getValue().endsWith("321.json"));
+        assertTrue(diagnosticOrder.getOrderer().getReference().getValue().endsWith("812.json"));
     }
 
     @Test

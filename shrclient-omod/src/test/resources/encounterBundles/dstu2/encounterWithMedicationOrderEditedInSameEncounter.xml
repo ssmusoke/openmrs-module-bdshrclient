@@ -101,7 +101,7 @@
                     <reference value="hid"/>
                 </patient>
                 <prescriber>
-                    <reference value="http://hrmtest.dghs.gov.bd/api/1.0/providers/321.json"/>
+                    <reference value="http://hrmtest.dghs.gov.bd/api/1.0/providers/812.json"/>
                 </prescriber>
                 <encounter>
                     <reference value="shrEncId"/>

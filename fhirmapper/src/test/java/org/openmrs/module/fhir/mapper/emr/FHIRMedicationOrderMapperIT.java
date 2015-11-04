@@ -88,7 +88,7 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
     @Test
     public void shouldMapProviderAndSaveIdMapping() throws Exception {
         Order order = getOrder(medicationOrderBundle, medicationOrder);
-        assertThat(order.getOrderer().getProviderId(), is(22));
+        assertThat(order.getOrderer().getProviderId(), is(23));
 
         IdMapping idMapping = idMappingsRepository.findByInternalId(order.getUuid());
         assertNotNull(idMapping);
@@ -262,6 +262,15 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
         MedicationOrder resource = (MedicationOrder) FHIRFeedHelper.identifyResource(bundle.getEntry(), new MedicationOrder().getResourceName());
         DrugOrder drugOrder = (DrugOrder) getOrder(bundle, resource);
         assertEquals(Order.Action.REVISE, drugOrder.getAction());
+    }
+
+    @Test
+    public void shouldMapMedicationOrderWithoutPrescriber() throws Exception {
+        String bundleWithoutPrescriber = "encounterBundles/dstu2/encounterWithMedicationOrderWithScheduledDate.xml";
+        Bundle bundle = (Bundle) mapperTestHelper.loadSampleFHIREncounter(bundleWithoutPrescriber, springContext);
+        MedicationOrder resource = (MedicationOrder) FHIRFeedHelper.identifyResource(bundle.getEntry(), new MedicationOrder().getResourceName());
+        DrugOrder drugOrder = (DrugOrder) getOrder(bundle, resource);
+        assertThat(drugOrder.getOrderer().getProviderId(), is(22));
     }
 
     private Object readFromJson(String json, String key) throws IOException {

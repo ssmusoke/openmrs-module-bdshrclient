@@ -94,9 +94,6 @@
                     <reference value="http://172.18.46.199:8081/api/default/patients/98001080756"/>
                     <display value="98001080756"/>
                 </patient>
-                <prescriber>
-                    <reference value="http://172.18.46.199:8080/api/1.0/providers/18.json"/>
-                </prescriber>
                 <encounter>
                     <reference value="urn:uuid:445be5c3-d373-422a-b46d-d0ec5862b52f"/>
                 </encounter>

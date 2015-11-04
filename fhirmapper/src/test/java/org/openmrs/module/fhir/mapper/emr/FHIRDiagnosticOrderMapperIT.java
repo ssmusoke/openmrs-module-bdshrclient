@@ -22,6 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
 import java.util.Date;
 import java.util.Set;
 
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
 @ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -42,16 +43,13 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
     @Autowired
     private OrderService orderService;
 
-    private Bundle bundle;
-
-    public Bundle loadSampleFHIREncounter() throws Exception {
-        return (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithDiagnosticOrder.xml", springContext);
+    public Bundle loadSampleFHIREncounter(String filePath) throws Exception {
+        return (Bundle) new MapperTestHelper().loadSampleFHIREncounter(filePath, springContext);
     }
 
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/labOrderDS.xml");
-        bundle = loadSampleFHIREncounter();
     }
 
     @After
@@ -59,22 +57,32 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         deleteAllData();
     }
 
-
     @Test
     public void shouldMapDiagnosticOrder() throws Exception {
-        Encounter encounter = mapOrder();
+        Encounter encounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrder.xml");
         Set<Order> orders = encounter.getOrders();
         assertFalse(orders.isEmpty());
         assertEquals(1, orders.size());
         Order order = orders.iterator().next();
         assertEquals("7f7379ba-3ca8-11e3-bf2b-0800271c1b75", order.getConcept().getUuid());
-        assertEquals(providerService.getProvider(22), order.getOrderer());
+        assertEquals(providerService.getProvider(23), order.getOrderer());
         assertEquals(orderService.getOrderType(16), order.getOrderType());
         assertEquals(orderService.getCareSetting(1), order.getCareSetting());
         assertNotNull(order.getDateActivated());
     }
 
-    private Encounter mapOrder() {
+    @Test
+    public void shouldMapDiagnosticOrderWithoutOrderer() throws Exception {
+        int shrClientSystemProviderId = 22;
+        Encounter encounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithoutOrderer.xml");
+        Set<Order> orders = encounter.getOrders();
+        assertEquals(1, orders.size());
+        Order order = orders.iterator().next();
+        assertThat(order.getOrderer().getProviderId(), is(shrClientSystemProviderId));
+    }
+
+    private Encounter mapOrder(String filePath) throws Exception {
+        Bundle bundle = loadSampleFHIREncounter(filePath);
         IResource resource = FHIRFeedHelper.identifyResource(bundle.getEntry(), new DiagnosticOrder().getResourceName());
         Encounter encounter = new Encounter();
         encounter.setEncounterDatetime(new Date());

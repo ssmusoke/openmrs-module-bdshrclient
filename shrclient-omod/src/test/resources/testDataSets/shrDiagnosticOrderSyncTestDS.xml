@@ -41,6 +41,9 @@
     <provider provider_id="22" person_id="2" name="shrclientsystem" creator="1" date_created="2005-01-01 00:00:00.0"
               retired="false" uuid="331c6bf8-7846-11e3-a96a-0900271c1b75"/>
 
+    <provider provider_id="23" identifier="812" name="dr ali" creator="1" date_created="2005-01-01 00:00:00.0"
+              retired="false" uuid="c3cccbfc-7c46-11e3-a9ca-0900271c1b75"/>
+
     <global_property property="shr.system.user" property_value="777" description="Shr System User" uuid="lkieyg88-efd9-fda3-2b99-z12aalsa677h"/>
 
 
