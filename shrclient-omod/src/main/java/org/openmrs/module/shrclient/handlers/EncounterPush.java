@@ -101,9 +101,9 @@ public class EncounterPush implements EventWorker {
 
     private void saveOrderIdMapping(Set<Order> orders, String encounterUrl) {
         for (Order order : orders) {
-            if(order.getOrderType().getName().equals(MRSProperties.MRS_DRUG_ORDER_TYPE)) {
-                String orderUrl = String.format("%s#%s/%s", encounterUrl,new MedicationOrder().getResourceName(), order.getUuid());
-                idMappingsRepository.saveOrUpdateMapping(new IdMapping(order.getUuid(), order.getUuid(), Constants.ID_MAPPING_ORDER_TYPE, orderUrl));
+            if (order.getOrderType().getName().equals(MRSProperties.MRS_DRUG_ORDER_TYPE)) {
+                String orderUrl = String.format(Constants.RESOURCE_MAPPING_URL_FORMAT, encounterUrl, new MedicationOrder().getResourceName(), order.getUuid());
+                idMappingsRepository.saveOrUpdateMapping(new IdMapping(order.getUuid(), order.getUuid(), Constants.ID_MAPPING_MEDICATION_ORDER_TYPE, orderUrl));
             }
         }
     }

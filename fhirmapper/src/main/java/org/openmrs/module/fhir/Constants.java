@@ -34,7 +34,8 @@ public class Constants {
 
     public final static String ORGANIZATION_ATTRIBUTE_TYPE_NAME = "Organization";
 
-    public static final String ID_MAPPING_ORDER_TYPE = "order";
+    public static final String ID_MAPPING_MEDICATION_ORDER_TYPE = "MedicationOrder";
+    public static final String RESOURCE_MAPPING_URL_FORMAT = "%s#%s/%s";
 
     public final static String FATHER_NAME_ATTRIBUTE_TYPE = "fatherName";
     public final static String SPOUSE_NAME_ATTRIBUTE_TYPE = "spouseName";
