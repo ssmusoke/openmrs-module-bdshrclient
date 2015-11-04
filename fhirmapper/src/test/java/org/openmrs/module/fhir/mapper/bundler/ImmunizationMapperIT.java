@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
@@ -69,6 +70,12 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
+    public void shouldSetRefusedIndicatorAsFalseIfNotPresent() throws Exception {
+        Immunization immunization = mapImmunization(31, new Encounter());
+        assertFalse(immunization.getWasNotGiven());
+    }
+
+    @Test
     public void shouldMapImmunizationStatus() throws Exception {
         Immunization immunization = mapImmunization(11, new Encounter());
         assertEquals("in-progress", immunization.getStatus());
@@ -95,6 +102,12 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldMapReported() throws Exception {
         Immunization immunization = mapImmunization(11, new Encounter());
         assertTrue(immunization.getReported());
+    }
+
+    @Test
+    public void shouldDefaultReportedToFalseIfNotEntered() throws Exception {
+        Immunization immunization = mapImmunization(31, new Encounter());
+        assertFalse(immunization.getReported());
     }
 
     @Test
