@@ -95,7 +95,7 @@
                     <display value="98104750156"/>
                 </patient>
                 <prescriber>
-                    <reference value="http://www.pr.com/providers/812.json"/>
+                    <reference value="http://www.pr.com/providers/321.json"/>
                 </prescriber>
                 <encounter>
                     <reference value="urn:uuid:445be5c3-d373-422a-b46d-d0ec5862b52f"/>

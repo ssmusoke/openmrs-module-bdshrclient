@@ -105,7 +105,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
         String healthId = "HIDA764177";
         String shrEncounterId = "shr-enc-id";
 
-        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "classpath:encounterBundles/dstu2/encounterWithDiagnosticOrder.xml");
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithDiagnosticOrder.xml");
         Patient emrPatient = patientService.getPatient(1);
         mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 

@@ -85,12 +85,19 @@ public class FHIREncounterMapper {
 
     public void setEncounterProvider(org.openmrs.Encounter newEmrEncounter, ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter) {
         List<ca.uhn.fhir.model.dstu2.resource.Encounter.Participant> participants = fhirEncounter.getParticipant();
-        String providerUrl = null;
         if (!org.apache.commons.collections.CollectionUtils.isEmpty(participants)) {
-            providerUrl = participants.get(0).getIndividual().getReference().getValue();
+            for (Encounter.Participant participant : participants) {
+                String providerUrl = participant.getIndividual().getReference().getValue();
+                Provider provider = providerLookupService.getProviderByReferenceUrl(providerUrl);
+                if (provider != null) newEmrEncounter.addProvider(encounterService.getEncounterRoleByUuid(EncounterRole.UNKNOWN_ENCOUNTER_ROLE_UUID),
+                        provider);
+            }
         }
-        newEmrEncounter.addProvider(encounterService.getEncounterRoleByUuid(EncounterRole.UNKNOWN_ENCOUNTER_ROLE_UUID),
-                providerLookupService.getProviderByReferenceUrl(providerUrl));
+        if(CollectionUtils.isEmpty(newEmrEncounter.getEncounterProviders())) {
+            Provider provider = providerLookupService.getShrClientSystemProvider();
+            newEmrEncounter.addProvider(encounterService.getEncounterRoleByUuid(EncounterRole.UNKNOWN_ENCOUNTER_ROLE_UUID),
+                    provider);
+        }
     }
 
 
