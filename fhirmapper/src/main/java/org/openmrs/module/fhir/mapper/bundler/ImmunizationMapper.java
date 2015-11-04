@@ -210,6 +210,6 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         if (indicatorObs != null) {
             return indicatorObs.getValueAsBoolean();
         }
-        return null;
+        return false;
     }
 }
