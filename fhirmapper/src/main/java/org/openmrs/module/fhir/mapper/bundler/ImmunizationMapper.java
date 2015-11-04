@@ -90,8 +90,16 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         immunization.setDoseQuantity(getDosage(immunizationIncidentObs, systemProperties));
         immunization.setExplanation(getExplation(immunizationIncidentObs, systemProperties));
         setRoute(immunizationIncidentObs, immunization, systemProperties);
+        setNotes(immunizationIncidentObs, immunization);
 
         return immunization;
+    }
+
+    private void setNotes(CompoundObservation immunizationIncidentObs, Immunization immunization) {
+        List<Obs> notesObsList = immunizationIncidentObs.findAllMemberObsForConceptName(MRS_CONCEPT_IMMUNIZATION_NOTE);
+        for (Obs obs : notesObsList) {
+            immunization.addNote().setText(obs.getValueText());
+        }
     }
 
     private List<Drug> identifyDrugs(Obs vaccineObs) {

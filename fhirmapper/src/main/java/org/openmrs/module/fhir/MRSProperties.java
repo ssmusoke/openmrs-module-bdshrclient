@@ -30,6 +30,7 @@ public class MRSProperties {
 
     public static final String MRS_CONCEPT_IMMUNIZATION_INCIDENT_TEMPLATE = "Immunization Incident Template";
     public static final String MRS_CONCEPT_IMMUNIZATION_INCIDENT_GROUP = "Immunization Incident Group";
+    public static final String MRS_CONCEPT_IMMUNIZATION_NOTE = "Immunization Note";
     public static final String MRS_CONCEPT_VACCINATION_REFUSED = "Immunization Incident Vaccination Refused";
     public static final String MRS_CONCEPT_VACCINE = "Immunization Incident Vaccine";
     public static final String MRS_CONCEPT_VACCINATION_DATE = "Immunization Incident Vaccination Date";
