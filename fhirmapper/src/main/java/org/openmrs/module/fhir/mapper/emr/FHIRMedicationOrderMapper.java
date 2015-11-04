@@ -174,8 +174,8 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         IdMapping encounterIdMapping = idMappingsRepository.findByInternalId(newEmrEncounter.getUuid());
         String externalId = StringUtils.substringAfter(medicationOrder.getId().getValue(), "urn:uuid:");
         IdMapping orderIdMapping = new IdMapping(drugOrder.getUuid(), externalId,
-                Constants.ID_MAPPING_ORDER_TYPE,
-                String.format("%s#%s/%s", encounterIdMapping.getUri(),
+                Constants.ID_MAPPING_MEDICATION_ORDER_TYPE,
+                String.format(Constants.RESOURCE_MAPPING_URL_FORMAT, encounterIdMapping.getUri(),
                         new MedicationOrder().getResourceName(), externalId));
         idMappingsRepository.saveOrUpdateMapping(orderIdMapping);
     }
