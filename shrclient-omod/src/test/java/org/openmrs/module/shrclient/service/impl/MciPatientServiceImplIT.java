@@ -199,6 +199,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
+    @Ignore("Ignored because of a bug on OpenMRS which doesn't let you revise a retrospective drug order edit")
     public void shouldSaveDrugOrderEditedInSameEncounter() throws Exception {
         executeDataSet("testDataSets/drugOrderDS.xml");
         String healthId = "98104750156";

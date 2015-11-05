@@ -46,6 +46,9 @@ import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -301,7 +304,14 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
     }
 
     private void saveOrders(Encounter newEmrEncounter) {
-        for (Order order : newEmrEncounter.getOrders()) {
+        List<Order> ordersList = new ArrayList<Order>(newEmrEncounter.getOrders());
+        Collections.sort(ordersList, new Comparator<Order>() {
+            @Override
+            public int compare(Order o1, Order o2) {
+                return o1.getDateActivated().compareTo(o2.getDateActivated());
+            }
+        });
+        for (Order order : ordersList) {
             orderService.saveOrder(order, null);
         }
     }
