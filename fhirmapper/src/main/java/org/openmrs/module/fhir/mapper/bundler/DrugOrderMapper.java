@@ -86,7 +86,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         MedicationOrder medicationOrder = new MedicationOrder();
         medicationOrder.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValueAsString()));
         setPatient(fhirEncounter, medicationOrder);
-        medicationOrder.setDateWritten(drugOrder.getDateCreated(), TemporalPrecisionEnum.MILLI);
+        medicationOrder.setDateWritten(drugOrder.getDateActivated(), TemporalPrecisionEnum.SECOND);
         medicationOrder.setMedication(getMedication(drugOrder));
         medicationOrder.setPrescriber(getOrdererReference(drugOrder, fhirEncounter, systemProperties));
         medicationOrder.addDosageInstruction(getDoseInstructions(drugOrder, medicationOrder, systemProperties));
@@ -125,7 +125,8 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
     private void setStatusAndPriorPrescriptionAndOrderAction(DrugOrder drugOrder, MedicationOrder medicationOrder, SystemProperties systemProperties) {
         if (drugOrder.getDateStopped() != null || drugOrder.getAction().equals(Order.Action.DISCONTINUE)) {
             medicationOrder.setStatus(MedicationOrderStatusEnum.STOPPED);
-            if (drugOrder.getDateStopped() != null) medicationOrder.setDateEnded(drugOrder.getDateStopped(), TemporalPrecisionEnum.MILLI);
+            if (drugOrder.getDateStopped() != null)
+                medicationOrder.setDateEnded(drugOrder.getDateStopped(), TemporalPrecisionEnum.MILLI);
             else medicationOrder.setDateEnded(drugOrder.getAutoExpireDate(), TemporalPrecisionEnum.MILLI);
         } else {
             medicationOrder.setStatus(MedicationOrderStatusEnum.ACTIVE);

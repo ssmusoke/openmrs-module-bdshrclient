@@ -102,6 +102,8 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         if (drug == null) return drugOrder;
         drugOrder.setDrug(drug);
         if (medicationOrder.getDosageInstruction().isEmpty()) return null;
+        //will work only because any order created through bahmni is activated immediately
+        drugOrder.setDateActivated(medicationOrder.getDateWritten());
         MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.getDosageInstructionFirstRep();
         mapFrequency(drugOrder, dosageInstruction);
         HashMap<String, Object> dosingInstructionsMap = new HashMap<>();
@@ -135,7 +137,7 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
 
     private void setOrderAction(DrugOrder drugOrder, MedicationOrder medicationOrder) {
         List<ExtensionDt> extensions = medicationOrder.getUndeclaredExtensionsByUrl(FHIRProperties.getFhirExtensionUrl(FHIRProperties.MEDICATIONORDER_ACTION_EXTENSION_NAME));
-        if(extensions == null || extensions.isEmpty()) {
+        if (extensions == null || extensions.isEmpty()) {
             drugOrder.setAction(Order.Action.NEW);
             return;
         }
@@ -146,7 +148,7 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
 
     private Order.Action getOrderAction(String orderAction) {
         for (Order.Action action : Order.Action.values()) {
-            if(action.name().equals(orderAction)) return action;
+            if (action.name().equals(orderAction)) return action;
         }
         return Order.Action.NEW;
     }

@@ -68,7 +68,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
         assertEquals(1, fhirResources.size());
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
-        Date expectedDate = DateUtil.parseDate("2008-08-19 12:20:22");
+        Date expectedDate = DateUtil.parseDate("2008-08-08 00:00:00");
         assertMedicationOrder(medicationOrder, expectedDate);
         assertEquals(fhirEncounter.getId().getValue(), medicationOrder.getEncounter().getReference().getValue());
         assertEquals(1, medicationOrder.getDosageInstruction().size());
@@ -315,19 +315,19 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
         ExtensionDt orderActionExtension = medicationOrder.getUndeclaredExtensionsByUrl(FHIRProperties.getFhirExtensionUrl(FHIRProperties.MEDICATIONORDER_ACTION_EXTENSION_NAME)).get(0);
-        assertEquals(((StringDt)orderActionExtension.getValue()).getValue(), Order.Action.NEW.name());
+        assertEquals(((StringDt) orderActionExtension.getValue()).getValue(), Order.Action.NEW.name());
 
         order = orderService.getOrder(25);
         fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
         orderActionExtension = medicationOrder.getUndeclaredExtensionsByUrl(FHIRProperties.getFhirExtensionUrl(FHIRProperties.MEDICATIONORDER_ACTION_EXTENSION_NAME)).get(0);
-        assertEquals(((StringDt)orderActionExtension.getValue()).getValue(), Order.Action.DISCONTINUE.name());
+        assertEquals(((StringDt) orderActionExtension.getValue()).getValue(), Order.Action.DISCONTINUE.name());
 
         order = orderService.getOrder(26);
         fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
         orderActionExtension = medicationOrder.getUndeclaredExtensionsByUrl(FHIRProperties.getFhirExtensionUrl(FHIRProperties.MEDICATIONORDER_ACTION_EXTENSION_NAME)).get(0);
-        assertEquals(((StringDt)orderActionExtension.getValue()).getValue(), Order.Action.REVISE.name());
+        assertEquals(((StringDt) orderActionExtension.getValue()).getValue(), Order.Action.REVISE.name());
     }
 
     private Encounter getFhirEncounter() {
