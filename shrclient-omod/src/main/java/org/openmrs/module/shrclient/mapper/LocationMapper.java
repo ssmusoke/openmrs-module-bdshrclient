@@ -2,10 +2,6 @@ package org.openmrs.module.shrclient.mapper;
 
 import org.openmrs.Location;
 import org.openmrs.module.shrclient.model.FRLocationEntry;
-import org.openmrs.module.shrclient.model.FacilityCatchment;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class LocationMapper {
 
@@ -18,7 +14,8 @@ public class LocationMapper {
         return writeChanges(new Location(), locationEntry);
     }
     private Location writeChanges(Location location, FRLocationEntry locationEntry) {
-        location.setName(locationEntry.getName());
+        String locationName = String.format("%s (%s)", locationEntry.getName(), locationEntry.getId());
+        location.setName(locationName);
         if ("0".equals(locationEntry.getActive())) {
             location.setRetired(true);
             location.setRetireReason(RETIRE_REASON);
