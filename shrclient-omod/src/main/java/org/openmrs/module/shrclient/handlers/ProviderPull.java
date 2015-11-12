@@ -59,7 +59,11 @@ public class ProviderPull {
         if (StringUtils.isNotBlank(feedUriForLastReadEntry)) {
             Map<String, String> parameters = parseURL(new URL(feedUriForLastReadEntry));
             offset = Integer.parseInt(parameters.get(OFFSET));
-            updatedSince = parameters.get(UPDATED_SINCE);
+            String lastUpdate = parameters.get(UPDATED_SINCE);
+            if (!StringUtils.isBlank(lastUpdate)) {
+                lastUpdate = lastUpdate.replace("%20", " ");
+                updatedSince = lastUpdate;
+            }
         }
 
         String baseContextPath = propertiesReader.getPrProperties().getProperty(PR_PROVIDERS_PATH_INFO);
@@ -77,17 +81,19 @@ public class ProviderPull {
         }
         while (newEntriesFromPr != null && newEntriesFromPr.size() == DEFAULT_LIMIT && noOfEntriesSynchronizedSoFar < MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED);
 
-        updateMarkers(noOfEntriesSynchronizedSoFar, offset, newEntriesFromPr, baseContextPath);
+        updateMarkers(noOfEntriesSynchronizedSoFar, offset, newEntriesFromPr, baseContextPath, updatedSince);
 
         logger.info(noOfEntriesSynchronizedSoFar + " entries synchronized");
     }
 
-    private void updateMarkers(int noOfEntriesSynchronizedSoFar, int offset, List<ProviderEntry> newEntriesFromPr, String baseContextPath) {
+    private void updateMarkers(int noOfEntriesSynchronizedSoFar, int offset, List<ProviderEntry> newEntriesFromPr, String baseContextPath, String updatedSince) {
         String nextCompleteContextPath;
         String providerResourceRefPath = StringUtil.ensureSuffix(propertiesReader.getPrBaseUrl(), "/");
         if (newEntriesFromPr != null) {
             if (newEntriesFromPr.size() == DEFAULT_LIMIT) {
-                nextCompleteContextPath = buildCompleteContextPath(baseContextPath, offset, INITIAL_DATETIME);
+                //ideally should take the last ProviderEntry.updatedAt (currently updatedAt is not mapped) from the newEntriesFromPr
+                //and also should reset the offset accordingly
+                nextCompleteContextPath = buildCompleteContextPath(baseContextPath, offset, updatedSince);
                 scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(providerResourceRefPath + StringUtil.removePrefix(nextCompleteContextPath, "/"), PR_FEED_URI);
             } else {
                 nextCompleteContextPath = buildCompleteContextPath(baseContextPath, INITIAL_OFFSET,
