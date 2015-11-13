@@ -96,7 +96,7 @@ public class LocationPull {
 
         String feedUriForLastReadEntry = scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(feedUri);
         int offset;
-        String updatedSince;
+        String updatedSince = null;
 
         if (StringUtils.isBlank(feedUriForLastReadEntry)) {
             offset = INTIAL_OFFSET;
@@ -104,7 +104,11 @@ public class LocationPull {
         } else {
             Map<String, String> parameters = parseURL(new URL(feedUriForLastReadEntry));
             offset = Integer.parseInt(parameters.get(OFFSET));
-            updatedSince = parameters.get(UPDATED_SINCE);
+            String lastUpdate = parameters.get(UPDATED_SINCE);
+            if (!StringUtils.isBlank(lastUpdate)) {
+                lastUpdate = lastUpdate.replace("%20", " ");
+                updatedSince = lastUpdate;
+            }
         }
 
         String locationResourceRefPath = StringUtil.ensureSuffix(propertiesReader.getLrBaseUrl(), "/");
@@ -128,7 +132,9 @@ public class LocationPull {
         String nextCompleteContextPath;
         if (lastRetrievedPartOfList != null) {
             if (lastRetrievedPartOfList.size() == DEFAULT_LIMIT) {
-                nextCompleteContextPath = buildCompleteContextPath(baseContextPath, offset, INITIAL_DATETIME);
+                //ideally should take the last ProviderEntry.updatedAt (currently updatedAt is not mapped) from the newEntriesFromPr
+                //and also should reset the offset accordingly
+                nextCompleteContextPath = buildCompleteContextPath(baseContextPath, offset, updatedSince);
                 scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(locationResourceRefPath + StringUtil.removePrefix(nextCompleteContextPath, "/"), feedUri);
             } else {
                 nextCompleteContextPath = buildCompleteContextPath(baseContextPath, INTIAL_OFFSET, getCurrentDateAndTime());

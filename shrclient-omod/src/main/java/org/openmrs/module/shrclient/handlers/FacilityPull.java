@@ -43,7 +43,6 @@ public class FacilityPull {
     private final IdMappingsRepository idMappingsRepository;
     private final LocationMapper locationMapper;
     private final FacilityCatchmentRepository facilityCatchmentRepository;
-    private OMRSLocationService omrsLocationService;
     private final ScheduledTaskHistory scheduledTaskHistory;
     private final PropertiesReader propertiesReader;
     private final RestClient frWebClient;
@@ -62,7 +61,6 @@ public class FacilityPull {
         this.scheduledTaskHistory = scheduledTaskHistory;
         this.locationMapper = locationMapper;
         this.facilityCatchmentRepository = facilityCatchmentRepository;
-        this.omrsLocationService = omrsLocationService;
         this.shrLocationTag =  locationService.getLocationTag(omrsLocationService.getHIEFacilityLocationTag());
         this.failedDuringSaveOrUpdateOperation = new ArrayList<>();
     }
@@ -84,7 +82,7 @@ public class FacilityPull {
 
         String feedUriForLastReadEntry = scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
         int offset;
-        String updatedSince;
+        String updatedSince = null;
 
         if (StringUtils.isBlank(feedUriForLastReadEntry)) {
             offset = INITIAL_OFFSET;
@@ -92,7 +90,11 @@ public class FacilityPull {
         } else {
             Map<String, String> parameters = parseURL(new URL(feedUriForLastReadEntry));
             offset = Integer.parseInt(parameters.get(OFFSET));
-            updatedSince = parameters.get(UPDATED_SINCE);
+            String lastUpdate = parameters.get(UPDATED_SINCE);
+            if (!StringUtils.isBlank(lastUpdate)) {
+                lastUpdate = lastUpdate.replace("%20", " ");
+                updatedSince = lastUpdate;
+            }
         }
 
         String facilityResourceRefPath = StringUtil.ensureSuffix(propertiesReader.getFrBaseUrl(), "/");
@@ -115,7 +117,9 @@ public class FacilityPull {
         String nextCompleteContextPath;
         if (lastRetrievedPartOfList != null) {
             if (lastRetrievedPartOfList.size() == DEFAULT_LIMIT) {
-                nextCompleteContextPath = buildCompleteContextPath(baseContextPath, offset, INITIAL_DATETIME);
+                //ideally should take the last ProviderEntry.updatedAt (currently updatedAt is not mapped) from the newEntriesFromPr
+                //and also should reset the offset accordingly
+                nextCompleteContextPath = buildCompleteContextPath(baseContextPath, offset, updatedSince);
                 scheduledTaskHistory.setFeedUriForLastReadEntryByFeedUri(facilityResourceRefPath + StringUtil.removePrefix(nextCompleteContextPath, "/"), FR_FACILITY_LEVEL_FEED_URI);
             } else {
                 nextCompleteContextPath = buildCompleteContextPath(baseContextPath, INITIAL_OFFSET, getCurrentDateAndTime());
