@@ -55,7 +55,27 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
         DiagnosticReport report = (DiagnosticReport) diagnosticReportResource.getResource();
         assertEquals(fhirEncounter.getPatient(), report.getSubject());
         assertEquals(fhirEncounter.getParticipant().get(0).getIndividual(), report.getPerformer());
-        assertDiagnosticReport(report, fhirResources);
+        assertDiagnosticReport(report, fhirResources, new DecimalDt(120.0).getValue().doubleValue());
+        assertEquals(obsService.getObs(2).getObsDatetime(), report.getIssued());
+        assertEquals(orderService.getOrder(17).getDateActivated(), ((DateTimeDt) report.getEffective()).getValue());
+        assertEquals(conceptService.getConcept(107).getName().getName(), report.getCode().getCoding().get(0).getDisplay());
+    }
+
+    @Test
+    public void shouldMapLabTestResultsWithoutValue() throws Exception {
+        executeDataSet("testDataSets/labResultWithoutValueDS.xml");
+        Encounter fhirEncounter = buildEncounter();
+        ResourceReferenceDt patientHid = new ResourceReferenceDt();
+        patientHid.setReference("patientHid");
+        fhirEncounter.setPatient(patientHid);
+        List<FHIRResource> fhirResources = testResultMapper.map(obsService.getObs(1), fhirEncounter, getSystemProperties("1"));
+        assertNotNull(fhirResources);
+        assertEquals(2, fhirResources.size());
+        FHIRResource diagnosticReportResource = TestFhirFeedHelper.getResourceByType(new DiagnosticReport().getResourceName(), fhirResources);
+        DiagnosticReport report = (DiagnosticReport) diagnosticReportResource.getResource();
+        assertEquals(fhirEncounter.getPatient(), report.getSubject());
+        assertEquals(fhirEncounter.getParticipant().get(0).getIndividual(), report.getPerformer());
+        assertDiagnosticReport(report, fhirResources, null);
         assertEquals(obsService.getObs(2).getObsDatetime(), report.getIssued());
         assertEquals(orderService.getOrder(17).getDateActivated(), ((DateTimeDt) report.getEffective()).getValue());
         assertEquals(conceptService.getConcept(107).getName().getName(), report.getCode().getCoding().get(0).getDisplay());
@@ -76,12 +96,12 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
                 DiagnosticReport report = (DiagnosticReport) FHIRResource.getResource();
                 assertEquals(fhirEncounter.getPatient(), report.getSubject());
                 assertEquals(fhirEncounter.getParticipant().get(0).getIndividual(), report.getPerformer());
-                assertDiagnosticReport(report, FHIRResources);
+                assertDiagnosticReport(report, FHIRResources, new DecimalDt(120.0).getValue().doubleValue());
             }
         }
     }
 
-    private void assertDiagnosticReport(DiagnosticReport report, List<FHIRResource> fhirResources) {
+    private void assertDiagnosticReport(DiagnosticReport report, List<FHIRResource> fhirResources, Double expectedObsValue) {
         FHIRResource observationResource = getResourceByReference(report.getResult().get(0), fhirResources);
         assertNotNull(observationResource);
         assertFalse(report.getResult().isEmpty());
@@ -91,10 +111,10 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
         assertTrue(report.getRequest().get(0).getReference().getValue().startsWith("http://172.18.46.57:8081/patients/hid/encounters/shrEncounterId"));
         assertEquals(observationResource.getIdentifier().getValue(), report.getResult().get(0).getReference().getValue());
         Observation observation = (Observation) observationResource.getResource();
-        assertNotNull(observation.getValue());
-            assertEquals("Lab Notes",observation.getComments());
+        assertEquals("Lab Notes",observation.getComments());
         if (observation.getValue() instanceof DecimalDt) {
-            assertTrue(120.0 == ((DecimalDt) observation.getValue()).getValue().doubleValue());
+            Double actualObsValue = ((DecimalDt) observation.getValue()).getValue().doubleValue();
+            assertEquals(expectedObsValue, actualObsValue);
         }
     }
 

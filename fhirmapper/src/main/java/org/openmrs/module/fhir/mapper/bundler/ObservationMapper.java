@@ -100,12 +100,11 @@ public class ObservationMapper implements EmrObsResourceHandler {
     }
 
     public FHIRResource mapObservation(Obs openmrsObs, Encounter fhirEncounter, SystemProperties systemProperties) {
-        Observation fhirObservation = buildObservationResource(openmrsObs, fhirEncounter, systemProperties);
+        FHIRResource fhirObservationResource = buildObservationResource(fhirEncounter, systemProperties, openmrsObs.getUuid(), openmrsObs.getConcept().getName().getName());
+        Observation fhirObservation = (Observation) fhirObservationResource.getResource();
         mapCode(openmrsObs, fhirObservation);
         mapValue(openmrsObs, fhirObservation);
-        mapPerformer(fhirEncounter, fhirObservation);
-        fhirObservation.setStatus(ObservationStatusEnum.PRELIMINARY);
-        return buildFhirResource(fhirObservation, openmrsObs);
+        return fhirObservationResource;
     }
 
     private void mapPerformer(Encounter fhirEncounter, Observation fhirObservation) {
@@ -117,18 +116,20 @@ public class ObservationMapper implements EmrObsResourceHandler {
         }
     }
 
-    private Observation buildObservationResource(Obs openmrsObs, Encounter fhirEncounter, SystemProperties systemProperties) {
+    public FHIRResource buildObservationResource(Encounter fhirEncounter, SystemProperties systemProperties, String resourceId, String resourceName) {
         Observation fhirObservation = new Observation();
         fhirObservation.setSubject(fhirEncounter.getPatient());
         fhirObservation.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValue()));
-        String id = new EntityReference().build(IResource.class, systemProperties, openmrsObs.getUuid());
+        String id = new EntityReference().build(IResource.class, systemProperties, resourceId);
         fhirObservation.setId(id);
         fhirObservation.addIdentifier(new IdentifierDt().setValue(id));
-        return fhirObservation;
+        mapPerformer(fhirEncounter, fhirObservation);
+        fhirObservation.setStatus(ObservationStatusEnum.PRELIMINARY);
+        return buildFhirResource(fhirObservation, resourceName);
     }
 
-    private FHIRResource buildFhirResource(Observation observation, Obs obs) {
-        return new FHIRResource(obs.getConcept().getName().getName(), observation.getIdentifier(), observation);
+    private FHIRResource buildFhirResource(Observation observation, String resourceName) {
+        return new FHIRResource(resourceName, observation.getIdentifier(), observation);
     }
 
     private void mapGroupMember(Obs obs, Encounter fhirEncounter, Observation parentObservation, List<FHIRResource> result, SystemProperties systemProperties) {

@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.openmrs.module.fhir.MRSProperties.*;
 
@@ -100,7 +101,9 @@ public class TestResultMapper implements EmrObsResourceHandler {
 
     private FHIRResource getResultObservation(Obs resultObsGroup, Encounter fhirEncounter, SystemProperties systemProperties, CompoundObservation resultGroupObservation) {
         Obs resultObs = resultGroupObservation.getMemberObsForConcept(resultObsGroup.getConcept());
-        return observationMapper.mapObservation(resultObs, fhirEncounter, systemProperties);
+        if(null != resultObs)
+            return observationMapper.mapObservation(resultObs, fhirEncounter, systemProperties);
+        return observationMapper.buildObservationResource(fhirEncounter,systemProperties,UUID.randomUUID().toString(),fhirEncounter.getResourceName());
     }
 
     private DiagnosticReport build(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
