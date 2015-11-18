@@ -299,7 +299,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldSetPreviousOrderEncounterUrlForEditedDrugOrdersInDifferentEncounters() throws Exception {
         Encounter fhirEncounter = getFhirEncounter();
 
-        Order order = orderService.getOrder(27);
+        Order order = orderService.getOrder(77);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
 
@@ -328,6 +328,23 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
         orderActionExtension = medicationOrder.getUndeclaredExtensionsByUrl(FHIRProperties.getFhirExtensionUrl(FHIRProperties.MEDICATIONORDER_ACTION_EXTENSION_NAME)).get(0);
         assertEquals(((StringDt) orderActionExtension.getValue()).getValue(), Order.Action.REVISE.name());
+    }
+
+    @Test
+    public void shouldMapNonCodedDrugOrders() throws Exception {
+        Encounter fhirEncounter = getFhirEncounter();
+
+        Order order = orderService.getOrder(27);
+        List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+
+        assertTrue(medicationOrder.getMedication() instanceof CodeableConceptDt);
+        CodeableConceptDt medication = (CodeableConceptDt) medicationOrder.getMedication();
+        assertEquals(1, medication.getCoding().size());
+        CodingDt codingDt = medication.getCoding().get(0);
+        assertEquals("Paracetamol 20mg", codingDt.getDisplay());
+        assertNull(codingDt.getCode());
+        assertNull(codingDt.getSystem());
     }
 
     private Encounter getFhirEncounter() {

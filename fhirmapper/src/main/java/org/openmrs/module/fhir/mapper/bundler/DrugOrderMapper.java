@@ -3,6 +3,7 @@ package org.openmrs.module.fhir.mapper.bundler;
 import ca.uhn.fhir.model.api.ExtensionDt;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.composite.DurationDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.composite.SimpleQuantityDt;
@@ -338,19 +339,22 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
     }
 
     private CodeableConceptDt getMedication(DrugOrder drugOrder) {
-        CodeableConceptDt codeableConcept = new CodeableConceptDt();
-        String uuid = drugOrder.getDrug().getUuid();
-        IdMapping idMapping = idMappingsRepository.findByInternalId(uuid);
-        String displayName = drugOrder.getDrug().getDisplayName();
-        if (null != idMapping) {
-            codeableConcept.addCoding()
-                    .setCode(idMapping.getExternalId())
-                    .setSystem(idMapping.getUri())
-                    .setDisplay(displayName);
+        CodingDt coding = new CodingDt();
+        if (drugOrder.getDrug() == null) {
+            coding.setDisplay(drugOrder.getDrugNonCoded());
         } else {
-            codeableConcept.addCoding().setDisplay(displayName);
+            String uuid = drugOrder.getDrug().getUuid();
+            IdMapping idMapping = idMappingsRepository.findByInternalId(uuid);
+            String displayName = drugOrder.getDrug().getDisplayName();
+            if (null != idMapping) {
+                coding.setCode(idMapping.getExternalId())
+                        .setSystem(idMapping.getUri())
+                        .setDisplay(displayName);
+            } else {
+                coding.setDisplay(displayName);
+            }
         }
-        return codeableConcept;
+        return new CodeableConceptDt().addCoding(coding);
     }
 
     private void setPatient(Encounter fhirEncounter, MedicationOrder medicationOrder) {

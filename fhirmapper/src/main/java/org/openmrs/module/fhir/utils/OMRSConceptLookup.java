@@ -36,6 +36,7 @@ public class OMRSConceptLookup {
     private IdMappingsRepository idMappingsRepository;
     private GlobalPropertyLookUpService globalPropertyLookUpService;
 
+    public static final String TR_DRUG_REST_URL = "/ws/rest/v1/tr/drugs";
     public static final String WS_REST_V1_TR_CONCEPTS = "/ws/rest/v1/tr/concepts/";
 
     private Logger logger = Logger.getLogger(OMRSConceptLookup.class);
@@ -85,26 +86,14 @@ public class OMRSConceptLookup {
 
     public Drug findDrug(List<CodingDt> codings) {
         for (CodingDt coding : codings) {
-            if (isDrugSet(coding.getSystem())) {
+            if (isTRDrugSystem(coding.getSystem())) {
                 Drug drug = findDrug(coding.getCode());
-                if (drug != null) return drug;
+                if (drug != null) {
+                    return drug;
+                } else {
+                    throw new RuntimeException(String.format("TR Drug with external id [%s] is not yet synced", coding.getCode()));
+                }
             }
-        }
-        return null;
-    }
-
-    private boolean isValueSetUrl(String systemSimple) {
-        return StringUtils.contains(systemSimple, "tr/vs/");
-    }
-
-    private boolean isDrugSet(String systemSimple) {
-        return StringUtils.contains(systemSimple, "tr/drugs/");
-    }
-
-    public Drug findDrug(String drugExternalId) {
-        IdMapping idMapping = idMappingsRepository.findByExternalId(drugExternalId);
-        if (idMapping != null) {
-            return conceptService.getDrugByUuid(idMapping.getInternalId());
         }
         return null;
     }
@@ -201,6 +190,22 @@ public class OMRSConceptLookup {
                 return conceptAnswer.getAnswerConcept().equals(childConcept);
             }
         });
+    }
+
+    private Drug findDrug(String drugExternalId) {
+        IdMapping idMapping = idMappingsRepository.findByExternalId(drugExternalId);
+        if (idMapping != null) {
+            return conceptService.getDrugByUuid(idMapping.getInternalId());
+        }
+        return null;
+    }
+
+    private boolean isValueSetUrl(String systemSimple) {
+        return StringUtils.contains(systemSimple, "tr/vs/");
+    }
+
+    private boolean isTRDrugSystem(String systemSimple) {
+        return StringUtils.contains(systemSimple, TR_DRUG_REST_URL);
     }
 
     private boolean isConceptForValuesetCode(String valueSetCode, Concept concept) {
@@ -302,7 +307,7 @@ public class OMRSConceptLookup {
     }
 
     private ConceptDatatype getTextConceptDatatype() {
-        if(conceptDatatypeByUuid != null) return conceptDatatypeByUuid;
+        if (conceptDatatypeByUuid != null) return conceptDatatypeByUuid;
         conceptDatatypeByUuid = conceptService.getConceptDatatypeByUuid(ConceptDatatype.TEXT_UUID);
         return conceptDatatypeByUuid;
     }

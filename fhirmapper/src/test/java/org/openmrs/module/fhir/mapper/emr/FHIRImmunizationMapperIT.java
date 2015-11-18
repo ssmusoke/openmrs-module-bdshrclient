@@ -43,7 +43,6 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
     private Bundle bundle;
     private ObsHelper obsHelper;
 
-
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/immunizationDS.xml");
@@ -132,10 +131,8 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
         assertNotNull(immunizationGroupObs);
         Obs vaccineType = obsHelper.findMemberObsByConceptName(immunizationGroupObs, MRS_CONCEPT_VACCINE);
 
-        int paracetemol500 = 550;
-        assertEquals(vaccineType.getValueCoded(), conceptService.getConcept(paracetemol500));
-
-
+        assertEquals(conceptService.getConcept(500), vaccineType.getValueCoded());
+        assertEquals(conceptService.getDrug(550), vaccineType.getValueDrug());
     }
 
     @Test

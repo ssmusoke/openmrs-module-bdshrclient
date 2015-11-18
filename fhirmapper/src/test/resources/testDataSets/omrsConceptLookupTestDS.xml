@@ -88,4 +88,18 @@
     <concept_answer concept_answer_id="606" concept_id="313" answer_concept="606" sort_weight="1" date_created="2004-08-12 00:00:00.0" creator="1" uuid="eachro8f-uom3-6cu3-873d-qa3a3oz36ans" />
 
     <!--Two ValueSets with same code-->
+
+    <!--drug concept with TR mapping-->
+    <concept concept_id="301" retired="false" datatype_id="4" class_id="3" is_set="false" creator="1"
+             date_created="2005-01-01 00:00:00.0" uuid="7f7379ba-3ca8-11e3-bf2b-0800271c1b75"/>
+    <concept_name concept_name_id="301" concept_id="301" name="Lactic Acid" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="637de959-e1c4-41d4-b2d6-bc4335835ea9"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <drug drug_id="301" concept_id="301" name="Lactic Acid" combination="true" creator="1"
+          date_created="2005-02-24 00:00:00.0" retired="false" uuid="42f00b94-26fe-102b-80cb-0017a47871b2"/>
+    <shr_id_mapping id="3012" internal_id="7f7379ba-3ca8-11e3-bf2b-0800271c1b75" external_id="102" type="concept"
+                    uri="/concepts/102"></shr_id_mapping>
+    <shr_id_mapping id="3013" internal_id="42f00b94-26fe-102b-80cb-0017a47871b2" external_id="104" type="medication"
+                    uri="drugs/104"></shr_id_mapping>
+    <!--drug concept with TR mapping-->
 </dataset>
