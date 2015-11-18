@@ -14,7 +14,6 @@ import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +23,6 @@ import static org.openmrs.module.fhir.FHIRProperties.*;
 public class ObservationValueMapper {
 
     private final CodeableConceptService codeableConceptService;
-    private IdMappingsRepository idMappingsRepository;
     private static ConceptService conceptService;
     private static Object monitor = new Object();
 
@@ -32,7 +30,7 @@ public class ObservationValueMapper {
 
         Numeric {
             @Override
-            public IDatatype readValue(Obs obs, IdMappingsRepository idMappingsRepository, CodeableConceptService codeableConceptService) {
+            public IDatatype readValue(Obs obs, CodeableConceptService codeableConceptService) {
                 if (obs.getConcept().getDatatype().isNumeric() && obs.getValueNumeric() != null) {
                     QuantityDt quantity = new QuantityDt();
                     quantity.setValue(obs.getValueNumeric());
@@ -52,7 +50,7 @@ public class ObservationValueMapper {
 
         Text {
             @Override
-            public IDatatype readValue(Obs obs, IdMappingsRepository idMappingsRepository, CodeableConceptService codeableConceptService) {
+            public IDatatype readValue(Obs obs, CodeableConceptService codeableConceptService) {
                 if (obs.getConcept().getDatatype().isText() && obs.getValueText() != null) {
                     return new StringDt(obs.getValueText());
                 }
@@ -62,7 +60,7 @@ public class ObservationValueMapper {
 
         Boolean {
             @Override
-            public IDatatype readValue(Obs obs, IdMappingsRepository idMappingsRepository, CodeableConceptService codeableConceptService) {
+            public IDatatype readValue(Obs obs, CodeableConceptService codeableConceptService) {
                 if (obs.getConcept().getDatatype().isBoolean() && obs.getValueAsBoolean() != null) {
                     CodeableConceptDt codeableConcept = new CodeableConceptDt();
                     CodingDt coding = codeableConcept.addCoding();
@@ -77,7 +75,7 @@ public class ObservationValueMapper {
 
         Date {
             @Override
-            public IDatatype readValue(Obs obs, IdMappingsRepository idMappingsRepository, CodeableConceptService codeableConceptService) {
+            public IDatatype readValue(Obs obs, CodeableConceptService codeableConceptService) {
                 if (obs.getConcept().getDatatype().isDate() && obs.getValueDate() != null) {
                     return new DateTimeDt(obs.getValueDate(), TemporalPrecisionEnum.DAY);
                 }
@@ -87,7 +85,7 @@ public class ObservationValueMapper {
 
         DateTime {
             @Override
-            public IDatatype readValue(Obs obs, IdMappingsRepository idMappingsRepository, CodeableConceptService codeableConceptService) {
+            public IDatatype readValue(Obs obs, CodeableConceptService codeableConceptService) {
                 if (obs.getConcept().getDatatype().isDateTime() && obs.getValueDatetime() != null) {
                     return new DateTimeDt(obs.getValueDate(), TemporalPrecisionEnum.MILLI);
                 }
@@ -97,10 +95,10 @@ public class ObservationValueMapper {
 
         Coded {
             @Override
-            public IDatatype readValue(Obs obs, IdMappingsRepository idMappingsRepository, CodeableConceptService codeableConceptService) {
+            public IDatatype readValue(Obs obs, CodeableConceptService codeableConceptService) {
                 if (obs.getConcept().getDatatype().isCoded() && obs.getValueCoded() != null) {
                     Concept valueCoded = obs.getValueCoded();
-                    CodeableConceptDt concept = codeableConceptService.addTRCoding(valueCoded, idMappingsRepository);
+                    CodeableConceptDt concept = codeableConceptService.addTRCoding(valueCoded);
                     if (CollectionUtils.isEmpty(concept.getCoding())) {
                         CodingDt coding = concept.addCoding();
                         coding.setDisplay(valueCoded.getName().getName());
@@ -111,15 +109,15 @@ public class ObservationValueMapper {
             }
         };
 
-        
 
-        public abstract IDatatype readValue(Obs obs, IdMappingsRepository idMappingsRepository, CodeableConceptService codeableConceptService);
+        public abstract IDatatype readValue(Obs obs, CodeableConceptService codeableConceptService);
     }
 
     @Autowired
-    public ObservationValueMapper(IdMappingsRepository idMappingsRepository, CodeableConceptService codeableConceptService) {
+    public ObservationValueMapper(
+
+            CodeableConceptService codeableConceptService) {
         this.codeableConceptService = codeableConceptService;
-        this.idMappingsRepository = idMappingsRepository;
     }
 
     private static ConceptService getConceptService() {
@@ -135,7 +133,7 @@ public class ObservationValueMapper {
 
     public IDatatype map(Obs observation) {
         for (ValueReader valueReader : ValueReader.values()) {
-            IDatatype readValue = valueReader.readValue(observation, idMappingsRepository, codeableConceptService);
+            IDatatype readValue = valueReader.readValue(observation, codeableConceptService);
             if (null != readValue) {
                 return readValue;
             }

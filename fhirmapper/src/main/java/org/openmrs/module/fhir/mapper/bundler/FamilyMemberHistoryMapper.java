@@ -20,7 +20,6 @@ import org.openmrs.module.fhir.mapper.model.ObservationType;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.TrValueSetType;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,9 +33,6 @@ import static org.openmrs.module.fhir.MRSProperties.*;
 
 @Component
 public class FamilyMemberHistoryMapper implements EmrObsResourceHandler {
-
-    @Autowired
-    IdMappingsRepository idMappingsRepository;
 
     @Autowired
     private CodeableConceptService codeableConceptService;
@@ -131,7 +127,7 @@ public class FamilyMemberHistoryMapper implements EmrObsResourceHandler {
     private CodeableConceptDt getCodeableConceptFromObs(Obs obs) {
         Concept valueCoded = obs.getValueCoded();
         if (null != valueCoded) {
-            CodeableConceptDt concept = codeableConceptService.addTRCoding(valueCoded, idMappingsRepository);
+            CodeableConceptDt concept = codeableConceptService.addTRCoding(valueCoded);
             if (CollectionUtils.isEmpty(concept.getCoding())) {
                 CodingDt coding = concept.addCoding();
                 coding.setDisplay(valueCoded.getName().getName());

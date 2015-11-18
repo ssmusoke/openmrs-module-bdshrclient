@@ -16,24 +16,17 @@ import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.openmrs.module.fhir.mapper.model.ObservationType.VISIT_DIAGNOSES;
 
 @Component("fhirDiagnosisMapper")
 public class DiagnosisMapper implements EmrObsResourceHandler {
 
-    @Autowired
-    private IdMappingsRepository idMappingsRepository;
     @Autowired
     private CodeableConceptService codeableConceptService;
 
@@ -75,7 +68,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         for (Obs member : obsMembers) {
             Concept memberConcept = member.getConcept();
             if (isCodedDiagnosisObservation(memberConcept)) {
-                CodeableConceptDt diagnosisCode = codeableConceptService.addTRCoding(member.getValueCoded(), idMappingsRepository);
+                CodeableConceptDt diagnosisCode = codeableConceptService.addTRCoding(member.getValueCoded());
                 if (CollectionUtils.isEmpty(diagnosisCode.getCoding())) {
                     return null;
                 }

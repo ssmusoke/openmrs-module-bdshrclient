@@ -52,7 +52,7 @@ public class FamilyMemberHistoryMapperIT extends BaseModuleWebContextSensitiveTe
         assertFalse(familyHistoryResources.isEmpty());
         assertEquals(1, familyHistoryResources.size());
 
-        FamilyMemberHistory familyMemberHistoryResource = (FamilyMemberHistory) TestFhirFeedHelper.getResourceByType(new FamilyMemberHistory().getResourceName(), familyHistoryResources).getResource();
+        FamilyMemberHistory familyMemberHistoryResource = (FamilyMemberHistory) TestFhirFeedHelper.getFirstResourceByType(new FamilyMemberHistory().getResourceName(), familyHistoryResources).getResource();
         assertEquals(subject, familyMemberHistoryResource.getPatient());
         assertFalse(familyMemberHistoryResource.getIdentifier().isEmpty());
 

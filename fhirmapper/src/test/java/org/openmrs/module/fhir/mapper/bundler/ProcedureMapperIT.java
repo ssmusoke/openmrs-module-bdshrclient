@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.ObsService;
+import org.openmrs.module.fhir.TestFhirFeedHelper;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,6 @@ import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.MapperTestHelper.containsCoding;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 import static org.openmrs.module.fhir.TestFhirFeedHelper.getResourceByReference;
-import static org.openmrs.module.fhir.TestFhirFeedHelper.getResourceByType;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -83,7 +83,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
         List<FHIRResource> fhirResources = mapProcedure(1100, fhirEncounter);
         assertEquals(3, fhirResources.size());
-        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), fhirResources).getResource();
+        Procedure procedure = (Procedure) TestFhirFeedHelper.getFirstResourceByType(new Procedure().getResourceName(), fhirResources).getResource();
 
         assertEquals(patient, procedure.getSubject());
 
@@ -95,19 +95,19 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         List<FHIRResource> fhirResources = mapProcedure(1100, new Encounter());
         assertEquals(3, fhirResources.size());
 
-        FHIRResource procedureResource = getResourceByType(new Procedure().getResourceName(), fhirResources);
+        FHIRResource procedureResource = TestFhirFeedHelper.getFirstResourceByType(new Procedure().getResourceName(), fhirResources);
         assertTrue(procedureResource.getResource() instanceof Procedure);
         assertEquals("urn:uuid:ef4554cb-22gg-471a-lld7-1434552c337c1", procedureResource.getIdentifierList().get(0).getValue());
         assertEquals("urn:uuid:ef4554cb-22gg-471a-lld7-1434552c337c1", procedureResource.getResource().getId().getValue());
         assertEquals("Procedure", procedureResource.getResourceName());
 
-        FHIRResource diagnosticReportResource = getResourceByType(new DiagnosticReport().getResourceName(), fhirResources);
+        FHIRResource diagnosticReportResource = TestFhirFeedHelper.getFirstResourceByType(new DiagnosticReport().getResourceName(), fhirResources);
         assertNotNull(diagnosticReportResource);
         assertEquals("urn:uuid:ew6574cb-22yy-891a-giz7-3450552c77459", diagnosticReportResource.getIdentifierList().get(0).getValue());
         assertEquals("urn:uuid:ew6574cb-22yy-891a-giz7-3450552c77459", diagnosticReportResource.getResource().getId().getValue());
         assertEquals("Diagnostic Report", diagnosticReportResource.getResourceName());
 
-        FHIRResource resultResource = getResourceByType(new Observation().getResourceName(), fhirResources);
+        FHIRResource resultResource = TestFhirFeedHelper.getFirstResourceByType(new Observation().getResourceName(), fhirResources);
         assertNotNull(resultResource);
         assertEquals("urn:uuid:dia574cb-22yy-671a-giz7-3450552cresult", resultResource.getIdentifierList().get(0).getValue());
         assertEquals("Test A", resultResource.getResourceName());
@@ -118,7 +118,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         List<FHIRResource> fhirResources = mapProcedure(1100, buildEncounter());
         assertEquals(3, fhirResources.size());
 
-        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), fhirResources).getResource();
+        Procedure procedure = (Procedure) TestFhirFeedHelper.getFirstResourceByType(new Procedure().getResourceName(), fhirResources).getResource();
         CodingDt procedureType = procedure.getCode().getCoding().get(0);
         assertNotNull(procedureType);
         assertEquals("ProcedureAnswer1", procedureType.getDisplay());
@@ -128,7 +128,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapOutCome() {
-        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, new Encounter())).getResource();
+        Procedure procedure = (Procedure) TestFhirFeedHelper.getFirstResourceByType(new Procedure().getResourceName(), mapProcedure(1100, new Encounter())).getResource();
         assertEquals("385669000", procedure.getOutcome().getCodingFirstRep().getCode());
         assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Procedure-Outcome", procedure.getOutcome().getCodingFirstRep().getSystem());
         assertEquals("Successful", procedure.getOutcome().getCodingFirstRep().getDisplay());
@@ -136,7 +136,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapFollowUp() throws Exception {
-        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
+        Procedure procedure = (Procedure) TestFhirFeedHelper.getFirstResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
         assertEquals(1, procedure.getFollowUp().size());
         CodeableConceptDt followUpCode = procedure.getFollowUp().get(0);
         assertEquals(2, followUpCode.getCoding().size());
@@ -146,7 +146,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapPeriod() throws Exception {
-        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
+        Procedure procedure = (Procedure) TestFhirFeedHelper.getFirstResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
         PeriodDt period = (PeriodDt) procedure.getPerformed();
 
         Date expectedStartDate = DateUtil.parseDate("2015-01-10 00:00:00");
@@ -158,19 +158,19 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapProcedureNotes() throws Exception {
-        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
+        Procedure procedure = (Procedure) TestFhirFeedHelper.getFirstResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
         assertEquals("Procedure went well", procedure.getNotes().get(0).getText());
     }
 
     @Test
     public void shouldMapProcedureStatus() throws Exception {
-        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
+        Procedure procedure = (Procedure) TestFhirFeedHelper.getFirstResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
         assertEquals(ProcedureStatusEnum.IN_PROGRESS, procedure.getStatusElement().getValueAsEnum());
     }
 
     @Test
     public void shouldSetProcedureStatusAsCompletedIfNotGiven() throws Exception {
-        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1501, buildEncounter())).getResource();
+        Procedure procedure = (Procedure) TestFhirFeedHelper.getFirstResourceByType(new Procedure().getResourceName(), mapProcedure(1501, buildEncounter())).getResource();
         assertEquals(ProcedureStatusEnum.COMPLETED, procedure.getStatusElement().getValueAsEnum());
     }
 
@@ -178,7 +178,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldMapDiagnosisReport() throws Exception {
         Encounter fhirEncounter = buildEncounter();
         List<FHIRResource> fhirResources = mapProcedure(1100, fhirEncounter);
-        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), fhirResources).getResource();
+        Procedure procedure = (Procedure) TestFhirFeedHelper.getFirstResourceByType(new Procedure().getResourceName(), fhirResources).getResource();
 
         assertEquals(1, procedure.getReport().size());
         ResourceReferenceDt reportReference = procedure.getReport().get(0);
@@ -204,7 +204,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldNotMapReferenceTermWhenMapTypeIsNotSAMEAS() throws Exception {
-        Procedure procedure = (Procedure) getResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
+        Procedure procedure = (Procedure) TestFhirFeedHelper.getFirstResourceByType(new Procedure().getResourceName(), mapProcedure(1100, buildEncounter())).getResource();
         assertEquals(1, procedure.getFollowUp().size());
         CodeableConceptDt followUpCode = procedure.getFollowUp().get(0);
         assertEquals(2, followUpCode.getCoding().size());

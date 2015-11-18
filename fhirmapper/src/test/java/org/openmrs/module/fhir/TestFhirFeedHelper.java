@@ -31,12 +31,22 @@ public class TestFhirFeedHelper {
         return null;
     }
 
-    public static FHIRResource getResourceByType(String resourceName, List<FHIRResource> FHIRResources) {
+    public static FHIRResource getFirstResourceByType(String resourceName, List<FHIRResource> FHIRResources) {
         for (FHIRResource FHIRResource : FHIRResources) {
             if(resourceName.equals(FHIRResource.getResource().getResourceName())) {
                 return FHIRResource;
             }
         }
         return null;
+    }
+
+    public static ArrayList<FHIRResource> getResourceByType(String resourceName, List<FHIRResource> fhirResources) {
+        ArrayList<FHIRResource> mappedFhirResources = new ArrayList<>();
+        for (FHIRResource fhirResource : fhirResources) {
+            if(resourceName.equals(fhirResource.getResource().getResourceName())) {
+                mappedFhirResources.add(fhirResource);
+            }
+        }
+        return mappedFhirResources;
     }
 }

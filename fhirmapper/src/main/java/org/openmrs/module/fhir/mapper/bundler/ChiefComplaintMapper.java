@@ -1,11 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
-import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
-import ca.uhn.fhir.model.dstu2.composite.CodingDt;
-import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
-import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
-import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
+import ca.uhn.fhir.model.dstu2.composite.*;
 import ca.uhn.fhir.model.dstu2.resource.Condition;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.valueset.ConditionCategoryCodesEnum;
@@ -19,7 +15,6 @@ import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -33,8 +28,6 @@ import static org.openmrs.module.fhir.mapper.model.ObservationType.COMPLAINT_CON
 @Component
 public class ChiefComplaintMapper implements EmrObsResourceHandler {
 
-    @Autowired
-    private IdMappingsRepository idMappingsRepository;
     @Autowired
     private CodeableConceptService codeableConceptService;
 
@@ -68,7 +61,7 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
         for (Obs member : obsMembers) {
             final String memberConceptName = member.getConcept().getName().getName();
             if (memberConceptName.equalsIgnoreCase(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT)) {
-                final CodeableConceptDt complaintCode = codeableConceptService.addTRCoding(member.getValueCoded(), idMappingsRepository);
+                final CodeableConceptDt complaintCode = codeableConceptService.addTRCoding(member.getValueCoded());
                 if (CollectionUtils.isEmpty(complaintCode.getCoding())) {
                     CodingDt coding = complaintCode.addCoding();
                     coding.setDisplay(member.getValueCoded().getName().getName());
