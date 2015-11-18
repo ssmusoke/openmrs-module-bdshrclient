@@ -10,31 +10,31 @@ import java.util.List;
 
 public class TestFhirFeedHelper {
 
-    public static List<IResource> getResourceByType(Bundle bundle, String resourceName) {
+    public static List<IResource> getResourceByType(Bundle bundle, String resourceType) {
         List<IResource> resources = new ArrayList<>();
         List<Bundle.Entry> entryList = bundle.getEntry();
         for (Bundle.Entry bundleEntry : entryList) {
             IResource resource = bundleEntry.getResource();
-            if (resource.getResourceName().equals(resourceName)) {
+            if (resource.getResourceName().equals(resourceType)) {
                 resources.add(resource);
             }
         }
         return resources;
     }
 
-    public static FHIRResource getResourceByReference(ResourceReferenceDt reference, List<FHIRResource> FHIRResources) {
-        for (FHIRResource FHIRResource : FHIRResources) {
-            if(FHIRResource.getIdentifier().getValue().equals(reference.getReference().getValue())) {
-                return FHIRResource;
+    public static FHIRResource getResourceByReference(ResourceReferenceDt reference, List<FHIRResource> fhirResources) {
+        for (FHIRResource fhirResource : fhirResources) {
+            if(fhirResource.getIdentifier().getValue().equals(reference.getReference().getValue())) {
+                return fhirResource;
             }
         }
         return null;
     }
 
-    public static FHIRResource getFirstResourceByType(String resourceName, List<FHIRResource> FHIRResources) {
-        for (FHIRResource FHIRResource : FHIRResources) {
-            if(resourceName.equals(FHIRResource.getResource().getResourceName())) {
-                return FHIRResource;
+    public static FHIRResource getFirstResourceByType(String resourceName, List<FHIRResource> fhirResources) {
+        for (FHIRResource fhirResource : fhirResources) {
+            if(resourceName.equals(fhirResource.getResource().getResourceName())) {
+                return fhirResource;
             }
         }
         return null;

@@ -106,10 +106,11 @@ public class TestResultMapper implements EmrObsResourceHandler {
 
     private FHIRResource getResultObservation(Obs resultObsGroup, Encounter fhirEncounter, SystemProperties systemProperties, CompoundObservation resultGroupObservation) {
         Obs resultObs = resultGroupObservation.getMemberObsForConcept(resultObsGroup.getConcept());
-        FHIRResource fhirObservationResource = observationBuilder.buildObservationResource(fhirEncounter,systemProperties, UUID.randomUUID().toString(),fhirEncounter.getResourceName());
+        FHIRResource fhirObservationResource = observationBuilder.buildObservationResource(fhirEncounter,
+                systemProperties, UUID.randomUUID().toString(), resultObsGroup.getConcept().getName().getName());
         Observation fhirObservation = (Observation) fhirObservationResource.getResource();
         fhirObservation.setCode(codeableConceptService.addTRCodingOrDisplay(resultObsGroup.getConcept()));
-        if(resultObs != null) {
+        if (resultObs != null) {
             mapResultValue(resultObs, fhirObservation);
         }
         return fhirObservationResource;
