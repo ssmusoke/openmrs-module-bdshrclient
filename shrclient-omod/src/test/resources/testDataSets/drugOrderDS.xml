@@ -51,6 +51,15 @@
     <concept_reference_source concept_source_id="1" name="ATC" creator="1" date_created="2004-08-12 00:00:00.0"
                               uuid="b5e44116-778f-11e2-ad73-903c7bb72694"/>
 
+    <!--creating concepts drug other-->
+    <concept concept_id="103" retired="false" datatype_id="4" class_id="11" is_set="false" creator="1"
+             date_created="2005-01-01 00:00:00.0" uuid="7f7379ba-eee8-e1ec-bf2b-a8a02a1vcva5"/>
+    <concept_name concept_name_id="103" concept_id="803" name="Drug Other" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="c37caev9-e1v4-41d4-b2d6-bc4335835eaa"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <global_property property="drugOrder.drugOther" property_value="7f7379ba-eee8-e1ec-bf2b-a8a02a1vcva5" description="Drug other concept uuid" uuid="lkiwy8w8-1fw9-fda3-2b99-812aalsa677h"/>
+    <!--creating concepts drug other-->
+
     <!--Drug concepts-->
 
     <!--Creating duration Units-->

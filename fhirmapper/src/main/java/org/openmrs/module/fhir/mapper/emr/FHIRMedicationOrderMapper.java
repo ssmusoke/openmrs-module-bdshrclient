@@ -40,6 +40,7 @@ import org.openmrs.module.fhir.utils.OrderCareSettingLookupService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.util.OpenmrsConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -98,9 +99,7 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         }
 
         drugOrder.setPatient(emrPatient);
-        Drug drug = mapDrug(medicationOrder);
-        if (drug == null) return drugOrder;
-        drugOrder.setDrug(drug);
+        mapDrug(medicationOrder, drugOrder);
         if (medicationOrder.getDosageInstruction().isEmpty()) return null;
         //will work only because any order created through bahmni is activated immediately
         drugOrder.setDateActivated(medicationOrder.getDateWritten());
@@ -315,12 +314,15 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         return route;
     }
 
-    private Drug mapDrug(MedicationOrder medicationOrder) {
+    private void mapDrug(MedicationOrder medicationOrder, DrugOrder drugOrder) {
         CodeableConceptDt medication = (CodeableConceptDt) medicationOrder.getMedication();
         Drug drug = omrsConceptLookup.findDrug(medication.getCoding());
-        if (drug == null) {
-            drug = conceptService.getDrugByNameOrId(medication.getCodingFirstRep().getDisplay());
+        if (drug != null) {
+            drugOrder.setDrug(drug);
+        } else {
+            drugOrder.setDrugNonCoded(medication.getCodingFirstRep().getDisplay());
+            String drugOtherConceptUuid = globalPropertyLookUpService.getGlobalPropertyValue(OpenmrsConstants.GP_DRUG_ORDER_DRUG_OTHER);
+            drugOrder.setConcept(conceptService.getConceptByUuid(drugOtherConceptUuid));
         }
-        return drug;
     }
 }

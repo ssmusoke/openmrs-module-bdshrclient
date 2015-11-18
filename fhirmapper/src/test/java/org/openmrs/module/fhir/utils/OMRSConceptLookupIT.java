@@ -4,8 +4,11 @@ package org.openmrs.module.fhir.utils;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.openmrs.Concept;
+import org.openmrs.Drug;
 import org.openmrs.api.ConceptService;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,10 @@ public class OMRSConceptLookupIT extends BaseModuleWebContextSensitiveTest {
     private static final String CONCEPT_URI = "http://www.bdshr-tr.com/concepts/";
     private static final String REF_TERM_URI = "http://www.bdshr-tr.com/refterms/";
     private static final String VALUE_SET_URI = "http://www.bdshr-tr.com/tr/vs/";
+
+    @Rule
+    public ExpectedException expectedEx = ExpectedException.none();
+
     @Autowired
     private ConceptService conceptService;
     
@@ -130,6 +137,23 @@ public class OMRSConceptLookupIT extends BaseModuleWebContextSensitiveTest {
 
         Concept someOtherValueset = conceptService.getConceptByName("Value Set Concept");
         assertNull(omrsConceptLookup.findAnswerConceptFromValueSetCode(someOtherValueset, "completed"));
+    }
+
+    @Test
+    public void shouldMapDrugOnlyIfTRSystem() throws Exception {
+        Drug expectedDrug = conceptService.getDrug(301);
+        CodingDt drugCoding = new CodingDt().setCode("104").setSystem("http:tr.com/ws/rest/v1/tr/drugs/104");
+        Drug actualDrug = omrsConceptLookup.findDrug(asList(drugCoding));
+        assertEquals(expectedDrug, actualDrug);
+    }
+
+    @Test
+    public void shouldThrowExceptionIfDrugWithTRSystemIsNotYetSynced() throws Exception {
+        expectedEx.expect(RuntimeException.class);
+        expectedEx.expectMessage("TR Drug with external id [105] is not yet synced");
+
+        CodingDt drugCoding = new CodingDt().setCode("105").setSystem("http:tr.com/ws/rest/v1/tr/drugs/105");
+        omrsConceptLookup.findDrug(asList(drugCoding));
     }
 
     private CodingDt buildCoding(String uri, String externalId, String code, String display) {

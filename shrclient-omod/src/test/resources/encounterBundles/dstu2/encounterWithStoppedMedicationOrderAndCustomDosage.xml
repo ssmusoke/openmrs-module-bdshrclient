@@ -97,8 +97,6 @@
                 </encounter>
                 <medicationCodeableConcept>
                     <coding>
-                        <system value="drugs/104"/>
-                        <code value="104"/>
                         <display value="Lactic Acid"/>
                     </coding>
                 </medicationCodeableConcept>

@@ -99,9 +99,7 @@
                 </encounter>
                 <medicationCodeableConcept>
                     <coding>
-                        <system value="/openmrs/ws/rest/v1/tr/drugs/104"/>
-                        <code value="104"/>
-                        <display value="Lactic Acid"/>
+                        <display value="Paracetamol 20mg"/>
                     </coding>
                 </medicationCodeableConcept>
                 <dosageInstruction>

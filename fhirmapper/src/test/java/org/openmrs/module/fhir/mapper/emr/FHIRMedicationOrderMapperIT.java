@@ -119,7 +119,7 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Test
     public void shouldMapDurationAndScheduledDateToDrug() throws Exception {
-        Bundle bundle = (Bundle) mapperTestHelper.loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithMedicationOrderWithScheduledDate.xml", springContext);
+        Bundle bundle = (Bundle) mapperTestHelper.loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithNonCodedMedicationOrderWithScheduledDate.xml", springContext);
         MedicationOrder resource = (MedicationOrder) FHIRFeedHelper.identifyResource(bundle.getEntry(), new MedicationOrder().getResourceName());
 
         Order order = getOrder(bundle, resource);
@@ -157,7 +157,7 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Test
     public void shouldMapDoseFromMedicationFormsValueset() throws Exception {
-        Bundle bundle = (Bundle) mapperTestHelper.loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithMedicationOrderWithScheduledDate.xml", springContext);
+        Bundle bundle = (Bundle) mapperTestHelper.loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithNonCodedMedicationOrderWithScheduledDate.xml", springContext);
         MedicationOrder resource = (MedicationOrder) FHIRFeedHelper.identifyResource(bundle.getEntry(), new MedicationOrder().getResourceName());
 
         Order order = getOrder(bundle, resource);
@@ -266,11 +266,22 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Test
     public void shouldMapMedicationOrderWithoutPrescriber() throws Exception {
-        String bundleWithoutPrescriber = "encounterBundles/dstu2/encounterWithMedicationOrderWithScheduledDate.xml";
+        String bundleWithoutPrescriber = "encounterBundles/dstu2/encounterWithNonCodedMedicationOrderWithScheduledDate.xml";
         Bundle bundle = (Bundle) mapperTestHelper.loadSampleFHIREncounter(bundleWithoutPrescriber, springContext);
         MedicationOrder resource = (MedicationOrder) FHIRFeedHelper.identifyResource(bundle.getEntry(), new MedicationOrder().getResourceName());
         DrugOrder drugOrder = (DrugOrder) getOrder(bundle, resource);
         assertThat(drugOrder.getOrderer().getProviderId(), is(22));
+    }
+
+    @Test
+    public void shouldMapNonCodedDrugs() throws Exception {
+        String bundleWithNonCodedDrug = "encounterBundles/dstu2/encounterWithNonCodedMedicationOrderWithScheduledDate.xml";
+        Bundle bundle = (Bundle) mapperTestHelper.loadSampleFHIREncounter(bundleWithNonCodedDrug, springContext);
+        MedicationOrder resource = (MedicationOrder) FHIRFeedHelper.identifyResource(bundle.getEntry(), new MedicationOrder().getResourceName());
+        DrugOrder drugOrder = (DrugOrder) getOrder(bundle, resource);
+        assertNull(drugOrder.getDrug());
+        assertEquals("Paracetamol 20mg", drugOrder.getDrugNonCoded());
+        assertEquals(conceptService.getConcept(103), drugOrder.getConcept());
     }
 
     private Object readFromJson(String json, String key) throws IOException {

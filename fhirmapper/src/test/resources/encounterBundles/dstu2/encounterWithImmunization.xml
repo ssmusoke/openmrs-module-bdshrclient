@@ -88,9 +88,9 @@
                 <date value="2015-08-17T00:00:00.000+05:30"/>
                 <vaccineCode>
                     <coding>
-                        <system value="http://http://127.0.0.1:9997/openmrs/ws/rest/v1/tr/drugs/751c9b29-6f70-4e2a-90b0-068c4f8a5fe6"/>
-                        <code value="751c9b29-6f70-4e2a-90b0-068c4f8a5fe6"/>
-                        <display value="BCG"/>
+                        <system value="http://127.0.0.1:9997/openmrs/ws/rest/v1/tr/drugs/ABC"/>
+                        <code value="ABC"/>
+                        <display value="Paracetamol"/>
                     </coding>
                 </vaccineCode>
                 <patient>
