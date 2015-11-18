@@ -1,5 +1,6 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import ca.uhn.fhir.model.api.IDatatype;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
@@ -9,6 +10,7 @@ import ca.uhn.fhir.model.dstu2.resource.Observation;
 import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
 import org.openmrs.Obs;
+import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -27,9 +29,6 @@ import static org.openmrs.module.fhir.MRSProperties.*;
 public class TestResultMapper implements EmrObsResourceHandler {
 
     @Autowired
-    private ObservationMapper observationMapper;
-
-    @Autowired
     private IdMappingsRepository idMappingsRepository;
 
     @Autowired
@@ -37,6 +36,12 @@ public class TestResultMapper implements EmrObsResourceHandler {
 
     @Autowired
     private CodeableConceptService codeableConceptService;
+
+    @Autowired
+    private ObservationValueMapper observationValueMapper;
+
+    @Autowired
+    private ObservationBuilder observationBuilder;
 
     @Override
     public boolean canHandle(Obs observation) {
@@ -63,7 +68,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
     }
 
     private void buildTestResult(Obs topLevelTestObs, Encounter fhirEncounter, List<FHIRResource> fhirResourceList, SystemProperties systemProperties) {
-        DiagnosticReport diagnosticReport = build(topLevelTestObs, fhirEncounter, systemProperties);
+        DiagnosticReport diagnosticReport = buildDiagnosticReport(topLevelTestObs, fhirEncounter, systemProperties);
         if (diagnosticReport != null) {
             for (Obs resultObsGroup : topLevelTestObs.getGroupMembers()) {
                 FHIRResource resultResource = getResultResource(resultObsGroup, fhirEncounter, systemProperties);
@@ -101,14 +106,25 @@ public class TestResultMapper implements EmrObsResourceHandler {
 
     private FHIRResource getResultObservation(Obs resultObsGroup, Encounter fhirEncounter, SystemProperties systemProperties, CompoundObservation resultGroupObservation) {
         Obs resultObs = resultGroupObservation.getMemberObsForConcept(resultObsGroup.getConcept());
-        if(null != resultObs)
-            return observationMapper.mapObservation(resultObs, fhirEncounter, systemProperties);
-        return observationMapper.buildObservationResource(fhirEncounter,systemProperties,UUID.randomUUID().toString(),fhirEncounter.getResourceName());
+        FHIRResource fhirObservationResource = observationBuilder.buildObservationResource(fhirEncounter,systemProperties, UUID.randomUUID().toString(),fhirEncounter.getResourceName());
+        Observation fhirObservation = (Observation) fhirObservationResource.getResource();
+        fhirObservation.setCode(codeableConceptService.addTRCodingOrDisplay(resultObsGroup.getConcept()));
+        if(resultObs != null) {
+            mapResultValue(resultObs, fhirObservation);
+        }
+        return fhirObservationResource;
     }
 
-    private DiagnosticReport build(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+    private void mapResultValue(Obs resultObs, Observation fhirObservation) {
+        IDatatype value = observationValueMapper.map(resultObs);
+        if (null != value) {
+            fhirObservation.setValue(value);
+        }
+    }
+
+    private DiagnosticReport buildDiagnosticReport(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
         DiagnosticReport report = diagnosticReportBuilder.build(obs, fhirEncounter, systemProperties);
-        CodeableConceptDt name = codeableConceptService.addTRCoding(obs.getConcept(), idMappingsRepository);
+        CodeableConceptDt name = codeableConceptService.addTRCoding(obs.getConcept());
         if (name.getCoding() != null && name.getCoding().isEmpty()) {
             return null;
         }

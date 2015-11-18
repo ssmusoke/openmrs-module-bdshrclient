@@ -168,7 +168,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         if (null == order.getConcept()) {
             return null;
         }
-        CodeableConceptDt result = codeableConceptService.addTRCoding(order.getConcept(), idMappingsRepository);
+        CodeableConceptDt result = codeableConceptService.addTRCoding(order.getConcept());
         if (result.getCoding() != null && result.getCoding().isEmpty()) {
             CodingDt coding = result.addCoding();
             coding.setDisplay(order.getConcept().getName().getName());

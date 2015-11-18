@@ -1,25 +1,18 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.IDatatype;
-import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
-import ca.uhn.fhir.model.dstu2.composite.CodingDt;
-import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
-import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
-import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.RelatedObservation;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -35,16 +28,16 @@ import static org.openmrs.module.fhir.mapper.model.ObservationType.*;
 public class ObservationMapper implements EmrObsResourceHandler {
 
     private ObservationValueMapper observationValueMapper;
-    private IdMappingsRepository idMappingsRepository;
     private final CodeableConceptService codeableConceptService;
     private GlobalPropertyLookUpService globalPropertyLookUpService;
+    private ObservationBuilder observationBuilder;
 
     @Autowired
-    public ObservationMapper(ObservationValueMapper observationValueMapper, IdMappingsRepository idMappingsRepository, CodeableConceptService codeableConceptService, GlobalPropertyLookUpService globalPropertyLookUpService) {
+    public ObservationMapper(ObservationValueMapper observationValueMapper, CodeableConceptService codeableConceptService, GlobalPropertyLookUpService globalPropertyLookUpService, ObservationBuilder observationBuilder) {
         this.observationValueMapper = observationValueMapper;
-        this.idMappingsRepository = idMappingsRepository;
         this.codeableConceptService = codeableConceptService;
         this.globalPropertyLookUpService = globalPropertyLookUpService;
+        this.observationBuilder = observationBuilder;
     }
 
     @Override
@@ -99,37 +92,13 @@ public class ObservationMapper implements EmrObsResourceHandler {
         return result;
     }
 
-    public FHIRResource mapObservation(Obs openmrsObs, Encounter fhirEncounter, SystemProperties systemProperties) {
-        FHIRResource fhirObservationResource = buildObservationResource(fhirEncounter, systemProperties, openmrsObs.getUuid(), openmrsObs.getConcept().getName().getName());
+    private FHIRResource mapObservation(Obs openmrsObs, Encounter fhirEncounter, SystemProperties systemProperties) {
+        FHIRResource fhirObservationResource = observationBuilder.buildObservationResource(fhirEncounter, systemProperties, openmrsObs.getUuid(), openmrsObs.getConcept().getName().getName());
         Observation fhirObservation = (Observation) fhirObservationResource.getResource();
+        fhirObservation.setStatus(ObservationStatusEnum.PRELIMINARY);
         mapCode(openmrsObs, fhirObservation);
         mapValue(openmrsObs, fhirObservation);
         return fhirObservationResource;
-    }
-
-    private void mapPerformer(Encounter fhirEncounter, Observation fhirObservation) {
-        for (Encounter.Participant participant : fhirEncounter.getParticipant()) {
-            ResourceReferenceDt individual = participant.getIndividual();
-            ResourceReferenceDt performer = fhirObservation.addPerformer();
-            performer.setReference(individual.getReference());
-            performer.setDisplay(individual.getDisplay());
-        }
-    }
-
-    public FHIRResource buildObservationResource(Encounter fhirEncounter, SystemProperties systemProperties, String resourceId, String resourceName) {
-        Observation fhirObservation = new Observation();
-        fhirObservation.setSubject(fhirEncounter.getPatient());
-        fhirObservation.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValue()));
-        String id = new EntityReference().build(IResource.class, systemProperties, resourceId);
-        fhirObservation.setId(id);
-        fhirObservation.addIdentifier(new IdentifierDt().setValue(id));
-        mapPerformer(fhirEncounter, fhirObservation);
-        fhirObservation.setStatus(ObservationStatusEnum.PRELIMINARY);
-        return buildFhirResource(fhirObservation, resourceName);
-    }
-
-    private FHIRResource buildFhirResource(Observation observation, String resourceName) {
-        return new FHIRResource(resourceName, observation.getIdentifier(), observation);
     }
 
     private void mapGroupMember(Obs obs, Encounter fhirEncounter, Observation parentObservation, List<FHIRResource> result, SystemProperties systemProperties) {
@@ -163,12 +132,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
         if (null == observation.getConcept()) {
             return null;
         }
-        CodeableConceptDt observationName = codeableConceptService.addTRCoding(observation.getConcept(), idMappingsRepository);
-        if (CollectionUtils.isEmpty(observationName.getCoding())) {
-            CodingDt coding = observationName.addCoding();
-            coding.setDisplay(observation.getConcept().getName().getName());
-        }
-        return observationName;
+        return codeableConceptService.addTRCodingOrDisplay(observation.getConcept());
     }
 
     private RelatedObservation mapRelatedObservation(Observation observation) {

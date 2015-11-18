@@ -31,7 +31,7 @@ public class CodeableConceptService {
     }
 
     public CodeableConceptDt addTRCodingOrDisplay(Concept concept) {
-        CodeableConceptDt codeableConceptDt = addTRCoding(concept, idMappingsRepository);
+        CodeableConceptDt codeableConceptDt = addTRCoding(concept);
         if (CollectionUtils.isEmpty(codeableConceptDt.getCoding())) {
             CodingDt coding = codeableConceptDt.addCoding();
             coding.setDisplay(concept.getName().getName());
@@ -39,7 +39,7 @@ public class CodeableConceptService {
         return codeableConceptDt;
     }
 
-    public CodeableConceptDt addTRCoding(Concept concept, IdMappingsRepository idMappingsRepository) {
+    public CodeableConceptDt addTRCoding(Concept concept) {
         CodeableConceptDt codeableConcept = new CodeableConceptDt();
         Collection<ConceptMap> conceptMappings = concept.getConceptMappings();
         for (ConceptMap mapping : conceptMappings) {
