@@ -15,6 +15,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
+import org.openmrs.module.fhir.utils.HibernateLazyLoader;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -45,6 +46,7 @@ public class CompositionBundle {
     private CodeableConceptService codeableConceptService;
 
     public Bundle create(org.openmrs.Encounter emrEncounter, String healthId, SystemProperties systemProperties) {
+        HibernateLazyLoader hibernateLazyLoader = new HibernateLazyLoader();
         Bundle bundle = new Bundle();
         Encounter fhirEncounter = encounterMapper.map(emrEncounter, healthId, systemProperties);
         Composition composition = createComposition(emrEncounter.getEncounterDatetime(), fhirEncounter, systemProperties);
@@ -73,6 +75,7 @@ public class CompositionBundle {
 
         Set<org.openmrs.Order> orders = emrEncounter.getOrders();
         for (org.openmrs.Order order : orders) {
+            order = hibernateLazyLoader.load(order);
             for (EmrOrderResourceHandler handler : orderResourceHandlers) {
                 if (handler.canHandle(order)) {
                     List<FHIRResource> mappedResources = handler.map(order, fhirEncounter, bundle, systemProperties);

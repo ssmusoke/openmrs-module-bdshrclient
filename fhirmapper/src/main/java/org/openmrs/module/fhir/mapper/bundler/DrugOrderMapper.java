@@ -76,7 +76,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 
     @Override
     public boolean canHandle(Order order) {
-        return ((order instanceof DrugOrder) && (order.getOrderType().getName().equalsIgnoreCase(MRS_DRUG_ORDER_TYPE)));
+        return order.getOrderType().getName().equalsIgnoreCase(MRS_DRUG_ORDER_TYPE);
     }
 
     @Override
