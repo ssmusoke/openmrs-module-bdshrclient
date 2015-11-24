@@ -100,7 +100,6 @@ public class ShrEncounterFeedProcessor {
                 throw new RuntimeException("Unable to parse XML", e);
             }
             EncounterBundle encounterBundle = new EncounterBundle();
-            encounterBundle.setEncounterId(event.getId());
             encounterBundle.setTitle(event.getTitle());
             encounterBundle.addContent(bundle);
             shrEventWorker.process(encounterBundle);

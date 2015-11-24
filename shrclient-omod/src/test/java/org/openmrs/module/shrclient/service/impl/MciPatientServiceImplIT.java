@@ -315,7 +315,6 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     private List<EncounterBundle> getEncounterBundles(String healthId, String shrEncounterId, String encounterBundleFilePath) throws Exception {
         List<EncounterBundle> bundles = new ArrayList<>();
         EncounterBundle bundle = new EncounterBundle();
-        bundle.setEncounterId(shrEncounterId);
         bundle.setPublishedDate(new Date().toString());
         bundle.setHealthId(healthId);
         bundle.setLink("http://shr.com/patients/" + healthId + "/encounters/" + shrEncounterId);

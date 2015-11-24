@@ -235,7 +235,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
 
     @Override
     public void createOrUpdateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId) throws Exception {
-        String fhirEncounterId = StringUtils.substringAfter(encounterBundle.getTitle(), "Encounter:");
+        String fhirEncounterId = encounterBundle.getEncounterId();
         Bundle bundle = encounterBundle.getBundle();
         logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), fhirEncounterId));
 
