@@ -3,11 +3,12 @@ package org.openmrs.module.shrclient.web.controller.dto;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.apache.commons.lang3.StringUtils;
 
 public class EncounterBundle {
 
     @JsonProperty("id")
-    private String encounterId;
+    private String eventId;
     private String healthId;
     private String publishedDate;
 
@@ -23,6 +24,7 @@ public class EncounterBundle {
     @JsonProperty("content")
     @JsonDeserialize(using = BundleDeserializer.class)
     private Bundle bundle;
+    private String encounterId;
 
     public String getEncounterId() {
         return encounterId;
@@ -38,10 +40,6 @@ public class EncounterBundle {
 
     public Bundle getBundle() {
         return bundle;
-    }
-
-    public void setEncounterId(String encounterId) {
-        this.encounterId = encounterId;
     }
 
     public void setHealthId(String healthId) {
@@ -62,6 +60,7 @@ public class EncounterBundle {
 
     public void setTitle(String title) {
         this.title = title;
+        this.encounterId = StringUtils.substringAfter(title, "Encounter:");
     }
 
     public String getLink() {
