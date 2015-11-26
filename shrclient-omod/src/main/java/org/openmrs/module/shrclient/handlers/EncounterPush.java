@@ -14,15 +14,12 @@ import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
+import org.openmrs.module.fhir.utils.SHREncounterURLUtil;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.EncounterResponse;
 import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.module.shrclient.util.PropertiesReader;
-import org.openmrs.module.shrclient.util.SHRClient;
-import org.openmrs.module.shrclient.util.StringUtil;
-import org.openmrs.module.shrclient.util.SystemProperties;
-import org.openmrs.module.shrclient.util.SystemUserService;
+import org.openmrs.module.shrclient.util.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -90,7 +87,7 @@ public class EncounterPush implements EventWorker {
                 shrEncounterId = pushEncounterCreate(openMrsEncounter, healthId, systemProperties);
             }
             encounterUuidsProcessed.add(openMrsEncounter.getUuid());
-            String encounterUrl = formatEncounterUrl(healthId, shrEncounterId, systemProperties);
+            String encounterUrl = SHREncounterURLUtil.getEncounterUrl(shrEncounterId, healthId, systemProperties);
             saveEncounterIdMapping(openMrsEncounter, shrEncounterId, encounterUrl);
             saveOrderIdMapping(openMrsEncounter.getOrders(), encounterUrl);
         } catch (Exception e) {
@@ -127,12 +124,6 @@ public class EncounterPush implements EventWorker {
             return false;
         }
         return true;
-    }
-
-
-    private String formatEncounterUrl(String healthId, String externalUuid, SystemProperties systemProperties) {
-        String shrEncounterUrl = systemProperties.getShrEncounterUrl();
-        return StringUtil.ensureSuffix(String.format(shrEncounterUrl, healthId), "/") + externalUuid;
     }
 
     private String pushEncounterCreate(Encounter openMrsEncounter, String healthId, SystemProperties systemProperties) throws IOException {

@@ -10,9 +10,11 @@ import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +25,7 @@ import java.util.Set;
 
 import static org.openmrs.module.fhir.MRSProperties.MRS_CONCEPT_CLASS_LAB_SET;
 import static org.openmrs.module.fhir.MRSProperties.MRS_CONCEPT_NAME_LAB_NOTES;
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourcesByReference;
+import static org.openmrs.module.fhir.utils.FHIRBundleHelper.findResourcesByReference;
 
 
 @Component
@@ -53,7 +55,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Encounter newEmrEncounter) {
+    public void map(IResource resource, Encounter newEmrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
         DiagnosticReport diagnosticReport = (DiagnosticReport) resource;
         Concept concept = omrsConceptLookup.findConceptByCode(diagnosticReport.getCode().getCoding());
         if (concept == null) {
@@ -65,7 +67,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
         }
         Obs topLevelResultObsGroup = buildObs(concept, order);
 
-        Set<Obs> resultObsGroups = buildResultObsGroup(bundle, newEmrEncounter, diagnosticReport, order, concept);
+        Set<Obs> resultObsGroups = buildResultObsGroup(encounterComposition, newEmrEncounter, diagnosticReport, order, concept);
 
         for (Obs resultObs : resultObsGroups) {
             topLevelResultObsGroup.addGroupMember(resultObs);
@@ -123,21 +125,21 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
         return null;
     }
 
-    private Set<Obs> buildResultObsGroup(Bundle bundle, Encounter newEmrEncounter, DiagnosticReport diagnosticReport, Order order, Concept concept) {
+    private Set<Obs> buildResultObsGroup(ShrEncounterComposition encounterComposition, Encounter newEmrEncounter, DiagnosticReport diagnosticReport, Order order, Concept concept) {
         Set<Obs> resultObsGroups = new HashSet<>();
-        List<IResource> resultObservationList = findResourcesByReference(bundle, diagnosticReport.getResult());
+        List<IResource> resultObservationList = findResourcesByReference(encounterComposition.getBundle(), diagnosticReport.getResult());
 
         for (IResource resultObservation : resultObservationList) {
             Obs resultObsGroup = buildObs(concept, order);
-            populateResultsAndNotes(bundle, newEmrEncounter, order, (Observation) resultObservation, resultObsGroup);
+            populateResultsAndNotes(encounterComposition, newEmrEncounter, order, (Observation) resultObservation, resultObsGroup);
             resultObsGroups.add(resultObsGroup);
         }
         return resultObsGroups;
     }
 
-    private void populateResultsAndNotes(Bundle bundle, Encounter newEmrEncounter, Order order, Observation resultObservation, Obs resultObsGroup) {
+    private void populateResultsAndNotes(ShrEncounterComposition encounterComposition, Encounter newEmrEncounter, Order order, Observation resultObservation, Obs resultObsGroup) {
         Observation observationResource = resultObservation;
-        Obs resultObs = observationsMapper.mapObs(bundle, newEmrEncounter, observationResource);
+        Obs resultObs = observationsMapper.mapObs(encounterComposition, newEmrEncounter, observationResource);
         resultObs.setOrder(order);
         resultObsGroup.addGroupMember(resultObs);
         resultObsGroup.addGroupMember(getNotes(observationResource, order));

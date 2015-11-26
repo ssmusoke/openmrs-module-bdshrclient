@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.FhirContextHelper;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -59,7 +59,7 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
     public void shouldPopulateCompositionType() throws Exception {
         Bundle bundle = compositionBundle.create(Context.getEncounterService().getEncounter(36), HEALTH_ID, getSystemProperties("12345"));
         assertNotNull(bundle);
-        Composition composition = FHIRFeedHelper.getComposition(bundle);
+        Composition composition = FHIRBundleHelper.getComposition(bundle);
         CodingDt type = composition.getType().getCoding().get(0);
         assertEquals(LOINC_CODE_DETAILS_NOTE, type.getCode());
         assertEquals(FHIR_DOC_TYPECODES_URL, type.getSystem());

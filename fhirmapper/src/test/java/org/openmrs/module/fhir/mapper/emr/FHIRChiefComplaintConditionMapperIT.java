@@ -13,6 +13,7 @@ import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -23,6 +24,7 @@ import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.MRSProperties.*;
+import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -56,12 +58,13 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
     public void shouldMapFHIRComplaint() throws Exception {
         final Bundle bundle = loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithChiefComplaints.xml");
         final List<IResource> conditions = TestFhirFeedHelper.getResourceByType(bundle, new Condition().getResourceName());
+        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98101039678", "shr-enc-id-1");
         Patient emrPatient = new Patient();
         Encounter emrEncounter = new Encounter();
         emrEncounter.setPatient(emrPatient);
         for (IResource condition : conditions) {
             if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
-                fhirChiefComplaintConditionMapper.map(bundle, condition, emrEncounter);
+                fhirChiefComplaintConditionMapper.map(condition, emrEncounter, encounterComposition, getSystemProperties("1"));
             }
         }
         final Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);
@@ -93,11 +96,12 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         final Bundle bundle = loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithChiefComplaintWithoutDuration.xml");
         final List<IResource> conditions = TestFhirFeedHelper.getResourceByType(bundle, new Condition().getResourceName());
         Patient emrPatient = new Patient();
+        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98101039678", "shr-enc-id-1");
         Encounter emrEncounter = new Encounter();
         emrEncounter.setPatient(emrPatient);
         for (IResource condition : conditions) {
             if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
-                fhirChiefComplaintConditionMapper.map(bundle, condition, emrEncounter);
+                fhirChiefComplaintConditionMapper.map(condition, emrEncounter, encounterComposition, getSystemProperties("1"));
             }
         }
         final Set<Obs> observations = emrEncounter.getAllObs();
@@ -111,10 +115,11 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         final List<IResource> conditions = TestFhirFeedHelper.getResourceByType(bundle, new Condition().getResourceName());
         Patient emrPatient = new Patient();
         Encounter emrEncounter = new Encounter();
+        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98101039678", "shr-enc-id-1");
         emrEncounter.setPatient(emrPatient);
         for (IResource condition : conditions) {
             if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
-                fhirChiefComplaintConditionMapper.map(bundle, condition, emrEncounter);
+                fhirChiefComplaintConditionMapper.map(condition, emrEncounter, encounterComposition, getSystemProperties("1"));
             }
         }
         final Set<Obs> topLevelObs = emrEncounter.getObsAtTopLevel(false);

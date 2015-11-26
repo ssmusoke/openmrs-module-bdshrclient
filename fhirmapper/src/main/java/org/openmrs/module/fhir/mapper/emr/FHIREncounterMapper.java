@@ -2,7 +2,6 @@ package org.openmrs.module.fhir.mapper.emr;
 
 
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
-import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Composition;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import org.apache.commons.collections4.CollectionUtils;
@@ -10,11 +9,12 @@ import org.openmrs.*;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.LocationService;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.fhir.utils.VisitLookupService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,7 +24,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import static org.openmrs.module.fhir.Constants.ID_MAPPING_ENCOUNTER_TYPE;
 import static org.openmrs.module.fhir.Constants.ORGANIZATION_ATTRIBUTE_TYPE_NAME;
 
 @Component
@@ -47,17 +46,16 @@ public class FHIREncounterMapper {
     @Autowired
     private FHIRSubResourceMapper fhirSubResourceMapper;
 
-    public org.openmrs.Encounter map(String healthId, String fhirEncounterId, Patient emrPatient, Bundle bundle, SystemProperties systemProperties) throws ParseException {
-        final ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = bundle.getAllPopulatedChildElementsOfType(ca.uhn.fhir.model.dstu2.resource.Encounter.class).get(0);
-        Composition composition = bundle.getAllPopulatedChildElementsOfType(Composition.class).get(0);
+    public org.openmrs.Encounter map(Patient emrPatient, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) throws ParseException {
+        final ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = FHIRBundleHelper.getEncounter(encounterComposition.getBundle());
+        Composition composition = FHIRBundleHelper.getComposition(encounterComposition.getBundle());
         Date encounterDate = composition.getDate();
-        org.openmrs.Encounter emrEncounter = getOrCreateEncounter(fhirEncounterId);
+        org.openmrs.Encounter emrEncounter = getOrCreateEncounter(encounterComposition.getShrEncounterId());
         emrEncounter.setEncounterDatetime(encounterDate);
 
         emrEncounter.setPatient(emrPatient);
-        addEncounterToIdMapping(emrEncounter, fhirEncounterId, healthId, systemProperties);
 
-        fhirSubResourceMapper.map(bundle, emrEncounter);
+        fhirSubResourceMapper.map(emrEncounter, encounterComposition, systemProperties);
 
         final String encounterTypeName = fhirEncounter.getType().get(0).getText();
         final EncounterType encounterType = encounterService.getEncounterType(encounterTypeName);
@@ -105,14 +103,6 @@ public class FHIREncounterMapper {
             newEmrEncounter.addProvider(encounterService.getEncounterRoleByUuid(EncounterRole.UNKNOWN_ENCOUNTER_ROLE_UUID),
                     provider);
         }
-    }
-
-
-    private void addEncounterToIdMapping(org.openmrs.Encounter newEmrEncounter, String externalUuid, String healthId, SystemProperties systemProperties) {
-        String internalUuid = newEmrEncounter.getUuid();
-        String shrEncounterRefUrl = systemProperties.getShrEncounterUrl();
-        String shrEncounterUrl = StringUtil.ensureSuffix(String.format(shrEncounterRefUrl, healthId), "/") + externalUuid;
-        idMappingsRepository.saveOrUpdateMapping(new IdMapping(internalUuid, externalUuid, ID_MAPPING_ENCOUNTER_TYPE, shrEncounterUrl));
     }
 
     private void setFacilityIdFromProvider(Encounter fhirEncounter, org.openmrs.Encounter emrEncounter) {

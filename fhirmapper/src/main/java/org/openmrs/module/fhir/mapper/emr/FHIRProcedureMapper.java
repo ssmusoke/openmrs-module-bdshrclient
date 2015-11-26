@@ -14,9 +14,11 @@ import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.TrValueSetType;
+import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +42,7 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Encounter newEmrEncounter) {
+    public void map(IResource resource, Encounter newEmrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
         Procedure procedure = (Procedure) resource;
 
         Obs proceduresObs = new Obs();
@@ -55,9 +57,9 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
         proceduresObs.addGroupMember(getProcedureStatusObs(procedure));
 
         for (ResourceReferenceDt reportReference : procedure.getReport()) {
-            IResource diagnosticReportResource = FHIRFeedHelper.findResourceByReference(bundle, reportReference);
+            IResource diagnosticReportResource = FHIRBundleHelper.findResourceByReference(encounterComposition.getBundle(), reportReference);
             if (diagnosticReportResource != null && diagnosticReportResource instanceof DiagnosticReport) {
-                proceduresObs.addGroupMember(getDiagnosisStudyObs((DiagnosticReport) diagnosticReportResource, bundle));
+                proceduresObs.addGroupMember(getDiagnosisStudyObs((DiagnosticReport) diagnosticReportResource, encounterComposition.getBundle()));
             }
         }
         newEmrEncounter.addObs(proceduresObs);
@@ -104,7 +106,7 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
         for (ResourceReferenceDt resultReference : diagnosticReport.getResult()) {
             Obs result = new Obs();
             result.setConcept(diagnosticResultConcept);
-            Observation resultObservation = (Observation) FHIRFeedHelper.findResourceByReference(bundle, resultReference);
+            Observation resultObservation = (Observation) FHIRBundleHelper.findResourceByReference(bundle, resultReference);
             observationValueMapper.map(resultObservation.getValue(), result);
             diagnosisStudyObs.addGroupMember(result);
         }

@@ -14,7 +14,7 @@ import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.getEncounter;
+import static org.openmrs.module.fhir.utils.FHIRBundleHelper.getEncounter;
 
 public class DefaultEncounterFeedWorker implements EncounterEventWorker {
     private EMRPatientService emrPatientService;

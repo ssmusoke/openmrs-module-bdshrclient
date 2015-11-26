@@ -8,9 +8,11 @@ import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.api.OrderService;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.OrderCareSettingLookupService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
+import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,9 +38,9 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Encounter encounter) {
+    public void map(IResource resource, Encounter encounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) resource;
-        createTestOrders(bundle, diagnosticOrder, encounter);
+        createTestOrders(encounterComposition.getBundle(), diagnosticOrder, encounter);
     }
 
     private void createTestOrders(Bundle bundle, DiagnosticOrder diagnosticOrder, Encounter encounter) {

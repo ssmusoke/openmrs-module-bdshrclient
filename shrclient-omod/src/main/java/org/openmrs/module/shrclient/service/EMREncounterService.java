@@ -10,7 +10,9 @@ import org.openmrs.api.PatientService;
 import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.Confidentiality;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
@@ -23,6 +25,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.openmrs.module.fhir.Constants.ID_MAPPING_ENCOUNTER_TYPE;
+import static org.openmrs.module.fhir.utils.SHREncounterURLUtil.getEncounterUrl;
 import static org.openmrs.module.fhir.mapper.model.Confidentiality.getConfidentiality;
 
 @Service
@@ -66,11 +70,11 @@ public class EMREncounterService {
     }
 
     public void createOrUpdateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId) throws Exception {
-        String fhirEncounterId = encounterBundle.getEncounterId();
+        String shrEncounterId = encounterBundle.getEncounterId();
         Bundle bundle = encounterBundle.getBundle();
-        logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), fhirEncounterId));
+        logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), shrEncounterId));
 
-        if (!shouldSyncEncounter(fhirEncounterId, bundle)) return;
+        if (!shouldSyncEncounter(shrEncounterId, bundle)) return;
         SystemProperties systemProperties = new SystemProperties(
                 propertiesReader.getFrProperties(),
                 propertiesReader.getTrProperties(),
@@ -78,20 +82,21 @@ public class EMREncounterService {
                 propertiesReader.getFacilityInstanceProperties(),
                 propertiesReader.getMciProperties(),
                 propertiesReader.getShrProperties());
-        org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, healthId, fhirEncounterId, bundle, systemProperties);
+
+        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, healthId, shrEncounterId);
+        org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, encounterComposition, systemProperties);
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
+        addEncounterToIdMapping(newEmrEncounter, shrEncounterId, healthId, systemProperties);
         systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter);
         systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter.getVisit());
         savePatientDeathInfo(emrPatient);
     }
 
-    private void savePatientDeathInfo(org.openmrs.Patient emrPatient) {
-        if (emrPatient.isDead()) {
-            emrPatient.setCauseOfDeath(patientDeathService.getCauseOfDeath(emrPatient));
-            patientService.savePatient(emrPatient);
-            systemUserService.setOpenmrsShrSystemUserAsCreator(emrPatient);
-        }
+    private void addEncounterToIdMapping(org.openmrs.Encounter newEmrEncounter, String externalUuid, String healthId, SystemProperties systemProperties) {
+        String internalUuid = newEmrEncounter.getUuid();
+        String shrEncounterUrl = getEncounterUrl(externalUuid, healthId, systemProperties);
+        idMappingsRepository.saveOrUpdateMapping(new IdMapping(internalUuid, externalUuid, ID_MAPPING_ENCOUNTER_TYPE, shrEncounterUrl));
     }
 
     private void saveOrders(Encounter newEmrEncounter) {
@@ -108,9 +113,9 @@ public class EMREncounterService {
     }
 
     private boolean shouldSyncEncounter(String encounterId, Bundle bundle) {
-        if (idMappingsRepository.findByExternalId(encounterId) != null) {
-            return false;
-        }
+//        if (idMappingsRepository.findByExternalId(encounterId) != null) {
+//            return false;
+//        }
         if (getEncounterConfidentiality(bundle).ordinal() > Confidentiality.Normal.ordinal()) {
             return false;
         }
@@ -127,5 +132,11 @@ public class EMREncounterService {
         return getConfidentiality(confidentialityCode);
     }
 
-
+    private void savePatientDeathInfo(org.openmrs.Patient emrPatient) {
+        if (emrPatient.isDead()) {
+            emrPatient.setCauseOfDeath(patientDeathService.getCauseOfDeath(emrPatient));
+            patientService.savePatient(emrPatient);
+            systemUserService.setOpenmrsShrSystemUserAsCreator(emrPatient);
+        }
+    }
 }

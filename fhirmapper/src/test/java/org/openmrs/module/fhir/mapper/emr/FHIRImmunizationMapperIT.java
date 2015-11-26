@@ -13,7 +13,8 @@ import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.ObsHelper;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -25,6 +26,7 @@ import java.util.TimeZone;
 
 import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.MRSProperties.*;
+import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -47,7 +49,7 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
     public void setUp() throws Exception {
         executeDataSet("testDataSets/immunizationDS.xml");
         bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithImmunization.xml", springContext);
-        resource = FHIRFeedHelper.identifyResource(bundle.getEntry(), new Immunization().getResourceName());
+        resource = FHIRBundleHelper.identifyResource(bundle.getEntry(), new Immunization().getResourceName());
         obsHelper = new ObsHelper();
     }
 
@@ -178,7 +180,9 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
 
     private Obs mapImmunizationIncidentObs() {
         Encounter mrsEncounter = new Encounter();
-        mapper.map(bundle, resource, mrsEncounter);
+
+        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98104750156", "shr-enc-id-1");
+        mapper.map(resource, mrsEncounter, encounterComposition, getSystemProperties("1"));
 
         Set<Obs> allObs = mrsEncounter.getAllObs();
         assertEquals(1, allObs.size());

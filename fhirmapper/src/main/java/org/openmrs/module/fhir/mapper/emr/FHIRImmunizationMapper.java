@@ -5,7 +5,6 @@ import ca.uhn.fhir.model.dstu2.composite.AnnotationDt;
 import ca.uhn.fhir.model.dstu2.composite.BoundCodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
-import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Immunization;
 import ca.uhn.fhir.model.dstu2.valueset.ImmunizationReasonCodesEnum;
 import org.apache.commons.lang3.StringUtils;
@@ -14,8 +13,10 @@ import org.openmrs.Drug;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.TrValueSetType;
+import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,7 +39,7 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Encounter newEmrEncounter) {
+    public void map(IResource resource, Encounter newEmrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
         Immunization immunization = (Immunization) resource;
 
         Obs immunizationIncidentTmpl = new Obs();

@@ -12,8 +12,9 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.DateUtil;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -57,17 +58,18 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         final Bundle encounterBundle = loadSampleFHIREncounter();
         assertEquals("Bundle/4fe6f9e2-d10a-4956-aae5-091e810090e1", encounterBundle.getId().getValue());
 
-        FHIRFeedHelper.getComposition(encounterBundle);
-        final Composition composition = FHIRFeedHelper.getComposition(encounterBundle);
+        FHIRBundleHelper.getComposition(encounterBundle);
+        final Composition composition = FHIRBundleHelper.getComposition(encounterBundle);
         assertNotNull(composition);
 
         assertEquals(DateUtil.parseDate("2014-07-10T16:05:09+05:30"), composition.getDate());
-        final Encounter encounter = FHIRFeedHelper.getEncounter(encounterBundle);
+        final Encounter encounter = FHIRBundleHelper.getEncounter(encounterBundle);
         assertNotNull(encounter);
         assertEquals("4d2f9872-4df1-438e-9d72-0a8b161d409b", encounter.getId().getIdPart());
 
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
-        org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map("HIDA764177", "shr_enc_id", emrPatient, encounterBundle, getSystemProperties("1"));
+        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(encounterBundle, "HIDA764177", "shr-enc-id-1");
+        org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map(emrPatient, encounterComposition, getSystemProperties("1"));
 
         assertNotNull(emrEncounter);
         assertEquals(emrPatient, emrEncounter.getPatient());
@@ -91,7 +93,8 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         assertEquals("http://mci.com//api/default/patients/HIDA764177", ((Condition)conditions.get(0)).getPatient().getReference().getValue());
 
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
-        final org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map("HIDA764177", "shr_enc_id", emrPatient, encounterBundle, getSystemProperties("1"));
+        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(encounterBundle, "HIDA764177", "shr-enc-id-1");
+        org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map(emrPatient, encounterComposition, getSystemProperties("1"));
 
         final Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);
         assertEquals(2, visitObs.size());
@@ -106,7 +109,8 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
         Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithoutServiceProvider.xml", springContext);
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
-        org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map("HIDA764177", "shr_enc_id", emrPatient, encounterBundle, getSystemProperties("1"));
+        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(encounterBundle, "HIDA764177", "shr-enc-id-1");
+        org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map(emrPatient, encounterComposition, getSystemProperties("1"));
 
         assertNotNull(emrEncounter);
         assertTrue(3 == emrEncounter.getLocation().getId());
@@ -118,7 +122,8 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithoutParticipants.xml", springContext);
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
         int shrClientSystemProviderId = 22;
-        org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map("HIDA764177", "shr_enc_id", emrPatient, encounterBundle, getSystemProperties("1"));
+        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(encounterBundle, "HIDA764177", "shr-enc-id-1");
+        org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map(emrPatient, encounterComposition, getSystemProperties("1"));
 
         assertNotNull(emrEncounter);
         assertEquals(1, emrEncounter.getEncounterProviders().size());

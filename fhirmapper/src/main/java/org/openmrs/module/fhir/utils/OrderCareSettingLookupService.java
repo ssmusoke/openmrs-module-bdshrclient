@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import static org.openmrs.module.fhir.MRSProperties.MRS_CARE_SETTING_FOR_INPATIENT;
 import static org.openmrs.module.fhir.MRSProperties.MRS_CARE_SETTING_FOR_OUTPATIENT;
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.getEncounter;
+import static org.openmrs.module.fhir.utils.FHIRBundleHelper.getEncounter;
 
 @Component
 public class OrderCareSettingLookupService {

@@ -13,7 +13,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class FHIRFeedHelper {
+public class FHIRBundleHelper {
 
     public static Composition getComposition(Bundle bundle) {
         IResource resource = identifyResource(bundle.getEntry(), "Composition");

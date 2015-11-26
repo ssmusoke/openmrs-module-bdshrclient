@@ -14,7 +14,8 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.OrderService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.MapperTestHelper;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -25,6 +26,7 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveTest {
@@ -57,10 +59,12 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
     public void shouldMapDiagnosticReportForTestResult() throws Exception {
         Bundle bundle = (Bundle) new MapperTestHelper()
                 .loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithDiagnosticReport.xml", springContext);
-        DiagnosticReport report = (DiagnosticReport) FHIRFeedHelper.identifyResource(bundle.getEntry(), new DiagnosticReport().getResourceName());
+        DiagnosticReport report = (DiagnosticReport) FHIRBundleHelper.identifyResource(bundle.getEntry(), new DiagnosticReport().getResourceName());
         Encounter encounter = new Encounter();
         encounter.setPatient(patientService.getPatient(1));
-        diagnosticReportMapper.map(bundle, report, encounter);
+        
+        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98101039678", "shr-enc-id-1");
+        diagnosticReportMapper.map(report, encounter, encounterComposition, getSystemProperties("1"));
         Set<Obs> obsSet = encounter.getObsAtTopLevel(false);
         assertEquals(1, obsSet.size());
         Obs topLevelObs = obsSet.iterator().next();
@@ -90,12 +94,13 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
     @Test
     public void shouldProcessPanelResults() throws Exception {
         Bundle bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithPanelReport.xml", springContext);
-        List<IResource> resources = FHIRFeedHelper.identifyResourcesByName(bundle.getEntry(), new DiagnosticReport().getResourceName());
+        List<IResource> resources = FHIRBundleHelper.identifyResourcesByName(bundle.getEntry(), new DiagnosticReport().getResourceName());
         Encounter encounter = new Encounter();
         encounter.setPatient(patientService.getPatient(1));
         for (IResource resource : resources) {
             DiagnosticReport report = (DiagnosticReport) resource;
-            diagnosticReportMapper.map(bundle, report, encounter);
+            ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98101039678", "shr-enc-id-1");
+            diagnosticReportMapper.map(report, encounter, encounterComposition, getSystemProperties("1"));
         }
         Set<Obs> obsSet = encounter.getObsAtTopLevel(false);
         assertEquals(1, obsSet.size());

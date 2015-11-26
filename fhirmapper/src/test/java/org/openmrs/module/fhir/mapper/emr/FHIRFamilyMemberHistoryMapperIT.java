@@ -1,15 +1,16 @@
 package org.openmrs.module.fhir.mapper.emr;
 
-import org.junit.After;
-import org.junit.Test;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.FamilyMemberHistory;
+import org.junit.After;
+import org.junit.Test;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.DateUtil;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -20,6 +21,7 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.openmrs.module.fhir.MRSProperties.*;
+import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -42,9 +44,11 @@ public class FHIRFamilyMemberHistoryMapperIT extends BaseModuleWebContextSensiti
     public void shouldMapFamilyHistoryResource() throws Exception {
         executeDataSet("testDataSets/shrClientFamilyHistoryTestDS.xml");
         Bundle bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithFamilyHistory.xml", springContext);
-        FamilyMemberHistory familyHistory = (FamilyMemberHistory) FHIRFeedHelper.identifyResource(bundle.getEntry(), new FamilyMemberHistory().getResourceName());
+        FamilyMemberHistory familyHistory = (FamilyMemberHistory) FHIRBundleHelper.identifyResource(bundle.getEntry(), new FamilyMemberHistory().getResourceName());
         Encounter newEmrEncounter = new Encounter();
-        familyHistoryMapper.map(bundle, familyHistory, newEmrEncounter);
+
+        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98104750156", "shr-enc-id-1");
+        familyHistoryMapper.map(familyHistory, newEmrEncounter, encounterComposition, getSystemProperties("1"));
 
         assertEquals(1, newEmrEncounter.getObsAtTopLevel(false).size());
         Obs familyHistoryObs = newEmrEncounter.getObsAtTopLevel(false).iterator().next();
@@ -77,7 +81,7 @@ public class FHIRFamilyMemberHistoryMapperIT extends BaseModuleWebContextSensiti
 
     private Obs identifyObsFromConceptName(String conceptName, Set<Obs> groupMembers) {
         for (Obs groupMember : groupMembers) {
-            if(groupMember.getConcept().getName().getName().equals(conceptName)) {
+            if (groupMember.getConcept().getName().getName().equals(conceptName)) {
                 return groupMember;
             }
         }

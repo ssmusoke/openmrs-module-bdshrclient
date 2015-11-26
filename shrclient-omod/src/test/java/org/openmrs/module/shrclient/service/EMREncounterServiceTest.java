@@ -12,6 +12,7 @@ import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -20,10 +21,14 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 
+import java.util.Properties;
+
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.SHR_PATIENT_ENC_PATH_PATTERN;
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.SHR_REFERENCE_PATH;
 
 public class EMREncounterServiceTest {
     @Mock
@@ -71,7 +76,7 @@ public class EMREncounterServiceTest {
         when(mockIdMappingsRepository.findByExternalId(any(String.class))).thenReturn(new IdMapping());
         emrEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
 
-        verify(mockFhirmapper, times(0)).map(eq(emrPatient), eq("health_id"), eq("shr-enc-id"), eq(bundle), any(SystemProperties.class));
+        verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounterComposition.class), any(SystemProperties.class));
     }
 
     @Test
@@ -86,12 +91,14 @@ public class EMREncounterServiceTest {
         bundle.addEntry(atomEntry);
         encounterBundle.addContent(bundle);
         Patient emrPatient = new Patient();
+        String healthId = "health_id";
+        String shrEncounterId = "shr-enc-id";
 
-        when(mockIdMappingsRepository.findByExternalId(any(String.class))).thenReturn(null);
+        when(mockIdMappingsRepository.findByExternalId(shrEncounterId)).thenReturn(null);
 
-        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
+        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, healthId);
 
-        verify(mockFhirmapper, times(0)).map(eq(emrPatient), eq("health_id"), eq("shr-enc-id"), eq(bundle), any(SystemProperties.class));
+        verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounterComposition.class), any(SystemProperties.class));
     }
 
     @Test
@@ -106,14 +113,20 @@ public class EMREncounterServiceTest {
         encounterBundle.addContent(bundle);
         encounterBundle.setTitle("Encounter:shr_encounter_id");
         Patient emrPatient = new Patient();
+        String healthId = "health_id";
+        String shrEncounterId = "shr-enc-id";
 
-        when(mockIdMappingsRepository.findByExternalId(any(String.class))).thenReturn(null);
-        when(mockFhirmapper.map(eq(emrPatient), eq("health_id"), eq("shr_encounter_id"), eq(bundle), any(SystemProperties.class))).thenReturn(new Encounter());
+        when(mockIdMappingsRepository.findByExternalId(shrEncounterId)).thenReturn(null);
+        when(mockFhirmapper.map(eq(emrPatient), any(ShrEncounterComposition.class), any(SystemProperties.class))).thenReturn(new Encounter());
         when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://shr.com/");
+        Properties shrProperties = new Properties();
+        shrProperties.put(SHR_REFERENCE_PATH, "http://shr.com/");
+        shrProperties.put(SHR_PATIENT_ENC_PATH_PATTERN, "/patients/%s/encounters");
+        when(mockPropertiesReader.getShrProperties()).thenReturn(shrProperties);
 
-        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
+        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, healthId);
 
-        verify(mockFhirmapper, times(1)).map(eq(emrPatient), eq("health_id"), eq("shr_encounter_id"), eq(bundle), any(SystemProperties.class));
+        verify(mockFhirmapper, times(1)).map(eq(emrPatient), any(ShrEncounterComposition.class), any(SystemProperties.class));
     }
 
 

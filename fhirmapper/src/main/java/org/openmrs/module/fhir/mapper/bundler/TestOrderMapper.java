@@ -30,8 +30,8 @@ import java.util.UUID;
 
 import static org.openmrs.module.fhir.FHIRProperties.LOINC_SOURCE_NAME;
 import static org.openmrs.module.fhir.MRSProperties.MRS_LAB_ORDER_TYPE;
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.identifyResource;
+import static org.openmrs.module.fhir.utils.FHIRBundleHelper.findResourceByReference;
+import static org.openmrs.module.fhir.utils.FHIRBundleHelper.identifyResource;
 
 @Component("fhirTestOrderMapper")
 public class TestOrderMapper implements EmrOrderResourceHandler {

@@ -12,10 +12,11 @@ import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
+import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.ObsHelper;
-import org.openmrs.module.fhir.MRSProperties;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.fhir.utils.TrValueSetType;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import java.util.TimeZone;
 
 import static org.junit.Assert.assertEquals;
 import static org.openmrs.module.fhir.MRSProperties.*;
+import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -48,7 +50,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     public void setUp() throws Exception {
         executeDataSet("testDataSets/procedureDS.xml");
         bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithProcedure.xml", springContext);
-        resource = FHIRFeedHelper.identifyResource(bundle.getEntry(), new Procedure().getResourceName());
+        resource = FHIRBundleHelper.identifyResource(bundle.getEntry(), new Procedure().getResourceName());
         obsHelper = new ObsHelper();
     }
 
@@ -143,7 +145,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     private Obs mapProceduresObs() {
         Encounter mrsEncounter = new Encounter();
-        fhirProcedureMapper.map(bundle, resource, mrsEncounter);
+        fhirProcedureMapper.map(resource, mrsEncounter, new ShrEncounterComposition(bundle, "98101039678", "shr-enc-id-1"), getSystemProperties("1"));
 
         Set<Obs> allObs = mrsEncounter.getAllObs();
         assertEquals(1, allObs.size());

@@ -12,7 +12,8 @@ import org.openmrs.api.OrderService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.fhir.MapperTestHelper;
-import org.openmrs.module.fhir.utils.FHIRFeedHelper;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -24,6 +25,7 @@ import java.util.Set;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
+import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -83,10 +85,11 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     private Encounter mapOrder(String filePath) throws Exception {
         Bundle bundle = loadSampleFHIREncounter(filePath);
-        IResource resource = FHIRFeedHelper.identifyResource(bundle.getEntry(), new DiagnosticOrder().getResourceName());
+        IResource resource = FHIRBundleHelper.identifyResource(bundle.getEntry(), new DiagnosticOrder().getResourceName());
         Encounter encounter = new Encounter();
         encounter.setEncounterDatetime(new Date());
-        diagnosticOrderMapper.map(bundle, resource, encounter);
+        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "HIDA764177", "shr-enc-id-1");
+        diagnosticOrderMapper.map(resource, encounter, encounterComposition, getSystemProperties("1"));
         return encounter;
     }
 }
