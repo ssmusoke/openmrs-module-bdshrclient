@@ -104,20 +104,6 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
     }
 
     @Test
-    public void shouldMapPatient() throws Exception {
-        Encounter mappedEncounter = encounterService.getEncounter(37);
-        Patient patient = new Patient();
-        mapper.map(medicationOrderBundle, medicationOrder, patient, mappedEncounter);
-
-        assertEquals(1, mappedEncounter.getOrders().size());
-        Order order = mappedEncounter.getOrders().iterator().next();
-        assertTrue(order instanceof DrugOrder);
-        DrugOrder drugOrder = (DrugOrder) order;
-
-        assertEquals(patient, drugOrder.getPatient());
-    }
-
-    @Test
     public void shouldMapDurationAndScheduledDateToDrug() throws Exception {
         Bundle bundle = (Bundle) mapperTestHelper.loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithNonCodedMedicationOrderWithScheduledDate.xml", springContext);
         MedicationOrder resource = (MedicationOrder) FHIRFeedHelper.identifyResource(bundle.getEntry(), new MedicationOrder().getResourceName());
@@ -228,7 +214,7 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
         Encounter mappedEncounter = encounterService.getEncounter(37);
         Patient patient = new Patient();
-        mapper.map(bundle, resource, patient, mappedEncounter);
+        mapper.map(bundle, resource, mappedEncounter);
         assertEquals(2, mappedEncounter.getOrders().size());
 
         IdMapping editedOrderMapping = idMappingsRepository.findByExternalId(editedOrderId);
@@ -313,7 +299,7 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
     private Order getOrder(Bundle bundle, MedicationOrder resource) {
         Encounter mappedEncounter = encounterService.getEncounter(37);
         Patient patient = new Patient();
-        mapper.map(bundle, resource, patient, mappedEncounter);
+        mapper.map(bundle, resource, mappedEncounter);
 
         assertEquals(1, mappedEncounter.getOrders().size());
         return mappedEncounter.getOrders().iterator().next();

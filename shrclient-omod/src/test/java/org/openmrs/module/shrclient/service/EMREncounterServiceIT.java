@@ -6,10 +6,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.openmrs.DrugOrder;
-import org.openmrs.Encounter;
-import org.openmrs.Order;
-import org.openmrs.Patient;
+import org.openmrs.*;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
@@ -226,6 +223,60 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         assertFalse(orders.isEmpty());
         assertEquals(1, orders.size());
         assertTrue(orders.iterator().next() instanceof DrugOrder);
+    }
+
+    @Test
+    public void shouldUpdateTheSameEncounter() throws Exception {
+        executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
+        String healthId = "HID123";
+        Patient patient = patientService.getPatient(1);
+        String shrEncounterId = "shr-enc-id";
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/testFHIREncounter.xml");
+
+        hieEncounterService.createOrUpdateEncounters(patient, bundles, healthId);
+        IdMapping mapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        String encounterUUID = mapping.getInternalId();
+        Date lastSyncDateTime = mapping.getLastSyncDateTime();
+
+        hieEncounterService.createOrUpdateEncounters(patient, bundles, healthId);
+        mapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        Encounter encounter2 = encounterService.getEncounterByUuid(mapping.getInternalId());
+
+        assertEquals(encounterUUID, encounter2.getUuid());
+        assertTrue(mapping.getLastSyncDateTime().after(lastSyncDateTime));
+    }
+
+    @Test
+    public void shouldVoidOlderObservationsAndRecreateWithNewValues() throws Exception {
+        executeDataSet("testDataSets/shrClientEncounterWithObservationTestDs.xml");
+        String healthId = "HID123";
+        Patient patient = patientService.getPatient(1);
+        String shrEncounterId = "shr-enc-id";
+
+        List<EncounterBundle> bundles1 = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithObservations.xml");
+        hieEncounterService.createOrUpdateEncounters(patient, bundles1, healthId);
+        IdMapping mapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        Encounter encounter = encounterService.getEncounterByUuid(mapping.getInternalId());
+
+        Set<Obs> topLevelObs = encounter.getObsAtTopLevel(true);
+        Set<Obs> allObs = encounter.getAllObs(true);
+        assertEquals(1, topLevelObs.size());
+        assertEquals(3, allObs.size());
+        Obs diastolicBp = topLevelObs.iterator().next().getGroupMembers().iterator().next().getGroupMembers().iterator().next();
+        assertEquals(new Double(70.0), diastolicBp.getValueNumeric());
+
+        List<EncounterBundle> bundles2 = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithUpdatedObservations.xml");
+        hieEncounterService.createOrUpdateEncounters(patient, bundles2, healthId);
+        mapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        encounter = encounterService.getEncounterByUuid(mapping.getInternalId());
+
+        assertEquals(2, encounter.getObsAtTopLevel(true).size());
+        assertEquals(6, encounter.getAllObs(true).size());
+        topLevelObs = encounter.getObsAtTopLevel(false);
+        assertEquals(1, topLevelObs.size());
+        assertEquals(3, encounter.getAllObs(false).size());
+        diastolicBp = topLevelObs.iterator().next().getGroupMembers().iterator().next().getGroupMembers().iterator().next();
+        assertEquals(new Double(120.0), diastolicBp.getValueNumeric());
     }
 
     private List<EncounterBundle> getEncounterBundles(String healthId, String shrEncounterId, String encounterBundleFilePath) throws Exception {

@@ -7,7 +7,6 @@ import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
-import org.openmrs.Patient;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.OrderCareSettingLookupService;
@@ -37,27 +36,26 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter encounter) {
+    public void map(Bundle bundle, IResource resource, Encounter encounter) {
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) resource;
-        createTestOrders(bundle, diagnosticOrder, emrPatient, encounter);
+        createTestOrders(bundle, diagnosticOrder, encounter);
     }
 
-    private void createTestOrders(Bundle bundle, DiagnosticOrder diagnosticOrder, Patient patient, Encounter encounter) {
+    private void createTestOrders(Bundle bundle, DiagnosticOrder diagnosticOrder, Encounter encounter) {
         List<DiagnosticOrder.Item> item = diagnosticOrder.getItem();
         for (DiagnosticOrder.Item diagnosticOrderItemComponent : item) {
             Concept testOrderConcept = omrsConceptLookup.findConceptByCode(diagnosticOrderItemComponent.getCode().getCoding());
             if (testOrderConcept != null) {
-                Order testOrder = createTestOrder(bundle, diagnosticOrder, patient, encounter, testOrderConcept);
+                Order testOrder = createTestOrder(bundle, diagnosticOrder, encounter, testOrderConcept);
                 encounter.addOrder(testOrder);
             }
         }
     }
 
-    private Order createTestOrder(Bundle bundle, DiagnosticOrder diagnosticOrder, Patient patient, Encounter encounter, Concept testOrderConcept) {
+    private Order createTestOrder(Bundle bundle, DiagnosticOrder diagnosticOrder, Encounter encounter, Concept testOrderConcept) {
         Order testOrder = new Order();
         testOrder.setOrderType(orderService.getOrderTypeByName("Lab Order"));
         testOrder.setConcept(testOrderConcept);
-        testOrder.setPatient(patient);
         testOrder.setEncounter(encounter);
         setOrderer(testOrder, diagnosticOrder);
         testOrder.setDateActivated(encounter.getEncounterDatetime());

@@ -23,7 +23,6 @@ import org.openmrs.DrugOrder;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.OrderFrequency;
-import org.openmrs.Patient;
 import org.openmrs.Provider;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.OrderService;
@@ -85,19 +84,18 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
-        DrugOrder drugOrder = mapDrugOrder(bundle, (MedicationOrder) resource, emrPatient, newEmrEncounter);
+    public void map(Bundle bundle, IResource resource, Encounter newEmrEncounter) {
+        DrugOrder drugOrder = mapDrugOrder(bundle, (MedicationOrder) resource, newEmrEncounter);
         newEmrEncounter.addOrder(drugOrder);
     }
 
-    private DrugOrder mapDrugOrder(Bundle bundle, MedicationOrder medicationOrder, Patient emrPatient, Encounter newEmrEncounter) {
+    private DrugOrder mapDrugOrder(Bundle bundle, MedicationOrder medicationOrder, Encounter newEmrEncounter) {
         DrugOrder drugOrder = new DrugOrder();
-        DrugOrder previousDrugOrder = createOrFetchPreviousOrder(bundle, medicationOrder, emrPatient, newEmrEncounter);
+        DrugOrder previousDrugOrder = createOrFetchPreviousOrder(bundle, medicationOrder, newEmrEncounter);
         if (previousDrugOrder != null) {
             drugOrder.setPreviousOrder(previousDrugOrder);
         }
 
-        drugOrder.setPatient(emrPatient);
         mapDrug(medicationOrder, drugOrder);
         if (medicationOrder.getDosageInstruction().isEmpty()) return null;
         //will work only because any order created through bahmni is activated immediately
@@ -153,11 +151,11 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         return Order.Action.NEW;
     }
 
-    private DrugOrder createOrFetchPreviousOrder(Bundle bundle, MedicationOrder medicationOrder, Patient emrPatient, Encounter newEmrEncounter) {
+    private DrugOrder createOrFetchPreviousOrder(Bundle bundle, MedicationOrder medicationOrder, Encounter newEmrEncounter) {
         if (hasPriorPrescription(medicationOrder)) {
             DrugOrder previousDrugOrder;
             if (shouldCreatePreviousOrder(medicationOrder)) {
-                previousDrugOrder = mapDrugOrder(bundle, (MedicationOrder) FHIRFeedHelper.findResourceByReference(bundle, medicationOrder.getPriorPrescription()), emrPatient, newEmrEncounter);
+                previousDrugOrder = mapDrugOrder(bundle, (MedicationOrder) FHIRFeedHelper.findResourceByReference(bundle, medicationOrder.getPriorPrescription()), newEmrEncounter);
                 newEmrEncounter.addOrder(previousDrugOrder);
             } else {
                 String previousOrderRefId = StringUtils.substringAfterLast(medicationOrder.getPriorPrescription().getReference().getValue(), "/");

@@ -13,7 +13,6 @@ import org.openmrs.Concept;
 import org.openmrs.Drug;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
-import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.TrValueSetType;
@@ -39,7 +38,7 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
+    public void map(Bundle bundle, IResource resource, Encounter newEmrEncounter) {
         Immunization immunization = (Immunization) resource;
 
         Obs immunizationIncidentTmpl = new Obs();

@@ -6,7 +6,6 @@ import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.FamilyMemberHistory;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
-import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.utils.DateUtil;
@@ -45,7 +44,7 @@ public class FHIRFamilyMemberHistoryMapperIT extends BaseModuleWebContextSensiti
         Bundle bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithFamilyHistory.xml", springContext);
         FamilyMemberHistory familyHistory = (FamilyMemberHistory) FHIRFeedHelper.identifyResource(bundle.getEntry(), new FamilyMemberHistory().getResourceName());
         Encounter newEmrEncounter = new Encounter();
-        familyHistoryMapper.map(bundle, familyHistory, new Patient(), newEmrEncounter);
+        familyHistoryMapper.map(bundle, familyHistory, newEmrEncounter);
 
         assertEquals(1, newEmrEncounter.getObsAtTopLevel(false).size());
         Obs familyHistoryObs = newEmrEncounter.getObsAtTopLevel(false).iterator().next();

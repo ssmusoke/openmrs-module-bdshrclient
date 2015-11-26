@@ -9,7 +9,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
-import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
@@ -43,7 +42,7 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
+    public void map(Bundle bundle, IResource resource, Encounter newEmrEncounter) {
         Condition condition = (Condition) resource;
 
         Concept historyAndExaminationConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_COMPLAINT_CONDITION_TEMPLATE);

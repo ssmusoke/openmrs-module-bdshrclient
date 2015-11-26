@@ -143,7 +143,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     private Obs mapProceduresObs() {
         Encounter mrsEncounter = new Encounter();
-        fhirProcedureMapper.map(bundle, resource, null, mrsEncounter);
+        fhirProcedureMapper.map(bundle, resource, mrsEncounter);
 
         Set<Obs> allObs = mrsEncounter.getAllObs();
         assertEquals(1, allObs.size());

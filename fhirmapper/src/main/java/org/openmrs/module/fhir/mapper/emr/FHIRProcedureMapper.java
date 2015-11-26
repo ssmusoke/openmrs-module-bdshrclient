@@ -13,7 +13,6 @@ import ca.uhn.fhir.model.dstu2.resource.Procedure;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
-import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.utils.FHIRFeedHelper;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
@@ -21,7 +20,6 @@ import org.openmrs.module.fhir.utils.TrValueSetType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static java.util.Arrays.asList;
 import static org.openmrs.module.fhir.MRSProperties.*;
 
 @Component
@@ -42,7 +40,7 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
+    public void map(Bundle bundle, IResource resource, Encounter newEmrEncounter) {
         Procedure procedure = (Procedure) resource;
 
         Obs proceduresObs = new Obs();

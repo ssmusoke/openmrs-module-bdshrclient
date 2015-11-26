@@ -6,13 +6,7 @@ import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Composition;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.openmrs.EncounterRole;
-import org.openmrs.EncounterType;
-import org.openmrs.Location;
-import org.openmrs.Patient;
-import org.openmrs.Provider;
-import org.openmrs.ProviderAttribute;
-import org.openmrs.Visit;
+import org.openmrs.*;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.LocationService;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
@@ -57,13 +51,13 @@ public class FHIREncounterMapper {
         final ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = bundle.getAllPopulatedChildElementsOfType(ca.uhn.fhir.model.dstu2.resource.Encounter.class).get(0);
         Composition composition = bundle.getAllPopulatedChildElementsOfType(Composition.class).get(0);
         Date encounterDate = composition.getDate();
-        org.openmrs.Encounter emrEncounter = new org.openmrs.Encounter();
+        org.openmrs.Encounter emrEncounter = getOrCreateEncounter(fhirEncounterId);
         emrEncounter.setEncounterDatetime(encounterDate);
 
         emrEncounter.setPatient(emrPatient);
         addEncounterToIdMapping(emrEncounter, fhirEncounterId, healthId, systemProperties);
 
-        fhirSubResourceMapper.map(emrPatient, bundle, emrEncounter);
+        fhirSubResourceMapper.map(bundle, emrEncounter);
 
         final String encounterTypeName = fhirEncounter.getType().get(0).getText();
         final EncounterType encounterType = encounterService.getEncounterType(encounterTypeName);
@@ -83,17 +77,30 @@ public class FHIREncounterMapper {
         return emrEncounter;
     }
 
+    public org.openmrs.Encounter getOrCreateEncounter(String fhirEncounterId) {
+        org.openmrs.Encounter emrEncounter = null;
+        IdMapping mapping = idMappingsRepository.findByExternalId(fhirEncounterId);
+        if (mapping != null) {
+            emrEncounter = encounterService.getEncounterByUuid(mapping.getInternalId());
+        }
+        if (emrEncounter == null) {
+            return new org.openmrs.Encounter();
+        }
+        return emrEncounter;
+    }
+
     public void setEncounterProvider(org.openmrs.Encounter newEmrEncounter, ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter) {
         List<ca.uhn.fhir.model.dstu2.resource.Encounter.Participant> participants = fhirEncounter.getParticipant();
         if (!org.apache.commons.collections.CollectionUtils.isEmpty(participants)) {
             for (Encounter.Participant participant : participants) {
                 String providerUrl = participant.getIndividual().getReference().getValue();
                 Provider provider = providerLookupService.getProviderByReferenceUrl(providerUrl);
-                if (provider != null) newEmrEncounter.addProvider(encounterService.getEncounterRoleByUuid(EncounterRole.UNKNOWN_ENCOUNTER_ROLE_UUID),
-                        provider);
+                if (provider != null)
+                    newEmrEncounter.addProvider(encounterService.getEncounterRoleByUuid(EncounterRole.UNKNOWN_ENCOUNTER_ROLE_UUID),
+                            provider);
             }
         }
-        if(CollectionUtils.isEmpty(newEmrEncounter.getEncounterProviders())) {
+        if (CollectionUtils.isEmpty(newEmrEncounter.getEncounterProviders())) {
             Provider provider = providerLookupService.getShrClientSystemProvider();
             newEmrEncounter.addProvider(encounterService.getEncounterRoleByUuid(EncounterRole.UNKNOWN_ENCOUNTER_ROLE_UUID),
                     provider);

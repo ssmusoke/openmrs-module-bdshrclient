@@ -23,7 +23,6 @@ import java.util.Set;
 
 import static org.openmrs.module.fhir.MRSProperties.MRS_CONCEPT_CLASS_LAB_SET;
 import static org.openmrs.module.fhir.MRSProperties.MRS_CONCEPT_NAME_LAB_NOTES;
-import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourceByReference;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.findResourcesByReference;
 
 
@@ -54,7 +53,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
+    public void map(Bundle bundle, IResource resource, Encounter newEmrEncounter) {
         DiagnosticReport diagnosticReport = (DiagnosticReport) resource;
         Concept concept = omrsConceptLookup.findConceptByCode(diagnosticReport.getCode().getCoding());
         if (concept == null) {

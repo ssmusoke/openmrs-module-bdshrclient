@@ -10,7 +10,6 @@ import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Location;
 import org.openmrs.Obs;
-import org.openmrs.Patient;
 
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.Constants;
@@ -41,7 +40,7 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
+    public void map(Bundle bundle, IResource resource, Encounter newEmrEncounter) {
         Observation observation = (Observation) resource;
         Obs result = mapObs(bundle, newEmrEncounter, observation);
         if (result == null) return;

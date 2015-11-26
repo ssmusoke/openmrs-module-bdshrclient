@@ -60,7 +60,7 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         DiagnosticReport report = (DiagnosticReport) FHIRFeedHelper.identifyResource(bundle.getEntry(), new DiagnosticReport().getResourceName());
         Encounter encounter = new Encounter();
         encounter.setPatient(patientService.getPatient(1));
-        diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter);
+        diagnosticReportMapper.map(bundle, report, encounter);
         Set<Obs> obsSet = encounter.getObsAtTopLevel(false);
         assertEquals(1, obsSet.size());
         Obs topLevelObs = obsSet.iterator().next();
@@ -95,7 +95,7 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         encounter.setPatient(patientService.getPatient(1));
         for (IResource resource : resources) {
             DiagnosticReport report = (DiagnosticReport) resource;
-            diagnosticReportMapper.map(bundle, report, encounter.getPatient(), encounter);
+            diagnosticReportMapper.map(bundle, report, encounter);
         }
         Set<Obs> obsSet = encounter.getObsAtTopLevel(false);
         assertEquals(1, obsSet.size());

@@ -10,5 +10,5 @@ import org.springframework.stereotype.Component;
 public interface FHIRResourceMapper {
     public boolean canHandle(IResource resource);
 
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter);
+    public void map(Bundle bundle, IResource resource, Encounter newEmrEncounter);
 }

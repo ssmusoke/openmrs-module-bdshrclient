@@ -86,7 +86,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         IResource resource = FHIRFeedHelper.identifyResource(bundle.getEntry(), new DiagnosticOrder().getResourceName());
         Encounter encounter = new Encounter();
         encounter.setEncounterDatetime(new Date());
-        diagnosticOrderMapper.map(bundle, resource, patientService.getPatient(1), encounter);
+        diagnosticOrderMapper.map(bundle, resource, encounter);
         return encounter;
     }
 }

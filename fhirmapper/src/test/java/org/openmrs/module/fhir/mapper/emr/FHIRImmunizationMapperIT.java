@@ -178,7 +178,7 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
 
     private Obs mapImmunizationIncidentObs() {
         Encounter mrsEncounter = new Encounter();
-        mapper.map(bundle, resource, null, mrsEncounter);
+        mapper.map(bundle, resource, mrsEncounter);
 
         Set<Obs> allObs = mrsEncounter.getAllObs();
         assertEquals(1, allObs.size());

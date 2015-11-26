@@ -9,7 +9,6 @@ import org.openmrs.Concept;
 import org.openmrs.ConceptAnswer;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
-import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
@@ -51,7 +50,7 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
+    public void map(Bundle bundle, IResource resource, Encounter newEmrEncounter) {
         Condition condition = (Condition) resource;
 
         Obs visitDiagnosisObs = new Obs();
@@ -74,34 +73,32 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
         }
 
         visitDiagnosisObs.setConcept(visitDiagnosis);
-        visitDiagnosisObs.setPerson(emrPatient);
 
-        Obs orderObs = addToObsGroup(emrPatient, visitDiagnosisObs, diagnosisOrder);
+        Obs orderObs = addToObsGroup(visitDiagnosisObs, diagnosisOrder);
         orderObs.setValueCoded(diagnosisSeverityAnswer);
 
-        Obs certaintyObs = addToObsGroup(emrPatient, visitDiagnosisObs, diagnosisCertainty);
+        Obs certaintyObs = addToObsGroup(visitDiagnosisObs, diagnosisCertainty);
         certaintyObs.setValueCoded(diagnosisCertaintyAnswer);
 
-        Obs codedObs = addToObsGroup(emrPatient, visitDiagnosisObs, codedDiagnosis);
+        Obs codedObs = addToObsGroup(visitDiagnosisObs, codedDiagnosis);
         codedObs.setValueCoded(diagnosisConceptAnswer);
 
-        Obs bahmniInitDiagObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniInitialDiagnosis);
+        Obs bahmniInitDiagObs = addToObsGroup(visitDiagnosisObs, bahmniInitialDiagnosis);
         bahmniInitDiagObs.setValueText(visitDiagnosisObs.getUuid());
 
-        Obs bahmniDiagStatusObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniDiagnosisStatus);
+        Obs bahmniDiagStatusObs = addToObsGroup(visitDiagnosisObs, bahmniDiagnosisStatus);
         bahmniDiagStatusObs.setValueBoolean(false);
 
-        Obs bahmniDiagRevisedObs = addToObsGroup(emrPatient, visitDiagnosisObs, bahmniDiagnosisRevised);
+        Obs bahmniDiagRevisedObs = addToObsGroup(visitDiagnosisObs, bahmniDiagnosisRevised);
         bahmniDiagRevisedObs.setValueBoolean(false);
 
         newEmrEncounter.addObs(visitDiagnosisObs);
     }
 
 
-    private Obs addToObsGroup(Patient emrPatient, Obs visitDiagnosisObs, Concept obsConcept) {
+    private Obs addToObsGroup(Obs visitDiagnosisObs, Concept obsConcept) {
         Obs orderObs = new Obs();
         orderObs.setConcept(obsConcept);
-        orderObs.setPerson(emrPatient);
         visitDiagnosisObs.addGroupMember(orderObs);
         return orderObs;
     }

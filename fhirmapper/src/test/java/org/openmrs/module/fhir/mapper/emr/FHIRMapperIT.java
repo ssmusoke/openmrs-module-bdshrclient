@@ -2,14 +2,11 @@ package org.openmrs.module.fhir.mapper.emr;
 
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.openmrs.Concept;
-import org.openmrs.ConceptClass;
-import org.openmrs.ConceptName;
-import org.openmrs.Encounter;
-import org.openmrs.Obs;
-import org.openmrs.Patient;
+import org.openmrs.*;
 import org.openmrs.api.ConceptService;
+import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -18,9 +15,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.Constants.UNVERIFIED_BY_TR;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
@@ -37,6 +36,9 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     private PatientService patientService;
+
+    @Autowired
+    private EncounterService encounterService;
 
     @Autowired
     private ConceptService conceptService;
@@ -203,6 +205,46 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
         Concept sbpConcept = conceptService.getConceptByName("Systolic Blood Pressure" + UNVERIFIED_BY_TR);
         Obs sbpObs = identifyObsByConcept(bpObs.getGroupMembers(), sbpConcept);
         assertEquals("110.0", sbpObs.getValueAsString(Locale.ENGLISH));
+    }
+
+    @Test
+    @Ignore
+    public void shouldUpdateAllObservationWithNewValues() throws Exception {
+        executeDataSet("testDataSets/shrClientObservationsTestDs.xml");
+        Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithUpdatedObservations.xml", springContext);
+        Patient patient = patientService.getPatient(3);
+
+        List<Encounter> encountersByPatient = encounterService.getEncountersByPatient(patient);
+        assertEquals(1, encountersByPatient.size());
+        Encounter existingEncounter = encountersByPatient.get(0);
+        Set<Obs> obsAtTopLevel = existingEncounter.getObsAtTopLevel(false);
+        assertEquals(1, obsAtTopLevel.size());
+        Obs vitalsObs = obsAtTopLevel.iterator().next();
+        assertEquals(2, vitalsObs.getGroupMembers().size());
+        Obs pulseObs = identifyObsByConcept(vitalsObs.getGroupMembers(), conceptService.getConcept(303));
+        assertThat(pulseObs.getValueNumeric(), is(133.0));
+        Obs bpObs = identifyObsByConcept(vitalsObs.getGroupMembers(), conceptService.getConcept(302));
+        assertNotNull(bpObs);
+        Obs diastolicObs = identifyObsByConcept(bpObs.getGroupMembers(), conceptService.getConcept(305));
+        assertThat(diastolicObs.getValueNumeric(), is(120.0));
+
+        Encounter mappedEncounter = fhirMapper.map(patient, "98101039678", "shr-enc-id-1", encounterBundle, getSystemProperties("1"));
+        
+        assertEquals(existingEncounter, mappedEncounter);
+
+        Set<Obs> mappedObsAtTopLevel = mappedEncounter.getObsAtTopLevel(false);
+        assertEquals(1, mappedObsAtTopLevel.size());
+        Obs mappedVitalsObs = mappedObsAtTopLevel.iterator().next();
+        assertNotEquals(vitalsObs, mappedVitalsObs);
+        assertEquals(1, mappedVitalsObs.getGroupMembers().size());
+        Obs mappedPulseObs = identifyObsByConcept(mappedVitalsObs.getGroupMembers(), conceptService.getConcept(303));
+        assertNull(mappedPulseObs);
+        Concept bpConcept = conceptService.getConceptByName("Blood Pressure" + UNVERIFIED_BY_TR);
+        Obs mappedBpObs = identifyObsByConcept(mappedVitalsObs.getGroupMembers(), bpConcept);
+        assertNotNull(mappedBpObs);
+        Obs mappedDiastolicObs = identifyObsByConcept(mappedBpObs.getGroupMembers(), conceptService.getConcept(305));
+        assertNotEquals(diastolicObs, mappedDiastolicObs);
+        assertThat(mappedDiastolicObs.getValueNumeric(), is(70.0));
     }
 
     private void assertCreatedConcept(Concept concept, String expectedShortName) {

@@ -11,7 +11,6 @@ import ca.uhn.fhir.model.primitive.DateDt;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
-import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.TrValueSetType;
@@ -41,7 +40,7 @@ public class FHIRFamilyMemberHistoryMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(Bundle bundle, IResource resource, Patient emrPatient, Encounter newEmrEncounter) {
+    public void map(Bundle bundle, IResource resource, Encounter newEmrEncounter) {
         FamilyMemberHistory familyMemberHistory = (FamilyMemberHistory) resource;
         Obs familyHistoryObs = new Obs();
         familyHistoryObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_FAMILY_HISTORY));
