@@ -90,7 +90,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         medicationOrder.setDateWritten(drugOrder.getDateActivated(), TemporalPrecisionEnum.SECOND);
         medicationOrder.setMedication(getMedication(drugOrder));
         medicationOrder.setPrescriber(getOrdererReference(drugOrder, fhirEncounter, systemProperties));
-        medicationOrder.addDosageInstruction(getDoseInstructions(drugOrder, medicationOrder, systemProperties));
+        medicationOrder.addDosageInstruction(getDoseInstructions(drugOrder, systemProperties));
         setStatusAndPriorPrescriptionAndOrderAction(drugOrder, medicationOrder, systemProperties);
         setDispenseRequest(drugOrder, medicationOrder);
         medicationOrder.setNote(getNotes(drugOrder));
@@ -169,32 +169,42 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         return null;
     }
 
-    private MedicationOrder.DosageInstruction getDoseInstructions(DrugOrder drugOrder, MedicationOrder medicationOrder, SystemProperties systemProperties) {
-        CodeableConceptDt route = getRoute(drugOrder, systemProperties);
-        CodeableConceptDt additionalInstructions = getAdditionalInstructions(drugOrder);
-        BooleanDt asNeeded = new BooleanDt(drugOrder.getAsNeeded());
-        SimpleQuantityDt doseQuantity = getDoseQuantityWithUnitsOnly(drugOrder, systemProperties);
-        ExtensionDt scheduledDateExtension = getScheduledDateExtension(drugOrder);
-        DurationDt bounds = getBounds(drugOrder);
+    private MedicationOrder.DosageInstruction getDoseInstructions(DrugOrder drugOrder, SystemProperties systemProperties) {
+        MedicationOrder.DosageInstruction dosageInstruction = new MedicationOrder.DosageInstruction();
 
-        MedicationOrder.DosageInstruction dosageInstruction = null;
-        if (drugOrder.getDose() != null) {
-            dosageInstruction = getDosageInstructionsWithOrderFrequencyGiven(drugOrder, doseQuantity);
-        } else {
-            dosageInstruction = getDosageInstructionsWithPredifinedFrequency(drugOrder, doseQuantity);
+        dosageInstruction.setRoute(getRoute(drugOrder, systemProperties));
+
+        dosageInstruction.setAdditionalInstructions(getAdditionalInstructions(drugOrder));
+
+        dosageInstruction.setAsNeeded(new BooleanDt(drugOrder.getAsNeeded()));
+
+        addTiming(drugOrder, dosageInstruction);
+        if (null != drugOrder.getDoseUnits()) {
+            SimpleQuantityDt doseQuantity = getDoseQuantityWithUnitsOnly(drugOrder, systemProperties);
+            dosageInstruction.setDose(doseQuantity);
+            if (drugOrder.getDose() != null) {
+                getDosageInstructionsForGenericDose(drugOrder, dosageInstruction);
+            } else {
+                getDosageInstructionsWithPredifinedFrequency(drugOrder, dosageInstruction);
+            }
         }
-        if (dosageInstruction == null) return null;
-        if (route != null) dosageInstruction.setRoute(route);
-        dosageInstruction.setAdditionalInstructions(additionalInstructions);
-        dosageInstruction.setAsNeeded(asNeeded);
+        dosageInstruction.getTiming().getRepeat().setBounds(getBounds(drugOrder));
+
+        ExtensionDt scheduledDateExtension = getScheduledDateExtension(drugOrder);
         if (scheduledDateExtension != null)
             dosageInstruction.getTiming().addUndeclaredExtension(scheduledDateExtension);
-        dosageInstruction.getTiming().getRepeat().setBounds(bounds);
+
         return dosageInstruction;
     }
 
-    private MedicationOrder.DosageInstruction getDosageInstructionsWithPredifinedFrequency(DrugOrder drugOrder, SimpleQuantityDt doseQuantity) {
-        MedicationOrder.DosageInstruction dosageInstruction = new MedicationOrder.DosageInstruction();
+    private void addTiming(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction) {
+        if (drugOrder.getFrequency() != null) {
+            TimingDt timing = getTimingForOrderFrequencyGiven(drugOrder);
+            dosageInstruction.setTiming(timing);
+        }
+    }
+
+    private void getDosageInstructionsWithPredifinedFrequency(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction) {
         int count = 0;
         HashMap<String, Integer> map = new HashMap<>();
         Integer morningDose = (Integer) readFromDoseInstructions(drugOrder, BAHMNI_DRUG_ORDER_MORNING_DOSE_KEY);
@@ -213,15 +223,17 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
             map.put(FHIR_DRUG_ORDER_EVENING_DOSE_KEY, eveningDose);
         }
         TimingAbbreviationEnum timingAbbreviationEnum = null;
-        if (count == 0) return null;
+        if(count == 0) return;
+
         else if (count == 1) timingAbbreviationEnum = TimingAbbreviationEnum.QD;
         else if (count == 2) timingAbbreviationEnum = TimingAbbreviationEnum.BID;
         else if (count == 3) timingAbbreviationEnum = TimingAbbreviationEnum.TID;
 
-        TimingDt timing = new TimingDt();
-        timing.setCode(timingAbbreviationEnum);
-        dosageInstruction.setTiming(timing);
-        dosageInstruction.setDose(doseQuantity);
+        if (timingAbbreviationEnum != null) {
+            TimingDt timing = new TimingDt();
+            timing.setCode(timingAbbreviationEnum);
+            dosageInstruction.setTiming(timing);
+        }
 
         try {
             String json = objectMapper.writeValueAsString(map);
@@ -230,16 +242,12 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         } catch (IOException e) {
             logger.warn("Not able to set dose.");
         }
-        return dosageInstruction;
     }
 
-    private MedicationOrder.DosageInstruction getDosageInstructionsWithOrderFrequencyGiven(DrugOrder drugOrder, SimpleQuantityDt doseQuantity) {
-        MedicationOrder.DosageInstruction dosageInstruction = new MedicationOrder.DosageInstruction();
+    private void getDosageInstructionsForGenericDose(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction) {
+        SimpleQuantityDt doseQuantity = (SimpleQuantityDt) dosageInstruction.getDose();
         doseQuantity.setValue(getDoseQuantityValue(drugOrder.getDose()));
         dosageInstruction.setDose(doseQuantity);
-        TimingDt timing = getTimingForOrderFrequencyGiven(drugOrder);
-        dosageInstruction.setTiming(timing);
-        return dosageInstruction;
     }
 
     private ExtensionDt getScheduledDateExtension(DrugOrder drugOrder) {
@@ -313,17 +321,15 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
     }
 
     private SimpleQuantityDt getDoseQuantityWithUnitsOnly(DrugOrder drugOrder, SystemProperties systemProperties) {
-        SimpleQuantityDt doseQuantity = new SimpleQuantityDt();
         Concept doseUnits = drugOrder.getDoseUnits();
-        if (null != doseUnits) {
-            TrValueSetType trValueSetType = determineTrValueSet(doseUnits);
-            if (null != trValueSetType && null != idMappingsRepository.findByInternalId(doseUnits.getUuid())) {
-                String code = codeableConceptService.getTRValueSetCode(doseUnits);
-                doseQuantity.setCode(code);
-                doseQuantity.setSystem(trValueSetType.getTrPropertyValueSetUrl(systemProperties));
-            }
-            doseQuantity.setUnit(doseUnits.getName().getName());
+        SimpleQuantityDt doseQuantity = new SimpleQuantityDt();
+        TrValueSetType trValueSetType = determineTrValueSet(doseUnits);
+        if (null != trValueSetType && null != idMappingsRepository.findByInternalId(doseUnits.getUuid())) {
+            String code = codeableConceptService.getTRValueSetCode(doseUnits);
+            doseQuantity.setCode(code);
+            doseQuantity.setSystem(trValueSetType.getTrPropertyValueSetUrl(systemProperties));
         }
+        doseQuantity.setUnit(doseUnits.getName().getName());
         return doseQuantity;
     }
 

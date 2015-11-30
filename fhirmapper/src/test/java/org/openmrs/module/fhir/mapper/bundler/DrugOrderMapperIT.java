@@ -16,6 +16,7 @@ import ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum;
 import ca.uhn.fhir.model.primitive.BooleanDt;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
 import ca.uhn.fhir.model.primitive.StringDt;
+import org.apache.commons.collections.CollectionUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
@@ -75,7 +76,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.getDosageInstruction().get(0);
         assertTrue(containsCoding(dosageInstruction.getRoute().getCoding(),
                 "Oral", "http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Route-of-Administration", "Oral"));
-        assertSchedule(dosageInstruction, 1, 1, UnitsOfTimeEnum.D,
+        assertTimingRepeat(dosageInstruction, 1, 1, UnitsOfTimeEnum.D,
                 6, UnitsOfTimeEnum.D);
         assertTrue(medicationOrder.getPrescriber().getReference().getValue().endsWith("321.json"));
     }
@@ -99,7 +100,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
-        assertSchedule(medicationOrder.getDosageInstruction().get(0), 2, 1, UnitsOfTimeEnum.WK,
+        assertTimingRepeat(medicationOrder.getDosageInstruction().get(0), 2, 1, UnitsOfTimeEnum.WK,
                 10, UnitsOfTimeEnum.WK);
     }
 
@@ -110,7 +111,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
-        assertSchedule(medicationOrder.getDosageInstruction().get(0), 1, 3, UnitsOfTimeEnum.H,
+        assertTimingRepeat(medicationOrder.getDosageInstruction().get(0), 1, 3, UnitsOfTimeEnum.H,
                 10, UnitsOfTimeEnum.WK);
     }
 
@@ -121,7 +122,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
-        assertSchedule(medicationOrder.getDosageInstruction().get(0), 1, 2, UnitsOfTimeEnum.H,
+        assertTimingRepeat(medicationOrder.getDosageInstruction().get(0), 1, 2, UnitsOfTimeEnum.H,
                 2, UnitsOfTimeEnum.D);
     }
 
@@ -206,6 +207,17 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
                 "1101", "/concepts/1101", "As directed"));
 
         assertEquals("additional instructions notes", medicationOrder.getNote());
+    }
+
+    @Test
+    public void shouldNotMapAdditionalInstructionsIfNull() throws Exception {
+        Encounter fhirEncounter = getFhirEncounter();
+
+        Order order = orderService.getOrder(29);
+        List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+
+        assertTrue(medicationOrder.getDosageInstructionFirstRep().getAdditionalInstructions().isEmpty());
     }
 
     @Test
@@ -347,6 +359,42 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertNull(codingDt.getSystem());
     }
 
+    @Test
+    public void shouldMapADrugOrderWithoutDose() throws Exception {
+        Encounter fhirEncounter = getFhirEncounter();
+        Order order = orderService.getOrder(28);
+
+        List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+
+        assertEquals(1, medicationOrder.getDosageInstruction().size());
+        MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.getDosageInstructionFirstRep();
+        assertNull(dosageInstruction.getDose());
+        assertTimingRepeat(dosageInstruction, 1, 2, UnitsOfTimeEnum.H, 2, UnitsOfTimeEnum.D);
+    }
+
+    @Test
+    public void shouldMapADrugOrderWithCustomDoseAsZero() throws Exception {
+        Encounter fhirEncounter = getFhirEncounter();
+        Order order = orderService.getOrder(29);
+
+        List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
+
+        assertEquals(1, medicationOrder.getDosageInstruction().size());
+        MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.getDosageInstructionFirstRep();
+
+        SimpleQuantityDt dose = (SimpleQuantityDt)dosageInstruction.getDose();
+        assertNotNull(dose.getUnit());
+        assertNull(dosageInstruction.getTiming().getRepeat().getFrequency());
+        assertNull(dosageInstruction.getTiming().getRepeat().getPeriod());
+        assertNull(dosageInstruction.getTiming().getRepeat().getPeriodUnits());
+        assertTrue(dosageInstruction.getTiming().getCode().isEmpty());
+
+        String fhirExtensionUrl = FHIRProperties.getFhirExtensionUrl(FHIRProperties.DOSAGEINSTRUCTION_CUSTOM_DOSAGE_EXTENSION_NAME);
+        assertTrue(CollectionUtils.isEmpty(dosageInstruction.getUndeclaredExtensionsByUrl(fhirExtensionUrl)));
+    }
+
     private Encounter getFhirEncounter() {
         Encounter fhirEncounter = new Encounter();
         fhirEncounter.setId("shrEncId");
@@ -354,7 +402,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         return fhirEncounter;
     }
 
-    private void assertSchedule(MedicationOrder.DosageInstruction dosageInstruction, int expectedFrequency, int expectedPeriod, UnitsOfTimeEnum expectedPeriodUnits, int expectedDuration, UnitsOfTimeEnum expectedDurationUnits) throws ParseException {
+    private void assertTimingRepeat(MedicationOrder.DosageInstruction dosageInstruction, int expectedFrequency, int expectedPeriod, UnitsOfTimeEnum expectedPeriodUnits, int expectedDuration, UnitsOfTimeEnum expectedDurationUnits) throws ParseException {
         TimingDt timing = dosageInstruction.getTiming();
         assertNotNull(timing);
         TimingDt.Repeat repeat = timing.getRepeat();
