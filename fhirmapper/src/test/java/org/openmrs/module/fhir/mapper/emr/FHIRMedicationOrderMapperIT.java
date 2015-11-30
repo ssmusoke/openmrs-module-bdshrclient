@@ -11,7 +11,6 @@ import org.junit.Test;
 import org.openmrs.DrugOrder;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
-import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.OrderService;
@@ -19,7 +18,7 @@ import org.openmrs.module.bahmniemrapi.drugorder.dosinginstructions.FlexibleDosi
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
-import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -217,7 +216,7 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
         Encounter mappedEncounter = encounterService.getEncounter(37);
         EmrEncounter emrEncounter = new EmrEncounter(mappedEncounter);
-        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98001080756", "shr-enc-id-1");
+        ShrEncounter encounterComposition = new ShrEncounter(bundle, "98001080756", "shr-enc-id-1");
         mapper.map(resource, emrEncounter, encounterComposition, getSystemProperties("1"));
         assertEquals(2, emrEncounter.getOrders().size());
 
@@ -304,7 +303,7 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
         Encounter mappedEncounter = encounterService.getEncounter(37);
         EmrEncounter emrEncounter = new EmrEncounter(mappedEncounter);
 
-        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98104750156", "shr-enc-id-1");
+        ShrEncounter encounterComposition = new ShrEncounter(bundle, "98104750156", "shr-enc-id-1");
         mapper.map(resource, emrEncounter, encounterComposition, getSystemProperties("1"));
 
         assertEquals(1, emrEncounter.getOrders().size());

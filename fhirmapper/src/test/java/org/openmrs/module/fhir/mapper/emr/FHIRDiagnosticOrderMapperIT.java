@@ -13,7 +13,7 @@ import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
-import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,7 +89,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         IResource resource = FHIRBundleHelper.identifyResource(bundle.getEntry(), new DiagnosticOrder().getResourceName());
         Encounter encounter = new Encounter();
         encounter.setEncounterDatetime(new Date());
-        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "HIDA764177", "shr-enc-id-1");
+        ShrEncounter encounterComposition = new ShrEncounter(bundle, "HIDA764177", "shr-enc-id-1");
         EmrEncounter emrEncounter = new EmrEncounter(encounter);
         diagnosticOrderMapper.map(resource, emrEncounter, encounterComposition, getSystemProperties("1"));
         return emrEncounter;

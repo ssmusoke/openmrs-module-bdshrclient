@@ -24,7 +24,7 @@ import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
-import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.module.fhir.utils.*;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -74,12 +74,12 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounter encounterComposition, SystemProperties systemProperties) {
         DrugOrder drugOrder = mapDrugOrder(encounterComposition, (MedicationOrder) resource, emrEncounter, systemProperties);
         emrEncounter.addOrder(drugOrder);
     }
 
-    private DrugOrder mapDrugOrder(ShrEncounterComposition encounterComposition, MedicationOrder medicationOrder, EmrEncounter emrEncounter, SystemProperties systemProperties) {
+    private DrugOrder mapDrugOrder(ShrEncounter encounterComposition, MedicationOrder medicationOrder, EmrEncounter emrEncounter, SystemProperties systemProperties) {
         DrugOrder drugOrder = new DrugOrder();
         DrugOrder previousDrugOrder = createOrFetchPreviousOrder(encounterComposition, medicationOrder, emrEncounter, systemProperties);
         if (previousDrugOrder != null) {
@@ -141,7 +141,7 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         return Order.Action.NEW;
     }
 
-    private DrugOrder createOrFetchPreviousOrder(ShrEncounterComposition encounterComposition, MedicationOrder medicationOrder, EmrEncounter emrEncounter, SystemProperties systemProperties) {
+    private DrugOrder createOrFetchPreviousOrder(ShrEncounter encounterComposition, MedicationOrder medicationOrder, EmrEncounter emrEncounter, SystemProperties systemProperties) {
         if (hasPriorPrescription(medicationOrder)) {
             DrugOrder previousDrugOrder;
             if (shouldCreatePreviousOrder(medicationOrder)) {
@@ -160,7 +160,7 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         return null;
     }
 
-    private void addDrugOrderToIdMapping(DrugOrder drugOrder, MedicationOrder medicationOrder, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
+    private void addDrugOrderToIdMapping(DrugOrder drugOrder, MedicationOrder medicationOrder, ShrEncounter encounterComposition, SystemProperties systemProperties) {
         String encounterUrl = SHREncounterURLUtil.getEncounterUrl(encounterComposition.getShrEncounterId(), encounterComposition.getHealthId(), systemProperties);
         String externalId = StringUtils.substringAfter(medicationOrder.getId().getValue(), "urn:uuid:");
         IdMapping orderIdMapping = new IdMapping(drugOrder.getUuid(), externalId,

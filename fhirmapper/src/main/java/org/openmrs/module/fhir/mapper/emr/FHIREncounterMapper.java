@@ -8,9 +8,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.openmrs.*;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.LocationService;
-import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.fhir.utils.VisitLookupService;
@@ -47,7 +46,7 @@ public class FHIREncounterMapper {
     @Autowired
     private FHIRSubResourceMapper fhirSubResourceMapper;
 
-    public org.openmrs.Encounter map(Patient emrPatient, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) throws ParseException {
+    public org.openmrs.Encounter map(Patient emrPatient, ShrEncounter encounterComposition, SystemProperties systemProperties) throws ParseException {
         final ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = FHIRBundleHelper.getEncounter(encounterComposition.getBundle());
         Composition composition = FHIRBundleHelper.getComposition(encounterComposition.getBundle());
         Date encounterDate = composition.getDate();

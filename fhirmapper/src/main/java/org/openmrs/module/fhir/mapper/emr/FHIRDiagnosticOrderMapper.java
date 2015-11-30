@@ -5,11 +5,10 @@ import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
 import org.openmrs.Concept;
-import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
-import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.OrderCareSettingLookupService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
@@ -39,7 +38,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounter encounterComposition, SystemProperties systemProperties) {
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) resource;
         createTestOrders(encounterComposition.getBundle(), diagnosticOrder, emrEncounter);
     }

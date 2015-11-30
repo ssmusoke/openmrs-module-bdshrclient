@@ -14,7 +14,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
-import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -59,7 +59,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
     public void shouldMapFHIRComplaint() throws Exception {
         final Bundle bundle = loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithChiefComplaints.xml");
         final List<IResource> conditions = TestFhirFeedHelper.getResourceByType(bundle, new Condition().getResourceName());
-        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98101039678", "shr-enc-id-1");
+        ShrEncounter encounterComposition = new ShrEncounter(bundle, "98101039678", "shr-enc-id-1");
         Patient emrPatient = new Patient();
         Encounter encounter = new Encounter();
         EmrEncounter emrEncounter = new EmrEncounter(encounter);
@@ -98,7 +98,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         final Bundle bundle = loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithChiefComplaintWithoutDuration.xml");
         final List<IResource> conditions = TestFhirFeedHelper.getResourceByType(bundle, new Condition().getResourceName());
         Patient emrPatient = new Patient();
-        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98101039678", "shr-enc-id-1");
+        ShrEncounter encounterComposition = new ShrEncounter(bundle, "98101039678", "shr-enc-id-1");
         Encounter encounter = new Encounter();
         EmrEncounter emrEncounter = new EmrEncounter(encounter);
         encounter.setPatient(emrPatient);
@@ -118,7 +118,7 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         final List<IResource> conditions = TestFhirFeedHelper.getResourceByType(bundle, new Condition().getResourceName());
         Patient emrPatient = new Patient();
         Encounter encounter = new Encounter();
-        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98101039678", "shr-enc-id-1");
+        ShrEncounter encounterComposition = new ShrEncounter(bundle, "98101039678", "shr-enc-id-1");
         encounter.setPatient(emrPatient);
         EmrEncounter emrEncounter = new EmrEncounter(encounter);
         for (IResource condition : conditions) {

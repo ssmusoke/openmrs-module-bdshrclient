@@ -8,9 +8,8 @@ import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
-import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.MapperTestHelper;
-import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -57,7 +56,7 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
 
         Patient patient = patientService.getPatient(1);
 
-        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(encounterBundle, "98101039678", "shr-enc-id");
+        ShrEncounter encounterComposition = new ShrEncounter(encounterBundle, "98101039678", "shr-enc-id");
         Encounter encounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
         assertEquals(4, encounter.getAllObs().size());
 
@@ -87,7 +86,7 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
 
         Patient patient = patientService.getPatient(1);
 
-        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(encounterBundle, "98101039678", "shr-enc-id");
+        ShrEncounter encounterComposition = new ShrEncounter(encounterBundle, "98101039678", "shr-enc-id");
         Encounter encounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
         assertEquals(6, encounter.getAllObs().size());
 
@@ -130,7 +129,7 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
         Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithNotSyncedTRConcepts.xml", springContext);
 
         Patient patient = patientService.getPatient(1);
-        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(encounterBundle, "98101039678", "shr-enc-id");
+        ShrEncounter encounterComposition = new ShrEncounter(encounterBundle, "98101039678", "shr-enc-id");
         Encounter encounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
     }
 
@@ -148,7 +147,7 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
         assertNull(conceptService.getConceptByName(conceptNameHeightAndWeight));
 
         Patient patient = patientService.getPatient(1);
-        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(encounterBundle, "98101039678", "shr-enc-id");
+        ShrEncounter encounterComposition = new ShrEncounter(encounterBundle, "98101039678", "shr-enc-id");
         Encounter emrEncounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
 
         assertEquals(3, emrEncounter.getAllObs().size());
@@ -182,7 +181,7 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
 
         Patient patient = patientService.getPatient(1);
 
-        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(encounterBundle, "98101039678", "shr-enc-id");
+        ShrEncounter encounterComposition = new ShrEncounter(encounterBundle, "98101039678", "shr-enc-id");
         Encounter encounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
         assertEquals(6, encounter.getAllObs().size());
 
@@ -235,7 +234,7 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
         Obs diastolicObs = identifyObsByConcept(bpObs.getGroupMembers(), conceptService.getConcept(305));
         assertThat(diastolicObs.getValueNumeric(), is(120.0));
 
-        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(encounterBundle, "98101039678", "shr-enc-id-1");
+        ShrEncounter encounterComposition = new ShrEncounter(encounterBundle, "98101039678", "shr-enc-id-1");
         Encounter mappedEncounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
 
         assertEquals(existingEncounter, mappedEncounter);

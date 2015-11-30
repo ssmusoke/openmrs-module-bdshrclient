@@ -15,7 +15,7 @@ import org.openmrs.api.OrderService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
-import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +65,7 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         EmrEncounter emrEncounter = new EmrEncounter(encounter);
         encounter.setPatient(patientService.getPatient(1));
 
-        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98101039678", "shr-enc-id-1");
+        ShrEncounter encounterComposition = new ShrEncounter(bundle, "98101039678", "shr-enc-id-1");
         diagnosticReportMapper.map(report, emrEncounter, encounterComposition, getSystemProperties("1"));
         Set<Obs> obsSet = emrEncounter.getTopLevelObs();
         assertEquals(1, obsSet.size());
@@ -102,7 +102,7 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         encounter.setPatient(patientService.getPatient(1));
         for (IResource resource : resources) {
             DiagnosticReport report = (DiagnosticReport) resource;
-            ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98101039678", "shr-enc-id-1");
+            ShrEncounter encounterComposition = new ShrEncounter(bundle, "98101039678", "shr-enc-id-1");
             diagnosticReportMapper.map(report, emrEncounter, encounterComposition, getSystemProperties("1"));
         }
         Set<Obs> obsSet = emrEncounter.getTopLevelObs();

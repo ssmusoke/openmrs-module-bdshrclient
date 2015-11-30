@@ -5,7 +5,7 @@ import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Order;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
-import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ public class FHIRSubResourceMapper {
     @Autowired
     private List<FHIRResourceMapper> fhirResourceMappers;
 
-    public void map(Encounter openMrsEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
+    public void map(Encounter openMrsEncounter, ShrEncounter encounterComposition, SystemProperties systemProperties) {
         EmrEncounter emrEncounter = new EmrEncounter(openMrsEncounter);
         List<IResource> topLevelResources = FHIRBundleHelper.identifyTopLevelResources(encounterComposition.getBundle());
         for (IResource resource : topLevelResources) {

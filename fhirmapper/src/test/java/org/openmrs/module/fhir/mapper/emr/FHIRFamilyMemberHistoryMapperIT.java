@@ -9,7 +9,7 @@ import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
-import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -49,7 +49,7 @@ public class FHIRFamilyMemberHistoryMapperIT extends BaseModuleWebContextSensiti
         Encounter encounter = new Encounter();
         EmrEncounter emrEncounter = new EmrEncounter(encounter);
 
-        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98104750156", "shr-enc-id-1");
+        ShrEncounter encounterComposition = new ShrEncounter(bundle, "98104750156", "shr-enc-id-1");
         familyHistoryMapper.map(familyHistory, emrEncounter, encounterComposition, getSystemProperties("1"));
 
         assertEquals(1, emrEncounter.getTopLevelObs().size());

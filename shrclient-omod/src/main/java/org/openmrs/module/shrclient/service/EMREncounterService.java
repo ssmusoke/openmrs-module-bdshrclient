@@ -11,7 +11,7 @@ import org.openmrs.api.PatientService;
 import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.Confidentiality;
-import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
+import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.PropertiesReader;
@@ -85,7 +85,7 @@ public class EMREncounterService {
                 propertiesReader.getMciProperties(),
                 propertiesReader.getShrProperties());
 
-        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, healthId, shrEncounterId);
+        ShrEncounter encounterComposition = new ShrEncounter(bundle, healthId, shrEncounterId);
         org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, encounterComposition, systemProperties);
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
