@@ -8,6 +8,7 @@ import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
+import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -22,7 +23,7 @@ import java.util.Set;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
-import static org.openmrs.module.fhir.Constants.UNVERIFIED_BY_TR;
+import static org.openmrs.module.fhir.MRSProperties.*;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)

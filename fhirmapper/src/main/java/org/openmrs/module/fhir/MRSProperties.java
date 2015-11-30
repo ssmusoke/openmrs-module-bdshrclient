@@ -103,4 +103,8 @@ public class MRSProperties {
     public static String BAHMNI_DRUG_ORDER_AFTERNOON_DOSE_KEY = "afternoonDose";
     public static String BAHMNI_DRUG_ORDER_MORNING_DOSE_KEY = "morningDose";
     public static String BAHMNI_DRUG_ORDER_EVENING_DOSE_KEY = "eveningDose";
+
+    public final static String UNVERIFIED_BY_TR = "(TR Unverified)";
+    public final static String LOCAL_CONCEPT_VERSION_PREFIX = "DLN-H";
+    public final static String CONCEPT_MAP_TYPE_MAY_BE_A = "MAY BE A";
 }

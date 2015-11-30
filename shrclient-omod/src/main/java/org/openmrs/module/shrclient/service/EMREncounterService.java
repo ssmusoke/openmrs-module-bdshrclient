@@ -2,6 +2,7 @@ package org.openmrs.module.shrclient.service;
 
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Composition;
+import com.sun.syndication.feed.atom.Category;
 import org.apache.log4j.Logger;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
@@ -26,8 +27,9 @@ import java.util.Comparator;
 import java.util.List;
 
 import static org.openmrs.module.fhir.Constants.ID_MAPPING_ENCOUNTER_TYPE;
-import static org.openmrs.module.fhir.utils.SHREncounterURLUtil.getEncounterUrl;
+import static org.openmrs.module.fhir.Constants.LATEST_UPDATE_CATEGORY_TAG;
 import static org.openmrs.module.fhir.mapper.model.Confidentiality.getConfidentiality;
+import static org.openmrs.module.fhir.utils.SHREncounterURLUtil.getEncounterUrl;
 
 @Service
 public class EMREncounterService {
@@ -74,7 +76,7 @@ public class EMREncounterService {
         Bundle bundle = encounterBundle.getBundle();
         logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), shrEncounterId));
 
-        if (!shouldSyncEncounter(shrEncounterId, bundle)) return;
+        if (!shouldSyncEncounter(shrEncounterId, encounterBundle)) return;
         SystemProperties systemProperties = new SystemProperties(
                 propertiesReader.getFrProperties(),
                 propertiesReader.getTrProperties(),
@@ -112,14 +114,21 @@ public class EMREncounterService {
         }
     }
 
-    private boolean shouldSyncEncounter(String encounterId, Bundle bundle) {
+    private boolean shouldSyncEncounter(String encounterId, EncounterBundle encounterBundle) {
+        if (hasUpdatedEncounterInTheFeed(encounterBundle)) return false;
 //        if (idMappingsRepository.findByExternalId(encounterId) != null) {
 //            return false;
 //        }
-        if (getEncounterConfidentiality(bundle).ordinal() > Confidentiality.Normal.ordinal()) {
-            return false;
+        return getEncounterConfidentiality(encounterBundle.getBundle()).ordinal() <= Confidentiality.Normal.ordinal();
+    }
+
+    private boolean hasUpdatedEncounterInTheFeed(EncounterBundle encounterBundle) {
+        if (encounterBundle.getCategories() != null) {
+            for (Object category : encounterBundle.getCategories()) {
+                if (((Category) category).getTerm().contains(LATEST_UPDATE_CATEGORY_TAG)) return true;
+            }
         }
-        return true;
+        return false;
     }
 
     private Confidentiality getEncounterConfidentiality(Bundle bundle) {

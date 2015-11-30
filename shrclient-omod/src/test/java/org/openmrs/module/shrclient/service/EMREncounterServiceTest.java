@@ -2,6 +2,7 @@ package org.openmrs.module.shrclient.service;
 
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Composition;
+import com.sun.syndication.feed.atom.Category;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -11,6 +12,7 @@ import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.VisitService;
+import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
@@ -23,6 +25,7 @@ import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 
 import java.util.Properties;
 
+import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -129,5 +132,25 @@ public class EMREncounterServiceTest {
         verify(mockFhirmapper, times(1)).map(eq(emrPatient), any(ShrEncounterComposition.class), any(SystemProperties.class));
     }
 
+    @Test
+    public void shouldNotSyncAnEncounterWithUpdateTag() throws Exception {
+        EncounterBundle encounterBundle = new EncounterBundle();
+        Bundle bundle = new Bundle();
+        Composition composition = new Composition();
+        composition.setConfidentiality("N");
+        Bundle.Entry atomEntry = new Bundle.Entry();
+        atomEntry.setResource(composition);
+        bundle.addEntry(atomEntry);
+        encounterBundle.addContent(bundle);
+        Category category = new Category();
+        category.setTerm(Constants.LATEST_UPDATE_CATEGORY_TAG + "event_id1");
+        encounterBundle.setCategories(asList(category));
+        encounterBundle.setTitle("Encounter:shr_encounter_id-1");
+        Patient emrPatient = new Patient();
+        String healthId = "health_id";
 
+        hieEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, healthId);
+
+        verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounterComposition.class), any(SystemProperties.class));
+    }
 }

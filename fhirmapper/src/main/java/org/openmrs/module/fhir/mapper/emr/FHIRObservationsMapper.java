@@ -4,14 +4,10 @@ import ca.uhn.fhir.model.api.IDatatype;
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
-
 import org.openmrs.Concept;
-import org.openmrs.Encounter;
 import org.openmrs.Location;
 import org.openmrs.Obs;
-
 import org.openmrs.api.ConceptService;
-import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
@@ -23,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
 
+import static org.openmrs.module.fhir.MRSProperties.LOCAL_CONCEPT_VERSION_PREFIX;
 import static org.openmrs.module.fhir.utils.FHIRBundleHelper.findResourceByReference;
 
 @Component
@@ -82,7 +79,7 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
     }
 
     private boolean isLocallyCreatedConcept(Concept concept) {
-        return concept.getVersion() != null && concept.getVersion().startsWith(Constants.LOCAL_CONCEPT_VERSION_PREFIX);
+        return concept.getVersion() != null && concept.getVersion().startsWith(LOCAL_CONCEPT_VERSION_PREFIX);
     }
 
     private void mapValueAsString(Observation relatedObs, Obs result) throws ParseException {

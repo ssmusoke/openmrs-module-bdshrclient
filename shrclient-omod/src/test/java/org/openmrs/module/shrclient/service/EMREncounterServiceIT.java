@@ -53,7 +53,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/omrsGlobalPropertyTestDS.xml");
     }
 
-    @Test
+        @Test
     public void shouldSaveEncounter() throws Exception {
         executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
         org.openmrs.Patient emrPatient = patientService.getPatient(1);

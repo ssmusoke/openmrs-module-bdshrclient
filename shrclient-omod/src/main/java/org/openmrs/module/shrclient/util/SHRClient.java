@@ -45,6 +45,7 @@ public class SHRClient {
                 String entryContent = getEntryContent(entry);
                 EncounterBundle bundle = new EncounterBundle();
                 bundle.setTitle(entry.getTitle());
+                bundle.setCategories(entry.getCategories());
                 bundle.addContent(getBundle(entryContent));
                 encounterBundles.add(bundle);
             }

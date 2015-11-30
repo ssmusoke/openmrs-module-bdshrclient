@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class EncounterBundle {
 
     @JsonProperty("id")
@@ -19,7 +22,7 @@ public class EncounterBundle {
     private String link;
 
     @JsonProperty("categories")
-    private String[] categories;
+    private List categories;
 
     @JsonProperty("content")
     @JsonDeserialize(using = BundleDeserializer.class)
@@ -71,11 +74,11 @@ public class EncounterBundle {
         this.link = link;
     }
 
-    public String[] getCategories() {
+    public List getCategories() {
         return categories;
     }
 
-    public void setCategories(String[] categories) {
+    public void setCategories(List categories) {
         this.categories = categories;
     }
 }

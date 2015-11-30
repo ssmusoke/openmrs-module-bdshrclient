@@ -40,9 +40,5 @@ public class Constants {
     public final static String FATHER_NAME_ATTRIBUTE_TYPE = "fatherName";
     public final static String SPOUSE_NAME_ATTRIBUTE_TYPE = "spouseName";
 
-    public final static String UNVERIFIED_BY_TR = "(TR Unverified)";
-    public final static String LOCAL_CONCEPT_VERSION_PREFIX = "DLN-H";
-    public final static String CONCEPT_MAP_TYPE_MAY_BE_A = "MAY BE A";
-
-    public final static int CACHE_TTL = 60 * 1000 * 5;
+    public static final String LATEST_UPDATE_CATEGORY_TAG = "latest_update_event_id";
 }
