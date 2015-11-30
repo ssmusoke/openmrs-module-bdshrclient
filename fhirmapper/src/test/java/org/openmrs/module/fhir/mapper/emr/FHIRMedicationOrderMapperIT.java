@@ -284,6 +284,27 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
         assertEquals(conceptService.getConcept(103), drugOrder.getConcept());
     }
 
+    @Test
+    public void shouldMapMedicationOrderWithoutDoseRouteAndAdditionalInstructions() throws Exception {
+        String bundleWithNonCodedDrug = "encounterBundles/dstu2/medicationOrderWithoutDoseRouteAndAdditionalInstructions.xml";
+
+        Bundle bundle = (Bundle) mapperTestHelper.loadSampleFHIREncounter(bundleWithNonCodedDrug, springContext);
+
+        MedicationOrder resource = (MedicationOrder) FHIRFeedHelper.identifyResource(bundle.getEntry(), new MedicationOrder().getResourceName());
+        DrugOrder drugOrder = (DrugOrder) getOrder(bundle, resource);
+
+        assertNull(drugOrder.getDose());
+        assertNull(drugOrder.getDoseUnits());
+        String dosingInstructions = drugOrder.getDosingInstructions();
+        assertNull(readFromJson(dosingInstructions, MRSProperties.BAHMNI_DRUG_ORDER_MORNING_DOSE_KEY));
+        assertNull(readFromJson(dosingInstructions, MRSProperties.BAHMNI_DRUG_ORDER_AFTERNOON_DOSE_KEY));
+        assertNull(readFromJson(dosingInstructions, MRSProperties.BAHMNI_DRUG_ORDER_EVENING_DOSE_KEY));
+
+        assertNull(drugOrder.getRoute());
+
+        assertNull(readFromJson(drugOrder.getDosingInstructions(), MRSProperties.BAHMNI_DRUG_ORDER_INSTRCTIONS_KEY));
+    }
+
     private Object readFromJson(String json, String key) throws IOException {
         Map map = new ObjectMapper().readValue(json, Map.class);
         return map.get(key);

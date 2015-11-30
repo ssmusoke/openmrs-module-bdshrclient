@@ -52,7 +52,6 @@ import java.util.Map;
 @Component
 public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
     private static final int DEFAULT_NUM_REFILLS = 0;
-    private static final String ROUTE_NOT_SPECIFIED = "NOT SPECIFIED";
     private final ObjectMapper objectMapper;
 
     @Autowired
@@ -108,12 +107,14 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         HashMap<String, Object> dosingInstructionsMap = new HashMap<>();
         addNotesAndInstructionsToDosingInstructions(medicationOrder, dosingInstructionsMap);
         setOrderDuration(drugOrder, dosageInstruction);
-        if (((SimpleQuantityDt) dosageInstruction.getDose()).getValue() != null) {
-            drugOrder.setDose(((SimpleQuantityDt) dosageInstruction.getDose()).getValue().doubleValue());
-        } else {
-            addCustomDosageToDosingInstructions(dosageInstruction, dosingInstructionsMap);
+        if (dosageInstruction.getDose() != null) {
+            if (((SimpleQuantityDt) dosageInstruction.getDose()).getValue() != null) {
+                drugOrder.setDose(((SimpleQuantityDt) dosageInstruction.getDose()).getValue().doubleValue());
+            } else {
+                addCustomDosageToDosingInstructions(dosageInstruction, dosingInstructionsMap);
+            }
+            setDoseUnits(drugOrder, dosageInstruction);
         }
-        setDoseUnits(drugOrder, dosageInstruction);
         setQuantity(drugOrder, medicationOrder.getDispenseRequest());
         setScheduledDateAndUrgency(drugOrder, dosageInstruction);
         setOrderAction(drugOrder, medicationOrder);
@@ -307,9 +308,6 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
             if (route == null) {
                 route = conceptService.getConceptByName(dosageInstruction.getRoute().getCoding().get(0).getDisplay());
             }
-        }
-        if (route == null) {
-            route = conceptService.getConceptByName(ROUTE_NOT_SPECIFIED);
         }
         return route;
     }

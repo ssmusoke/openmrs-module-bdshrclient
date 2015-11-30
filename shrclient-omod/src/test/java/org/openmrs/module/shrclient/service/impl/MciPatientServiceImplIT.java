@@ -120,7 +120,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldSaveDrugOrders() throws Exception {
         executeDataSet("testDataSets/drugOrderDS.xml");
-        String healthId = "98104750156";
+        String healthId = "98001080756";
         String shrEncounterId = "shr-enc-id";
 
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithMedicationOrder.xml");
@@ -220,6 +220,27 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
+    public void shouldSaveAMedicationOrderWithoutDoseRoutes() throws Exception {
+        executeDataSet("testDataSets/drugOrderDS.xml");
+        String healthId = "98104750156";
+        String shrEncounterId = "shr-enc-id";
+
+        List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/medicationOrderWithoutDoseRouteAndAdditionalInstructions.xml");
+        Patient emrPatient = patientService.getPatient(110);
+
+        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+
+        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        assertNotNull(idMapping);
+        Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
+        Set<Order> orders = encounter.getOrders();
+        assertFalse(orders.isEmpty());
+        assertEquals(1, orders.size());
+        assertTrue(orders.iterator().next() instanceof DrugOrder);
+    }
+
+
+    @Test
     public void shouldGetCauseOfDeathOfPatientIfAnyObservationCapturedCauseOfDeath() throws Exception {
         executeDataSet("testDataSets/patientDeathNoteDS.xml");
         Patient patient = patientService.getPatient(1);
@@ -300,7 +321,7 @@ public class MciPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
 
         List<PersonAttribute> spouseName = savedPatient.getAttributes(Constants.SPOUSE_NAME_ATTRIBUTE_TYPE);
         assertEquals(1, spouseName.size());
-          }
+    }
 
     private org.openmrs.module.shrclient.model.Patient getPatientFromJson(String patientJson) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
