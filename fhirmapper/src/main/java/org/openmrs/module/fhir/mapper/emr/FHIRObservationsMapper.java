@@ -3,7 +3,6 @@ package org.openmrs.module.fhir.mapper.emr;
 import ca.uhn.fhir.model.api.IDatatype;
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
-import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 
 import org.openmrs.Concept;
@@ -13,6 +12,7 @@ import org.openmrs.Obs;
 
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.Constants;
+import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
@@ -42,26 +42,14 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, Encounter newEmrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
         Observation observation = (Observation) resource;
-        Obs result = mapObs(encounterComposition, newEmrEncounter, observation);
+        Obs result = mapObs(encounterComposition, emrEncounter, observation);
         if (result == null) return;
-        newEmrEncounter.addObs(result);
+        emrEncounter.addObs(result);
     }
 
-    private void mapRelatedObservations(ShrEncounterComposition encounterComposition, Observation observation, Obs obs, Encounter emrEncounter) throws ParseException {
-        for (Observation.Related component : observation.getRelated()) {
-            Obs member;
-            Observation relatedObs = (Observation) findResourceByReference(encounterComposition.getBundle(), component.getTarget());
-            member = mapObs(encounterComposition, emrEncounter, relatedObs);
-            if (member != null) {
-                obs.addGroupMember(member);
-                emrEncounter.addObs(member);
-            }
-        }
-    }
-
-    public Obs mapObs(ShrEncounterComposition encounterComposition, Encounter emrEncounter, Observation observation) {
+    public Obs mapObs(ShrEncounterComposition encounterComposition, EmrEncounter emrEncounter, Observation observation) {
         final ca.uhn.fhir.model.dstu2.resource.Encounter shrEncounter = FHIRBundleHelper.getEncounter(encounterComposition.getBundle());
         String facilityId = new EntityReference().parse(Location.class, shrEncounter.getServiceProvider().getReference().getValue());
         Concept concept = mapConcept(observation, facilityId);
@@ -79,6 +67,18 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
             e.printStackTrace();
         }
         return result;
+    }
+
+    private void mapRelatedObservations(ShrEncounterComposition encounterComposition, Observation observation, Obs obs, EmrEncounter emrEncounter) throws ParseException {
+        for (Observation.Related component : observation.getRelated()) {
+            Obs member;
+            Observation relatedObs = (Observation) findResourceByReference(encounterComposition.getBundle(), component.getTarget());
+            member = mapObs(encounterComposition, emrEncounter, relatedObs);
+            if (member != null) {
+                obs.addGroupMember(member);
+                emrEncounter.addObs(member);
+            }
+        }
     }
 
     private boolean isLocallyCreatedConcept(Concept concept) {

@@ -12,6 +12,7 @@ import org.openmrs.api.OrderService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.fhir.MapperTestHelper;
+import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -61,8 +62,8 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Test
     public void shouldMapDiagnosticOrder() throws Exception {
-        Encounter encounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrder.xml");
-        Set<Order> orders = encounter.getOrders();
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrder.xml");
+        Set<Order> orders = emrEncounter.getOrders();
         assertFalse(orders.isEmpty());
         assertEquals(1, orders.size());
         Order order = orders.iterator().next();
@@ -76,20 +77,21 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
     @Test
     public void shouldMapDiagnosticOrderWithoutOrderer() throws Exception {
         int shrClientSystemProviderId = 22;
-        Encounter encounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithoutOrderer.xml");
-        Set<Order> orders = encounter.getOrders();
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithoutOrderer.xml");
+        Set<Order> orders = emrEncounter.getOrders();
         assertEquals(1, orders.size());
         Order order = orders.iterator().next();
         assertThat(order.getOrderer().getProviderId(), is(shrClientSystemProviderId));
     }
 
-    private Encounter mapOrder(String filePath) throws Exception {
+    private EmrEncounter mapOrder(String filePath) throws Exception {
         Bundle bundle = loadSampleFHIREncounter(filePath);
         IResource resource = FHIRBundleHelper.identifyResource(bundle.getEntry(), new DiagnosticOrder().getResourceName());
         Encounter encounter = new Encounter();
         encounter.setEncounterDatetime(new Date());
         ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "HIDA764177", "shr-enc-id-1");
-        diagnosticOrderMapper.map(resource, encounter, encounterComposition, getSystemProperties("1"));
-        return encounter;
+        EmrEncounter emrEncounter = new EmrEncounter(encounter);
+        diagnosticOrderMapper.map(resource, emrEncounter, encounterComposition, getSystemProperties("1"));
+        return emrEncounter;
     }
 }

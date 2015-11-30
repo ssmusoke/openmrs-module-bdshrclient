@@ -15,6 +15,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.ObsHelper;
+import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.fhir.utils.TrValueSetType;
@@ -144,10 +145,10 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     private Obs mapProceduresObs() {
-        Encounter mrsEncounter = new Encounter();
-        fhirProcedureMapper.map(resource, mrsEncounter, new ShrEncounterComposition(bundle, "98101039678", "shr-enc-id-1"), getSystemProperties("1"));
+        EmrEncounter emrEncounter = new EmrEncounter(new Encounter());
+        fhirProcedureMapper.map(resource, emrEncounter, new ShrEncounterComposition(bundle, "98101039678", "shr-enc-id-1"), getSystemProperties("1"));
 
-        Set<Obs> allObs = mrsEncounter.getAllObs();
+        Set<Obs> allObs = emrEncounter.getObs();
         assertEquals(1, allObs.size());
         Obs obs = allObs.iterator().next();
         assertEquals(MRS_CONCEPT_PROCEDURES_TEMPLATE, obs.getConcept().getName().getName());

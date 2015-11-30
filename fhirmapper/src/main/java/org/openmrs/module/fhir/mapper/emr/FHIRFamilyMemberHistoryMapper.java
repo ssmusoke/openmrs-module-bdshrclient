@@ -8,9 +8,9 @@ import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.resource.FamilyMemberHistory;
 import ca.uhn.fhir.model.primitive.DateDt;
 import org.openmrs.Concept;
-import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
+import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.TrValueSetType;
@@ -41,12 +41,12 @@ public class FHIRFamilyMemberHistoryMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, Encounter newEmrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
         FamilyMemberHistory familyMemberHistory = (FamilyMemberHistory) resource;
         Obs familyHistoryObs = new Obs();
         familyHistoryObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_FAMILY_HISTORY));
         mapRelationships(familyHistoryObs, familyMemberHistory);
-        newEmrEncounter.addObs(familyHistoryObs);
+        emrEncounter.addObs(familyHistoryObs);
     }
 
 
@@ -70,18 +70,6 @@ public class FHIRFamilyMemberHistoryMapper implements FHIRResourceMapper {
         if (null != relationship) {
             personObs.addGroupMember(relationship);
         }
-    }
-
-    private String getCodeSimple(FamilyMemberHistory relation) {
-        CodeableConceptDt relationship = relation.getRelationship();
-        if (relationship == null || relationship.isEmpty()) {
-            return null;
-        }
-        List<CodingDt> coding = relationship.getCoding();
-        if (coding == null || coding.isEmpty()) {
-            return null;
-        }
-        return coding.get(0).getCode();
     }
 
     private Obs mapRelationCondition(FamilyMemberHistory.Condition conditon) {

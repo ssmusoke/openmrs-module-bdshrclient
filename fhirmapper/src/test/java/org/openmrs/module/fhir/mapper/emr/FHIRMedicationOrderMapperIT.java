@@ -18,6 +18,7 @@ import org.openmrs.api.OrderService;
 import org.openmrs.module.bahmniemrapi.drugorder.dosinginstructions.FlexibleDosingInstructions;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.MapperTestHelper;
+import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
@@ -173,7 +174,7 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
         DrugOrder drugOrder = (DrugOrder) order;
 
         assertTrue(StringUtils.isNotBlank(drugOrder.getDosingInstructions()));
-        assertEquals("additional instructions notes", (String) readFromJson(drugOrder.getDosingInstructions(), MRSProperties.BAHMNI_DRUG_ORDER_ADDITIONAL_INSTRCTIONS_KEY));
+        assertEquals("additional instructions notes", readFromJson(drugOrder.getDosingInstructions(), MRSProperties.BAHMNI_DRUG_ORDER_ADDITIONAL_INSTRCTIONS_KEY));
         String instructionsConceptName = (String) readFromJson(drugOrder.getDosingInstructions(), MRSProperties.BAHMNI_DRUG_ORDER_INSTRCTIONS_KEY);
         assertEquals(conceptService.getConcept(1101).getName().getName(), instructionsConceptName);
     }
@@ -215,17 +216,17 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
         MedicationOrder resource = (MedicationOrder) FHIRBundleHelper.findResourceByReference(bundle, new ResourceReferenceDt("urn:uuid:" + newOrderId));
 
         Encounter mappedEncounter = encounterService.getEncounter(37);
-        Patient patient = new Patient();
+        EmrEncounter emrEncounter = new EmrEncounter(mappedEncounter);
         ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98001080756", "shr-enc-id-1");
-        mapper.map(resource, mappedEncounter, encounterComposition, getSystemProperties("1"));
-        assertEquals(2, mappedEncounter.getOrders().size());
+        mapper.map(resource, emrEncounter, encounterComposition, getSystemProperties("1"));
+        assertEquals(2, emrEncounter.getOrders().size());
 
         IdMapping editedOrderMapping = idMappingsRepository.findByExternalId(editedOrderId);
-        Order editedOrder = findOrderByUuid(mappedEncounter.getOrders(), editedOrderMapping.getInternalId());
+        Order editedOrder = findOrderByUuid(emrEncounter.getOrders(), editedOrderMapping.getInternalId());
         assertNotNull(editedOrder);
 
         IdMapping newOrderMapping = idMappingsRepository.findByExternalId(newOrderId);
-        Order newOrder = findOrderByUuid(mappedEncounter.getOrders(), newOrderMapping.getInternalId());
+        Order newOrder = findOrderByUuid(emrEncounter.getOrders(), newOrderMapping.getInternalId());
         assertNotNull(newOrder);
 
         assertEquals(editedOrder, newOrder.getPreviousOrder());
@@ -301,13 +302,13 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     private Order getOrder(Bundle bundle, MedicationOrder resource) {
         Encounter mappedEncounter = encounterService.getEncounter(37);
-        Patient patient = new Patient();
-        
-        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98104750156", "shr-enc-id-1");
-        mapper.map(resource, mappedEncounter, encounterComposition, getSystemProperties("1"));
+        EmrEncounter emrEncounter = new EmrEncounter(mappedEncounter);
 
-        assertEquals(1, mappedEncounter.getOrders().size());
-        return mappedEncounter.getOrders().iterator().next();
+        ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98104750156", "shr-enc-id-1");
+        mapper.map(resource, emrEncounter, encounterComposition, getSystemProperties("1"));
+
+        assertEquals(1, emrEncounter.getOrders().size());
+        return emrEncounter.getOrders().iterator().next();
     }
 
     private Order findOrderByUuid(Set<Order> orders, String uuid) {

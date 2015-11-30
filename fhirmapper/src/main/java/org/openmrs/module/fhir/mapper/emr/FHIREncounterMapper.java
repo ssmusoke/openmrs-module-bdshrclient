@@ -8,6 +8,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.openmrs.*;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.LocationService;
+import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
@@ -50,41 +51,41 @@ public class FHIREncounterMapper {
         final ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = FHIRBundleHelper.getEncounter(encounterComposition.getBundle());
         Composition composition = FHIRBundleHelper.getComposition(encounterComposition.getBundle());
         Date encounterDate = composition.getDate();
-        org.openmrs.Encounter emrEncounter = getOrCreateEncounter(encounterComposition.getShrEncounterId());
-        emrEncounter.setEncounterDatetime(encounterDate);
+        org.openmrs.Encounter openmrsEncounter = getOrCreateEmrEncounter(encounterComposition.getShrEncounterId());
+        openmrsEncounter.setEncounterDatetime(encounterDate);
+        
+        openmrsEncounter.setPatient(emrPatient);
 
-        emrEncounter.setPatient(emrPatient);
-
-        fhirSubResourceMapper.map(emrEncounter, encounterComposition, systemProperties);
+        fhirSubResourceMapper.map(openmrsEncounter, encounterComposition, systemProperties);
 
         final String encounterTypeName = fhirEncounter.getType().get(0).getText();
         final EncounterType encounterType = encounterService.getEncounterType(encounterTypeName);
-        emrEncounter.setEncounterType(encounterType);
+        openmrsEncounter.setEncounterType(encounterType);
 
         ResourceReferenceDt serviceProvider = fhirEncounter.getServiceProvider();
         if (serviceProvider != null && !serviceProvider.isEmpty()) {
-            setInternalFacilityId(emrEncounter, new EntityReference().parse(Location.class, serviceProvider.getReference().getValue()));
+            setInternalFacilityId(openmrsEncounter, new EntityReference().parse(Location.class, serviceProvider.getReference().getValue()));
         } else {
-            setFacilityIdFromProvider(fhirEncounter, emrEncounter);
+            setFacilityIdFromProvider(fhirEncounter, openmrsEncounter);
         }
         Visit visit = visitLookupService.findOrInitializeVisit(emrPatient, encounterDate, fhirEncounter.getClassElement());
-        emrEncounter.setVisit(visit);
-        visit.addEncounter(emrEncounter);
+        openmrsEncounter.setVisit(visit);
+        visit.addEncounter(openmrsEncounter);
 
-        setEncounterProvider(emrEncounter, fhirEncounter);
-        return emrEncounter;
+        setEncounterProvider(openmrsEncounter, fhirEncounter);
+        return openmrsEncounter;
     }
 
-    public org.openmrs.Encounter getOrCreateEncounter(String fhirEncounterId) {
-        org.openmrs.Encounter emrEncounter = null;
+    public org.openmrs.Encounter getOrCreateEmrEncounter(String fhirEncounterId) {
+        org.openmrs.Encounter openmrsEncounter = null;
         IdMapping mapping = idMappingsRepository.findByExternalId(fhirEncounterId);
         if (mapping != null) {
-            emrEncounter = encounterService.getEncounterByUuid(mapping.getInternalId());
+            openmrsEncounter = encounterService.getEncounterByUuid(mapping.getInternalId());
         }
-        if (emrEncounter == null) {
-            return new org.openmrs.Encounter();
+        if (openmrsEncounter == null) {
+            openmrsEncounter = new org.openmrs.Encounter();
         }
-        return emrEncounter;
+        return openmrsEncounter;
     }
 
     public void setEncounterProvider(org.openmrs.Encounter newEmrEncounter, ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter) {

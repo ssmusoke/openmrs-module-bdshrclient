@@ -8,6 +8,7 @@ import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.api.OrderService;
+import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.OrderCareSettingLookupService;
@@ -38,29 +39,28 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, Encounter encounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) resource;
-        createTestOrders(encounterComposition.getBundle(), diagnosticOrder, encounter);
+        createTestOrders(encounterComposition.getBundle(), diagnosticOrder, emrEncounter);
     }
 
-    private void createTestOrders(Bundle bundle, DiagnosticOrder diagnosticOrder, Encounter encounter) {
+    private void createTestOrders(Bundle bundle, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter) {
         List<DiagnosticOrder.Item> item = diagnosticOrder.getItem();
         for (DiagnosticOrder.Item diagnosticOrderItemComponent : item) {
             Concept testOrderConcept = omrsConceptLookup.findConceptByCode(diagnosticOrderItemComponent.getCode().getCoding());
             if (testOrderConcept != null) {
-                Order testOrder = createTestOrder(bundle, diagnosticOrder, encounter, testOrderConcept);
-                encounter.addOrder(testOrder);
+                Order testOrder = createTestOrder(bundle, diagnosticOrder, emrEncounter, testOrderConcept);
+                emrEncounter.addOrder(testOrder);
             }
         }
     }
 
-    private Order createTestOrder(Bundle bundle, DiagnosticOrder diagnosticOrder, Encounter encounter, Concept testOrderConcept) {
+    private Order createTestOrder(Bundle bundle, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter, Concept testOrderConcept) {
         Order testOrder = new Order();
-        testOrder.setOrderType(orderService.getOrderTypeByName("Lab Order"));
+        testOrder.setOrderType( orderService.getOrderTypeByName("Lab Order"));
         testOrder.setConcept(testOrderConcept);
-        testOrder.setEncounter(encounter);
         setOrderer(testOrder, diagnosticOrder);
-        testOrder.setDateActivated(encounter.getEncounterDatetime());
+        testOrder.setDateActivated(emrEncounter.getEncounter().getEncounterDatetime());
         testOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(bundle));
         return testOrder;
     }

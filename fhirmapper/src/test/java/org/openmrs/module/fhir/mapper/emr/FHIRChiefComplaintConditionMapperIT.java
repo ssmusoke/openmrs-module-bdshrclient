@@ -13,6 +13,7 @@ import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
+import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,14 +61,15 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         final List<IResource> conditions = TestFhirFeedHelper.getResourceByType(bundle, new Condition().getResourceName());
         ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98101039678", "shr-enc-id-1");
         Patient emrPatient = new Patient();
-        Encounter emrEncounter = new Encounter();
-        emrEncounter.setPatient(emrPatient);
+        Encounter encounter = new Encounter();
+        EmrEncounter emrEncounter = new EmrEncounter(encounter);
+        encounter.setPatient(emrPatient);
         for (IResource condition : conditions) {
             if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
                 fhirChiefComplaintConditionMapper.map(condition, emrEncounter, encounterComposition, getSystemProperties("1"));
             }
         }
-        final Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);
+        final Set<Obs> visitObs = emrEncounter.getTopLevelObs();
         assertEquals(1, visitObs.size());
         Obs historyAndExaminationObs = visitObs.iterator().next();
         assertTrue(historyAndExaminationObs.getConcept().getName().getName().equalsIgnoreCase(MRS_CONCEPT_NAME_COMPLAINT_CONDITION_TEMPLATE));
@@ -97,14 +99,15 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         final List<IResource> conditions = TestFhirFeedHelper.getResourceByType(bundle, new Condition().getResourceName());
         Patient emrPatient = new Patient();
         ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98101039678", "shr-enc-id-1");
-        Encounter emrEncounter = new Encounter();
-        emrEncounter.setPatient(emrPatient);
+        Encounter encounter = new Encounter();
+        EmrEncounter emrEncounter = new EmrEncounter(encounter);
+        encounter.setPatient(emrPatient);
         for (IResource condition : conditions) {
             if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
                 fhirChiefComplaintConditionMapper.map(condition, emrEncounter, encounterComposition, getSystemProperties("1"));
             }
         }
-        final Set<Obs> observations = emrEncounter.getAllObs();
+        final Set<Obs> observations = emrEncounter.getTopLevelObs();
         Concept durationConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DURATION);
         assertNull(identifyObsByConcept(observations, durationConcept));
     }
@@ -114,15 +117,16 @@ public class FHIRChiefComplaintConditionMapperIT extends BaseModuleWebContextSen
         final Bundle bundle = loadSampleFHIREncounter("classpath:encounterBundles/dstu2/encounterWithMultipleChiefComplaints.xml");
         final List<IResource> conditions = TestFhirFeedHelper.getResourceByType(bundle, new Condition().getResourceName());
         Patient emrPatient = new Patient();
-        Encounter emrEncounter = new Encounter();
+        Encounter encounter = new Encounter();
         ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98101039678", "shr-enc-id-1");
-        emrEncounter.setPatient(emrPatient);
+        encounter.setPatient(emrPatient);
+        EmrEncounter emrEncounter = new EmrEncounter(encounter);
         for (IResource condition : conditions) {
             if (fhirChiefComplaintConditionMapper.canHandle(condition)) {
                 fhirChiefComplaintConditionMapper.map(condition, emrEncounter, encounterComposition, getSystemProperties("1"));
             }
         }
-        final Set<Obs> topLevelObs = emrEncounter.getObsAtTopLevel(false);
+        final Set<Obs> topLevelObs = emrEncounter.getTopLevelObs();
         assertEquals(1, topLevelObs.size());
         assertNotNull(identifyObsByConcept(topLevelObs, conceptService.getConceptByName(MRS_CONCEPT_NAME_COMPLAINT_CONDITION_TEMPLATE)));
     }

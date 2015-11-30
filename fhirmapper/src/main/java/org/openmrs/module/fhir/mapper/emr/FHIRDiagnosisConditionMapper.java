@@ -6,11 +6,11 @@ import ca.uhn.fhir.model.dstu2.resource.Condition;
 import ca.uhn.fhir.model.dstu2.valueset.ConditionVerificationStatusEnum;
 import org.openmrs.Concept;
 import org.openmrs.ConceptAnswer;
-import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
+import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.shrclient.util.SystemProperties;
@@ -51,7 +51,7 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, Encounter newEmrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
         Condition condition = (Condition) resource;
 
         Obs visitDiagnosisObs = new Obs();
@@ -93,7 +93,7 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
         Obs bahmniDiagRevisedObs = addToObsGroup(visitDiagnosisObs, bahmniDiagnosisRevised);
         bahmniDiagRevisedObs.setValueBoolean(false);
 
-        newEmrEncounter.addObs(visitDiagnosisObs);
+        emrEncounter.addObs(visitDiagnosisObs);
     }
 
 

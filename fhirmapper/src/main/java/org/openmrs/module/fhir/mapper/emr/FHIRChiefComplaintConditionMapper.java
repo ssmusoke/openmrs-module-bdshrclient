@@ -6,11 +6,11 @@ import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
 import ca.uhn.fhir.model.dstu2.resource.Condition;
 import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Concept;
-import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
+import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.shrclient.util.SystemProperties;
@@ -43,7 +43,7 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, Encounter newEmrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
         Condition condition = (Condition) resource;
 
         Concept historyAndExaminationConcept = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_COMPLAINT_CONDITION_TEMPLATE);
@@ -79,13 +79,13 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
             chiefComplaintDataObs.addGroupMember(chiefComplaintDurationObs);
         }
 
-        Obs historyExaminationObs = getHistoryAndExaminationObservation(newEmrEncounter, historyAndExaminationConcept);
+        Obs historyExaminationObs = getHistoryAndExaminationObservation(emrEncounter, historyAndExaminationConcept);
         historyExaminationObs.setConcept(historyAndExaminationConcept);
         historyExaminationObs.addGroupMember(chiefComplaintDataObs);
-        newEmrEncounter.addObs(historyExaminationObs);
+        emrEncounter.addObs(historyExaminationObs);
     }
 
-    public Obs getHistoryAndExaminationObservation(Encounter newEmrEncounter, Concept historyAndExaminationConcept) {
+    private Obs getHistoryAndExaminationObservation(EmrEncounter newEmrEncounter, Concept historyAndExaminationConcept) {
         Obs historyExaminationObs = findObservationFromEncounter(newEmrEncounter, historyAndExaminationConcept);
         if (historyExaminationObs == null) {
             historyExaminationObs = new Obs();
@@ -93,8 +93,8 @@ public class FHIRChiefComplaintConditionMapper implements FHIRResourceMapper {
         return historyExaminationObs;
     }
 
-    public Obs findObservationFromEncounter(Encounter newEmrEncounter, Concept historyAndExaminationConcept) {
-        for (Obs obs : newEmrEncounter.getAllObs()) {
+    private Obs findObservationFromEncounter(EmrEncounter newEmrEncounter, Concept historyAndExaminationConcept) {
+        for (Obs obs : newEmrEncounter.getTopLevelObs()) {
             if (obs.getConcept().equals(historyAndExaminationConcept)) {
                 return obs;
             }

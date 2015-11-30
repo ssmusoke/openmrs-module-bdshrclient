@@ -7,7 +7,6 @@ import ca.uhn.fhir.model.dstu2.composite.DurationDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.composite.SimpleQuantityDt;
 import ca.uhn.fhir.model.dstu2.composite.TimingDt;
-import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
 import ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum;
 import ca.uhn.fhir.model.primitive.BooleanDt;
@@ -17,19 +16,14 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.openmrs.Concept;
-import org.openmrs.Drug;
-import org.openmrs.DrugOrder;
-import org.openmrs.Encounter;
-import org.openmrs.Order;
-import org.openmrs.OrderFrequency;
-import org.openmrs.Provider;
+import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.bahmniemrapi.drugorder.dosinginstructions.FlexibleDosingInstructions;
 import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
+import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.*;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
@@ -80,14 +74,14 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, Encounter newEmrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
-        DrugOrder drugOrder = mapDrugOrder(encounterComposition, (MedicationOrder) resource, newEmrEncounter, systemProperties);
-        newEmrEncounter.addOrder(drugOrder);
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
+        DrugOrder drugOrder = mapDrugOrder(encounterComposition, (MedicationOrder) resource, emrEncounter, systemProperties);
+        emrEncounter.addOrder(drugOrder);
     }
 
-    private DrugOrder mapDrugOrder(ShrEncounterComposition encounterComposition, MedicationOrder medicationOrder, Encounter newEmrEncounter, SystemProperties systemProperties) {
+    private DrugOrder mapDrugOrder(ShrEncounterComposition encounterComposition, MedicationOrder medicationOrder, EmrEncounter emrEncounter, SystemProperties systemProperties) {
         DrugOrder drugOrder = new DrugOrder();
-        DrugOrder previousDrugOrder = createOrFetchPreviousOrder(encounterComposition, medicationOrder, newEmrEncounter, systemProperties);
+        DrugOrder previousDrugOrder = createOrFetchPreviousOrder(encounterComposition, medicationOrder, emrEncounter, systemProperties);
         if (previousDrugOrder != null) {
             drugOrder.setPreviousOrder(previousDrugOrder);
         }
@@ -147,12 +141,12 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         return Order.Action.NEW;
     }
 
-    private DrugOrder createOrFetchPreviousOrder(ShrEncounterComposition encounterComposition, MedicationOrder medicationOrder, Encounter newEmrEncounter, SystemProperties systemProperties) {
+    private DrugOrder createOrFetchPreviousOrder(ShrEncounterComposition encounterComposition, MedicationOrder medicationOrder, EmrEncounter emrEncounter, SystemProperties systemProperties) {
         if (hasPriorPrescription(medicationOrder)) {
             DrugOrder previousDrugOrder;
             if (shouldCreatePreviousOrder(medicationOrder)) {
-                previousDrugOrder = mapDrugOrder(encounterComposition, (MedicationOrder) FHIRBundleHelper.findResourceByReference(encounterComposition.getBundle(), medicationOrder.getPriorPrescription()), newEmrEncounter, systemProperties);
-                newEmrEncounter.addOrder(previousDrugOrder);
+                previousDrugOrder = mapDrugOrder(encounterComposition, (MedicationOrder) FHIRBundleHelper.findResourceByReference(encounterComposition.getBundle(), medicationOrder.getPriorPrescription()), emrEncounter, systemProperties);
+                emrEncounter.addOrder(previousDrugOrder);
             } else {
                 String previousOrderRefId = StringUtils.substringAfterLast(medicationOrder.getPriorPrescription().getReference().getValue(), "/");
                 IdMapping previousOrderMapping = idMappingsRepository.findByExternalId(previousOrderRefId);

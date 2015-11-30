@@ -13,6 +13,7 @@ import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.ObsHelper;
+import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -179,12 +180,11 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
     }
 
     private Obs mapImmunizationIncidentObs() {
-        Encounter mrsEncounter = new Encounter();
-
+        EmrEncounter emrEncounter = new EmrEncounter(new Encounter());
         ShrEncounterComposition encounterComposition = new ShrEncounterComposition(bundle, "98104750156", "shr-enc-id-1");
-        mapper.map(resource, mrsEncounter, encounterComposition, getSystemProperties("1"));
+        mapper.map(resource, emrEncounter, encounterComposition, getSystemProperties("1"));
 
-        Set<Obs> allObs = mrsEncounter.getAllObs();
+        Set<Obs> allObs = emrEncounter.getObs();
         assertEquals(1, allObs.size());
         Obs immunizationIncidentObs = allObs.iterator().next();
         assertEquals(MRS_CONCEPT_IMMUNIZATION_INCIDENT_TEMPLATE, immunizationIncidentObs.getConcept().getName().getName());

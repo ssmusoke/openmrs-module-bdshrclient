@@ -10,9 +10,9 @@ import ca.uhn.fhir.model.dstu2.valueset.ImmunizationReasonCodesEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Concept;
 import org.openmrs.Drug;
-import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
+import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.TrValueSetType;
@@ -39,7 +39,7 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, Encounter newEmrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
         Immunization immunization = (Immunization) resource;
 
         Obs immunizationIncidentTmpl = new Obs();
@@ -60,7 +60,7 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
         addImmunizationNotes(immunization, immunizationIncidentGroup);
 
         immunizationIncidentTmpl.addGroupMember(immunizationIncidentGroup);
-        newEmrEncounter.addObs(immunizationIncidentTmpl);
+        emrEncounter.addObs(immunizationIncidentTmpl);
     }
 
     private void addImmunizationNotes(Immunization immunization, Obs immunizationIncidentGroup) {

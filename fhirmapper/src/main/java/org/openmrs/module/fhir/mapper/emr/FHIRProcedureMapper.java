@@ -11,9 +11,9 @@ import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 import ca.uhn.fhir.model.dstu2.resource.Procedure;
 import org.openmrs.Concept;
-import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
+import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterComposition;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
@@ -42,7 +42,7 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, Encounter newEmrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterComposition encounterComposition, SystemProperties systemProperties) {
         Procedure procedure = (Procedure) resource;
 
         Obs proceduresObs = new Obs();
@@ -62,7 +62,7 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
                 proceduresObs.addGroupMember(getDiagnosisStudyObs((DiagnosticReport) diagnosticReportResource, encounterComposition.getBundle()));
             }
         }
-        newEmrEncounter.addObs(proceduresObs);
+        emrEncounter.addObs(proceduresObs);
     }
 
     private Obs getProcedureStatusObs(Procedure procedure) {
