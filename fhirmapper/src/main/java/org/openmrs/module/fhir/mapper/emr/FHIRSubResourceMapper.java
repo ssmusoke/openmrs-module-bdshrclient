@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Set;
 
+import static org.openmrs.module.fhir.MRSProperties.ENCOUNTER_UPDATE_VOID_REASON;
+
 @Component
 public class FHIRSubResourceMapper {
     @Autowired
@@ -47,6 +49,7 @@ public class FHIRSubResourceMapper {
         Set<Obs> existingObs = emrEncounter.getAllObs(false);
         for (Obs obs : existingObs) {
             obs.setVoided(true);
+            obs.setVoidReason(ENCOUNTER_UPDATE_VOID_REASON);
         }
     }
 }

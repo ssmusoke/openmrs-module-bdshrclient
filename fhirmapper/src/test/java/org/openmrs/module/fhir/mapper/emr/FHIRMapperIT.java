@@ -238,9 +238,11 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
         Encounter mappedEncounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
 
         assertEquals(existingEncounter, mappedEncounter);
+        assertEquals(2, mappedEncounter.getObsAtTopLevel(true).size());
 
         Set<Obs> mappedObsAtTopLevel = mappedEncounter.getObsAtTopLevel(false);
         assertEquals(1, mappedObsAtTopLevel.size());
+
         Obs mappedVitalsObs = mappedObsAtTopLevel.iterator().next();
         assertNotEquals(vitalsObs, mappedVitalsObs);
         assertEquals(1, mappedVitalsObs.getGroupMembers().size());
