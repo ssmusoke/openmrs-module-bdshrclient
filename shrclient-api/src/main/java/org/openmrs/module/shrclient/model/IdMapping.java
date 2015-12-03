@@ -7,16 +7,15 @@ import java.util.Date;
 
 public class IdMapping {
 
-    private Logger logger = Logger.getLogger(IdMapping.class);
-
     private long id;
     private String internalId;
     private String externalId;
     private String type;
     private String uri;
     private Date lastSyncDateTime;
+    private Date serverUpdateDateTime;
 
-    public IdMapping(String internalId, String externalId, String type, String uri, Date lastSyncDateTime) {
+    public IdMapping(String internalId, String externalId, String type, String uri, Date lastSyncDateTime, Date serverUpdateDateTime) {
         Validate.notNull(internalId);
         Validate.notNull(externalId);
         Validate.notNull(type);
@@ -25,10 +24,15 @@ public class IdMapping {
         this.type = type;
         this.uri = uri;
         this.lastSyncDateTime = lastSyncDateTime;
+        this.serverUpdateDateTime = serverUpdateDateTime;
+    }
+
+    public IdMapping(String internalId, String externalId, String type, String uri, Date lastSyncDateTime) {
+        this(internalId, externalId, type, uri, lastSyncDateTime, null);
     }
 
     public IdMapping(String internalId, String externalId, String type, String uri) {
-        this(internalId, externalId, type, uri, null);
+        this(internalId, externalId, type, uri, null, null);
     }
 
     public IdMapping() {
@@ -38,48 +42,56 @@ public class IdMapping {
         return internalId;
     }
 
-    public void setInternalId(String internalId) {
-        this.internalId = internalId;
-    }
-
     public String getExternalId() {
         return externalId;
-    }
-
-    public void setExternalId(String externalId) {
-        this.externalId = externalId;
     }
 
     public long getId() {
         return id;
     }
 
-    public void setId(long id) {
-        this.id = id;
-    }
-
     public String getType() {
         return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public String getUri() {
         return uri;
     }
 
-    public void setUri(String uri) {
-        this.uri = uri;
-    }
-
     public Date getLastSyncDateTime() {
         return lastSyncDateTime;
     }
 
+    public Date getServerUpdateDateTime() {
+        return serverUpdateDateTime;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setInternalId(String internalId) {
+        this.internalId = internalId;
+    }
+
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
+    }
+
     public void setLastSyncDateTime(Date lastSyncDateTime) {
         this.lastSyncDateTime = lastSyncDateTime;
+    }
+
+    public void setServerUpdateDateTime(Date serverUpdateDateTime) {
+        this.serverUpdateDateTime = serverUpdateDateTime;
     }
 
     @Override

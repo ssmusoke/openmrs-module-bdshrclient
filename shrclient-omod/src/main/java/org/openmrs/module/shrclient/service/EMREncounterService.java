@@ -12,6 +12,7 @@ import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.Confidentiality;
 import org.openmrs.module.fhir.mapper.model.ShrEncounter;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.PropertiesReader;
@@ -21,10 +22,7 @@ import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static org.openmrs.module.fhir.Constants.ID_MAPPING_ENCOUNTER_TYPE;
 import static org.openmrs.module.fhir.Constants.LATEST_UPDATE_CATEGORY_TAG;
@@ -89,16 +87,18 @@ public class EMREncounterService {
         org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, encounterComposition, systemProperties);
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
-        addEncounterToIdMapping(newEmrEncounter, shrEncounterId, healthId, systemProperties);
+        Date publishedDate = DateUtil.parseDate(encounterBundle.getPublishedDate());
+        addEncounterToIdMapping(newEmrEncounter, shrEncounterId, healthId, systemProperties, publishedDate);
         systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter);
         systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter.getVisit());
         savePatientDeathInfo(emrPatient);
     }
 
-    private void addEncounterToIdMapping(org.openmrs.Encounter newEmrEncounter, String externalUuid, String healthId, SystemProperties systemProperties) {
+    private void addEncounterToIdMapping(Encounter newEmrEncounter, String externalUuid, String healthId, SystemProperties systemProperties, Date publishedDate) {
         String internalUuid = newEmrEncounter.getUuid();
         String shrEncounterUrl = getEncounterUrl(externalUuid, healthId, systemProperties);
-        idMappingsRepository.saveOrUpdateMapping(new IdMapping(internalUuid, externalUuid, ID_MAPPING_ENCOUNTER_TYPE, shrEncounterUrl));
+        IdMapping idMapping = new IdMapping(internalUuid, externalUuid, ID_MAPPING_ENCOUNTER_TYPE, shrEncounterUrl, publishedDate);
+        idMappingsRepository.saveOrUpdateMapping(idMapping);
     }
 
     private void saveOrders(Encounter newEmrEncounter) {
@@ -116,9 +116,9 @@ public class EMREncounterService {
 
     private boolean shouldSyncEncounter(String encounterId, EncounterBundle encounterBundle) {
         if (hasUpdatedEncounterInTheFeed(encounterBundle)) return false;
-//        if (idMappingsRepository.findByExternalId(encounterId) != null) {
-//            return false;
-//        }
+        IdMapping idMapping = idMappingsRepository.findByExternalId(encounterId);
+        Date publishedDate = DateUtil.parseDate(encounterBundle.getPublishedDate());
+        if (idMapping != null && publishedDate.before(idMapping.getLastSyncDateTime())) return false;
         return getEncounterConfidentiality(encounterBundle.getBundle()).ordinal() <= Confidentiality.Normal.ordinal();
     }
 
@@ -137,7 +137,6 @@ public class EMREncounterService {
         if (null == confidentialityCode) {
             return Confidentiality.Normal;
         }
-        ;
         return getConfidentiality(confidentialityCode);
     }
 

@@ -3,6 +3,7 @@ package org.openmrs.module.shrclient.service;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Composition;
 import com.sun.syndication.feed.atom.Category;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -15,6 +16,7 @@ import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.ShrEncounter;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -23,7 +25,10 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Properties;
+import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
@@ -79,7 +84,7 @@ public class EMREncounterServiceTest {
         when(mockIdMappingsRepository.findByExternalId(any(String.class))).thenReturn(new IdMapping());
         emrEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
 
-        verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounterComposition.class), any(SystemProperties.class));
+        verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class));
     }
 
     @Test
@@ -96,6 +101,7 @@ public class EMREncounterServiceTest {
         Patient emrPatient = new Patient();
         String healthId = "health_id";
         String shrEncounterId = "shr-enc-id";
+
 
         when(mockIdMappingsRepository.findByExternalId(shrEncounterId)).thenReturn(null);
 
@@ -114,6 +120,7 @@ public class EMREncounterServiceTest {
         atomEntry.setResource(composition);
         bundle.addEntry(atomEntry);
         encounterBundle.addContent(bundle);
+        encounterBundle.setPublishedDate(DateUtil.toISOString(DateTime.now().toDate()));
         encounterBundle.setTitle("Encounter:shr_encounter_id");
         Patient emrPatient = new Patient();
         String healthId = "health_id";
@@ -152,5 +159,75 @@ public class EMREncounterServiceTest {
         hieEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, healthId);
 
         verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class));
+    }
+
+    @Test
+    public void shouldNotSyncAnEncounterIfAlreadySynced() throws Exception {
+        Bundle.Entry atomEntry = new Bundle.Entry();
+        atomEntry.setResource(new Composition());
+        Bundle bundle = new Bundle();
+        bundle.addEntry(atomEntry);
+
+        Calendar calendar = Calendar.getInstance();
+        Date currentTime = DateTime.now().toDate();
+        calendar.setTime(currentTime);
+        calendar.add(Calendar.MINUTE, 2);
+        Date twoMinutesAfter = calendar.getTime();
+
+        String shrEncounterId = "shr_encounter_id";
+        EncounterBundle encounterBundle = new EncounterBundle();
+        encounterBundle.addContent(bundle);
+        encounterBundle.setTitle("Encounter:" + shrEncounterId);
+        encounterBundle.setPublishedDate(DateUtil.toISOString(currentTime));
+        Patient emrPatient = new Patient();
+        String healthId = "health_id";
+
+        String uri = "http://shr.com/patients/HID/encounters/shr_encounter_id";
+        IdMapping mapping = new IdMapping(UUID.randomUUID().toString(), shrEncounterId, "ENC", uri, twoMinutesAfter);
+        when(mockIdMappingsRepository.findByExternalId(shrEncounterId)).thenReturn(mapping);
+        when(mockFhirmapper.map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class))).thenReturn(new Encounter());
+        when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://shr.com/");
+        Properties shrProperties = new Properties();
+        shrProperties.put(SHR_REFERENCE_PATH, "http://shr.com/");
+        shrProperties.put(SHR_PATIENT_ENC_PATH_PATTERN, "/patients/%s/encounters");
+        when(mockPropertiesReader.getShrProperties()).thenReturn(shrProperties);
+
+        hieEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, healthId);
+        verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class));
+    }
+    
+    @Test
+    public void shouldSyncAnEncounterIfUpdatedLater() throws Exception {
+        Bundle.Entry atomEntry = new Bundle.Entry();
+        atomEntry.setResource(new Composition());
+        Bundle bundle = new Bundle();
+        bundle.addEntry(atomEntry);
+
+        Calendar calendar = Calendar.getInstance();
+        Date currentTime = DateTime.now().toDate();
+        calendar.setTime(currentTime);
+        calendar.add(Calendar.MINUTE, 2);
+        Date twoMinutesAfter = calendar.getTime();
+
+        String shrEncounterId = "shr_encounter_id";
+        EncounterBundle encounterBundle = new EncounterBundle();
+        encounterBundle.addContent(bundle);
+        encounterBundle.setTitle("Encounter:" + shrEncounterId);
+        encounterBundle.setPublishedDate(DateUtil.toISOString(twoMinutesAfter));
+        Patient emrPatient = new Patient();
+        String healthId = "health_id";
+
+        String uri = "http://shr.com/patients/HID/encounters/shr_encounter_id";
+        IdMapping mapping = new IdMapping(UUID.randomUUID().toString(), shrEncounterId, "ENC", uri, currentTime);
+        when(mockIdMappingsRepository.findByExternalId(shrEncounterId)).thenReturn(mapping);
+        when(mockFhirmapper.map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class))).thenReturn(new Encounter());
+        when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://shr.com/");
+        Properties shrProperties = new Properties();
+        shrProperties.put(SHR_REFERENCE_PATH, "http://shr.com/");
+        shrProperties.put(SHR_PATIENT_ENC_PATH_PATTERN, "/patients/%s/encounters");
+        when(mockPropertiesReader.getShrProperties()).thenReturn(shrProperties);
+
+        hieEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, healthId);
+        verify(mockFhirmapper, times(1)).map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class));
     }
 }

@@ -8,11 +8,7 @@ import org.openmrs.module.shrclient.util.Database.TxWork;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.util.Date;
 
 @Component("bdShrClientIdMappingRepository")
@@ -29,7 +25,7 @@ public class IdMappingsRepository {
             public Object execute(Connection connection) {
                 Timestamp lastSyncedDateTime = idMapping.getLastSyncDateTime() != null ? new Timestamp(idMapping.getLastSyncDateTime().getTime()) : new Timestamp(new java.util.Date().getTime());
                 if (!mappingExists(idMapping)) {
-                    String query = "insert into shr_id_mapping (internal_id, external_id, type, uri, last_sync_datetime) values (?,?,?,?,?)";
+                    String query = "insert into shr_id_mapping (internal_id, external_id, type, uri, last_sync_datetime, server_update_datetime) values (?,?,?,?,?,?)";
 
                     PreparedStatement statement = null;
                     try {
@@ -39,6 +35,7 @@ public class IdMappingsRepository {
                         statement.setString(3, idMapping.getType());
                         statement.setString(4, idMapping.getUri());
                         statement.setTimestamp(5, lastSyncedDateTime);
+                        statement.setTimestamp(6, new Timestamp(idMapping.getServerUpdateDateTime().getTime()));
                         statement.execute();
                     } catch (Exception e) {
                         throw new RuntimeException("Error occurred while creating id mapping", e);
@@ -50,12 +47,13 @@ public class IdMappingsRepository {
                         }
                     }
                 } else {
-                    String updateQuery = "update shr_id_mapping set last_sync_datetime = ? where internal_id = ?";
+                    String updateQuery = "update shr_id_mapping set last_sync_datetime = ?, server_update_datetime = ? where internal_id = ?";
                     PreparedStatement statement = null;
                     try {
                         statement = connection.prepareStatement(updateQuery);
                         statement.setTimestamp(1, lastSyncedDateTime);
-                        statement.setString(2, idMapping.getInternalId());
+                        statement.setTimestamp(2, new Timestamp(idMapping.getServerUpdateDateTime().getTime()));
+                        statement.setString(3, idMapping.getInternalId());
                         statement.executeUpdate();
                     } catch (SQLException e) {
                         throw new RuntimeException("Error occurred while creating id mapping", e);
@@ -76,7 +74,8 @@ public class IdMappingsRepository {
         return database.executeInTransaction(new TxWork<IdMapping>() {
             @Override
             public IdMapping execute(Connection connection) {
-                String query = "select distinct map.internal_id, map.type, map.uri, map.last_sync_datetime from shr_id_mapping map where map.external_id=?";
+                String query = "select distinct map.internal_id, map.type, map.uri, map.last_sync_datetime, map.server_update_datetime " +
+                        "from shr_id_mapping map where map.external_id=?";
                 PreparedStatement statement = null;
                 ResultSet resultSet = null;
                 IdMapping result = null;
@@ -86,7 +85,12 @@ public class IdMappingsRepository {
                     resultSet = statement.executeQuery();
                     while (resultSet.next()) {
                         if (StringUtils.isNotBlank(resultSet.getString(1))) {
-                            result = new IdMapping(resultSet.getString(1), uuid, resultSet.getString(2), resultSet.getString(3), new Date(resultSet.getTimestamp(4).getTime()));
+                            result = new IdMapping(resultSet.getString(1), uuid, resultSet.getString(2),
+                                    resultSet.getString(3), new Date(resultSet.getTimestamp(4).getTime()));
+                            Timestamp serverDateTime = resultSet.getTimestamp(5);
+                            if (serverDateTime != null) {
+                                result.setServerUpdateDateTime(new Date(serverDateTime.getTime()));
+                            }
                             break;
                         }
                     }
@@ -109,7 +113,7 @@ public class IdMappingsRepository {
         return database.executeInTransaction(new TxWork<IdMapping>() {
             @Override
             public IdMapping execute(Connection connection) {
-                String query = "select distinct map.external_id, map.type, map.uri, map.last_sync_datetime from shr_id_mapping map where map.internal_id=?";
+                String query = "select distinct map.external_id, map.type, map.uri, map.last_sync_datetime, map.server_update_datetime from shr_id_mapping map where map.internal_id=?";
                 PreparedStatement statement = null;
                 ResultSet resultSet = null;
                 IdMapping result = null;
@@ -119,7 +123,12 @@ public class IdMappingsRepository {
                     resultSet = statement.executeQuery();
                     while (resultSet.next()) {
                         if (StringUtils.isNotBlank(resultSet.getString(1))) {
-                            result = new IdMapping(uuid, resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), new Date(resultSet.getTimestamp(4).getTime()));
+                            result = new IdMapping(uuid, resultSet.getString(1), resultSet.getString(2), 
+                                    resultSet.getString(3), new Date(resultSet.getTimestamp(4).getTime()));
+                            Timestamp serverDateTime = resultSet.getTimestamp(5);
+                            if (serverDateTime != null) {
+                                result.setServerUpdateDateTime(new Date(serverDateTime.getTime()));
+                            }
                             break;
                         }
                     }

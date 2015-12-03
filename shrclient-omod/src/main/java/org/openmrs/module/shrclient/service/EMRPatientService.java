@@ -140,7 +140,6 @@ public class EMRPatientService {
         return null;
     }
 
-
     private String getFamilyNameLocal(String banglaName) {
         if (StringUtils.isBlank(banglaName)) {
             return null;
@@ -159,7 +158,7 @@ public class EMRPatientService {
 
     private void setDeathInfo(org.openmrs.Patient emrPatient, Patient mciPatient) {
         Status status = mciPatient.getStatus();
-        boolean isAliveMciPatient = status.getType() == '1' ? true : false;
+        boolean isAliveMciPatient = status.getType() == '1';
         boolean isAliveEmrPatient = !emrPatient.isDead();
         if (isAliveMciPatient && isAliveEmrPatient) {
             return;

@@ -2,6 +2,7 @@ package org.openmrs.module.shrclient.service;
 
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -10,6 +11,7 @@ import org.openmrs.*;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.FhirBundleContextHolder;
@@ -19,10 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -233,17 +232,25 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         String shrEncounterId = "shr-enc-id";
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/testFHIREncounter.xml");
 
+        Calendar calendar = Calendar.getInstance();
+        Date currentTime = new Date();
+        calendar.setTime(currentTime);
+        calendar.add(Calendar.MINUTE, 10);
+        Date tenMinutesAfter = calendar.getTime();
+
+        bundles.get(0).setPublishedDate(DateUtil.toISOString(currentTime));
         hieEncounterService.createOrUpdateEncounters(patient, bundles, healthId);
         IdMapping mapping = idMappingsRepository.findByExternalId(shrEncounterId);
         String encounterUUID = mapping.getInternalId();
-        Date lastSyncDateTime = mapping.getLastSyncDateTime();
+        assertEquals(currentTime, mapping.getLastSyncDateTime());
 
+        bundles.get(0).setPublishedDate(DateUtil.toISOString(tenMinutesAfter));
         hieEncounterService.createOrUpdateEncounters(patient, bundles, healthId);
         mapping = idMappingsRepository.findByExternalId(shrEncounterId);
         Encounter encounter2 = encounterService.getEncounterByUuid(mapping.getInternalId());
 
         assertEquals(encounterUUID, encounter2.getUuid());
-        assertTrue(mapping.getLastSyncDateTime().after(lastSyncDateTime));
+        assertEquals(tenMinutesAfter, mapping.getLastSyncDateTime());
     }
 
     @Test
@@ -284,6 +291,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         EncounterBundle bundle = new EncounterBundle();
         bundle.setPublishedDate(new Date().toString());
         bundle.setHealthId(healthId);
+        bundle.setPublishedDate(DateUtil.toISOString(DateTime.now().toDate()));
         bundle.setLink("http://shr.com/patients/" + healthId + "/encounters/" + shrEncounterId);
         bundle.setTitle("Encounter:" + shrEncounterId);
         bundle.addContent((Bundle) loadSampleFHIREncounter(encounterBundleFilePath, springContext));
