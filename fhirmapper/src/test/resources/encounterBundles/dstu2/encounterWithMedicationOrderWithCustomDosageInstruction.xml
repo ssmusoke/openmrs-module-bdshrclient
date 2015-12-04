@@ -110,7 +110,7 @@
                 <dosageInstruction>
                     <extension
                             url="https://sharedhealth.atlassian.net/wiki/display/docs/fhir-extensions#DosageInstructionCustomDosage">
-                        <valueString value="{&quot;morningDose&quot;:11,&quot;afternoonDose&quot;:12,&quot;eveningDose&quot;:13}"/>
+                        <valueString value="{&quot;morningDose&quot;:11.0,&quot;afternoonDose&quot;:12,&quot;eveningDose&quot;:13}"/>
                     </extension>
                     <additionalInstructions>
                         <coding>

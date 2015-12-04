@@ -365,7 +365,7 @@
             care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
             auto_expire_date="2008-10-09 23:59:59" uuid="amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0"/>
     <drug_order order_id="24" drug_inventory_id="301" as_needed="false" quantity="192" duration="2"
-                duration_units="803" dosing_instructions="{&quot;instructions&quot;:&quot;As directed&quot;,&quot;eveningDose&quot;:30}"
+                duration_units="803" dosing_instructions="{&quot;instructions&quot;:&quot;As directed&quot;,&quot;eveningDose&quot;:30.0}"
                 quantity_units="50" dispense_as_written="true" dose_units="807"/>
     <shr_id_mapping internal_id="amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0" external_id="amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0"
                     type="order" uri="encounters/shr_enc_id_1#MedicationOrder/amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0"/>
