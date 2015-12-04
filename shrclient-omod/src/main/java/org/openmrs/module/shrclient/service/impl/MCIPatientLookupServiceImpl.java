@@ -3,7 +3,6 @@ package org.openmrs.module.shrclient.service.impl;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.openmrs.api.context.Context;
-import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
@@ -12,14 +11,15 @@ import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.Address;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.mci.api.MciPatientSearchResponse;
+import org.openmrs.module.shrclient.service.HIEEncounterService;
+import org.openmrs.module.shrclient.service.HIEPatientService;
 import org.openmrs.module.shrclient.service.MCIPatientLookupService;
-import org.openmrs.module.shrclient.service.MciPatientService;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.web.controller.MciPatientSearchRequest;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,8 +28,8 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 
-@Component
-public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements MCIPatientLookupService {
+@Service
+public class MCIPatientLookupServiceImpl implements MCIPatientLookupService {
     private static final Logger log = Logger.getLogger(MCIPatientLookupServiceImpl.class);
 
     private static final String NID_PARAM_KEY = "nid";
@@ -39,15 +39,18 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
     private static final String PHONE_NO_PARAM_KEY = "phone_no";
     private final String patientContext;
 
-    private MciPatientService mciPatientService;
+    private HIEPatientService hiePatientService;
     private PropertiesReader propertiesReader;
     private IdentityStore identityStore;
+    private HIEEncounterService hieEncounterService;
 
     @Autowired
-    public MCIPatientLookupServiceImpl(MciPatientService mciPatientService, PropertiesReader propertiesReader, IdentityStore identityStore) {
-        this.mciPatientService = mciPatientService;
+    public MCIPatientLookupServiceImpl(HIEPatientService hiePatientService, PropertiesReader propertiesReader,
+                                       IdentityStore identityStore, HIEEncounterService hieEncounterService) {
+        this.hiePatientService = hiePatientService;
         this.propertiesReader = propertiesReader;
         this.identityStore = identityStore;
+        this.hieEncounterService = hieEncounterService;
         this.patientContext = propertiesReader.getMciPatientContext();
     }
 
@@ -99,7 +102,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
         Patient mciPatient = searchPatientByHealthId(healthId);
         if (mciPatient != null) {
             Map<String, String> downloadResponse = new HashMap<>();
-            org.openmrs.Patient emrPatient = mciPatientService.createOrUpdatePatient(mciPatient);
+            org.openmrs.Patient emrPatient = hiePatientService.createOrUpdatePatient(mciPatient);
             if (emrPatient != null) {
                 createOrUpdateEncounters(healthId, emrPatient);
             }
@@ -145,7 +148,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
     }
 
     private String getGender(Patient mciPatient) {
-        if(mciPatient.getGender().equals("O")) return "T";
+        if (mciPatient.getGender().equals("O")) return "T";
         return mciPatient.getGender();
     }
 
@@ -164,7 +167,7 @@ public class MCIPatientLookupServiceImpl extends BaseOpenmrsService implements M
             log.info("Clearing unauthorized identity token.");
             identityStore.clearToken();
         }
-        mciPatientService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+        hieEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
     }
 
     private Patient[] searchPatients(String searchParamKey, String searchParamValue) {

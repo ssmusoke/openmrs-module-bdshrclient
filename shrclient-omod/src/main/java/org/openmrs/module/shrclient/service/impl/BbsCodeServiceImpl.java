@@ -2,7 +2,9 @@ package org.openmrs.module.shrclient.service.impl;
 
 import org.openmrs.module.shrclient.dao.BbsCodeDao;
 import org.openmrs.module.shrclient.service.BbsCodeService;
+import org.springframework.stereotype.Service;
 
+@Service
 public class BbsCodeServiceImpl implements BbsCodeService {
 
     private final BbsCodeDao dao;

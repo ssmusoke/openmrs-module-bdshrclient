@@ -1,31 +1,14 @@
 package org.openmrs.module.shrclient.service.impl;
 
-import ca.uhn.fhir.model.dstu2.resource.Bundle;
-import ca.uhn.fhir.model.dstu2.resource.Composition;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.openmrs.Concept;
-import org.openmrs.Encounter;
-import org.openmrs.Obs;
-import org.openmrs.Order;
-import org.openmrs.PatientIdentifier;
-import org.openmrs.PatientIdentifierType;
-import org.openmrs.PersonAttribute;
-import org.openmrs.PersonName;
+import org.openmrs.*;
 import org.openmrs.api.AdministrationService;
-import org.openmrs.api.ConceptService;
-import org.openmrs.api.ObsService;
-import org.openmrs.api.OrderService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
-import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
-import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.fhir.MRSProperties;
-import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
-import org.openmrs.module.fhir.mapper.model.Confidentiality;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
@@ -37,73 +20,50 @@ import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.service.BbsCodeService;
-import org.openmrs.module.shrclient.service.MciPatientService;
+import org.openmrs.module.shrclient.service.HIEPatientDeathService;
+import org.openmrs.module.shrclient.service.HIEPatientService;
 import org.openmrs.module.shrclient.util.AddressHelper;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
-import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
 import static org.openmrs.module.fhir.Constants.*;
-import static org.openmrs.module.fhir.MRSProperties.*;
-import static org.openmrs.module.fhir.mapper.model.Confidentiality.getConfidentiality;
 
-@Component
-public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPatientService {
+@Service
+public class HIEPatientServiceImpl implements HIEPatientService {
     private static final String DOB_TYPE_DECLARED = "1";
     private static final String DOB_TYPE_ESTIMATED = "3";
 
-    private static final Logger logger = Logger.getLogger(MciPatientServiceImpl.class);
+    private static final Logger logger = Logger.getLogger(HIEPatientServiceImpl.class);
     public static final String REGEX_TO_MATCH_MULTIPLE_WHITE_SPACE = "\\s+";
 
     private BbsCodeService bbsCodeService;
-    private VisitService visitService;
-    private FHIRMapper fhirMapper;
     private PatientService patientService;
-    private PersonService personService;
-    private OrderService orderService;
     private IdMappingsRepository idMappingsRepository;
     private PropertiesReader propertiesReader;
     private SystemUserService systemUserService;
-    private ObsService obsService;
-    private ConceptService conceptService;
-    private GlobalPropertyLookUpService globalPropertyLookUpService;
     private PersonAttributeMapper personAttributeMapper;
+    private HIEPatientDeathService patientDeathService;
 
     @Autowired
-    public MciPatientServiceImpl(BbsCodeService bbsCodeService,
-                                 VisitService visitService,
-                                 FHIRMapper fhirMapper,
+    public HIEPatientServiceImpl(BbsCodeService bbsCodeService,
                                  PatientService patientService,
                                  PersonService personService,
-                                 OrderService orderService,
                                  IdMappingsRepository idMappingsRepository,
                                  PropertiesReader propertiesReader,
-                                 SystemUserService systemUserService,
-                                 ObsService obsService,
-                                 ConceptService conceptService,
-                                 GlobalPropertyLookUpService globalPropertyLookUpService) {
+                                 SystemUserService systemUserService, HIEPatientDeathService patientDeathService) {
         this.bbsCodeService = bbsCodeService;
-        this.visitService = visitService;
-        this.fhirMapper = fhirMapper;
         this.patientService = patientService;
-        this.personService = personService;
-        this.orderService = orderService;
         this.idMappingsRepository = idMappingsRepository;
         this.propertiesReader = propertiesReader;
         this.systemUserService = systemUserService;
-        this.obsService = obsService;
-        this.conceptService = conceptService;
-        this.globalPropertyLookUpService = globalPropertyLookUpService;
+        this.patientDeathService = patientDeathService;
         this.personAttributeMapper = new PersonAttributeMapper(personService);
     }
 
@@ -158,7 +118,6 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         emrPatient.setBirthdate(dob);
         if (DOB_TYPE_ESTIMATED.equals(mciPatient.getDobType())) {
             emrPatient.setBirthdateEstimated(Boolean.TRUE);
-        } else {
             emrPatient.setBirthdateEstimated(Boolean.FALSE);
         }
 
@@ -172,42 +131,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         new RelationshipMapper().addRelationAttributes(mciPatient.getRelations(), emrPatient, idMappingsRepository);
     }
 
-    @Override
-    public Concept getCauseOfDeath(org.openmrs.Patient emrPatient) {
-        String causeOfDeathConceptId = globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
-        Concept unspecifiedCauseOfDeathConcept = causeOfDeathConceptId != null ? conceptService.getConcept(Integer.parseInt(causeOfDeathConceptId)) : conceptService.getConceptByName(TR_CONCEPT_CAUSE_OF_DEATH);
-        String unspecifiedCauseOfDeathConceptId = globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH);
-        Concept causeOfDeathConcept = unspecifiedCauseOfDeathConceptId != null ? conceptService.getConcept(Integer.parseInt(unspecifiedCauseOfDeathConceptId)) : conceptService.getConceptByName(TR_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
-        String error = null;
-        if (emrPatient.isDead() && unspecifiedCauseOfDeathConcept == null) {
-            error = String.format("Global Property %s is not set & Concept with name %s is not found", GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH, TR_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
-            logger.error(error);
-            throw new RuntimeException(error);
-        }
-        if (emrPatient.isDead() && causeOfDeathConcept == null) {
-            error = String.format("Global Property %s is not set & Concept with name %s is not found", GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH, TR_CONCEPT_CAUSE_OF_DEATH);
-            logger.error(error);
-            throw new RuntimeException(error);
-        }
-        if (emrPatient.isDead() && emrPatient.getCauseOfDeath() != null && emrPatient.getCauseOfDeath() != unspecifiedCauseOfDeathConcept) {
-            return emrPatient.getCauseOfDeath();
-        }
-        Concept causeOfDeath = unspecifiedCauseOfDeathConcept;
-        if (emrPatient.getId() != null) {
-            List<Obs> obsForCauseOfDeath = obsService.getObservationsByPersonAndConcept(emrPatient, causeOfDeathConcept);
-            if ((obsForCauseOfDeath != null) && !obsForCauseOfDeath.isEmpty()) {
-                for (Obs obs : obsForCauseOfDeath) {
-                    if (!obs.isVoided()) {
-                        causeOfDeath = obs.getValueCoded();
-                    }
-                }
-            }
-        }
-        return causeOfDeath;
-    }
-
-    @Override
-    public PatientIdentifier generateIdentifier() {
+    private PatientIdentifier generateIdentifier() {
         IdentifierSourceService identifierSourceService = Context.getService(IdentifierSourceService.class);
         List<IdentifierSource> allIdentifierSources = identifierSourceService.getAllIdentifierSources(false);
         for (IdentifierSource identifierSource : allIdentifierSources) {
@@ -218,41 +142,6 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
             }
         }
         return null;
-    }
-
-    @Override
-    public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles, String healthId) {
-        for (EncounterBundle bundle : bundles) {
-            try {
-                createOrUpdateEncounter(emrPatient, bundle, healthId);
-            } catch (Exception e) {
-                //TODO do proper handling, write to log API?
-                logger.error("error Occurred while trying to process Encounter from SHR.", e);
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    @Override
-    public void createOrUpdateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId) throws Exception {
-        String fhirEncounterId = encounterBundle.getEncounterId();
-        Bundle bundle = encounterBundle.getBundle();
-        logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), fhirEncounterId));
-
-        if (!shouldSyncEncounter(fhirEncounterId, bundle)) return;
-        SystemProperties systemProperties = new SystemProperties(
-                propertiesReader.getFrProperties(),
-                propertiesReader.getTrProperties(),
-                propertiesReader.getPrProperties(),
-                propertiesReader.getFacilityInstanceProperties(),
-                propertiesReader.getMciProperties(),
-                propertiesReader.getShrProperties());
-        org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, healthId, fhirEncounterId, bundle, systemProperties);
-        visitService.saveVisit(newEmrEncounter.getVisit());
-        saveOrders(newEmrEncounter);
-        systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter);
-        systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter.getVisit());
-        savePatientDeathInfo(emrPatient);
     }
 
     private String getFamilyNameLocal(String banglaName) {
@@ -284,15 +173,7 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         } else {
             emrPatient.setDead(true);
             emrPatient.setDeathDate(status.getDateOfDeath());
-            emrPatient.setCauseOfDeath(getCauseOfDeath(emrPatient));
-        }
-    }
-
-    private void savePatientDeathInfo(org.openmrs.Patient emrPatient) {
-        if (emrPatient.isDead()) {
-            emrPatient.setCauseOfDeath(getCauseOfDeath(emrPatient));
-            patientService.savePatient(emrPatient);
-            systemUserService.setOpenmrsShrSystemUserAsCreator(emrPatient);
+            emrPatient.setCauseOfDeath(patientDeathService.getCauseOfDeath(emrPatient));
         }
     }
 
@@ -302,40 +183,6 @@ public class MciPatientServiceImpl extends BaseOpenmrsService implements MciPati
         logger.info("Patient with HealthId " + healthId + " already exists. Using reference to the patient for downloaded encounters.");
         return patientService.getPatientByUuid(idMap.getInternalId());
     }
-
-    private void saveOrders(Encounter newEmrEncounter) {
-        List<Order> ordersList = new ArrayList<Order>(newEmrEncounter.getOrders());
-        Collections.sort(ordersList, new Comparator<Order>() {
-            @Override
-            public int compare(Order o1, Order o2) {
-                return o1.getDateActivated().compareTo(o2.getDateActivated());
-            }
-        });
-        for (Order order : ordersList) {
-            orderService.saveOrder(order, null);
-        }
-    }
-
-    private boolean shouldSyncEncounter(String encounterId, Bundle bundle) {
-        if (idMappingsRepository.findByExternalId(encounterId) != null) {
-            return false;
-        }
-        if (getEncounterConfidentiality(bundle).ordinal() > Confidentiality.Normal.ordinal()) {
-            return false;
-        }
-        return true;
-    }
-
-    private Confidentiality getEncounterConfidentiality(Bundle bundle) {
-        Composition composition = bundle.getAllPopulatedChildElementsOfType(Composition.class).get(0);
-        String confidentialityCode = composition.getConfidentiality();
-        if (null == confidentialityCode) {
-            return Confidentiality.Normal;
-        }
-        ;
-        return getConfidentiality(confidentialityCode);
-    }
-
 
     private String getConceptId(String conceptName) {
         if (conceptName == null) {

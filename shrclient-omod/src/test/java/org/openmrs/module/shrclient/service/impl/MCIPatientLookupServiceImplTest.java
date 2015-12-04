@@ -14,7 +14,8 @@ import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityToken;
-import org.openmrs.module.shrclient.service.MciPatientService;
+import org.openmrs.module.shrclient.service.HIEEncounterService;
+import org.openmrs.module.shrclient.service.HIEPatientService;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.web.controller.MciPatientSearchRequest;
@@ -36,7 +37,9 @@ import static org.openmrs.module.shrclient.util.Headers.*;
 
 public class MCIPatientLookupServiceImplTest {
     @Mock
-    private MciPatientService mciPatientService;
+    private HIEPatientService hiePatientService;
+    @Mock
+    private HIEEncounterService hieEncounterService;
     @Mock
     private PropertiesReader propertiesReader;
     @Mock
@@ -58,7 +61,7 @@ public class MCIPatientLookupServiceImplTest {
         when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:9997");
         when(propertiesReader.getMciPatientContext()).thenReturn("/api/default/patients");
 
-        lookupService = new MCIPatientLookupServiceImpl(mciPatientService, propertiesReader, identityStore);
+        lookupService = new MCIPatientLookupServiceImpl(hiePatientService, propertiesReader, identityStore, hieEncounterService);
         Context context = new Context();
         ServiceContext serviceContext = ServiceContext.getInstance();
         serviceContext.setService(AddressHierarchyService.class, addressHierarchyService);
