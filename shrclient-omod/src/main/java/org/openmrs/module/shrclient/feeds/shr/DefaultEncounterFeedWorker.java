@@ -47,7 +47,7 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
             mciPatientService.createOrUpdateEncounter(emrPatient, encounterBundle, healthId);
         } catch (Exception e) {
             String message = String.format("Error occurred while trying to process encounter[%s] of patient[%s]",
-                    encounterBundle.getEncounterId(), encounterBundle.getHealthId());
+                    encounterBundle.getEncounterId(), healthId);
             logger.error(message);
             throw new AtomFeedClientException(message, e);
         }
