@@ -204,15 +204,15 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
                 try {
                     Map map = objectMapper.readValue(value, Map.class);
                     if (map.containsKey(FHIRProperties.FHIR_DRUG_ORDER_MORNING_DOSE_KEY)) {
-                        Integer morningDose = (Integer) map.get(FHIRProperties.FHIR_DRUG_ORDER_MORNING_DOSE_KEY);
+                        Double morningDose = getDoseValue(map, FHIRProperties.FHIR_DRUG_ORDER_MORNING_DOSE_KEY);
                         dosingInstructionsMap.put(MRSProperties.BAHMNI_DRUG_ORDER_MORNING_DOSE_KEY, morningDose);
                     }
                     if (map.containsKey(FHIRProperties.FHIR_DRUG_ORDER_AFTERNOON_DOSE_KEY)) {
-                        Integer afternoonDose = (Integer) map.get(FHIRProperties.FHIR_DRUG_ORDER_AFTERNOON_DOSE_KEY);
+                        Double afternoonDose = getDoseValue(map, FHIRProperties.FHIR_DRUG_ORDER_AFTERNOON_DOSE_KEY);
                         dosingInstructionsMap.put(MRSProperties.BAHMNI_DRUG_ORDER_AFTERNOON_DOSE_KEY, afternoonDose);
                     }
                     if (map.containsKey(FHIRProperties.FHIR_DRUG_ORDER_EVENING_DOSE_KEY)) {
-                        Integer eveningDose = (Integer) map.get(FHIRProperties.FHIR_DRUG_ORDER_EVENING_DOSE_KEY);
+                        Double eveningDose = getDoseValue(map, FHIRProperties.FHIR_DRUG_ORDER_EVENING_DOSE_KEY);
                         dosingInstructionsMap.put(MRSProperties.BAHMNI_DRUG_ORDER_EVENING_DOSE_KEY, eveningDose);
                     }
                 } catch (IOException e) {
@@ -220,6 +220,11 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
                 }
             }
         }
+    }
+
+    private Double getDoseValue(Map map, String doseKey) {
+        Object dose = map.get(doseKey);
+        return dose != null ? Double.parseDouble(dose.toString()) : null;
     }
 
     private void setDoseUnits(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction) {

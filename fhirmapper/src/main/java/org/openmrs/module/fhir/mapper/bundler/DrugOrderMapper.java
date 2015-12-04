@@ -206,18 +206,18 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 
     private void getDosageInstructionsWithPredifinedFrequency(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction) {
         int count = 0;
-        HashMap<String, Integer> map = new HashMap<>();
-        Integer morningDose = (Integer) readFromDoseInstructions(drugOrder, BAHMNI_DRUG_ORDER_MORNING_DOSE_KEY);
+        HashMap<String, Double> map = new HashMap<>();
+        Double morningDose = getDoseValue(drugOrder, BAHMNI_DRUG_ORDER_MORNING_DOSE_KEY);
         if (morningDose != null && morningDose > 0) {
             count++;
             map.put(FHIR_DRUG_ORDER_MORNING_DOSE_KEY, morningDose);
         }
-        Integer afternoonDose = (Integer) readFromDoseInstructions(drugOrder, BAHMNI_DRUG_ORDER_AFTERNOON_DOSE_KEY);
+        Double afternoonDose = getDoseValue(drugOrder, BAHMNI_DRUG_ORDER_AFTERNOON_DOSE_KEY);
         if (afternoonDose != null && afternoonDose > 0) {
             count++;
             map.put(FHIR_DRUG_ORDER_AFTERNOON_DOSE_KEY, afternoonDose);
         }
-        Integer eveningDose = (Integer) readFromDoseInstructions(drugOrder, BAHMNI_DRUG_ORDER_EVENING_DOSE_KEY);
+        Double eveningDose = getDoseValue(drugOrder, BAHMNI_DRUG_ORDER_EVENING_DOSE_KEY);
         if (eveningDose != null && eveningDose > 0) {
             count++;
             map.put(FHIR_DRUG_ORDER_EVENING_DOSE_KEY, eveningDose);
@@ -242,6 +242,11 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         } catch (IOException e) {
             logger.warn("Not able to set dose.");
         }
+    }
+
+    private double getDoseValue(DrugOrder drugOrder, String doseKey) {
+        Object dose = readFromDoseInstructions(drugOrder, doseKey);
+        return dose != null ? Double.parseDouble(dose.toString()) : 0;
     }
 
     private void getDosageInstructionsForGenericDose(DrugOrder drugOrder, MedicationOrder.DosageInstruction dosageInstruction) {

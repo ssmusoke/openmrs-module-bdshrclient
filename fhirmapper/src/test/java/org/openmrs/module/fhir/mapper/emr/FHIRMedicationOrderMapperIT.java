@@ -202,9 +202,9 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
         assertNull(drugOrder.getDose());
         assertEquals(conceptService.getConcept(807), drugOrder.getDoseUnits());
         String dosingInstructions = drugOrder.getDosingInstructions();
-        assertThat((Integer) readFromJson(dosingInstructions, MRSProperties.BAHMNI_DRUG_ORDER_MORNING_DOSE_KEY), is(11));
-        assertThat((Integer) readFromJson(dosingInstructions, MRSProperties.BAHMNI_DRUG_ORDER_AFTERNOON_DOSE_KEY), is(12));
-        assertThat((Integer) readFromJson(dosingInstructions, MRSProperties.BAHMNI_DRUG_ORDER_EVENING_DOSE_KEY), is(13));
+        assertThat((Double) readFromJson(dosingInstructions, MRSProperties.BAHMNI_DRUG_ORDER_MORNING_DOSE_KEY), is(11.0));
+        assertThat((Double) readFromJson(dosingInstructions, MRSProperties.BAHMNI_DRUG_ORDER_AFTERNOON_DOSE_KEY), is(12.0));
+        assertThat((Double) readFromJson(dosingInstructions, MRSProperties.BAHMNI_DRUG_ORDER_EVENING_DOSE_KEY), is(13.0));
     }
 
     @Test

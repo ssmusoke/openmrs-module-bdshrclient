@@ -235,9 +235,9 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         String value = ((StringDt) extensions.get(0).getValue()).getValue();
         Map map = new ObjectMapper().readValue(value, Map.class);
         assertEquals(3, map.size());
-        assertEquals(1, map.get(FHIRProperties.FHIR_DRUG_ORDER_MORNING_DOSE_KEY));
-        assertEquals(2, map.get(FHIRProperties.FHIR_DRUG_ORDER_AFTERNOON_DOSE_KEY));
-        assertEquals(3, map.get(FHIRProperties.FHIR_DRUG_ORDER_EVENING_DOSE_KEY));
+        assertEquals(1.0, map.get(FHIRProperties.FHIR_DRUG_ORDER_MORNING_DOSE_KEY));
+        assertEquals(2.0, map.get(FHIRProperties.FHIR_DRUG_ORDER_AFTERNOON_DOSE_KEY));
+        assertEquals(3.0, map.get(FHIRProperties.FHIR_DRUG_ORDER_EVENING_DOSE_KEY));
         assertEquals(TimingAbbreviationEnum.TID.getCode(), dosageInstruction.getTiming().getCode().getCodingFirstRep().getCode());
     }
 
@@ -256,8 +256,8 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         String value = ((StringDt) extensions.get(0).getValue()).getValue();
         Map map = new ObjectMapper().readValue(value, Map.class);
         assertEquals(2, map.size());
-        assertEquals(11, map.get(FHIRProperties.FHIR_DRUG_ORDER_MORNING_DOSE_KEY));
-        assertEquals(12, map.get(FHIRProperties.FHIR_DRUG_ORDER_AFTERNOON_DOSE_KEY));
+        assertEquals(11.0, map.get(FHIRProperties.FHIR_DRUG_ORDER_MORNING_DOSE_KEY));
+        assertEquals(12.0, map.get(FHIRProperties.FHIR_DRUG_ORDER_AFTERNOON_DOSE_KEY));
         assertNull(map.get(FHIRProperties.FHIR_DRUG_ORDER_EVENING_DOSE_KEY));
         assertEquals(TimingAbbreviationEnum.BID.getCode(), dosageInstruction.getTiming().getCode().getCodingFirstRep().getCode());
     }
@@ -279,7 +279,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(1, map.size());
         assertNull(map.get(FHIRProperties.FHIR_DRUG_ORDER_MORNING_DOSE_KEY));
         assertNull(map.get(FHIRProperties.FHIR_DRUG_ORDER_AFTERNOON_DOSE_KEY));
-        assertEquals(30, map.get(FHIRProperties.FHIR_DRUG_ORDER_EVENING_DOSE_KEY));
+        assertEquals(30.0, map.get(FHIRProperties.FHIR_DRUG_ORDER_EVENING_DOSE_KEY));
         assertEquals(TimingAbbreviationEnum.QD.getCode(), dosageInstruction.getTiming().getCode().getCodingFirstRep().getCode());
     }
 
