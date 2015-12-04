@@ -23,6 +23,7 @@ import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.*;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -52,7 +53,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/omrsGlobalPropertyTestDS.xml");
     }
 
-        @Test
+    @Test
     public void shouldSaveEncounter() throws Exception {
         executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
@@ -232,25 +233,22 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         String shrEncounterId = "shr-enc-id";
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/testFHIREncounter.xml");
 
-        Calendar calendar = Calendar.getInstance();
         Date currentTime = new Date();
-        calendar.setTime(currentTime);
-        calendar.add(Calendar.MINUTE, 10);
-        Date tenMinutesAfter = calendar.getTime();
+        Date tenMinutesAfter = getDateTimeAfterNMinutes(currentTime, 10);
 
         bundles.get(0).setPublishedDate(DateUtil.toISOString(currentTime));
-        hieEncounterService.createOrUpdateEncounters(patient, bundles, healthId);
+        emrEncounterService.createOrUpdateEncounters(patient, bundles, healthId);
         IdMapping mapping = idMappingsRepository.findByExternalId(shrEncounterId);
         String encounterUUID = mapping.getInternalId();
-        assertEquals(currentTime, mapping.getLastSyncDateTime());
+        Date lastSyncDateTime = mapping.getLastSyncDateTime();
 
         bundles.get(0).setPublishedDate(DateUtil.toISOString(tenMinutesAfter));
-        hieEncounterService.createOrUpdateEncounters(patient, bundles, healthId);
+        emrEncounterService.createOrUpdateEncounters(patient, bundles, healthId);
         mapping = idMappingsRepository.findByExternalId(shrEncounterId);
         Encounter encounter2 = encounterService.getEncounterByUuid(mapping.getInternalId());
 
         assertEquals(encounterUUID, encounter2.getUuid());
-        assertEquals(tenMinutesAfter, mapping.getLastSyncDateTime());
+        assertTrue(lastSyncDateTime.before(mapping.getLastSyncDateTime()));
     }
 
     @Test
@@ -261,7 +259,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         String shrEncounterId = "shr-enc-id";
 
         List<EncounterBundle> bundles1 = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithObservations.xml");
-        hieEncounterService.createOrUpdateEncounters(patient, bundles1, healthId);
+        emrEncounterService.createOrUpdateEncounters(patient, bundles1, healthId);
         IdMapping mapping = idMappingsRepository.findByExternalId(shrEncounterId);
         Encounter encounter = encounterService.getEncounterByUuid(mapping.getInternalId());
 
@@ -273,7 +271,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(new Double(70.0), diastolicBp.getValueNumeric());
 
         List<EncounterBundle> bundles2 = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithUpdatedObservations.xml");
-        hieEncounterService.createOrUpdateEncounters(patient, bundles2, healthId);
+        emrEncounterService.createOrUpdateEncounters(patient, bundles2, healthId);
         mapping = idMappingsRepository.findByExternalId(shrEncounterId);
         encounter = encounterService.getEncounterByUuid(mapping.getInternalId());
 
@@ -284,6 +282,32 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(3, encounter.getAllObs(false).size());
         diastolicBp = topLevelObs.iterator().next().getGroupMembers().iterator().next().getGroupMembers().iterator().next();
         assertEquals(new Double(120.0), diastolicBp.getValueNumeric());
+    }
+
+    @Test
+    public void shouldRetryIfFailsToDownloadAnEncounter() throws Exception {
+        executeDataSet("testDataSets/drugOrderDS.xml");
+        String healthId = "HID123";
+        Patient patient = patientService.getPatient(110);
+        String shrEncounterId1 = "shr-enc-id1";
+        String shrEncounterId2 = "shr-enc-id2";
+
+        EncounterBundle bundle1 = getEncounterBundles(healthId, shrEncounterId1, "encounterBundles/dstu2/medicationOrderWithPriorPrescription.xml").get(0);
+        EncounterBundle bundle2 = getEncounterBundles(healthId, shrEncounterId2, "encounterBundles/dstu2/encounterWithMedicationOrder.xml").get(0);
+        List<EncounterBundle> encounterBundles = asList(bundle1, bundle2);
+        emrEncounterService.createOrUpdateEncounters(patient, encounterBundles, healthId);
+
+        IdMapping mapping1 = idMappingsRepository.findByExternalId(shrEncounterId1);
+        IdMapping mapping2 = idMappingsRepository.findByExternalId(shrEncounterId2);
+
+        assertTrue(mapping1.getLastSyncDateTime().after(mapping2.getLastSyncDateTime()));
+    }
+
+    public Date getDateTimeAfterNMinutes(Date currentTime, int minutes) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(currentTime);
+        calendar.add(Calendar.MINUTE, minutes);
+        return calendar.getTime();
     }
 
     private List<EncounterBundle> getEncounterBundles(String healthId, String shrEncounterId, String encounterBundleFilePath) throws Exception {

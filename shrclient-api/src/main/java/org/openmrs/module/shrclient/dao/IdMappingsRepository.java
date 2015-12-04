@@ -23,7 +23,8 @@ public class IdMappingsRepository {
         database.executeInTransaction(new TxWork<Object>() {
             @Override
             public Object execute(Connection connection) {
-                Timestamp lastSyncedDateTime = idMapping.getLastSyncDateTime() != null ? new Timestamp(idMapping.getLastSyncDateTime().getTime()) : new Timestamp(new java.util.Date().getTime());
+                Timestamp lastSyncedDateTime = getLastSyncDateTime(idMapping);
+                Timestamp serverUpdateDateTime = getServerUpdateDateTime(idMapping);
                 if (!mappingExists(idMapping)) {
                     String query = "insert into shr_id_mapping (internal_id, external_id, type, uri, last_sync_datetime, server_update_datetime) values (?,?,?,?,?,?)";
 
@@ -35,7 +36,7 @@ public class IdMappingsRepository {
                         statement.setString(3, idMapping.getType());
                         statement.setString(4, idMapping.getUri());
                         statement.setTimestamp(5, lastSyncedDateTime);
-                        statement.setTimestamp(6, new Timestamp(idMapping.getServerUpdateDateTime().getTime()));
+                        statement.setTimestamp(6, serverUpdateDateTime);
                         statement.execute();
                     } catch (Exception e) {
                         throw new RuntimeException("Error occurred while creating id mapping", e);
@@ -52,7 +53,7 @@ public class IdMappingsRepository {
                     try {
                         statement = connection.prepareStatement(updateQuery);
                         statement.setTimestamp(1, lastSyncedDateTime);
-                        statement.setTimestamp(2, new Timestamp(idMapping.getServerUpdateDateTime().getTime()));
+                        statement.setTimestamp(2, serverUpdateDateTime);
                         statement.setString(3, idMapping.getInternalId());
                         statement.executeUpdate();
                     } catch (SQLException e) {
@@ -67,7 +68,16 @@ public class IdMappingsRepository {
                 }
                 return null;
             }
+
         });
+    }
+
+    public Timestamp getServerUpdateDateTime(IdMapping idMapping) {
+        return idMapping.getServerUpdateDateTime() != null ? new Timestamp(idMapping.getServerUpdateDateTime().getTime()) : null;
+    }
+
+    public Timestamp getLastSyncDateTime(IdMapping idMapping) {
+        return idMapping.getLastSyncDateTime() != null ? new Timestamp(idMapping.getLastSyncDateTime().getTime()) : new Timestamp(new Date().getTime());
     }
 
     public IdMapping findByExternalId(final String uuid) {
