@@ -30,19 +30,23 @@ public class FrequencyMapperUtil {
         EVERY_SIX_HOURS("Every 6 hours", 1, H, 6),
         EVERY_EIGHT_HOURS("Every 8 hours", 1, H, 8),
         EVERY_TWELVE_HOURS("Every 12 hours", 1, H, 12),
+        FIVE_TIMES_A_DAY("Five times a day", 5, D, 1),
         ON_ALTERNATE_DAYS("On alternate days", 1, D, 2),
         ONCE_A_WEEK("Once a week", 1, WK, 1),
         TWICE_A_WEEK("Twice a week", 2, WK, 1),
         THRICE_A_WEEK("Thrice a week", 3, WK, 1),
+        FOUR_DAYS_A_WEEK("Four days a week", 4, WK, 1),
+        FIVE_DAYS_A_WEEK("Five days a week", 5, WK, 1),
+        SIX_DAYS_A_WEEK("Six days a week", 6, WK, 1),
         EVERY_TWO_WEEKS("Every 2 weeks", 1, WK, 2),
         EVERY_THREE_WEEKS("Every 3 weeks", 1, WK, 3),
         ONCE_A_MONTH("Once a month", 1, MO, 1);
 
         private final String conceptName;
-
         private int frequency;
         private final UnitsOfTimeEnum unitOfTime;
         private int frequencyPeriod;
+
         FrequencyUnit(String conceptName, int frequency, UnitsOfTimeEnum unitOfTime, int frequencyPeriod) {
             this.conceptName = conceptName;
             this.frequency = frequency;
@@ -80,10 +84,14 @@ public class FrequencyMapperUtil {
         conceptNameToFrequencyUnitMap.put("Every 6 hours", FrequencyUnit.EVERY_SIX_HOURS);
         conceptNameToFrequencyUnitMap.put("Every 8 hours", FrequencyUnit.EVERY_EIGHT_HOURS);
         conceptNameToFrequencyUnitMap.put("Every 12 hours", FrequencyUnit.EVERY_TWELVE_HOURS);
+        conceptNameToFrequencyUnitMap.put("Five times a day", FrequencyUnit.FIVE_TIMES_A_DAY);
         conceptNameToFrequencyUnitMap.put("On alternate days", FrequencyUnit.ON_ALTERNATE_DAYS);
         conceptNameToFrequencyUnitMap.put("Once a week", FrequencyUnit.ONCE_A_WEEK);
         conceptNameToFrequencyUnitMap.put("Twice a week", FrequencyUnit.TWICE_A_WEEK);
         conceptNameToFrequencyUnitMap.put("Thrice a week", FrequencyUnit.THRICE_A_WEEK);
+        conceptNameToFrequencyUnitMap.put("Four days a week", FrequencyUnit.FOUR_DAYS_A_WEEK);
+        conceptNameToFrequencyUnitMap.put("Five days a week", FrequencyUnit.FIVE_DAYS_A_WEEK);
+        conceptNameToFrequencyUnitMap.put("Six days a week", FrequencyUnit.SIX_DAYS_A_WEEK);
         conceptNameToFrequencyUnitMap.put("Every 2 weeks", FrequencyUnit.EVERY_TWO_WEEKS);
         conceptNameToFrequencyUnitMap.put("Every 3 weeks", FrequencyUnit.EVERY_THREE_WEEKS);
         conceptNameToFrequencyUnitMap.put("Once a month", FrequencyUnit.ONCE_A_MONTH);
