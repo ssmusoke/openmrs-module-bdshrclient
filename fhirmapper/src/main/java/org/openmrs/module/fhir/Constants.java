@@ -39,6 +39,4 @@ public class Constants {
 
     public final static String FATHER_NAME_ATTRIBUTE_TYPE = "fatherName";
     public final static String SPOUSE_NAME_ATTRIBUTE_TYPE = "spouseName";
-
-    public static final String LATEST_UPDATE_CATEGORY_TAG = "latest_update_event_id";
 }

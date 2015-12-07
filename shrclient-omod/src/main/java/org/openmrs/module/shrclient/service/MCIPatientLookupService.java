@@ -14,7 +14,7 @@ import org.openmrs.module.shrclient.model.mci.api.MciPatientSearchResponse;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.web.controller.MciPatientSearchRequest;
-import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
+import org.openmrs.module.shrclient.web.controller.dto.EncounterEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -155,7 +155,7 @@ public class MCIPatientLookupService  {
 
     private void createOrUpdateEncounters(String healthId, org.openmrs.Patient emrPatient) {
         final String url = String.format("/patients/%s/encounters", healthId);
-        List<EncounterBundle> bundles = null;
+        List<EncounterEvent> bundles = null;
         try {
             bundles = new ClientRegistry(propertiesReader, identityStore).getSHRClient().getEncounters(url);
         } catch (IdentityUnauthorizedException e) {

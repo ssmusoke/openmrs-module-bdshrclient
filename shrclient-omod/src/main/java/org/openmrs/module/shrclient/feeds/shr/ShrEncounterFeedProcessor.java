@@ -18,7 +18,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.atomfeed.transaction.support.AtomFeedSpringTransactionManager;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.util.FhirBundleContextHolder;
-import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
+import org.openmrs.module.shrclient.web.controller.dto.EncounterEvent;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.net.URI;
@@ -99,10 +99,10 @@ public class ShrEncounterFeedProcessor {
             } catch (Exception e) {
                 throw new RuntimeException("Unable to parse XML", e);
             }
-            EncounterBundle encounterBundle = new EncounterBundle();
-            encounterBundle.setTitle(event.getTitle());
-            encounterBundle.addContent(bundle);
-            shrEventWorker.process(encounterBundle);
+            EncounterEvent encounterEvent = new EncounterEvent();
+            encounterEvent.setTitle(event.getTitle());
+            encounterEvent.addContent(bundle);
+            shrEventWorker.process(encounterEvent);
         }
 
         @Override

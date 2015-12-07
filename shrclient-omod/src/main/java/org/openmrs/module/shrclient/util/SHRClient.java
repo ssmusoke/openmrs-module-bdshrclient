@@ -11,7 +11,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.log4j.Logger;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
-import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
+import org.openmrs.module.shrclient.web.controller.dto.EncounterEvent;
 
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ public class SHRClient {
     }
 
     @SuppressWarnings("unchecked")
-    public List<EncounterBundle> getEncounters(final String url) throws IdentityUnauthorizedException {
+    public List<EncounterEvent> getEncounters(final String url) throws IdentityUnauthorizedException {
         try {
             Map<String, String> requestHeaders = new HashMap<>(headers);
             requestHeaders.put("accept", "application/atom+xml");
@@ -41,17 +41,17 @@ public class SHRClient {
             WireFeedInput input = new WireFeedInput();
             Feed feed = (Feed) input.build(new StringReader(response));
             List<Entry> entries = feed.getEntries();
-            List<EncounterBundle> encounterBundles = new ArrayList<>();
+            List<EncounterEvent> encounterEvents = new ArrayList<>();
             for (Entry entry : entries) {
                 String entryContent = getEntryContent(entry);
-                EncounterBundle bundle = new EncounterBundle();
+                EncounterEvent bundle = new EncounterEvent();
                 bundle.setTitle(entry.getTitle());
                 bundle.setPublishedDate(DateUtil.toISOString(entry.getPublished()));
                 bundle.setCategories(entry.getCategories());
                 bundle.addContent(getBundle(entryContent));
-                encounterBundles.add(bundle);
+                encounterEvents.add(bundle);
             }
-            return encounterBundles;
+            return encounterEvents;
 
         } catch (FeedException e) {
             log.error("Error fetching encounters for : " + url, e);

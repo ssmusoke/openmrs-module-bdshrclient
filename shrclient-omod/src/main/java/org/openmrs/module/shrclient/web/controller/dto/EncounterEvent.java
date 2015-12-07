@@ -3,12 +3,14 @@ package org.openmrs.module.shrclient.web.controller.dto;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.sun.syndication.feed.atom.Category;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class EncounterBundle {
+public class EncounterEvent {
+    public static final String LATEST_UPDATE_CATEGORY_TAG = "latest_update_event_id";
+    public static final String ENCOUNTER_UPDATED_CATEGORY_TAG = "encounter_updated_at";
 
     @JsonProperty("id")
     private String eventId;
@@ -80,5 +82,24 @@ public class EncounterBundle {
 
     public void setCategories(List categories) {
         this.categories = categories;
+    }
+
+    public Category getLatestUpdateEventCategory() {
+        return getCategoryByTerm(LATEST_UPDATE_CATEGORY_TAG);
+    }
+
+    public Category getEncounterUpdatedCategory() {
+        return getCategoryByTerm(ENCOUNTER_UPDATED_CATEGORY_TAG);
+    }
+
+    private Category getCategoryByTerm(String categoryTag) {
+        List allCategories = getCategories();
+        if (allCategories != null) {
+            for (Object category : allCategories) {
+                if (((Category) category).getTerm().startsWith(categoryTag))
+                    return (Category) category;
+            }
+        }
+        return null;
     }
 }

@@ -17,21 +17,21 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class EncounterBundleTest {
+public class EncounterEventTest {
 
     @Test
-    public void shouldDeSerializeEncounterBundle() throws IOException {
+    public void shouldDeSerializeEncounterEvent() throws IOException {
         final URL resource = URLClassLoader.getSystemResource("sample_encounter_bundle.json");
         final String json = FileUtils.readFileToString(new File(resource.getPath()));
         ObjectMapper mapper = new ObjectMapper();
-        List<EncounterBundle> bundles = mapper.readValue(json, new TypeReference<List<EncounterBundle>>() {});
-        assertEquals(1, bundles.size());
+        List<EncounterEvent> events = mapper.readValue(json, new TypeReference<List<EncounterEvent>>() {});
+        assertEquals(1, events.size());
 
-        EncounterBundle encounterBundle = bundles.get(0);
-        assertNotNull(encounterBundle.getEncounterId());
-        assertNotNull(encounterBundle.getHealthId());
+        EncounterEvent encounterEvent = events.get(0);
+        assertNotNull(encounterEvent.getEncounterId());
+        assertNotNull(encounterEvent.getHealthId());
 
-        final Bundle bundle = encounterBundle.getBundle();
+        final Bundle bundle = encounterEvent.getBundle();
         assertEquals("Bundle/4fe6f9e2-d10a-4956-aae5-091e810090e1", bundle.getId().getValue());
         assertNotNull(bundle);
         assertNotNull(bundle.getEntry());

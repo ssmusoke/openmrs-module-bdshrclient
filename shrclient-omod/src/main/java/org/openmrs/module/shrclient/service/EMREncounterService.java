@@ -3,6 +3,7 @@ package org.openmrs.module.shrclient.service;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Composition;
 import com.sun.syndication.feed.atom.Category;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
@@ -12,19 +13,19 @@ import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.Confidentiality;
 import org.openmrs.module.fhir.mapper.model.ShrEncounter;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
-import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
+import org.openmrs.module.shrclient.web.controller.dto.EncounterEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 import static org.openmrs.module.fhir.Constants.ID_MAPPING_ENCOUNTER_TYPE;
-import static org.openmrs.module.fhir.Constants.LATEST_UPDATE_CATEGORY_TAG;
 import static org.openmrs.module.fhir.mapper.model.Confidentiality.getConfidentiality;
 import static org.openmrs.module.fhir.utils.SHREncounterURLUtil.getEncounterUrl;
 
@@ -56,18 +57,18 @@ public class EMREncounterService {
         this.patientDeathService = patientDeathService;
     }
 
-    public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles, String healthId) {
-        ArrayList<EncounterBundle> failedEncounters = new ArrayList<>();
-        for (EncounterBundle bundle : bundles) {
+    public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterEvent> bundles, String healthId) {
+        ArrayList<EncounterEvent> failedEncounters = new ArrayList<>();
+        for (EncounterEvent bundle : bundles) {
             try {
                 createOrUpdateEncounter(emrPatient, bundle, healthId);
             } catch (Exception e) {
                 failedEncounters.add(bundle);
             }
         }
-        for (EncounterBundle failedEncounterBundle : failedEncounters) {
+        for (EncounterEvent failedEncounterEvent : failedEncounters) {
             try {
-                createOrUpdateEncounter(emrPatient, failedEncounterBundle, healthId);
+                createOrUpdateEncounter(emrPatient, failedEncounterEvent, healthId);
             } catch (Exception e) {
                 //TODO do proper handling, write to log API?
                 logger.error("error Occurred while trying to process Encounter from SHR.", e);
@@ -76,12 +77,12 @@ public class EMREncounterService {
         }
     }
 
-    public void createOrUpdateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId) throws Exception {
-        String shrEncounterId = encounterBundle.getEncounterId();
-        Bundle bundle = encounterBundle.getBundle();
-        logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterBundle.getHealthId(), shrEncounterId));
+    public void createOrUpdateEncounter(org.openmrs.Patient emrPatient, EncounterEvent encounterEvent, String healthId) throws Exception {
+        String shrEncounterId = encounterEvent.getEncounterId();
+        Bundle bundle = encounterEvent.getBundle();
+        logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterEvent.getHealthId(), shrEncounterId));
 
-        if (!shouldSyncEncounter(shrEncounterId, encounterBundle)) return;
+        if (!shouldSyncEncounter(shrEncounterId, encounterEvent)) return;
         SystemProperties systemProperties = new SystemProperties(
                 propertiesReader.getFrProperties(),
                 propertiesReader.getTrProperties(),
@@ -94,16 +95,17 @@ public class EMREncounterService {
         org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, encounterComposition, systemProperties);
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
-        addEncounterToIdMapping(newEmrEncounter, shrEncounterId, healthId, systemProperties);
+        Date encounterUpdatedDate = getEncounterUpdatedDate(encounterEvent);
+        addEncounterToIdMapping(newEmrEncounter, shrEncounterId, healthId, systemProperties, encounterUpdatedDate);
         systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter);
         systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter.getVisit());
         savePatientDeathInfo(emrPatient);
     }
 
-    private void addEncounterToIdMapping(Encounter newEmrEncounter, String externalUuid, String healthId, SystemProperties systemProperties) {
+    private void addEncounterToIdMapping(Encounter newEmrEncounter, String externalUuid, String healthId, SystemProperties systemProperties, Date encounterUpdatedDate) {
         String internalUuid = newEmrEncounter.getUuid();
         String shrEncounterUrl = getEncounterUrl(externalUuid, healthId, systemProperties);
-        IdMapping idMapping = new IdMapping(internalUuid, externalUuid, ID_MAPPING_ENCOUNTER_TYPE, shrEncounterUrl, new Date());
+        IdMapping idMapping = new IdMapping(internalUuid, externalUuid, ID_MAPPING_ENCOUNTER_TYPE, shrEncounterUrl, new Date(), encounterUpdatedDate);
         idMappingsRepository.saveOrUpdateMapping(idMapping);
     }
 
@@ -120,21 +122,29 @@ public class EMREncounterService {
         }
     }
 
-    private boolean shouldSyncEncounter(String encounterId, EncounterBundle encounterBundle) {
-        if (hasUpdatedEncounterInTheFeed(encounterBundle)) return false;
-//        IdMapping idMapping = idMappingsRepository.findByExternalId(encounterId);
-//        Date publishedDate = DateUtil.parseDate(encounterBundle.getPublishedDate());
-//        if (idMapping != null && publishedDate.before(idMapping.getLastSyncDateTime())) return false;
-        return getEncounterConfidentiality(encounterBundle.getBundle()).ordinal() <= Confidentiality.Normal.ordinal();
+    private boolean shouldSyncEncounter(String encounterId, EncounterEvent encounterEvent) {
+        if (hasUpdatedEncounterInTheFeed(encounterEvent)) return false;
+        IdMapping idMapping = idMappingsRepository.findByExternalId(encounterId);
+        Date encounterUpdatedDate = getEncounterUpdatedDate(encounterEvent);
+        if (isUpdateAlreadyProcessed(idMapping, encounterUpdatedDate)) return false;
+        return getEncounterConfidentiality(encounterEvent.getBundle()).ordinal() <= Confidentiality.Normal.ordinal();
     }
 
-    private boolean hasUpdatedEncounterInTheFeed(EncounterBundle encounterBundle) {
-        if (encounterBundle.getCategories() != null) {
-            for (Object category : encounterBundle.getCategories()) {
-                if (((Category) category).getTerm().contains(LATEST_UPDATE_CATEGORY_TAG)) return true;
-            }
-        }
-        return false;
+    private boolean isUpdateAlreadyProcessed(IdMapping idMapping, Date encounterUpdatedDate) {
+        if (idMapping == null) return false;
+        Date serverUpdateDateTime = idMapping.getServerUpdateDateTime();
+        if (serverUpdateDateTime == null) return true;
+        return encounterUpdatedDate.before(serverUpdateDateTime) || encounterUpdatedDate.equals(serverUpdateDateTime);
+    }
+
+    private Date getEncounterUpdatedDate(EncounterEvent encounterEvent) {
+        Category encounterUpdatedCategory = encounterEvent.getEncounterUpdatedCategory();
+        String encounterUpdatedDate = StringUtils.substringAfter(encounterUpdatedCategory.getTerm(), ":");
+        return DateUtil.parseDate(encounterUpdatedDate);
+    }
+
+    private boolean hasUpdatedEncounterInTheFeed(EncounterEvent encounterEvent) {
+        return encounterEvent.getLatestUpdateEventCategory() != null;
     }
 
     private Confidentiality getEncounterConfidentiality(Bundle bundle) {

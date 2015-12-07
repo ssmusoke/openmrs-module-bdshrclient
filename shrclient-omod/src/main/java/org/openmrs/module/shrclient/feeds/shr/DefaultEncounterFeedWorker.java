@@ -12,7 +12,7 @@ import org.openmrs.module.shrclient.service.EMREncounterService;
 import org.openmrs.module.shrclient.service.EMRPatientService;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
-import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
+import org.openmrs.module.shrclient.web.controller.dto.EncounterEvent;
 
 import static org.openmrs.module.fhir.utils.FHIRBundleHelper.getEncounter;
 
@@ -33,9 +33,9 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
     }
 
     @Override
-    public void process(EncounterBundle encounterBundle) {
-        logger.info("Processing bundle with encounter id: " + encounterBundle.getEncounterId());
-        Bundle bundle = encounterBundle.getBundle();
+    public void process(EncounterEvent encounterEvent) {
+        logger.info("Processing bundle with encounter id: " + encounterEvent.getEncounterId());
+        Bundle bundle = encounterEvent.getBundle();
         String healthId = identifyPatientHealthId(bundle);
         try {
             RestClient mciClient = new ClientRegistry(propertiesReader, identityStore).getMCIClient();
@@ -47,10 +47,10 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
                 logger.error(message);
                 throw new Exception(message);
             }
-            emrEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, healthId);
+            emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent, healthId);
         } catch (Exception e) {
             String message = String.format("Error occurred while trying to process encounter[%s] of patient[%s]",
-                    encounterBundle.getEncounterId(), healthId);
+                    encounterEvent.getEncounterId(), healthId);
             logger.error(message);
             throw new AtomFeedClientException(message, e);
         }
