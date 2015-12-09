@@ -321,10 +321,8 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
     private List<EncounterEvent> getEncounterEvents(String healthId, String shrEncounterId, String encounterBundleFilePath) throws Exception {
         List<EncounterEvent> events = new ArrayList<>();
         EncounterEvent encounterEvent = new EncounterEvent();
-        encounterEvent.setPublishedDate(new Date().toString());
         encounterEvent.setHealthId(healthId);
         String publishedDate = DateUtil.toISOString(DateTime.now().toDate());
-        encounterEvent.setPublishedDate(publishedDate);
         Category category = new Category();
         category.setTerm(ENCOUNTER_UPDATED_CATEGORY_TAG + ":" + publishedDate);
         encounterEvent.setCategories(asList(category));

@@ -44,12 +44,11 @@ public class SHRClient {
             List<EncounterEvent> encounterEvents = new ArrayList<>();
             for (Entry entry : entries) {
                 String entryContent = getEntryContent(entry);
-                EncounterEvent bundle = new EncounterEvent();
-                bundle.setTitle(entry.getTitle());
-                bundle.setPublishedDate(DateUtil.toISOString(entry.getPublished()));
-                bundle.setCategories(entry.getCategories());
-                bundle.addContent(getBundle(entryContent));
-                encounterEvents.add(bundle);
+                EncounterEvent event = new EncounterEvent();
+                event.setTitle(entry.getTitle());
+                event.setCategories(entry.getCategories());
+                event.addContent(getBundle(entryContent));
+                encounterEvents.add(event);
             }
             return encounterEvents;
 

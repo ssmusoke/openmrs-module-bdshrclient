@@ -80,10 +80,9 @@ public class EMREncounterServiceTest {
         Bundle.Entry atomEntry = new Bundle.Entry();
         atomEntry.setResource(composition);
         bundle.addEntry(atomEntry);
-        String publishedDate = DateUtil.toISOString(DateTime.now().toDate());
-        encounterEvent.setPublishedDate(publishedDate);
+        String encounterUpdatedDate = DateUtil.toISOString(DateTime.now().toDate());
         Category category = new Category();
-        category.setTerm(ENCOUNTER_UPDATED_CATEGORY_TAG + ":" + publishedDate);
+        category.setTerm(ENCOUNTER_UPDATED_CATEGORY_TAG + ":" + encounterUpdatedDate);
         encounterEvent.setCategories(asList(category));
         encounterEvent.addContent(bundle);
         Patient emrPatient = new Patient();
@@ -105,10 +104,9 @@ public class EMREncounterServiceTest {
         atomEntry.setResource(composition);
         bundle.addEntry(atomEntry);
         encounterEvent.addContent(bundle);
-        String publishedDate = DateUtil.toISOString(DateTime.now().toDate());
-        encounterEvent.setPublishedDate(publishedDate);
+        String encounterUpdateDate = DateUtil.toISOString(DateTime.now().toDate());
         Category category = new Category();
-        category.setTerm(ENCOUNTER_UPDATED_CATEGORY_TAG + ":" + publishedDate);
+        category.setTerm(ENCOUNTER_UPDATED_CATEGORY_TAG + ":" + encounterUpdateDate);
         encounterEvent.setCategories(asList(category));
 
         encounterEvent.setTitle("Encounter:shr_encounter_id");
@@ -171,7 +169,6 @@ public class EMREncounterServiceTest {
         Category category = new Category();
         category.setTerm(ENCOUNTER_UPDATED_CATEGORY_TAG + ":" + DateUtil.toISOString(currentTime));
         encounterEvent.setCategories(asList(category));
-        encounterEvent.setPublishedDate(DateUtil.toISOString(currentTime));
         Patient emrPatient = new Patient();
         String healthId = "health_id";
 
@@ -207,7 +204,6 @@ public class EMREncounterServiceTest {
         encounterEvent.addContent(bundle);
         encounterEvent.setTitle("Encounter:" + shrEncounterId);
         String twoMinutesAfterDateString = DateUtil.toISOString(twoMinutesAfter);
-        encounterEvent.setPublishedDate(twoMinutesAfterDateString);
         Category category = new Category();
         category.setTerm(ENCOUNTER_UPDATED_CATEGORY_TAG + ":" + twoMinutesAfterDateString);
         encounterEvent.setCategories(asList(category));
