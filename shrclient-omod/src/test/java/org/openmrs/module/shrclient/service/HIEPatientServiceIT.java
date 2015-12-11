@@ -1,4 +1,4 @@
-package org.openmrs.module.shrclient.service.impl;
+package org.openmrs.module.shrclient.service;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,7 +9,7 @@ import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.Constants;
-import org.openmrs.module.shrclient.service.HIEPatientService;
+import org.openmrs.module.shrclient.service.impl.HIEPatientService;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -25,7 +25,7 @@ import static org.junit.Assert.assertNotNull;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class HIEPatientServiceImplIT extends BaseModuleWebContextSensitiveTest {
+public class HIEPatientServiceIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     private PatientService patientService;

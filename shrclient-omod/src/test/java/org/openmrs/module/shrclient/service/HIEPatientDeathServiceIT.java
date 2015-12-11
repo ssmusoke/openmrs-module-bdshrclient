@@ -1,4 +1,4 @@
-package org.openmrs.module.shrclient.service.impl;
+package org.openmrs.module.shrclient.service;
 
 import org.junit.After;
 import org.junit.Before;
@@ -6,7 +6,7 @@ import org.junit.Test;
 import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.api.PatientService;
-import org.openmrs.module.shrclient.service.HIEPatientDeathService;
+import org.openmrs.module.shrclient.service.impl.HIEPatientDeathService;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class HIEPatientDeathServiceImplIT extends BaseModuleWebContextSensitiveTest {
+public class HIEPatientDeathServiceIT extends BaseModuleWebContextSensitiveTest {
     @Autowired
     private PatientService patientService;
     @Autowired

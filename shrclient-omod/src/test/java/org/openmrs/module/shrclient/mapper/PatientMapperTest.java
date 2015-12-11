@@ -3,11 +3,7 @@ package org.openmrs.module.shrclient.mapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.openmrs.Person;
-import org.openmrs.PersonAddress;
-import org.openmrs.PersonAttribute;
-import org.openmrs.PersonAttributeType;
-import org.openmrs.PersonName;
+import org.openmrs.*;
 import org.openmrs.module.addresshierarchy.AddressField;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
@@ -17,17 +13,12 @@ import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.Address;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.Status;
-import org.openmrs.module.shrclient.service.BbsCodeService;
-import org.openmrs.module.shrclient.service.impl.BbsCodeServiceImpl;
+import org.openmrs.module.shrclient.service.impl.BbsCodeService;
 import org.openmrs.module.shrclient.util.AddressHelper;
 import org.openmrs.module.shrclient.util.SystemProperties;
 
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -64,7 +55,7 @@ public class PatientMapperTest {
     @Before
     public void setup() throws Exception {
         initMocks(this);
-        this.bbsCodeService = new BbsCodeServiceImpl();
+        this.bbsCodeService = new BbsCodeService();
         addressHelper = new AddressHelper(addressHierarchyService);
         patientMapper = new PatientMapper(bbsCodeService, addressHelper, idMappingRepository);
         setUpAddressHierarchy();

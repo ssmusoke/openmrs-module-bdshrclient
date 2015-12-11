@@ -1,4 +1,4 @@
-package org.openmrs.module.shrclient.service.impl;
+package org.openmrs.module.shrclient.service;
 
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
@@ -15,7 +15,7 @@ import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.module.shrclient.service.HIEEncounterService;
+import org.openmrs.module.shrclient.service.impl.HIEEncounterService;
 import org.openmrs.module.shrclient.util.FhirBundleContextHolder;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -32,7 +32,7 @@ import static org.junit.Assert.*;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class HIEEncounterServiceImplIT extends BaseModuleWebContextSensitiveTest {
+public class HIEEncounterServiceIT extends BaseModuleWebContextSensitiveTest {
     @Autowired
     private ApplicationContext springContext;
 

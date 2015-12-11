@@ -1,11 +1,11 @@
-package org.openmrs.module.shrclient.service.impl;
+package org.openmrs.module.shrclient.service;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.module.shrclient.dao.FacilityCatchmentRepository;
 import org.openmrs.module.shrclient.model.FacilityCatchment;
-import org.openmrs.module.shrclient.service.FacilityCatchmentService;
+import org.openmrs.module.shrclient.service.impl.FacilityCatchmentService;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class FacilityCatchmentServiceImplIT extends BaseModuleWebContextSensitiveTest {
+public class FacilityCatchmentServiceIT extends BaseModuleWebContextSensitiveTest {
     @Autowired
     FacilityCatchmentRepository facilityCatchmentRepository;
 
@@ -24,7 +24,7 @@ public class FacilityCatchmentServiceImplIT extends BaseModuleWebContextSensitiv
 
     @Before
     public void setUp() throws Exception {
-        facilityCatchmentService = new FacilityCatchmentServiceImpl(facilityCatchmentRepository);
+        facilityCatchmentService = new FacilityCatchmentService(facilityCatchmentRepository);
     }
 
 

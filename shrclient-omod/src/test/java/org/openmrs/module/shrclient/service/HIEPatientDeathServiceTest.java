@@ -1,4 +1,4 @@
-package org.openmrs.module.shrclient.service.impl;
+package org.openmrs.module.shrclient.service;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -9,18 +9,19 @@ import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
+import org.openmrs.module.shrclient.service.impl.HIEPatientDeathService;
 
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.openmrs.module.fhir.MRSProperties.*;
 
-public class HIEPatientDeathServiceImplTest {
+public class HIEPatientDeathServiceTest {
     @Mock
     private GlobalPropertyLookUpService mockGlobalPropertyLookUpService;
     @Mock
     private ConceptService mockConceptService;
 
-    private HIEPatientDeathServiceImpl patientDeathService;
+    private HIEPatientDeathService patientDeathService;
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
@@ -29,7 +30,7 @@ public class HIEPatientDeathServiceImplTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        patientDeathService = new HIEPatientDeathServiceImpl(null, mockConceptService, mockGlobalPropertyLookUpService);
+        patientDeathService = new HIEPatientDeathService(null, mockConceptService, mockGlobalPropertyLookUpService);
     }
 
     @Test

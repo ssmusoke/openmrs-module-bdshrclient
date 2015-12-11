@@ -3,8 +3,7 @@ package org.openmrs.module.shrclient.web.controller;
 
 import org.apache.log4j.Logger;
 import org.openmrs.api.APIAuthenticationException;
-import org.openmrs.module.shrclient.service.FacilityCatchmentService;
-import org.openmrs.module.shrclient.service.MCIPatientLookupService;
+import org.openmrs.module.shrclient.service.impl.FacilityCatchmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;

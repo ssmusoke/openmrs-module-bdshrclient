@@ -6,7 +6,6 @@ import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.ObsService;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
-import org.openmrs.module.shrclient.service.HIEPatientDeathService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,22 +14,21 @@ import java.util.List;
 import static org.openmrs.module.fhir.MRSProperties.*;
 
 @Service
-public class HIEPatientDeathServiceImpl implements HIEPatientDeathService {
+public class HIEPatientDeathService {
 
-    private static final Logger logger = Logger.getLogger(HIEPatientDeathServiceImpl.class);
+    private static final Logger logger = Logger.getLogger(HIEPatientDeathService.class);
 
     private ObsService obsService;
     private ConceptService conceptService;
     private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Autowired
-    public HIEPatientDeathServiceImpl(ObsService obsService, ConceptService conceptService, GlobalPropertyLookUpService globalPropertyLookUpService) {
+    public HIEPatientDeathService(ObsService obsService, ConceptService conceptService, GlobalPropertyLookUpService globalPropertyLookUpService) {
         this.obsService = obsService;
         this.conceptService = conceptService;
         this.globalPropertyLookUpService = globalPropertyLookUpService;
     }
 
-    @Override
     public Concept getCauseOfDeath(org.openmrs.Patient emrPatient) {
         String causeOfDeathConceptId = globalPropertyLookUpService.getGlobalPropertyValue(GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH);
         Concept unspecifiedCauseOfDeathConcept = causeOfDeathConceptId != null ? conceptService.getConcept(Integer.parseInt(causeOfDeathConceptId)) : conceptService.getConceptByName(TR_CONCEPT_CAUSE_OF_DEATH);

@@ -1,4 +1,4 @@
-package org.openmrs.module.shrclient.service.impl;
+package org.openmrs.module.shrclient.service;
 
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Composition;
@@ -15,7 +15,8 @@ import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.module.shrclient.service.HIEPatientDeathService;
+import org.openmrs.module.shrclient.service.impl.HIEEncounterService;
+import org.openmrs.module.shrclient.service.impl.HIEPatientDeathService;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
@@ -26,7 +27,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class HIEEncounterServiceImplTest {
+public class HIEEncounterServiceTest {
     @Mock
     private FHIRMapper mockFhirmapper;
     @Mock
@@ -44,7 +45,7 @@ public class HIEEncounterServiceImplTest {
     @Mock
     private HIEPatientDeathService patientDeathService;
 
-    private HIEEncounterServiceImpl hieEncounterService;
+    private HIEEncounterService hieEncounterService;
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
@@ -53,7 +54,7 @@ public class HIEEncounterServiceImplTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        hieEncounterService = new HIEEncounterServiceImpl(null, mockIdMappingsRepository, mockPropertiesReader
+        hieEncounterService = new HIEEncounterService(null, mockIdMappingsRepository, mockPropertiesReader
                 , mockSystemUserService, mockVisitService, mockFhirmapper, null, patientDeathService);
     }
 

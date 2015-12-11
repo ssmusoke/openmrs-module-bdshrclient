@@ -19,9 +19,6 @@ import org.openmrs.module.shrclient.mapper.RelationshipMapper;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.Status;
-import org.openmrs.module.shrclient.service.BbsCodeService;
-import org.openmrs.module.shrclient.service.HIEPatientDeathService;
-import org.openmrs.module.shrclient.service.HIEPatientService;
 import org.openmrs.module.shrclient.util.AddressHelper;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemProperties;
@@ -36,11 +33,11 @@ import java.util.Properties;
 import static org.openmrs.module.fhir.Constants.*;
 
 @Service
-public class HIEPatientServiceImpl implements HIEPatientService {
+public class HIEPatientService {
     private static final String DOB_TYPE_DECLARED = "1";
     private static final String DOB_TYPE_ESTIMATED = "3";
 
-    private static final Logger logger = Logger.getLogger(HIEPatientServiceImpl.class);
+    private static final Logger logger = Logger.getLogger(HIEPatientService.class);
     public static final String REGEX_TO_MATCH_MULTIPLE_WHITE_SPACE = "\\s+";
 
     private BbsCodeService bbsCodeService;
@@ -52,12 +49,12 @@ public class HIEPatientServiceImpl implements HIEPatientService {
     private HIEPatientDeathService patientDeathService;
 
     @Autowired
-    public HIEPatientServiceImpl(BbsCodeService bbsCodeService,
-                                 PatientService patientService,
-                                 PersonService personService,
-                                 IdMappingsRepository idMappingsRepository,
-                                 PropertiesReader propertiesReader,
-                                 SystemUserService systemUserService, HIEPatientDeathService patientDeathService) {
+    public HIEPatientService(BbsCodeService bbsCodeService,
+                             PatientService patientService,
+                             PersonService personService,
+                             IdMappingsRepository idMappingsRepository,
+                             PropertiesReader propertiesReader,
+                             SystemUserService systemUserService, HIEPatientDeathService patientDeathService) {
         this.bbsCodeService = bbsCodeService;
         this.patientService = patientService;
         this.idMappingsRepository = idMappingsRepository;
@@ -67,7 +64,6 @@ public class HIEPatientServiceImpl implements HIEPatientService {
         this.personAttributeMapper = new PersonAttributeMapper(personService);
     }
 
-    @Override
     public org.openmrs.Patient createOrUpdatePatient(Patient mciPatient) {
         AddressHelper addressHelper = new AddressHelper();
         org.openmrs.Patient emrPatient = identifyEmrPatient(mciPatient.getHealthId());

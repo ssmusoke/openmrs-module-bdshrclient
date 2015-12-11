@@ -11,8 +11,6 @@ import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.Confidentiality;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.service.HIEEncounterService;
-import org.openmrs.module.shrclient.service.HIEPatientDeathService;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
@@ -28,9 +26,9 @@ import java.util.List;
 import static org.openmrs.module.fhir.mapper.model.Confidentiality.getConfidentiality;
 
 @Service
-public class HIEEncounterServiceImpl implements HIEEncounterService {
+public class HIEEncounterService {
 
-    private static final Logger logger = Logger.getLogger(HIEEncounterServiceImpl.class);
+    private static final Logger logger = Logger.getLogger(HIEEncounterService.class);
 
     private PatientService patientService;
     private IdMappingsRepository idMappingsRepository;
@@ -42,9 +40,9 @@ public class HIEEncounterServiceImpl implements HIEEncounterService {
     private HIEPatientDeathService patientDeathService;
 
     @Autowired
-    public HIEEncounterServiceImpl(PatientService patientService, IdMappingsRepository idMappingsRepository,
-                                   PropertiesReader propertiesReader, SystemUserService systemUserService,
-                                   VisitService visitService, FHIRMapper fhirMapper, OrderService orderService, HIEPatientDeathService patientDeathService) {
+    public HIEEncounterService(PatientService patientService, IdMappingsRepository idMappingsRepository,
+                               PropertiesReader propertiesReader, SystemUserService systemUserService,
+                               VisitService visitService, FHIRMapper fhirMapper, OrderService orderService, HIEPatientDeathService patientDeathService) {
         this.patientService = patientService;
         this.idMappingsRepository = idMappingsRepository;
         this.propertiesReader = propertiesReader;
@@ -55,7 +53,6 @@ public class HIEEncounterServiceImpl implements HIEEncounterService {
         this.patientDeathService = patientDeathService;
     }
 
-    @Override
     public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterBundle> bundles, String healthId) {
         for (EncounterBundle bundle : bundles) {
             try {
@@ -68,7 +65,6 @@ public class HIEEncounterServiceImpl implements HIEEncounterService {
         }
     }
 
-    @Override
     public void createOrUpdateEncounter(org.openmrs.Patient emrPatient, EncounterBundle encounterBundle, String healthId) throws Exception {
         String fhirEncounterId = encounterBundle.getEncounterId();
         Bundle bundle = encounterBundle.getBundle();

@@ -11,9 +11,6 @@ import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.Address;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.mci.api.MciPatientSearchResponse;
-import org.openmrs.module.shrclient.service.HIEEncounterService;
-import org.openmrs.module.shrclient.service.HIEPatientService;
-import org.openmrs.module.shrclient.service.MCIPatientLookupService;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.web.controller.MciPatientSearchRequest;
@@ -29,8 +26,8 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 
 @Service
-public class MCIPatientLookupServiceImpl implements MCIPatientLookupService {
-    private static final Logger log = Logger.getLogger(MCIPatientLookupServiceImpl.class);
+public class MCIPatientLookupService  {
+    private static final Logger log = Logger.getLogger(MCIPatientLookupService.class);
 
     private static final String NID_PARAM_KEY = "nid";
     private static final String UID_PARAM_KEY = "uid";
@@ -45,8 +42,8 @@ public class MCIPatientLookupServiceImpl implements MCIPatientLookupService {
     private HIEEncounterService hieEncounterService;
 
     @Autowired
-    public MCIPatientLookupServiceImpl(HIEPatientService hiePatientService, PropertiesReader propertiesReader,
-                                       IdentityStore identityStore, HIEEncounterService hieEncounterService) {
+    public MCIPatientLookupService(HIEPatientService hiePatientService, PropertiesReader propertiesReader,
+                                   IdentityStore identityStore, HIEEncounterService hieEncounterService) {
         this.hiePatientService = hiePatientService;
         this.propertiesReader = propertiesReader;
         this.identityStore = identityStore;
@@ -54,7 +51,6 @@ public class MCIPatientLookupServiceImpl implements MCIPatientLookupService {
         this.patientContext = propertiesReader.getMciPatientContext();
     }
 
-    @Override
     public Object searchPatientInRegistry(MciPatientSearchRequest request) {
         Patient mciPatient = null;
         List<Patient> patientList = new ArrayList<>();
@@ -96,7 +92,6 @@ public class MCIPatientLookupServiceImpl implements MCIPatientLookupService {
         return null;
     }
 
-    @Override
     public Object downloadPatient(MciPatientSearchRequest request) {
         final String healthId = request.getHid();
         Patient mciPatient = searchPatientByHealthId(healthId);

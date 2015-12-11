@@ -1,4 +1,4 @@
-package org.openmrs.module.shrclient.service.impl;
+package org.openmrs.module.shrclient.service;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.commons.io.FileUtils;
@@ -14,8 +14,9 @@ import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityToken;
-import org.openmrs.module.shrclient.service.HIEEncounterService;
-import org.openmrs.module.shrclient.service.HIEPatientService;
+import org.openmrs.module.shrclient.service.impl.HIEEncounterService;
+import org.openmrs.module.shrclient.service.impl.HIEPatientService;
+import org.openmrs.module.shrclient.service.impl.MCIPatientLookupService;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.web.controller.MciPatientSearchRequest;
@@ -35,7 +36,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.openmrs.module.shrclient.util.Headers.*;
 
-public class MCIPatientLookupServiceImplTest {
+public class MCIPatientLookupServiceTest {
     @Mock
     private HIEPatientService hiePatientService;
     @Mock
@@ -53,7 +54,7 @@ public class MCIPatientLookupServiceImplTest {
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(9997);
-    private MCIPatientLookupServiceImpl lookupService;
+    private MCIPatientLookupService lookupService;
 
     @Before
     public void setUp() throws Exception {
@@ -61,7 +62,7 @@ public class MCIPatientLookupServiceImplTest {
         when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:9997");
         when(propertiesReader.getMciPatientContext()).thenReturn("/api/default/patients");
 
-        lookupService = new MCIPatientLookupServiceImpl(hiePatientService, propertiesReader, identityStore, hieEncounterService);
+        lookupService = new MCIPatientLookupService(hiePatientService, propertiesReader, identityStore, hieEncounterService);
         Context context = new Context();
         ServiceContext serviceContext = ServiceContext.getInstance();
         serviceContext.setService(AddressHierarchyService.class, addressHierarchyService);

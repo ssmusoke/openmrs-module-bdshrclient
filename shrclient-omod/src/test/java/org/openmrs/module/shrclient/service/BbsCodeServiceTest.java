@@ -1,18 +1,18 @@
-package org.openmrs.module.shrclient.service.impl;
+package org.openmrs.module.shrclient.service;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.openmrs.module.shrclient.service.BbsCodeService;
+import org.openmrs.module.shrclient.service.impl.BbsCodeService;
 
 import static org.junit.Assert.assertEquals;
 
-public class BbsCodeServiceImplTest {
+public class BbsCodeServiceTest {
 
     private static BbsCodeService service;
 
     @Before
     public void setup() throws Exception {
-        service = new BbsCodeServiceImpl();
+        service = new BbsCodeService();
     }
 
     @Test
