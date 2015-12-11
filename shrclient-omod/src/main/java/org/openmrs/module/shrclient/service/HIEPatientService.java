@@ -1,4 +1,4 @@
-package org.openmrs.module.shrclient.service.impl;
+package org.openmrs.module.shrclient.service;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;

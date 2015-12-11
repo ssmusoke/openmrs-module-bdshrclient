@@ -13,7 +13,7 @@ import org.openmrs.module.shrclient.handlers.PatientPush;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
-import org.openmrs.module.shrclient.service.impl.BbsCodeService;
+import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.util.PlatformUtil;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemUserService;

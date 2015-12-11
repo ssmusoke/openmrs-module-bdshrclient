@@ -15,8 +15,6 @@ import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.module.shrclient.service.impl.HIEEncounterService;
-import org.openmrs.module.shrclient.service.impl.HIEPatientDeathService;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;

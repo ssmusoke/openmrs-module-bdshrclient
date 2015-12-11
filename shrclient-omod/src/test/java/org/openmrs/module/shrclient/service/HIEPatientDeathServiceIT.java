@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.api.PatientService;
-import org.openmrs.module.shrclient.service.impl.HIEPatientDeathService;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;

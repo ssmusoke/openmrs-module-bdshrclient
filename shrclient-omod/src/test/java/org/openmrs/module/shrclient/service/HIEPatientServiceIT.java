@@ -9,7 +9,6 @@ import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.Constants;
-import org.openmrs.module.shrclient.service.impl.HIEPatientService;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;

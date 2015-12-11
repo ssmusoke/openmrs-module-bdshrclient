@@ -9,7 +9,6 @@ import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
-import org.openmrs.module.shrclient.service.impl.HIEPatientDeathService;
 
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;

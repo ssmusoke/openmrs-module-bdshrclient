@@ -13,7 +13,7 @@ import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.Address;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.Status;
-import org.openmrs.module.shrclient.service.impl.BbsCodeService;
+import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.util.AddressHelper;
 import org.openmrs.module.shrclient.util.SystemProperties;
 

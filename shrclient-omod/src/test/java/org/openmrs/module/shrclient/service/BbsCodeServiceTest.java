@@ -2,7 +2,6 @@ package org.openmrs.module.shrclient.service;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.openmrs.module.shrclient.service.impl.BbsCodeService;
 
 import static org.junit.Assert.assertEquals;
 

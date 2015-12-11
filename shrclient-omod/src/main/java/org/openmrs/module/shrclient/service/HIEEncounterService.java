@@ -1,4 +1,4 @@
-package org.openmrs.module.shrclient.service.impl;
+package org.openmrs.module.shrclient.service;
 
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Composition;

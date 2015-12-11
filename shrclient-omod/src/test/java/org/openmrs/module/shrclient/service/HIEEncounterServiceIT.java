@@ -15,7 +15,6 @@ import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.module.shrclient.service.impl.HIEEncounterService;
 import org.openmrs.module.shrclient.util.FhirBundleContextHolder;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;

@@ -1,4 +1,4 @@
-package org.openmrs.module.shrclient.service.impl;
+package org.openmrs.module.shrclient.service;
 
 import org.openmrs.module.shrclient.dao.BbsCodeDao;
 import org.springframework.stereotype.Service;
