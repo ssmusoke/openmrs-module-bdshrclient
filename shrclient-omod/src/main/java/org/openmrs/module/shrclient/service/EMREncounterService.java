@@ -26,9 +26,9 @@ import java.util.List;
 import static org.openmrs.module.fhir.mapper.model.Confidentiality.getConfidentiality;
 
 @Service
-public class HIEEncounterService {
+public class EMREncounterService {
 
-    private static final Logger logger = Logger.getLogger(HIEEncounterService.class);
+    private static final Logger logger = Logger.getLogger(EMREncounterService.class);
 
     private PatientService patientService;
     private IdMappingsRepository idMappingsRepository;
@@ -37,12 +37,12 @@ public class HIEEncounterService {
     private VisitService visitService;
     private FHIRMapper fhirMapper;
     private OrderService orderService;
-    private HIEPatientDeathService patientDeathService;
+    private EMRPatientDeathService patientDeathService;
 
     @Autowired
-    public HIEEncounterService(PatientService patientService, IdMappingsRepository idMappingsRepository,
+    public EMREncounterService(PatientService patientService, IdMappingsRepository idMappingsRepository,
                                PropertiesReader propertiesReader, SystemUserService systemUserService,
-                               VisitService visitService, FHIRMapper fhirMapper, OrderService orderService, HIEPatientDeathService patientDeathService) {
+                               VisitService visitService, FHIRMapper fhirMapper, OrderService orderService, EMRPatientDeathService patientDeathService) {
         this.patientService = patientService;
         this.idMappingsRepository = idMappingsRepository;
         this.propertiesReader = propertiesReader;

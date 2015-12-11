@@ -35,9 +35,9 @@ import static org.openmrs.module.shrclient.util.Headers.*;
 
 public class MCIPatientLookupServiceTest {
     @Mock
-    private HIEPatientService hiePatientService;
+    private EMRPatientService emrPatientService;
     @Mock
-    private HIEEncounterService hieEncounterService;
+    private EMREncounterService emrEncounterService;
     @Mock
     private PropertiesReader propertiesReader;
     @Mock
@@ -59,7 +59,7 @@ public class MCIPatientLookupServiceTest {
         when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:9997");
         when(propertiesReader.getMciPatientContext()).thenReturn("/api/default/patients");
 
-        lookupService = new MCIPatientLookupService(hiePatientService, propertiesReader, identityStore, hieEncounterService);
+        lookupService = new MCIPatientLookupService(emrPatientService, propertiesReader, identityStore, emrEncounterService);
         Context context = new Context();
         ServiceContext serviceContext = ServiceContext.getInstance();
         serviceContext.setService(AddressHierarchyService.class, addressHierarchyService);

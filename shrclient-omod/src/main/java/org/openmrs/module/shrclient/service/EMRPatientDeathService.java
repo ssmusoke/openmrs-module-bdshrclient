@@ -14,16 +14,16 @@ import java.util.List;
 import static org.openmrs.module.fhir.MRSProperties.*;
 
 @Service
-public class HIEPatientDeathService {
+public class EMRPatientDeathService {
 
-    private static final Logger logger = Logger.getLogger(HIEPatientDeathService.class);
+    private static final Logger logger = Logger.getLogger(EMRPatientDeathService.class);
 
     private ObsService obsService;
     private ConceptService conceptService;
     private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Autowired
-    public HIEPatientDeathService(ObsService obsService, ConceptService conceptService, GlobalPropertyLookUpService globalPropertyLookUpService) {
+    public EMRPatientDeathService(ObsService obsService, ConceptService conceptService, GlobalPropertyLookUpService globalPropertyLookUpService) {
         this.obsService = obsService;
         this.conceptService = conceptService;
         this.globalPropertyLookUpService = globalPropertyLookUpService;

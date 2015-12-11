@@ -14,11 +14,11 @@ import static org.junit.Assert.assertEquals;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class HIEPatientDeathServiceIT extends BaseModuleWebContextSensitiveTest {
+public class EMRPatientDeathServiceIT extends BaseModuleWebContextSensitiveTest {
     @Autowired
     private PatientService patientService;
     @Autowired
-    private HIEPatientDeathService patientDeathService;
+    private EMRPatientDeathService patientDeathService;
 
     @Before
     public void setUp() throws Exception {

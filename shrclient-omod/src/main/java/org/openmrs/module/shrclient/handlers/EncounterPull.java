@@ -7,8 +7,8 @@ import org.openmrs.module.shrclient.feeds.shr.DefaultEncounterFeedWorker;
 import org.openmrs.module.shrclient.feeds.shr.ShrEncounterFeedProcessor;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
-import org.openmrs.module.shrclient.service.HIEEncounterService;
-import org.openmrs.module.shrclient.service.HIEPatientService;
+import org.openmrs.module.shrclient.service.EMREncounterService;
+import org.openmrs.module.shrclient.service.EMRPatientService;
 import org.openmrs.module.shrclient.util.PlatformUtil;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.StringUtil;
@@ -60,11 +60,11 @@ public class EncounterPull {
     }
 
     private DefaultEncounterFeedWorker getEncounterFeedWorker() {
-        HIEPatientService hiePatientService = PlatformUtil.getRegisteredComponent(HIEPatientService.class);
-        HIEEncounterService hieEncounterService = PlatformUtil.getRegisteredComponent(HIEEncounterService.class);
+        EMRPatientService EMRPatientService = PlatformUtil.getRegisteredComponent(EMRPatientService.class);
+        EMREncounterService EMREncounterService = PlatformUtil.getRegisteredComponent(EMREncounterService.class);
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
         IdentityStore identityStore = PlatformUtil.getIdentityStore();
-        return new DefaultEncounterFeedWorker(hiePatientService, propertiesReader, identityStore, hieEncounterService);
+        return new DefaultEncounterFeedWorker(EMRPatientService, propertiesReader, identityStore, EMREncounterService);
     }
 
     private HashMap<String, String> getRequestHeaders(PropertiesReader propertiesReader) throws IdentityUnauthorizedException {

@@ -8,8 +8,8 @@ import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.model.Patient;
-import org.openmrs.module.shrclient.service.HIEEncounterService;
-import org.openmrs.module.shrclient.service.HIEPatientService;
+import org.openmrs.module.shrclient.service.EMREncounterService;
+import org.openmrs.module.shrclient.service.EMRPatientService;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
@@ -17,19 +17,19 @@ import org.openmrs.module.shrclient.web.controller.dto.EncounterBundle;
 import static org.openmrs.module.fhir.utils.FHIRFeedHelper.getEncounter;
 
 public class DefaultEncounterFeedWorker implements EncounterEventWorker {
-    private HIEPatientService hiePatientService;
+    private EMRPatientService emrPatientService;
     private PropertiesReader propertiesReader;
     private IdentityStore identityStore;
-    private HIEEncounterService hieEncounterService;
+    private EMREncounterService emrEncounterService;
 
     private final Logger logger = Logger.getLogger(DefaultEncounterFeedWorker.class);
 
-    public DefaultEncounterFeedWorker(HIEPatientService hiePatientService, PropertiesReader propertiesReader,
-                                      IdentityStore identityStore, HIEEncounterService hieEncounterService) {
-        this.hiePatientService = hiePatientService;
+    public DefaultEncounterFeedWorker(EMRPatientService emrPatientService, PropertiesReader propertiesReader,
+                                      IdentityStore identityStore, EMREncounterService emrEncounterService) {
+        this.emrPatientService = emrPatientService;
         this.propertiesReader = propertiesReader;
         this.identityStore = identityStore;
-        this.hieEncounterService = hieEncounterService;
+        this.emrEncounterService = emrEncounterService;
     }
 
     @Override
@@ -40,14 +40,14 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
         try {
             RestClient mciClient = new ClientRegistry(propertiesReader, identityStore).getMCIClient();
             Patient patient = mciClient.get(propertiesReader.getMciPatientContext() + "/" + healthId, Patient.class);
-            org.openmrs.Patient emrPatient = hiePatientService.createOrUpdatePatient(patient);
+            org.openmrs.Patient emrPatient = emrPatientService.createOrUpdatePatient(patient);
 
             if (null == emrPatient) {
                 String message = String.format("Can not identify patient[%s]", healthId);
                 logger.error(message);
                 throw new Exception(message);
             }
-            hieEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, healthId);
+            emrEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, healthId);
         } catch (Exception e) {
             String message = String.format("Error occurred while trying to process encounter[%s] of patient[%s]",
                     encounterBundle.getEncounterId(), healthId);

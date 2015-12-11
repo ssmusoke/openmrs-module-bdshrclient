@@ -33,11 +33,11 @@ import java.util.Properties;
 import static org.openmrs.module.fhir.Constants.*;
 
 @Service
-public class HIEPatientService {
+public class EMRPatientService {
     private static final String DOB_TYPE_DECLARED = "1";
     private static final String DOB_TYPE_ESTIMATED = "3";
 
-    private static final Logger logger = Logger.getLogger(HIEPatientService.class);
+    private static final Logger logger = Logger.getLogger(EMRPatientService.class);
     public static final String REGEX_TO_MATCH_MULTIPLE_WHITE_SPACE = "\\s+";
 
     private BbsCodeService bbsCodeService;
@@ -46,15 +46,15 @@ public class HIEPatientService {
     private PropertiesReader propertiesReader;
     private SystemUserService systemUserService;
     private PersonAttributeMapper personAttributeMapper;
-    private HIEPatientDeathService patientDeathService;
+    private EMRPatientDeathService patientDeathService;
 
     @Autowired
-    public HIEPatientService(BbsCodeService bbsCodeService,
+    public EMRPatientService(BbsCodeService bbsCodeService,
                              PatientService patientService,
                              PersonService personService,
                              IdMappingsRepository idMappingsRepository,
                              PropertiesReader propertiesReader,
-                             SystemUserService systemUserService, HIEPatientDeathService patientDeathService) {
+                             SystemUserService systemUserService, EMRPatientDeathService patientDeathService) {
         this.bbsCodeService = bbsCodeService;
         this.patientService = patientService;
         this.idMappingsRepository = idMappingsRepository;

@@ -14,13 +14,13 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.openmrs.module.fhir.MRSProperties.*;
 
-public class HIEPatientDeathServiceTest {
+public class EMRPatientDeathServiceTest {
     @Mock
     private GlobalPropertyLookUpService mockGlobalPropertyLookUpService;
     @Mock
     private ConceptService mockConceptService;
 
-    private HIEPatientDeathService patientDeathService;
+    private EMRPatientDeathService patientDeathService;
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
@@ -29,7 +29,7 @@ public class HIEPatientDeathServiceTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        patientDeathService = new HIEPatientDeathService(null, mockConceptService, mockGlobalPropertyLookUpService);
+        patientDeathService = new EMRPatientDeathService(null, mockConceptService, mockGlobalPropertyLookUpService);
     }
 
     @Test

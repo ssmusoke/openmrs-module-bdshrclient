@@ -24,20 +24,20 @@ import static org.junit.Assert.assertNotNull;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class HIEPatientServiceIT extends BaseModuleWebContextSensitiveTest {
+public class EMRPatientServiceIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     private PatientService patientService;
 
     @Autowired
-    HIEPatientService hiePatientService;
+    EMRPatientService emrPatientService;
 
     @Test
     public void shouldMapRelationsToPatientAttributesWhenPresent() throws Exception {
         executeDataSet("testDataSets/patientUpdateDS.xml");
         org.openmrs.module.shrclient.model.Patient patient = getPatientFromJson("patients_response/patientWithRelations.json");
 
-        hiePatientService.createOrUpdatePatient(patient);
+        emrPatientService.createOrUpdatePatient(patient);
 
         Patient savedPatient = patientService.getPatient(1);
 
@@ -57,9 +57,9 @@ public class HIEPatientServiceIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/patientUpdateDS.xml");
         org.openmrs.module.shrclient.model.Patient patient = getPatientFromJson("patients_response/patientWithRelations.json");
 
-        hiePatientService.createOrUpdatePatient(patient);
+        emrPatientService.createOrUpdatePatient(patient);
         //updated twice
-        hiePatientService.createOrUpdatePatient(patient);
+        emrPatientService.createOrUpdatePatient(patient);
 
         Patient savedPatient = patientService.getPatient(1);
 

@@ -36,18 +36,18 @@ public class MCIPatientLookupService  {
     private static final String PHONE_NO_PARAM_KEY = "phone_no";
     private final String patientContext;
 
-    private HIEPatientService hiePatientService;
+    private EMRPatientService emrPatientService;
     private PropertiesReader propertiesReader;
     private IdentityStore identityStore;
-    private HIEEncounterService hieEncounterService;
+    private EMREncounterService emrEncounterService;
 
     @Autowired
-    public MCIPatientLookupService(HIEPatientService hiePatientService, PropertiesReader propertiesReader,
-                                   IdentityStore identityStore, HIEEncounterService hieEncounterService) {
-        this.hiePatientService = hiePatientService;
+    public MCIPatientLookupService(EMRPatientService emrPatientService, PropertiesReader propertiesReader,
+                                   IdentityStore identityStore, EMREncounterService emrEncounterService) {
+        this.emrPatientService = emrPatientService;
         this.propertiesReader = propertiesReader;
         this.identityStore = identityStore;
-        this.hieEncounterService = hieEncounterService;
+        this.emrEncounterService = emrEncounterService;
         this.patientContext = propertiesReader.getMciPatientContext();
     }
 
@@ -97,7 +97,7 @@ public class MCIPatientLookupService  {
         Patient mciPatient = searchPatientByHealthId(healthId);
         if (mciPatient != null) {
             Map<String, String> downloadResponse = new HashMap<>();
-            org.openmrs.Patient emrPatient = hiePatientService.createOrUpdatePatient(mciPatient);
+            org.openmrs.Patient emrPatient = emrPatientService.createOrUpdatePatient(mciPatient);
             if (emrPatient != null) {
                 createOrUpdateEncounters(healthId, emrPatient);
             }
@@ -162,7 +162,7 @@ public class MCIPatientLookupService  {
             log.info("Clearing unauthorized identity token.");
             identityStore.clearToken();
         }
-        hieEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+        emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
     }
 
     private Patient[] searchPatients(String searchParamKey, String searchParamValue) {

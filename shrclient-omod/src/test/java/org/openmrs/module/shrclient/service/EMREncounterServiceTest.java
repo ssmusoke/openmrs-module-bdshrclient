@@ -25,7 +25,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class HIEEncounterServiceTest {
+public class EMREncounterServiceTest {
     @Mock
     private FHIRMapper mockFhirmapper;
     @Mock
@@ -41,9 +41,9 @@ public class HIEEncounterServiceTest {
     @Mock
     private ConceptService mockConceptService;
     @Mock
-    private HIEPatientDeathService patientDeathService;
+    private EMRPatientDeathService patientDeathService;
 
-    private HIEEncounterService hieEncounterService;
+    private EMREncounterService emrEncounterService;
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
@@ -52,7 +52,7 @@ public class HIEEncounterServiceTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        hieEncounterService = new HIEEncounterService(null, mockIdMappingsRepository, mockPropertiesReader
+        emrEncounterService = new EMREncounterService(null, mockIdMappingsRepository, mockPropertiesReader
                 , mockSystemUserService, mockVisitService, mockFhirmapper, null, patientDeathService);
     }
 
@@ -69,7 +69,7 @@ public class HIEEncounterServiceTest {
         Patient emrPatient = new Patient();
 
         when(mockIdMappingsRepository.findByExternalId(any(String.class))).thenReturn(new IdMapping());
-        hieEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
+        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
 
         verify(mockFhirmapper, times(0)).map(eq(emrPatient), eq("health_id"), eq("shr-enc-id"), eq(bundle), any(SystemProperties.class));
     }
@@ -89,7 +89,7 @@ public class HIEEncounterServiceTest {
 
         when(mockIdMappingsRepository.findByExternalId(any(String.class))).thenReturn(null);
 
-        hieEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
+        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
 
         verify(mockFhirmapper, times(0)).map(eq(emrPatient), eq("health_id"), eq("shr-enc-id"), eq(bundle), any(SystemProperties.class));
     }
@@ -111,7 +111,7 @@ public class HIEEncounterServiceTest {
         when(mockFhirmapper.map(eq(emrPatient), eq("health_id"), eq("shr_encounter_id"), eq(bundle), any(SystemProperties.class))).thenReturn(new Encounter());
         when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://shr.com/");
 
-        hieEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
+        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterBundle, "health_id");
 
         verify(mockFhirmapper, times(1)).map(eq(emrPatient), eq("health_id"), eq("shr_encounter_id"), eq(bundle), any(SystemProperties.class));
     }

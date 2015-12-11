@@ -31,7 +31,7 @@ import static org.junit.Assert.*;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class HIEEncounterServiceIT extends BaseModuleWebContextSensitiveTest {
+public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
     @Autowired
     private ApplicationContext springContext;
 
@@ -39,7 +39,7 @@ public class HIEEncounterServiceIT extends BaseModuleWebContextSensitiveTest {
     private PatientService patientService;
 
     @Autowired
-    HIEEncounterService hieEncounterService;
+    EMREncounterService emrEncounterService;
 
     @Autowired
     EncounterService encounterService;
@@ -63,7 +63,7 @@ public class HIEEncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         String healthId = "HIDA764177";
         String shrEncounterId = "shr-enc-id";
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/testFHIREncounter.xml");
-        hieEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+        emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
         assertNotNull(idMapping);
@@ -82,7 +82,7 @@ public class HIEEncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(true, patient.isDead());
         assertEquals("Unspecified Cause Of Death", patient.getCauseOfDeath().getName().getName());
 
-        hieEncounterService.createOrUpdateEncounter(patient, bundles.get(0), "healthId");
+        emrEncounterService.createOrUpdateEncounter(patient, bundles.get(0), "healthId");
 
         assertEquals(true, patient.isDead());
         assertEquals("HIV", patient.getCauseOfDeath().getName().getName());
@@ -96,7 +96,7 @@ public class HIEEncounterServiceIT extends BaseModuleWebContextSensitiveTest {
 
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithDiagnosticOrder.xml");
         Patient emrPatient = patientService.getPatient(1);
-        hieEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+        emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
         assertNotNull(idMapping);
@@ -115,7 +115,7 @@ public class HIEEncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithMedicationOrder.xml");
         Patient emrPatient = patientService.getPatient(110);
 
-        hieEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+        emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
         assertNotNull(idMapping);
@@ -135,7 +135,7 @@ public class HIEEncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithStoppedMedicationOrderAndCustomDosage.xml");
         Patient emrPatient = patientService.getPatient(110);
 
-        hieEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+        emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
         assertNotNull(idMapping);
@@ -155,7 +155,7 @@ public class HIEEncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithMedicationOrderWithScheduledDate.xml");
         Patient emrPatient = patientService.getPatient(110);
 
-        hieEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+        emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
         assertNotNull(idMapping);
@@ -176,7 +176,7 @@ public class HIEEncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithMedicationOrderEditedInDifferentEncounter.xml");
         Patient emrPatient = patientService.getPatient(110);
 
-        hieEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+        emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
         assertNotNull(idMapping);
@@ -197,7 +197,7 @@ public class HIEEncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithMedicationOrderEditedInSameEncounter.xml");
         Patient emrPatient = patientService.getPatient(110);
 
-        hieEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+        emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
         assertNotNull(idMapping);
@@ -217,7 +217,7 @@ public class HIEEncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         List<EncounterBundle> bundles = getEncounterBundles(healthId, shrEncounterId, "encounterBundles/dstu2/medicationOrderWithoutDoseRouteAndAdditionalInstructions.xml");
         Patient emrPatient = patientService.getPatient(110);
 
-        hieEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+        emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
         IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
         assertNotNull(idMapping);
