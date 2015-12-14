@@ -101,7 +101,7 @@
     <order_type order_type_id="16" name="Lab Order" description="An order for tests" creator="1" java_class_name="org.openmrs.Order"
                 date_created="2008-08-15 13:49:47.0" retired="false" uuid="92c1bdef-72d4-49d9-8a1f-804892f66abd"/>
 
-    <!--shouldMapTestOrderForAPanelOrTest-->
+    <!--test order with a blood panel-->
     <encounter encounter_id="36" encounter_type="1" patient_id="1" visit_id="1" location_id="2"
                encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
                voided="false" uuid="6d0af6767-707a-4629-9850-f15206e63ab0"/>
@@ -114,9 +114,9 @@
             instructions="Hemoglobin" date_activated="2008-08-08 00:00:00.0" creator="1" order_number="12343" order_action="NEW"
             care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
             accession_number="accession-number" uuid="6d0ae386-707a-f123-9850-f15206e63ab0"/>
-    <!--shouldMapTestOrderForAPanelOrTest-->
+    <!--test order with a blood panel-->
 
-    <!--shouldMapTestOrderWithoutLoincName-->
+    <!-- test order without a panel, no loinc name for test-->
     <encounter encounter_id="37" encounter_type="1" patient_id="1" visit_id="1" location_id="2"
                encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
                voided="false" uuid="6d0af6767-707a-4629-9850-235216e63ab0"/>
@@ -128,9 +128,9 @@
             instructions="Regular Urea Nitrogen test" date_activated="2008-08-08 00:00:00.0" order_number="12344" order_action="NEW"
             care_setting="1" creator="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
             accession_number="accession-number" uuid="6d0ae396-efab-4629-1930-f15206e63ab0"/>
-    <!--shouldMapTestOrderWithoutLoincName-->
+    <!-- test order without a panel-->
 
-    <!--shouldMapTestOrderForATestAndPanelToSameDiagnosticOrder-->
+    <!--encounter with test order and panel-->
     <encounter encounter_id="38" encounter_type="1" patient_id="1" visit_id="1" location_id="2"
                encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
                voided="false" uuid="6d0ll6767-707a-4629-9850-lll216e63ab0"/>
@@ -147,9 +147,9 @@
             instructions="Blood Panel" date_activated="2008-08-08 00:00:00.0" order_number="12744" order_action="NEW"
             care_setting="1" creator="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
             accession_number="accession-number" uuid="6d1ae326-efab-462a-jsla-f15206e63aaaa"/>
-    <!--shouldMapTestOrderForATestAndPanelToSameDiagnosticOrder-->
+    <!--encounter with test order and panel-->
 
-    <!--shouldNotAddSpecimenIfAlreadyPresentForSameAccession-->
+    <!--encounter with orders with same accession number-->
     <encounter encounter_id="39" encounter_type="1" patient_id="1" visit_id="1" location_id="2"
                encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
                voided="false" uuid="6d0ll6767-707a-4629-9850-lll216egjf90"/>
@@ -166,9 +166,9 @@
             instructions="ESR" date_activated="2008-08-08 00:00:00.0" order_number="12744" order_action="NEW"
             care_setting="1" creator="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
             accession_number="accession-number" uuid="6d1ae326-efab-462a-jsla-f1520koitcaaa"/>
-    <!--shouldNotAddSpecimenIfAlreadyPresentForSameAccession-->
+    <!--encounter with orders with same accession number-->
 
-    <!--shouldAddSpecimenIfAlreadyPresentForSameAccession-->
+    <!--encounter with orders with different accession number-->
     <encounter encounter_id="40" encounter_type="1" patient_id="1" visit_id="1" location_id="2"
                encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
                voided="false" uuid="6d0ll6767-laxl-4629-9850-lll216egjf90"/>
@@ -185,6 +185,28 @@
             instructions="ESR" date_activated="2008-08-08 00:00:00.0" order_number="12744" order_action="NEW"
             care_setting="1" creator="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
             accession_number="accession-number2" uuid="6alsc326-eaab-462a-jsla-f1520koitcaaa"/>
-    <!--shouldNotAddSpecimenIfAlreadyPresentForSameAccession-->
+    <!--encounter with orders with different accession number-->
+
+    <!--encounter with edited order-->
+    <encounter encounter_id="41" encounter_type="1" patient_id="1" visit_id="1" location_id="2"
+               encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
+               voided="false" uuid="6d0ll6767-12w4-4629-9850-lll216egjf90"/>
+
+    <encounter_provider encounter_provider_id="6" encounter_id="41" provider_id="23" creator="1" date_created="2008-07-01 14:09:05.0"
+                        voided="false" uuid="6alsc6767-707a-4la0-1850-f15206ehja8h"/>
+
+    <!--stopped order-->
+    <orders order_id="24" order_type_id="16" encounter_id="41" urgency="ROUTINE" concept_id="305"
+            instructions="Hemoglobin" date_activated="2008-08-08 00:00:00.0" order_number="12744" order_action="NEW"
+            care_setting="1" creator="1" date_created="2008-08-19 12:20:22.0" date_stopped="2008-08-19 12:22:22.0"
+            voided="false" patient_id="1" orderer="23" accession_number="accession-number1"
+            uuid="6glco326-34ea-4629-jsla-f1520ghkp0a0"/>
+
+    <!--discontinued order with previous order 24-->
+    <orders order_id="25" order_type_id="16" encounter_id="41" urgency="ROUTINE" concept_id="305"
+            instructions="Hemoglobin" date_activated="2008-08-08 00:00:00.0" order_number="12744" order_action="DISCONTINUE"
+            care_setting="1" creator="1" date_created="2008-08-19 12:22:22.0" voided="false" previous_order_id = "21" patient_id="1" orderer="23"
+            accession_number="accession-number1" uuid="6glco326-34ea-4629-34es-f1520ghkp0a0"/>
+    <!--encounter with edited order-->
 
 </dataset>

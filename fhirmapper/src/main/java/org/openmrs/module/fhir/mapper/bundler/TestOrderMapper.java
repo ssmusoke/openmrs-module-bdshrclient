@@ -24,10 +24,7 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.openmrs.module.fhir.FHIRProperties.LOINC_SOURCE_NAME;
 import static org.openmrs.module.fhir.MRSProperties.MRS_LAB_ORDER_TYPE;
@@ -55,6 +52,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
 
     @Override
     public List<FHIRResource> map(Order order, Encounter fhirEncounter, Bundle bundle, SystemProperties systemProperties) {
+        if (order.getDateStopped() != null) return Collections.EMPTY_LIST;
         resources = new ArrayList<>();
         DiagnosticOrder diagnosticOrder;
         IResource resource = identifyResource(bundle.getEntry(), new DiagnosticOrder().getResourceName());
@@ -76,8 +74,10 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         CodeableConceptDt orderCode = findOrderName(order);
         if (orderCode == null) return;
         orderItem.setCode(orderCode);
-        orderItem.setStatus(DiagnosticOrderStatusEnum.REQUESTED);
-
+        if (order.getAction().equals(Order.Action.DISCONTINUE))
+            orderItem.setStatus(DiagnosticOrderStatusEnum.CANCELLED);
+        else
+            orderItem.setStatus(DiagnosticOrderStatusEnum.REQUESTED);
         addSpecimenToDiagnosticOrder(order, diagnosticOrder, orderItem, bundle, systemProperties);
     }
 

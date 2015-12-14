@@ -64,9 +64,9 @@ public class MapperTestHelper {
         return exists(coding, new Predicate<CodingDt>() {
             @Override
             public boolean evaluate(CodingDt codingDt) {
-                return codingDt.getCode().equals(code)
-                        && codingDt.getSystem().equals(system)
-                        && codingDt.getDisplay().equals(display);
+                return ((code == codingDt.getCode()) || codingDt.getCode().equals(code))
+                        && ((system == codingDt.getSystem()) || codingDt.getSystem().equals(system))
+                        && ((display == codingDt.getDisplay()) || codingDt.getDisplay().equals(display));
             }
         });
     }
