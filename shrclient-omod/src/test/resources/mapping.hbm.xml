@@ -18,6 +18,7 @@
         <property name="lastSyncDateTime" type="java.util.Date" >
             <column name="last_sync_datetime" default="now()" ></column>
         </property>
+        <property name="serverUpdateDateTime" column="server_update_datetime" type="java.util.Date"/>
     </class>
     <class name="EncounterIdMapping" table="encounter_id_mapping">
         <id name="id" type="long" column="id">

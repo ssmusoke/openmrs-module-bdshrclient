@@ -13,8 +13,9 @@ public class IdMapping {
     private String type;
     private String uri;
     private Date lastSyncDateTime;
+    private Date serverUpdateDateTime;
 
-    public IdMapping(String internalId, String externalId, String type, String uri, Date lastSyncDateTime) {
+    public IdMapping(String internalId, String externalId, String type, String uri, Date lastSyncDateTime, Date serverUpdateDateTime) {
         Validate.notNull(internalId);
         Validate.notNull(externalId);
         Validate.notNull(type);
@@ -23,10 +24,11 @@ public class IdMapping {
         this.type = type;
         this.uri = uri;
         this.lastSyncDateTime = lastSyncDateTime;
+        this.serverUpdateDateTime = serverUpdateDateTime;
     }
 
     public IdMapping(String internalId, String externalId, String type, String uri) {
-        this(internalId, externalId, type, uri, null);
+        this(internalId, externalId, type, uri, null, null);
     }
 
     public IdMapping() {
@@ -80,8 +82,20 @@ public class IdMapping {
         this.lastSyncDateTime = lastSyncDateTime;
     }
 
-    public Timestamp getLastSyncDateTimestamp() {
+    public Timestamp getLastSyncTimestamp() {
         return this.lastSyncDateTime != null ? new Timestamp(lastSyncDateTime.getTime()) : new Timestamp(new Date().getTime());
+    }
+
+    public Timestamp getServerUpdateTimestamp() {
+        return this.serverUpdateDateTime != null ? new Timestamp(this.serverUpdateDateTime.getTime()) : null;
+    }
+
+    public Date getServerUpdateDateTime() {
+        return serverUpdateDateTime;
+    }
+
+    public void setServerUpdateDateTime(Date serverUpdateDateTime) {
+        this.serverUpdateDateTime = serverUpdateDateTime;
     }
 
     @Override

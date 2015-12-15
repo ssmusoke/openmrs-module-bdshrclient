@@ -130,7 +130,7 @@ public class PatientPushTest {
         when(patientService.getPatientByUuid("36c82d16-6237-4495-889f-59bd9e0d8181")).thenReturn(openMrsPatient);
 
         IdMapping idMapping = new IdMapping(openMrsPatient.getUuid(), "hid123", IdMappingType.PATIENT,
-                "http://mci.com/patients/hid123", dateTime.plusMinutes(1).toDate());
+                "http://mci.com/patients/hid123", dateTime.plusMinutes(1).toDate(), null);
         when(idMappingsRepository.findByInternalId(openMrsPatient.getUuid(), IdMappingType.PATIENT)).thenReturn(idMapping);
 
         patientPush.process(event);

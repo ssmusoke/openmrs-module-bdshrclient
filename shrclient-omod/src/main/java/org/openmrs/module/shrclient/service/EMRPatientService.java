@@ -234,6 +234,6 @@ public class EMRPatientService {
                 propertiesReader.getFacilityInstanceProperties(),
                 propertiesReader.getMciProperties(), new Properties());
         String url = new EntityReference().build(org.openmrs.Patient.class, systemProperties, healthId);
-        idMappingsRepository.saveOrUpdateIdMapping(new IdMapping(patientUuid, healthId, IdMappingType.PATIENT, url, new Date()));
+        idMappingsRepository.saveOrUpdateIdMapping(new IdMapping(patientUuid, healthId, IdMappingType.PATIENT, url, new Date(), null));
     }
 }

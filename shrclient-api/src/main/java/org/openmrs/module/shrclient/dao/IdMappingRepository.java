@@ -1,6 +1,5 @@
 package org.openmrs.module.shrclient.dao;
 
-import org.openmrs.module.shrclient.model.EncounterIdMapping;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +19,7 @@ public class IdMappingRepository {
 
     public void saveOrUpdateIdMapping(final IdMapping idMapping) {
         if(IdMappingType.ENCOUNTER.equals(idMapping.getType()))
-            encounterIdMappingDao.saveOrUpdateIdMapping((EncounterIdMapping) idMapping);
+            encounterIdMappingDao.saveOrUpdateIdMapping(idMapping);
         else
             shrIdMappingDao.saveOrUpdateIdMapping(idMapping);
     }

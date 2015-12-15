@@ -2,6 +2,7 @@ package org.openmrs.module.fhir.utils;
 
 import org.apache.commons.lang3.time.DateUtils;
 
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -110,5 +111,9 @@ public class DateUtil {
             return truncatedDate1.equals(truncatedDate2);
         }
         return date1 == null && date2 == null;
+    }
+
+    public static Date getDateFromTimestamp(Timestamp timestamp){
+        return timestamp!=null ? new Date(timestamp.getTime()) : null;
     }
 }
