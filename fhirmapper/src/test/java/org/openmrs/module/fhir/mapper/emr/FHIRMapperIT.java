@@ -214,8 +214,7 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    @Ignore
-    public void shouldUpdateAllObservationWithNewValues() throws Exception {
+    public void shouldUpdateEncounterWithNewObservations() throws Exception {
         executeDataSet("testDataSets/shrClientObservationsTestDs.xml");
         Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithUpdatedObservations.xml", springContext);
         Patient patient = patientService.getPatient(3);

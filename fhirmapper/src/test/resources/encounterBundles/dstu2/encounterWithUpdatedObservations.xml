@@ -53,12 +53,6 @@
                 </section>
                 <section>
                     <entry>
-                        <reference value="urn:uuid:e2d48247-673c-4181-acd1-4497671d4523"/>
-                        <display value="Pulse"/>
-                    </entry>
-                </section>
-                <section>
-                    <entry>
                         <reference value="urn:uuid:56b0a203-9215-40ea-a6a0-b1d625d100c0"/>
                         <display value="Vitals"/>
                     </entry>
@@ -154,35 +148,6 @@
         </resource>
     </entry>
     <entry>
-        <fullUrl value="urn:uuid:e2d48247-673c-4181-acd1-4497671d4523" />
-        <resource>
-            <Observation xmlns="http://hl7.org/fhir">
-                <id value="e2d48247-673c-4181-acd1-4497671d4523"/>
-                <code>
-                    <coding>
-                        <system value="http://127.0.0.1/openmrs/ws/rest/v1/tr/concepts/103"/>
-                        <code value="103"/>
-                        <display value="Pulse"/>
-                    </coding>
-                </code>
-                <valueQuantity>
-                    <value value="75.0"/>
-                </valueQuantity>
-                <status value="final"/>
-                <identifier>
-                    <value value="urn:uuid:e2d48247-673c-4181-acd1-4497671d4523"/>
-                </identifier>
-                <subject>
-                    <reference value="http://172.18.46.56:8081/api/v1/patients/98101039678"/>
-                    <display value="98101039678"/>
-                </subject>
-                <encounter>
-                    <reference value="urn:uuid:ff9a0b75-5252-4a65-bb5e-84f1d9fb58c0"/>
-                </encounter>
-            </Observation>
-        </resource>
-    </entry>
-    <entry>
         <fullUrl value="urn:uuid:56b0a203-9215-40ea-a6a0-b1d625d100c0" />
         <resource>
             <Observation xmlns="http://hl7.org/fhir">
@@ -207,12 +172,6 @@
                     <type value="has-member"/>
                     <target>
                         <reference value="urn:uuid:f62cc2af-aa9e-45a2-bf2d-e02314d2390d"/>
-                    </target>
-                </related>
-                <related>
-                    <type value="has-member"/>
-                    <target>
-                        <reference value="urn:uuid:e2d48247-673c-4181-acd1-4497671d4523"/>
                     </target>
                 </related>
             </Observation>
