@@ -5,10 +5,9 @@
     </meta>
     <type value="collection"/>
     <entry>
-        <fullUrl value="urn:uuid:f1aeb8d3-52c8-4c65-ab55-05a487e24092"/>
+        <fullUrl value="urn:uuid:f1aeb8d3-52c8-4c65-ab55-05a487e24092" />
         <resource>
             <Composition xmlns="http://hl7.org/fhir">
-                <id value="f1aeb8d3-52c8-4c65-ab55-05a487e24092" />
                 <identifier>
                     <value value="urn:uuid:f1aeb8d3-52c8-4c65-ab55-05a487e24092"/>
                 </identifier>
@@ -20,7 +19,6 @@
                         <display value="Details Document"/>
                     </coding>
                 </type>
-                <title value="Patient Clinical Encounter" />
                 <status value="final"/>
                 <confidentiality value="N"/>
                 <subject>
@@ -83,7 +81,7 @@
         </resource>
     </entry>
     <entry>
-        <fullUrl value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:453b7b24-7847-49f7-8a33-2fc339e5c4c7"/>
         <resource>
             <DiagnosticOrder xmlns="http://hl7.org/fhir">
                 <id value="453b7b24-7847-49f7-8a33-2fc339e5c4c7"/>
@@ -107,21 +105,21 @@
                 <item>
                     <code>
                         <coding>
-                            <system value="http://localhost:9997/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0q6a972"/>
+                            <system value="http://172.18.46.56:9080/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0q6a972"/>
                             <code value="501qb827-a67c-4q1f-a705-e5efe0q6a972"/>
-                            <display value="Haemoglobin"/>
+                            <display value="Hemoglobin"/>
                         </coding>
                     </code>
                     <specimen>
                         <reference value="urn:uuid:a0848743-e6ae-40c7-a271-4117e46d43cd"/>
                     </specimen>
-                    <status value="requested"/>
+                    <status value="cancelled"/>
                 </item>
             </DiagnosticOrder>
         </resource>
     </entry>
     <entry>
-        <fullUrl value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:a0848743-e6ae-40c7-a271-4117e46d43cd"/>
         <resource>
             <Specimen xmlns="http://hl7.org/fhir">
                 <id value="a0848743-e6ae-40c7-a271-4117e46d43cd"/>

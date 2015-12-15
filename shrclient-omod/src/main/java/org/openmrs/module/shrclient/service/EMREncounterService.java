@@ -120,8 +120,14 @@ public class EMREncounterService {
             }
         });
         for (Order order : ordersList) {
-            orderService.saveOrder(order, null);
+            if (isNewOrder(order)) {
+                orderService.saveOrder(order, null);
+            }
         }
+    }
+
+    private boolean isNewOrder(Order order) {
+        return order.getOrderId() == null;
     }
 
     private boolean shouldSyncEncounter(String encounterId, EncounterEvent encounterEvent) {

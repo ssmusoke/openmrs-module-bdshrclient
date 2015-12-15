@@ -4,6 +4,7 @@ import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
+import ca.uhn.fhir.model.dstu2.valueset.DiagnosticOrderStatusEnum;
 import org.openmrs.Concept;
 import org.openmrs.Order;
 import org.openmrs.api.OrderService;
@@ -20,6 +21,8 @@ import java.util.List;
 
 @Component
 public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
+    private static final String ORDER_NAME = "Lab Order";
+
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
 
@@ -48,20 +51,60 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         for (DiagnosticOrder.Item diagnosticOrderItemComponent : item) {
             Concept testOrderConcept = omrsConceptLookup.findConceptByCode(diagnosticOrderItemComponent.getCode().getCoding());
             if (testOrderConcept != null) {
+                Order existingRunningOrder = getExistingRunningOrder(emrEncounter, testOrderConcept);
+                if (isRequestedOrderAlreadyPresent(diagnosticOrderItemComponent, existingRunningOrder)) return;
+                if (isCancelledOrderNotCreated(diagnosticOrderItemComponent, existingRunningOrder)) return;
                 Order testOrder = createTestOrder(bundle, diagnosticOrder, emrEncounter, testOrderConcept);
+                handleCancelledOrder(diagnosticOrderItemComponent, existingRunningOrder, testOrder);
                 emrEncounter.addOrder(testOrder);
             }
         }
     }
 
+    private boolean isRequestedOrderAlreadyPresent(DiagnosticOrder.Item diagnosticOrderItemComponent, Order existingRunningOrder) {
+        return isRequestedOrder(diagnosticOrderItemComponent) && existingRunningOrder != null;
+    }
+
+    private boolean isCancelledOrderNotCreated(DiagnosticOrder.Item diagnosticOrderItemComponent, Order existingRunningOrder) {
+        return isCancelledOrder(diagnosticOrderItemComponent) && existingRunningOrder == null;
+    }
+
     private Order createTestOrder(Bundle bundle, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter, Concept testOrderConcept) {
         Order testOrder = new Order();
-        testOrder.setOrderType( orderService.getOrderTypeByName("Lab Order"));
+        testOrder.setOrderType(orderService.getOrderTypeByName(ORDER_NAME));
         testOrder.setConcept(testOrderConcept);
         setOrderer(testOrder, diagnosticOrder);
         testOrder.setDateActivated(emrEncounter.getEncounter().getEncounterDatetime());
         testOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(bundle));
         return testOrder;
+    }
+
+    private void handleCancelledOrder(DiagnosticOrder.Item diagnosticOrderItemComponent, Order existingRunningOrder, Order testOrder) {
+        if (isCancelledOrder(diagnosticOrderItemComponent)) {
+            testOrder.setAction(Order.Action.DISCONTINUE);
+            testOrder.setPreviousOrder(existingRunningOrder);
+        }
+    }
+
+    private boolean isCancelledOrder(DiagnosticOrder.Item diagnosticOrderItemComponent) {
+        return DiagnosticOrderStatusEnum.CANCELLED.getCode().equals(diagnosticOrderItemComponent.getStatus());
+    }
+
+    private boolean isRequestedOrder(DiagnosticOrder.Item diagnosticOrderItemComponent) {
+        return DiagnosticOrderStatusEnum.REQUESTED.getCode().equals(diagnosticOrderItemComponent.getStatus());
+    }
+
+    private Order getExistingRunningOrder(EmrEncounter emrEncounter, Concept testOrderConcept) {
+        for (Order order : emrEncounter.getEncounter().getOrders()) {
+            if (order.getConcept().equals(testOrderConcept) && isRunningOrder(order)) {
+                return order;
+            }
+        }
+        return null;
+    }
+
+    private boolean isRunningOrder(Order order) {
+        return Order.Action.NEW.equals(order.getAction()) && order.getDateStopped() == null;
     }
 
     private void setOrderer(Order testOrder, DiagnosticOrder diagnosticOrder) {

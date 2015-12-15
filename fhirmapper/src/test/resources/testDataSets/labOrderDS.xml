@@ -74,7 +74,7 @@
     <concept_reference_term concept_reference_term_id="9" concept_source_id="1" code="20563-3" name="Carboxyhemoglobin/Hemoglobin.total:MFr:Pt:Bld:Qn"
                             creator="1" date_created="2004-08-12 00:00:00.0" uuid="baef67ac-b24e-ab04-7028-c3b994132b85"></concept_reference_term>
     <concept_reference_map concept_map_id="9" concept_id="303" concept_reference_term_id="9" concept_map_type_id="1" creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_map>
-    <shr_id_mapping id="1" internal_id="baef67ac-b24e-ab04-7028-c3b994132b85" external_id="501qb827-a67c-4q1f-a705-e5efe0q6a972" type="concept_reference_term" uri="http://172.18.46.53:9080/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0q6a972"></shr_id_mapping>
+    <shr_id_mapping id="1" internal_id="baef67ac-b24e-ab04-7028-c3b994132b85" external_id="501qb827-a67c-4q1f-a705-e5efe0q6a972" type="concept_reference_term" uri="http://localhost:9997/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0q6a972"></shr_id_mapping>
 
 
     <concept concept_id="304" retired="false" datatype_id="1" class_id="1" is_set="false" creator="1"
@@ -87,7 +87,7 @@
     <concept_reference_term concept_reference_term_id="10" concept_source_id="1" code="20563-4" name="ESR/ESR.total:MFr:Pt:Bld:Qn"
                             creator="1" date_created="2004-08-12 00:00:00.0" uuid="baef67ac-b24e-ab04-7028-c3b9941hji94"></concept_reference_term>
     <concept_reference_map concept_map_id="10" concept_id="304" concept_reference_term_id="10" concept_map_type_id="1" creator="1" date_created="2004-08-12 00:00:00.0"></concept_reference_map>
-    <shr_id_mapping id="2" internal_id="baef67ac-b24e-ab04-7028-c3b9941hji94" external_id="501qb827-a67c-4q1f-a705-e5efe0qjki2w" type="concept_reference_term" uri="http://172.18.46.53:9080/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0qjki2w"></shr_id_mapping>
+    <shr_id_mapping id="2" internal_id="baef67ac-b24e-ab04-7028-c3b9941hji94" external_id="501qb827-a67c-4q1f-a705-e5efe0qjki2w" type="concept_reference_term" uri="http://localhost:9997/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0qjki2w"></shr_id_mapping>
 
     <concept concept_id="305" retired="false" datatype_id="2" class_id="1" is_set="false" creator="1"
              date_created="2005-01-01 00:00:00.0" uuid="da4bf386-3fcc-11e3-968c-0800271c1b75"/>
@@ -192,8 +192,8 @@
                encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
                voided="false" uuid="6d0ll6767-12w4-4629-9850-lll216egjf90"/>
 
-    <encounter_provider encounter_provider_id="6" encounter_id="41" provider_id="23" creator="1" date_created="2008-07-01 14:09:05.0"
-                        voided="false" uuid="6alsc6767-707a-4la0-1850-f15206ehja8h"/>
+    <encounter_provider encounter_provider_id="7" encounter_id="41" provider_id="23" creator="1" date_created="2008-07-01 14:09:05.0"
+                        voided="false" uuid="6alsc6767-12wa-4la0-1850-f15206ehja8h"/>
 
     <!--stopped order-->
     <orders order_id="24" order_type_id="16" encounter_id="41" urgency="ROUTINE" concept_id="305"
@@ -208,5 +208,20 @@
             care_setting="1" creator="1" date_created="2008-08-19 12:22:22.0" voided="false" previous_order_id = "21" patient_id="1" orderer="23"
             accession_number="accession-number1" uuid="6glco326-34ea-4629-34es-f1520ghkp0a0"/>
     <!--encounter with edited order-->
+    
+    <!--encounter with order to be stopped after download-->
+    <encounter encounter_id="42" encounter_type="1" patient_id="1" visit_id="1" location_id="2"
+               encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
+               voided="false" uuid="6d0ll6767-12w4-4629-78yz-lll216egjf90"/>
+
+    <encounter_provider encounter_provider_id="8" encounter_id="42" provider_id="23" creator="1" date_created="2008-07-01 14:09:05.0"
+                        voided="false" uuid="6alsc6767-707a-4la0-po3w-f15206ehja8h"/>
+
+    
+    <orders order_id="26" order_type_id="16" encounter_id="42" urgency="ROUTINE" concept_id="304"
+            instructions="ESR" date_activated="2008-08-08 00:00:00.0" order_number="12744" order_action="NEW"
+            care_setting="1" creator="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23" accession_number="accession-number1"
+            uuid="6glco326-34ea-45d4-jsla-f1520ghkp0a0"/>
+    <!--encounter with order to be stopped after download-->
 
 </dataset>

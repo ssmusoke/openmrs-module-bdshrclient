@@ -18,16 +18,21 @@ import static org.openmrs.module.fhir.MRSProperties.ENCOUNTER_UPDATE_VOID_REASON
 
 @Component
 public class FHIRSubResourceMapper {
-    @Autowired
+
     private List<FHIRResourceMapper> fhirResourceMappers;
 
-    public void map(Encounter openMrsEncounter, ShrEncounter encounterComposition, SystemProperties systemProperties) {
+    @Autowired
+    public FHIRSubResourceMapper(List<FHIRResourceMapper> fhirResourceMappers) {
+        this.fhirResourceMappers = fhirResourceMappers;
+    }
+
+    public void map(Encounter openMrsEncounter, ShrEncounter shrEncounter, SystemProperties systemProperties) {
         EmrEncounter emrEncounter = new EmrEncounter(openMrsEncounter);
-        List<IResource> topLevelResources = FHIRBundleHelper.identifyTopLevelResources(encounterComposition.getBundle());
+        List<IResource> topLevelResources = FHIRBundleHelper.identifyTopLevelResources(shrEncounter.getBundle());
         for (IResource resource : topLevelResources) {
             for (FHIRResourceMapper fhirResourceMapper : fhirResourceMappers) {
                 if (fhirResourceMapper.canHandle(resource)) {
-                    fhirResourceMapper.map(resource, emrEncounter, encounterComposition, systemProperties);
+                    fhirResourceMapper.map(resource, emrEncounter, shrEncounter, systemProperties);
                 }
             }
         }
