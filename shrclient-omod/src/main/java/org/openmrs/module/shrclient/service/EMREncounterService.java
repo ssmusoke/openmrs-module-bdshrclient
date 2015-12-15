@@ -29,7 +29,7 @@ import static org.openmrs.module.fhir.Constants.ID_MAPPING_ENCOUNTER_TYPE;
 import static org.openmrs.module.fhir.mapper.model.Confidentiality.getConfidentiality;
 import static org.openmrs.module.fhir.utils.SHREncounterURLUtil.getEncounterUrl;
 
-@Service
+@Service("hieEmrEncounterService")
 public class EMREncounterService {
 
     private static final Logger logger = Logger.getLogger(EMREncounterService.class);

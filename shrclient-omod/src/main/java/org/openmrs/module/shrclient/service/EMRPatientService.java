@@ -32,7 +32,7 @@ import java.util.Properties;
 
 import static org.openmrs.module.fhir.Constants.*;
 
-@Service
+@Service("hieEmrPatientService")
 public class EMRPatientService {
     private static final String DOB_TYPE_DECLARED = "1";
     private static final String DOB_TYPE_ESTIMATED = "3";

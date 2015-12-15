@@ -16,6 +16,7 @@ import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.web.controller.MciPatientSearchRequest;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 
 @Service
-public class MCIPatientLookupService  {
+public class MCIPatientLookupService {
     private static final Logger log = Logger.getLogger(MCIPatientLookupService.class);
 
     private static final String NID_PARAM_KEY = "nid";
@@ -42,8 +43,8 @@ public class MCIPatientLookupService  {
     private EMREncounterService emrEncounterService;
 
     @Autowired
-    public MCIPatientLookupService(EMRPatientService emrPatientService, PropertiesReader propertiesReader,
-                                   IdentityStore identityStore, EMREncounterService emrEncounterService) {
+    public MCIPatientLookupService(@Qualifier("hieEmrPatientService") EMRPatientService emrPatientService, PropertiesReader propertiesReader,
+                                   IdentityStore identityStore, @Qualifier("hieEmrEncounterService") EMREncounterService emrEncounterService) {
         this.emrPatientService = emrPatientService;
         this.propertiesReader = propertiesReader;
         this.identityStore = identityStore;

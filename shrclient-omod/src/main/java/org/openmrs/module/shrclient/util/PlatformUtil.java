@@ -17,6 +17,10 @@ public class PlatformUtil {
         return null;
     }
 
+    public static <T> T getRegisteredComponent(String beanName, Class<T> clazz) {
+        return Context.getRegisteredComponent(beanName, clazz);
+    }
+
     public static PropertiesReader getPropertiesReader() {
         return getRegisteredComponent(PropertiesReader.class);
     }
