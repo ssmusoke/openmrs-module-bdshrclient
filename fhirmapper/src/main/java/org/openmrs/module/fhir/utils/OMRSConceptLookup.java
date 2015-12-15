@@ -6,8 +6,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.openmrs.*;
 import org.openmrs.api.ConceptService;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,15 +16,13 @@ import java.util.*;
 
 import static org.apache.commons.collections4.CollectionUtils.exists;
 import static org.apache.commons.collections4.CollectionUtils.select;
-import static org.openmrs.module.fhir.Constants.ID_MAPPING_CONCEPT_TYPE;
-import static org.openmrs.module.fhir.Constants.ID_MAPPING_REFERENCE_TERM_TYPE;
 import static org.openmrs.module.fhir.MRSProperties.*;
 
 @Component
 public class OMRSConceptLookup {
 
     private ConceptService conceptService;
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingsRepository;
     private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     public static final String TR_DRUG_REST_URL = "/ws/rest/v1/tr/drugs";
@@ -35,7 +34,7 @@ public class OMRSConceptLookup {
     private ConceptDatatype conceptDatatypeByUuid;
 
     @Autowired
-    public OMRSConceptLookup(ConceptService conceptService, IdMappingsRepository repository, GlobalPropertyLookUpService globalPropertyLookUpService) {
+    public OMRSConceptLookup(ConceptService conceptService, IdMappingRepository repository, GlobalPropertyLookUpService globalPropertyLookUpService) {
         this.conceptService = conceptService;
         this.idMappingsRepository = repository;
         this.globalPropertyLookUpService = globalPropertyLookUpService;
@@ -55,11 +54,11 @@ public class OMRSConceptLookup {
             } else {
                 String uuid = getUuid(coding.getSystem());
                 if (StringUtils.isNotBlank(uuid)) {
-                    IdMapping idMapping = idMappingsRepository.findByExternalId(uuid);
+                    IdMapping idMapping = idMappingsRepository.findByExternalId(uuid, IdMappingType.CONCEPT);
                     if (idMapping != null) {
-                        if (ID_MAPPING_CONCEPT_TYPE.equalsIgnoreCase(idMapping.getType())) {
+                        if (IdMappingType.CONCEPT.equalsIgnoreCase(idMapping.getType())) {
                             identifiedConcept = conceptService.getConceptByUuid(idMapping.getInternalId());
-                        } else if (ID_MAPPING_REFERENCE_TERM_TYPE.equalsIgnoreCase(idMapping.getType())) {
+                        } else if (IdMappingType.CONCEPT_REFERENCE_TERM.equalsIgnoreCase(idMapping.getType())) {
                             referenceTermMap.put(conceptService.getConceptReferenceTermByUuid(idMapping.getInternalId()), coding.getDisplay());
                         }
                     }
@@ -183,7 +182,7 @@ public class OMRSConceptLookup {
     }
 
     private Drug findDrug(String drugExternalId) {
-        IdMapping idMapping = idMappingsRepository.findByExternalId(drugExternalId);
+        IdMapping idMapping = idMappingsRepository.findByExternalId(drugExternalId, IdMappingType.CONCEPT);
         if (idMapping != null) {
             return conceptService.getDrugByUuid(idMapping.getInternalId());
         }
@@ -258,9 +257,9 @@ public class OMRSConceptLookup {
             if (isValueSetUrl(coding.getSystem())) continue;
             String uuid = getUuid(coding.getSystem());
             if (StringUtils.isNotBlank(uuid)) {
-                IdMapping idMapping = idMappingsRepository.findByExternalId(uuid);
+                IdMapping idMapping = idMappingsRepository.findByExternalId(uuid, IdMappingType.CONCEPT_REFERENCE_TERM);
                 if (idMapping == null) continue;
-                if (ID_MAPPING_REFERENCE_TERM_TYPE.equalsIgnoreCase(idMapping.getType())) {
+                if (IdMappingType.CONCEPT_REFERENCE_TERM.equalsIgnoreCase(idMapping.getType())) {
                     ConceptMapType mapTypeMayBe = getMayBeAConceptMapType();
                     ConceptReferenceTerm refTerm = conceptService.getConceptReferenceTermByUuid(idMapping.getInternalId());
                     concept.addConceptMapping(new ConceptMap(refTerm, mapTypeMayBe));

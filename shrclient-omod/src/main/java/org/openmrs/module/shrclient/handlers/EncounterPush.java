@@ -15,10 +15,12 @@ import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
 import org.openmrs.module.fhir.utils.SHREncounterURLUtil;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
+import org.openmrs.module.shrclient.model.EncounterIdMapping;
 import org.openmrs.module.shrclient.model.EncounterResponse;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.util.*;
 
 import java.io.IOException;
@@ -32,9 +34,8 @@ import java.util.regex.Pattern;
 public class EncounterPush implements EventWorker {
 
     private static final Logger log = Logger.getLogger(EncounterPush.class);
-
+    private IdMappingRepository idMappingsRepository;
     private CompositionBundle compositionBundle;
-    private IdMappingsRepository idMappingsRepository;
     private EncounterService encounterService;
     private PropertiesReader propertiesReader;
     private ClientRegistry clientRegistry;
@@ -43,7 +44,7 @@ public class EncounterPush implements EventWorker {
     private SystemUserService systemUserService;
 
     public EncounterPush(EncounterService encounterService, PropertiesReader propertiesReader,
-                         CompositionBundle compositionBundle, IdMappingsRepository idMappingsRepository,
+                         CompositionBundle compositionBundle, IdMappingRepository idMappingsRepository,
                          ClientRegistry clientRegistry,
                          SystemUserService systemUserService) throws IdentityUnauthorizedException {
         this.encounterService = encounterService;
@@ -67,7 +68,7 @@ public class EncounterPush implements EventWorker {
                 return;
             }
             IdMapping mapping = getEncounterMapping(openMrsEncounter);
-            if (!shouldUploadEncounter(openMrsEncounter, mapping)) {
+            if (!shouldUploadEncounter(openMrsEncounter)) {
                 return;
             }
 
@@ -100,17 +101,16 @@ public class EncounterPush implements EventWorker {
         for (Order order : orders) {
             if (order.getOrderType().getName().equals(MRSProperties.MRS_DRUG_ORDER_TYPE)) {
                 String orderUrl = String.format(Constants.RESOURCE_MAPPING_URL_FORMAT, encounterUrl, new MedicationOrder().getResourceName(), order.getUuid());
-                idMappingsRepository.saveOrUpdateMapping(new IdMapping(order.getUuid(), order.getUuid(), Constants.ID_MAPPING_MEDICATION_ORDER_TYPE, orderUrl));
+                idMappingsRepository.saveOrUpdateIdMapping(new IdMapping(order.getUuid(), order.getUuid(), IdMappingType.MEDICATION_ORDER, orderUrl));
             }
         }
     }
 
     private void saveEncounterIdMapping(Encounter openMrsEncounter, String shrEncounterId, String encounterUrl) {
-        idMappingsRepository.saveOrUpdateMapping(new IdMapping(openMrsEncounter.getUuid(), shrEncounterId,
-                Constants.ID_MAPPING_ENCOUNTER_TYPE, encounterUrl, new Date()));
+        idMappingsRepository.saveOrUpdateIdMapping(new EncounterIdMapping(openMrsEncounter.getUuid(), shrEncounterId, encounterUrl, new Date()));
     }
 
-    private boolean shouldUploadEncounter(Encounter openMrsEncounter, IdMapping mapping) {
+    private boolean shouldUploadEncounter(Encounter openMrsEncounter) {
         if (systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsEncounter)) {
             log.debug(String.format("Encounter downloaded from SHR.Ignoring encounter sync."));
             return false;
@@ -167,7 +167,7 @@ public class EncounterPush implements EventWorker {
     }
 
     private String getPatientHealthId(Patient emrPatient) {
-        IdMapping patientIdMapping = idMappingsRepository.findByInternalId(emrPatient.getUuid());
+        IdMapping patientIdMapping = idMappingsRepository.findByInternalId(emrPatient.getUuid(), IdMappingType.PATIENT);
         if (patientIdMapping == null) {
             throw new AtomFeedClientException(String.format("Patient [%s] is not yet synced to MCI.",
                     emrPatient.getUuid()));
@@ -177,7 +177,7 @@ public class EncounterPush implements EventWorker {
     }
 
     private IdMapping getEncounterMapping(Encounter openMrsEncounter) {
-        return idMappingsRepository.findByInternalId(openMrsEncounter.getUuid());
+        return idMappingsRepository.findByInternalId(openMrsEncounter.getUuid(), IdMappingType.ENCOUNTER);
     }
 
     String getUuid(String content) {

@@ -4,8 +4,9 @@ package org.openmrs.module.fhir.utils;
 import org.apache.commons.beanutils.BeanToPropertyValueTransformer;
 import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Location;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +21,7 @@ public class OMRSLocationService {
     private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Autowired
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingRepository;
 
     public boolean isLocationHIEFacility(Location location) {
         Integer hieLocationTagId = getHIEFacilityLocationTag();
@@ -32,7 +33,7 @@ public class OMRSLocationService {
     }
 
     public String getLocationHIEIdentifier(Location location) {
-        IdMapping locationMapping = idMappingsRepository.findByInternalId(location.getUuid());
+        IdMapping locationMapping = idMappingRepository.findByInternalId(location.getUuid(), IdMappingType.FACILITY);
         return locationMapping != null ? locationMapping.getExternalId() : null;
     }
 

@@ -7,19 +7,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
 import org.openmrs.module.fhir.Constants;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.model.Relation;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static java.util.Arrays.asList;
-import static org.openmrs.module.fhir.Constants.ID_MAPPING_PERSON_RELATION_TYPE;
 
 public class RelationshipMapper {
 
@@ -37,7 +32,7 @@ public class RelationshipMapper {
         this.personAttributeMapper = new PersonAttributeMapper();
     }
 
-    public List<Relation> map(org.openmrs.Patient openMrsPatient, IdMappingsRepository idMappingsRepository) {
+    public List<Relation> map(Patient openMrsPatient, IdMappingRepository idMappingRepository) {
         List<Relation> relations = new ArrayList<>();
 
         Set<String> attributeNames = attributeRelationshipTypeMapping.keySet();
@@ -46,11 +41,11 @@ public class RelationshipMapper {
             String attributeValue = relationshipAttribute != null ? relationshipAttribute.getValue() : null;
             if (StringUtils.isNotEmpty(attributeValue)) {
                 Relation relation = getRelation(attributeValue, attributeRelationshipTypeMapping.get(attributeName));
-                IdMapping idMapping = idMappingsRepository.findByInternalId(getRelationInternalId(openMrsPatient, relationshipAttribute.getAttributeType().getUuid()));
+                IdMapping idMapping = idMappingRepository.findByInternalId(getRelationInternalId(openMrsPatient, relationshipAttribute.getAttributeType().getUuid()),IdMappingType.PERSON_RELATION);
                 if (idMapping == null) {
                     relation.setId(UUID.randomUUID().toString());
-                    idMapping = new IdMapping(getRelationInternalId(openMrsPatient, relationshipAttribute.getAttributeType().getUuid()), relation.getId(), ID_MAPPING_PERSON_RELATION_TYPE, null);
-                    idMappingsRepository.saveOrUpdateMapping(idMapping);
+                    idMapping = new IdMapping(getRelationInternalId(openMrsPatient, relationshipAttribute.getAttributeType().getUuid()), relation.getId(), IdMappingType.PERSON_RELATION, null);
+                    idMappingRepository.saveOrUpdateIdMapping(idMapping);
                 } else {
                     relation.setId(idMapping.getExternalId());
                 }
@@ -64,7 +59,7 @@ public class RelationshipMapper {
         return String.format("%s:%s", openMrsPatient.getUuid(), attributeUuid);
     }
 
-    public void addRelationAttributes(Relation[] relations, Patient emrPatient, IdMappingsRepository idMappingsRepository) {
+    public void addRelationAttributes(Relation[] relations, Patient emrPatient, IdMappingRepository idMappingsRepository) {
         if (relations != null && relations.length > 0) {
             List<Relation> relationsToPersistAsAttributes = getRelationsToPersistAsAttributes(relations);
             for (Relation relationToPersistAsAttribute : relationsToPersistAsAttributes) {
@@ -76,15 +71,15 @@ public class RelationshipMapper {
         }
     }
 
-    private PersonAttribute getPersonAttribute(Relation relationToPersistAsAttribute, Patient patient, IdMappingsRepository idMappingsRepository) {
+    private PersonAttribute getPersonAttribute(Relation relationToPersistAsAttribute, Patient patient, IdMappingRepository idMappingsRepository) {
         String attributeName = getAttributeName(relationToPersistAsAttribute.getType());
         String name = getName(relationToPersistAsAttribute);
-        IdMapping idMapping = idMappingsRepository.findByExternalId(relationToPersistAsAttribute.getId());
+        IdMapping idMapping = idMappingsRepository.findByExternalId(relationToPersistAsAttribute.getId(), IdMappingType.PERSON_RELATION);
         PersonAttribute personAttribute = personAttributeMapper.getAttribute(attributeName, name);
         if (idMapping == null) {
             String relationInternalId = getRelationInternalId(patient, personAttribute.getAttributeType().getUuid());
-            idMapping = new IdMapping(relationInternalId, relationToPersistAsAttribute.getId(), ID_MAPPING_PERSON_RELATION_TYPE, null);
-            idMappingsRepository.saveOrUpdateMapping(idMapping);
+            idMapping = new IdMapping(relationInternalId, relationToPersistAsAttribute.getId(), IdMappingType.PERSON_RELATION, null);
+            idMappingsRepository.saveOrUpdateIdMapping(idMapping);
         }
         return personAttribute;
     }

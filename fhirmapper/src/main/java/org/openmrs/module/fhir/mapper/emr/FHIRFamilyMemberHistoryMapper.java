@@ -14,8 +14,9 @@ import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.TrValueSetType;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,7 +28,7 @@ import static org.openmrs.module.fhir.MRSProperties.*;
 @Component
 public class FHIRFamilyMemberHistoryMapper implements FHIRResourceMapper {
     @Autowired
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingsRepository;
 
     @Autowired
     private ConceptService conceptService;
@@ -92,7 +93,7 @@ public class FHIRFamilyMemberHistoryMapper implements FHIRResourceMapper {
     private Concept getAnswer(FamilyMemberHistory.Condition condition) {
         List<CodingDt> coding = condition.getCode().getCoding();
         for (CodingDt code : coding) {
-            IdMapping mapping = idMappingsRepository.findByExternalId(code.getCode());
+            IdMapping mapping = idMappingsRepository.findByExternalId(code.getCode(), IdMappingType.CONCEPT);
             if (null != mapping) {
                 return conceptService.getConceptByUuid(mapping.getInternalId());
             }

@@ -12,11 +12,12 @@ import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.idgen.IdentifierSource;
 import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.mapper.PersonAttributeMapper;
 import org.openmrs.module.shrclient.mapper.PhoneNumberMapper;
 import org.openmrs.module.shrclient.mapper.RelationshipMapper;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.util.AddressHelper;
@@ -42,7 +43,7 @@ public class EMRPatientService {
 
     private BbsCodeService bbsCodeService;
     private PatientService patientService;
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingsRepository;
     private PropertiesReader propertiesReader;
     private SystemUserService systemUserService;
     private PersonAttributeMapper personAttributeMapper;
@@ -52,12 +53,12 @@ public class EMRPatientService {
     public EMRPatientService(BbsCodeService bbsCodeService,
                              PatientService patientService,
                              PersonService personService,
-                             IdMappingsRepository idMappingsRepository,
+                             IdMappingRepository idMappingRepository,
                              PropertiesReader propertiesReader,
                              SystemUserService systemUserService, EMRPatientDeathService patientDeathService) {
         this.bbsCodeService = bbsCodeService;
         this.patientService = patientService;
-        this.idMappingsRepository = idMappingsRepository;
+        this.idMappingsRepository = idMappingRepository;
         this.propertiesReader = propertiesReader;
         this.systemUserService = systemUserService;
         this.patientDeathService = patientDeathService;
@@ -174,10 +175,10 @@ public class EMRPatientService {
     }
 
     private org.openmrs.Patient identifyEmrPatient(String healthId) {
-        IdMapping idMap = idMappingsRepository.findByExternalId(healthId);
-        if (idMap == null) return null;
+        IdMapping patientIdMapping = idMappingsRepository.findByExternalId(healthId, IdMappingType.PATIENT);
+        if (patientIdMapping == null) return null;
         logger.info("Patient with HealthId " + healthId + " already exists. Using reference to the patient for downloaded encounters.");
-        return patientService.getPatientByUuid(idMap.getInternalId());
+        return patientService.getPatientByUuid(patientIdMapping.getInternalId());
     }
 
     private String getConceptId(String conceptName) {
@@ -233,6 +234,6 @@ public class EMRPatientService {
                 propertiesReader.getFacilityInstanceProperties(),
                 propertiesReader.getMciProperties(), new Properties());
         String url = new EntityReference().build(org.openmrs.Patient.class, systemProperties, healthId);
-        idMappingsRepository.saveOrUpdateMapping(new IdMapping(patientUuid, healthId, ID_MAPPING_PATIENT_TYPE, url, new Date()));
+        idMappingsRepository.saveOrUpdateIdMapping(new IdMapping(patientUuid, healthId, IdMappingType.PATIENT, url, new Date()));
     }
 }

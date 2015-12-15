@@ -9,7 +9,7 @@ import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.utils.DateUtil;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.Address;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.Status;
@@ -35,7 +35,7 @@ public class PatientMapperTest {
     @Mock
     private SystemProperties systemProperties;
     @Mock
-    private IdMappingsRepository idMappingRepository;
+    private IdMappingRepository idMappingRepository;
 
     private AddressHelper addressHelper;
     private BbsCodeService bbsCodeService;

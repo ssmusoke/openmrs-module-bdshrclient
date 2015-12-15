@@ -14,8 +14,9 @@ import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.Confidentiality;
 import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.module.fhir.utils.DateUtil;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
+import org.openmrs.module.shrclient.model.EncounterIdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
@@ -25,7 +26,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-import static org.openmrs.module.fhir.Constants.ID_MAPPING_ENCOUNTER_TYPE;
 import static org.openmrs.module.fhir.mapper.model.Confidentiality.getConfidentiality;
 import static org.openmrs.module.fhir.utils.SHREncounterURLUtil.getEncounterUrl;
 
@@ -35,7 +35,7 @@ public class EMREncounterService {
     private static final Logger logger = Logger.getLogger(EMREncounterService.class);
 
     private PatientService patientService;
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingRepository;
     private PropertiesReader propertiesReader;
     private SystemUserService systemUserService;
     private VisitService visitService;
@@ -44,11 +44,11 @@ public class EMREncounterService {
     private EMRPatientDeathService patientDeathService;
 
     @Autowired
-    public EMREncounterService(PatientService patientService, IdMappingsRepository idMappingsRepository,
+    public EMREncounterService(PatientService patientService, IdMappingRepository idMappingRepository,
                                PropertiesReader propertiesReader, SystemUserService systemUserService,
                                VisitService visitService, FHIRMapper fhirMapper, OrderService orderService, EMRPatientDeathService patientDeathService) {
         this.patientService = patientService;
-        this.idMappingsRepository = idMappingsRepository;
+        this.idMappingRepository = idMappingRepository;
         this.propertiesReader = propertiesReader;
         this.systemUserService = systemUserService;
         this.visitService = visitService;
@@ -91,8 +91,8 @@ public class EMREncounterService {
                 propertiesReader.getMciProperties(),
                 propertiesReader.getShrProperties());
 
-        ShrEncounter encounterComposition = new ShrEncounter(bundle, healthId, shrEncounterId);
-        org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, encounterComposition, systemProperties);
+        ShrEncounter shrEncounter = new ShrEncounter(bundle, healthId, shrEncounterId);
+        org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, shrEncounter, systemProperties);
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
         Date encounterUpdatedDate = getEncounterUpdatedDate(encounterEvent);
@@ -105,8 +105,8 @@ public class EMREncounterService {
     private void addEncounterToIdMapping(Encounter newEmrEncounter, String externalUuid, String healthId, SystemProperties systemProperties, Date encounterUpdatedDate) {
         String internalUuid = newEmrEncounter.getUuid();
         String shrEncounterUrl = getEncounterUrl(externalUuid, healthId, systemProperties);
-        IdMapping idMapping = new IdMapping(internalUuid, externalUuid, ID_MAPPING_ENCOUNTER_TYPE, shrEncounterUrl, new Date(), encounterUpdatedDate);
-        idMappingsRepository.saveOrUpdateMapping(idMapping);
+        EncounterIdMapping encounterIdMapping = new EncounterIdMapping(internalUuid, externalUuid, shrEncounterUrl, new Date(), encounterUpdatedDate);
+        idMappingRepository.saveOrUpdateIdMapping(encounterIdMapping);
     }
 
     private void saveOrders(Encounter newEmrEncounter) {
@@ -124,15 +124,15 @@ public class EMREncounterService {
 
     private boolean shouldSyncEncounter(String encounterId, EncounterEvent encounterEvent) {
         if (hasUpdatedEncounterInTheFeed(encounterEvent)) return false;
-        IdMapping idMapping = idMappingsRepository.findByExternalId(encounterId);
+        EncounterIdMapping encounterIdMapping = (EncounterIdMapping) idMappingRepository.findByExternalId(encounterId, IdMappingType.ENCOUNTER);
         Date encounterUpdatedDate = getEncounterUpdatedDate(encounterEvent);
-        if (isUpdateAlreadyProcessed(idMapping, encounterUpdatedDate)) return false;
+        if (isUpdateAlreadyProcessed(encounterIdMapping, encounterUpdatedDate)) return false;
         return getEncounterConfidentiality(encounterEvent.getBundle()).ordinal() <= Confidentiality.Normal.ordinal();
     }
 
-    private boolean isUpdateAlreadyProcessed(IdMapping idMapping, Date encounterUpdatedDate) {
-        if (idMapping == null) return false;
-        Date serverUpdateDateTime = idMapping.getServerUpdateDateTime();
+    private boolean isUpdateAlreadyProcessed(EncounterIdMapping encounterIdMapping, Date encounterUpdatedDate) {
+        if (encounterIdMapping == null) return false;
+        Date serverUpdateDateTime = encounterIdMapping.getServerUpdateDateTime();
         if (serverUpdateDateTime == null) return true;
         return encounterUpdatedDate.before(serverUpdateDateTime) || encounterUpdatedDate.equals(serverUpdateDateTime);
     }

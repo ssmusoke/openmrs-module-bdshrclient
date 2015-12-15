@@ -22,19 +22,8 @@ public class Constants {
 
     public static final String IDENTIFIER_SOURCE_NAME = "BDH";
 
-    public static final String ID_MAPPING_ENCOUNTER_TYPE = "encounter";
-
-    public static final String ID_MAPPING_REFERENCE_TERM_TYPE = "concept_reference_term";
-
-    public static final String ID_MAPPING_CONCEPT_TYPE = "concept";
-
-    public static final String ID_MAPPING_PATIENT_TYPE = "patient";
-
-    public static final String ID_MAPPING_PERSON_RELATION_TYPE = "PERSON_RELATION";
-
     public final static String ORGANIZATION_ATTRIBUTE_TYPE_NAME = "Organization";
 
-    public static final String ID_MAPPING_MEDICATION_ORDER_TYPE = "MedicationOrder";
     public static final String RESOURCE_MAPPING_URL_FORMAT = "%s#%s/%s";
 
     public final static String FATHER_NAME_ATTRIBUTE_TYPE = "fatherName";

@@ -7,36 +7,28 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.openmrs.Patient;
-import org.openmrs.Person;
-import org.openmrs.PersonAttribute;
-import org.openmrs.PersonAttributeType;
-import org.openmrs.User;
+import org.openmrs.*;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.model.mci.api.MciPatientUpdateResponse;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.openmrs.module.fhir.Constants.HEALTH_ID_ATTRIBUTE;
-import static org.openmrs.module.fhir.Constants.ID_MAPPING_PATIENT_TYPE;
 
 public class PatientPushTest {
 
@@ -52,7 +44,7 @@ public class PatientPushTest {
     @Mock
     private PropertiesReader propertiesReader;
     @Mock
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingsRepository;
 
     @Mock
     private ClientRegistry clientRegistry;
@@ -110,7 +102,7 @@ public class PatientPushTest {
 
         patientPush.updateOpenMrsPatientHealthId(openMrsPatient, healthId);
         verify(patientService, never()).savePatient(any(org.openmrs.Patient.class));
-        verify(idMappingsRepository, times(1)).saveOrUpdateMapping(any(IdMapping.class));
+        verify(idMappingsRepository, times(1)).saveOrUpdateIdMapping(any(IdMapping.class));
     }
 
     @Test
@@ -124,7 +116,7 @@ public class PatientPushTest {
         when(personService.getPersonAttributeTypeByName(HEALTH_ID_ATTRIBUTE)).thenReturn(healthIdAttributeType);
         patientPush.updateOpenMrsPatientHealthId(openMrsPatient, healthId);
         verify(patientService).savePatient(any(org.openmrs.Patient.class));
-        verify(idMappingsRepository, times(1)).saveOrUpdateMapping(any(IdMapping.class));
+        verify(idMappingsRepository, times(1)).saveOrUpdateIdMapping(any(IdMapping.class));
     }
 
     @Test
@@ -137,9 +129,9 @@ public class PatientPushTest {
 
         when(patientService.getPatientByUuid("36c82d16-6237-4495-889f-59bd9e0d8181")).thenReturn(openMrsPatient);
 
-        IdMapping idMapping = new IdMapping(openMrsPatient.getUuid(), "hid123", ID_MAPPING_PATIENT_TYPE,
+        IdMapping idMapping = new IdMapping(openMrsPatient.getUuid(), "hid123", IdMappingType.PATIENT,
                 "http://mci.com/patients/hid123", dateTime.plusMinutes(1).toDate());
-        when(idMappingsRepository.findByInternalId(openMrsPatient.getUuid())).thenReturn(idMapping);
+        when(idMappingsRepository.findByInternalId(openMrsPatient.getUuid(), IdMappingType.PATIENT)).thenReturn(idMapping);
 
         patientPush.process(event);
 
@@ -170,7 +162,7 @@ public class PatientPushTest {
 
         verify(mockMciRestClient, times(1))
                 .post(propertiesReader.getMciPatientContext(), patient, MciPatientUpdateResponse.class);
-        verify(idMappingsRepository, times(1)).saveOrUpdateMapping(any(IdMapping.class));
+        verify(idMappingsRepository, times(1)).saveOrUpdateIdMapping(any(IdMapping.class));
     }
 
     private PersonAttribute createHealthIdAttribute() {

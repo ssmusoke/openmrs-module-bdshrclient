@@ -116,7 +116,7 @@
     <encounter encounter_id="15" encounter_type="2" patient_id="1" visit_id="2" location_id="2"
                encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
                voided="false" uuid="6d0af4567-707a-4629-9850-f15206e63ab0"/>
-    <shr_id_mapping id="10" internal_id="6d0af4567-707a-4629-9850-f15206e63ab0" external_id="shrEncounterId1" type="encounter" uri="http://localhost:9997/patients/hid/encounters/shrEncounterId1"></shr_id_mapping>
+    <encounter_id_mapping id="10" internal_id="6d0af4567-707a-4629-9850-f15206e63ab0" external_id="shrEncounterId1" uri="http://localhost:9997/patients/hid/encounters/shrEncounterId1"></encounter_id_mapping>
 
     <orders order_id="17" order_type_id="16" encounter_id="15" urgency="ROUTINE" concept_id="107"
             instructions="Regular Urea Nitrogen test" date_activated="2008-08-08 00:00:00.0" order_number="12344" order_action="NEW"
@@ -150,7 +150,7 @@
     <encounter encounter_id="11" encounter_type="2" patient_id="1" visit_id="2" location_id="2"
                encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
                voided="false" uuid="6d0af4567-ahaa-4629-9850-f15206e63ab4"/>
-    <shr_id_mapping id="11" internal_id="6d0af4567-ahaa-4629-9850-f15206e63ab4" external_id="shrEncounterId2" type="encounter" uri="http://localhost:9997/patients/hid/encounters/shrEncounterId2"></shr_id_mapping>
+    <encounter_id_mapping id="11" internal_id="6d0af4567-ahaa-4629-9850-f15206e63ab4" external_id="shrEncounterId2" uri="http://localhost:9997/patients/hid/encounters/shrEncounterId2"></encounter_id_mapping>
 
     <orders order_id="16" order_type_id="16" encounter_id="11" urgency="ROUTINE" concept_id="302"
             instructions="Blood panel" date_activated="2008-08-08 00:00:00.0" creator="1" order_number="12343" order_action="NEW"
@@ -225,7 +225,7 @@
     <encounter encounter_id="16" encounter_type="2" patient_id="1" visit_id="2" location_id="2"
                encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
                voided="false" uuid="6d0af4567-707a-4629-9850-f15206e63ab0a"/>
-    <shr_id_mapping id="16" internal_id="6d0af4567-707a-4629-9850-f15206e63ab0a" external_id="shrEncounterId3" type="encounter" uri="http://localhost:9997/patients/hid/encounters/shrEncounterId3"></shr_id_mapping>
+    <encounter_id_mapping internal_id="6d0af4567-707a-4629-9850-f15206e63ab0a" external_id="shrEncounterId3" uri="http://localhost:9997/patients/hid/encounters/shrEncounterId3"></encounter_id_mapping>
 
     <orders order_id="50" order_type_id="16" encounter_id="16" urgency="ROUTINE" concept_id="303"
             instructions="Hemoglobin" date_activated="2008-08-08 00:00:00.0" order_number="12344" order_action="NEW"
@@ -237,7 +237,7 @@
     <encounter encounter_id="17" encounter_type="2" patient_id="1" visit_id="2" location_id="2"
                encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
                voided="false" uuid="6d0af4567-ahaa-4629-9850-f1a206e63aa4"/>
-    <shr_id_mapping id="17" internal_id="6d0af4567-ahaa-4629-9850-f1a206e63aa4" external_id="shrEncounterId4" type="encounter" uri="http://localhost:9997/patients/hid/encounters/shrEncounterId4"></shr_id_mapping>
+    <encounter_id_mapping id="17" internal_id="6d0af4567-ahaa-4629-9850-f1a206e63aa4" external_id="shrEncounterId4" uri="http://localhost:9997/patients/hid/encounters/shrEncounterId4"></encounter_id_mapping>
 
     <orders order_id="51" order_type_id="16" encounter_id="17" urgency="ROUTINE" concept_id="302"
             instructions="Blood panel" date_activated="2008-08-08 00:00:00.0" creator="1" order_number="12343" order_action="NEW"

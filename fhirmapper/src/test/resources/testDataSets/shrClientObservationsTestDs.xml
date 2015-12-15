@@ -96,7 +96,7 @@
     <encounter_provider encounter_provider_id="3" encounter_id="37" provider_id="22" creator="1" date_created="2008-07-01 14:09:05.0"
                         voided="false" uuid="6g0bf6767-707a-4329-9850-f152c6ec3ac0"/>
 
-    <shr_id_mapping id="7" internal_id="6d0af6767-c0ca-4629-9850-f15206e63ab0" external_id="shr-enc-id-1" type="encounter" uri="http://shr.com/patients/98101039678/encounters/shr-enc-id"></shr_id_mapping>
+    <encounter_id_mapping id="7" internal_id="6d0af6767-c0ca-4629-9850-f15206e63ab0" external_id="shr-enc-id-1" uri="http://shr.com/patients/98101039678/encounters/shr-enc-id"></encounter_id_mapping>
     
     <obs obs_id="111" encounter_id="37" person_id="3" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="ef4554cb-22gg-471a-lld7-1434552c33711" creator="1" concept_id="301" voided="0" />

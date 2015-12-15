@@ -17,8 +17,9 @@ import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
+import org.openmrs.module.shrclient.model.EncounterIdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
@@ -43,7 +44,7 @@ public class EMREncounterServiceTest {
     @Mock
     private FHIRMapper mockFhirmapper;
     @Mock
-    private IdMappingsRepository mockIdMappingsRepository;
+    private IdMappingRepository mockIdMappingRepository;
     @Mock
     private VisitService mockVisitService;
     @Mock
@@ -66,7 +67,7 @@ public class EMREncounterServiceTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        emrEncounterService = new EMREncounterService(null, mockIdMappingsRepository, mockPropertiesReader
+        emrEncounterService = new EMREncounterService(null, mockIdMappingRepository, mockPropertiesReader
                 , mockSystemUserService, mockVisitService, mockFhirmapper, null, patientDeathService);
     }
 
@@ -89,7 +90,7 @@ public class EMREncounterServiceTest {
         String healthId = "health_id";
         String shrEncounterId = "shr-enc-id";
 
-        when(mockIdMappingsRepository.findByExternalId(shrEncounterId)).thenReturn(null);
+        when(mockIdMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER)).thenReturn(null);
         emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent, healthId);
         verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class));
     }
@@ -114,7 +115,7 @@ public class EMREncounterServiceTest {
         String healthId = "health_id";
         String shrEncounterId = "shr-enc-id";
 
-        when(mockIdMappingsRepository.findByExternalId(shrEncounterId)).thenReturn(null);
+        when(mockIdMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER)).thenReturn(null);
         when(mockFhirmapper.map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class))).thenReturn(new Encounter());
         when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://shr.com/");
         Properties shrProperties = new Properties();
@@ -173,8 +174,8 @@ public class EMREncounterServiceTest {
         String healthId = "health_id";
 
         String uri = "http://shr.com/patients/HID/encounters/shr_encounter_id";
-        IdMapping mapping = new IdMapping(UUID.randomUUID().toString(), shrEncounterId, "ENC", uri, twoMinutesAfter, twoMinutesAfter);
-        when(mockIdMappingsRepository.findByExternalId(shrEncounterId)).thenReturn(mapping);
+        EncounterIdMapping mapping = new EncounterIdMapping(UUID.randomUUID().toString(), shrEncounterId, uri, twoMinutesAfter, twoMinutesAfter);
+        when(mockIdMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER)).thenReturn(mapping);
         when(mockFhirmapper.map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class))).thenReturn(new Encounter());
         when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://shr.com/");
         Properties shrProperties = new Properties();
@@ -211,8 +212,8 @@ public class EMREncounterServiceTest {
         String healthId = "health_id";
 
         String uri = "http://shr.com/patients/HID/encounters/shr_encounter_id";
-        IdMapping mapping = new IdMapping(UUID.randomUUID().toString(), shrEncounterId, "ENC", uri, currentTime, currentTime);
-        when(mockIdMappingsRepository.findByExternalId(shrEncounterId)).thenReturn(mapping);
+        EncounterIdMapping mapping = new EncounterIdMapping(UUID.randomUUID().toString(), shrEncounterId, uri, currentTime, currentTime);
+        when(mockIdMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER)).thenReturn(mapping);
         when(mockFhirmapper.map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class))).thenReturn(new Encounter());
         when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://shr.com/");
         Properties shrProperties = new Properties();

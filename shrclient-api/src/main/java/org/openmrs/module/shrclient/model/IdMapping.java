@@ -1,8 +1,8 @@
 package org.openmrs.module.shrclient.model;
 
 import org.apache.commons.lang.Validate;
-import org.apache.log4j.Logger;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 public class IdMapping {
@@ -13,9 +13,8 @@ public class IdMapping {
     private String type;
     private String uri;
     private Date lastSyncDateTime;
-    private Date serverUpdateDateTime;
 
-    public IdMapping(String internalId, String externalId, String type, String uri, Date lastSyncDateTime, Date serverUpdateDateTime) {
+    public IdMapping(String internalId, String externalId, String type, String uri, Date lastSyncDateTime) {
         Validate.notNull(internalId);
         Validate.notNull(externalId);
         Validate.notNull(type);
@@ -24,15 +23,10 @@ public class IdMapping {
         this.type = type;
         this.uri = uri;
         this.lastSyncDateTime = lastSyncDateTime;
-        this.serverUpdateDateTime = serverUpdateDateTime;
-    }
-
-    public IdMapping(String internalId, String externalId, String type, String uri, Date lastSyncDateTime) {
-        this(internalId, externalId, type, uri, lastSyncDateTime, null);
     }
 
     public IdMapping(String internalId, String externalId, String type, String uri) {
-        this(internalId, externalId, type, uri, null, null);
+        this(internalId, externalId, type, uri, null);
     }
 
     public IdMapping() {
@@ -62,10 +56,6 @@ public class IdMapping {
         return lastSyncDateTime;
     }
 
-    public Date getServerUpdateDateTime() {
-        return serverUpdateDateTime;
-    }
-
     public void setId(long id) {
         this.id = id;
     }
@@ -90,8 +80,8 @@ public class IdMapping {
         this.lastSyncDateTime = lastSyncDateTime;
     }
 
-    public void setServerUpdateDateTime(Date serverUpdateDateTime) {
-        this.serverUpdateDateTime = serverUpdateDateTime;
+    public Timestamp getLastSyncDateTimestamp() {
+        return this.lastSyncDateTime != null ? new Timestamp(lastSyncDateTime.getTime()) : new Timestamp(new Date().getTime());
     }
 
     @Override

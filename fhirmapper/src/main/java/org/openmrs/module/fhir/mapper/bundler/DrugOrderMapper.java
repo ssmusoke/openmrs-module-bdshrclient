@@ -2,12 +2,7 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.ExtensionDt;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
-import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
-import ca.uhn.fhir.model.dstu2.composite.CodingDt;
-import ca.uhn.fhir.model.dstu2.composite.DurationDt;
-import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
-import ca.uhn.fhir.model.dstu2.composite.SimpleQuantityDt;
-import ca.uhn.fhir.model.dstu2.composite.TimingDt;
+import ca.uhn.fhir.model.dstu2.composite.*;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
@@ -29,14 +24,10 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.utils.CodeableConceptService;
-import org.openmrs.module.fhir.utils.DurationMapperUtil;
-import org.openmrs.module.fhir.utils.FrequencyMapperUtil;
-import org.openmrs.module.fhir.utils.OMRSConceptLookup;
-import org.openmrs.module.fhir.utils.ProviderLookupService;
-import org.openmrs.module.fhir.utils.TrValueSetType;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.fhir.utils.*;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -55,7 +46,7 @@ import static org.openmrs.module.fhir.MRSProperties.*;
 public class DrugOrderMapper implements EmrOrderResourceHandler {
     private final ObjectMapper objectMapper;
     @Autowired
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingsRepository;
     @Autowired
     private FrequencyMapperUtil frequencyMapperUtil;
     @Autowired
@@ -141,7 +132,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 
     private String setPriorPrescriptionReference(DrugOrder drugOrder, SystemProperties systemProperties) {
         if (isEditedInDifferentEncounter(drugOrder)) {
-            IdMapping orderIdMapping = idMappingsRepository.findByInternalId(drugOrder.getPreviousOrder().getUuid());
+            IdMapping orderIdMapping = idMappingsRepository.findByInternalId(drugOrder.getPreviousOrder().getUuid(), IdMappingType.MEDICATION_ORDER);
             if (orderIdMapping == null) {
                 throw new RuntimeException("Previous order encounter with id [" + drugOrder.getPreviousOrder().getEncounter().getUuid() + "] is not synced to SHR yet.");
             }
@@ -329,7 +320,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         Concept doseUnits = drugOrder.getDoseUnits();
         SimpleQuantityDt doseQuantity = new SimpleQuantityDt();
         TrValueSetType trValueSetType = determineTrValueSet(doseUnits);
-        if (null != trValueSetType && null != idMappingsRepository.findByInternalId(doseUnits.getUuid())) {
+        if (null != trValueSetType && null != idMappingsRepository.findByInternalId(doseUnits.getUuid(), IdMappingType.CONCEPT)) {
             String code = codeableConceptService.getTRValueSetCode(doseUnits);
             doseQuantity.setCode(code);
             doseQuantity.setSystem(trValueSetType.getTrPropertyValueSetUrl(systemProperties));
@@ -355,7 +346,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
             coding.setDisplay(drugOrder.getDrugNonCoded());
         } else {
             String uuid = drugOrder.getDrug().getUuid();
-            IdMapping idMapping = idMappingsRepository.findByInternalId(uuid);
+            IdMapping idMapping = idMappingsRepository.findByInternalId(uuid, IdMappingType.CONCEPT);
             String displayName = drugOrder.getDrug().getDisplayName();
             if (null != idMapping) {
                 coding.setCode(idMapping.getExternalId())

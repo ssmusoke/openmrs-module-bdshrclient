@@ -7,11 +7,12 @@ import org.openmrs.LocationTag;
 import org.openmrs.api.LocationService;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.OMRSLocationService;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.dao.FacilityCatchmentRepository;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.LocationMapper;
 import org.openmrs.module.shrclient.model.FRLocationEntry;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.util.ScheduledTaskHistory;
@@ -35,12 +36,11 @@ public class FacilityPull {
     private static final String SINGLE_SPACE = " ";
     public static final String FR_FACILITY_LEVEL_FEED_URI = "urn://fr/facilities";
     public static final String FR_PATH_INFO = "fr.pathInfo";
-    public static final String ID_MAPPING_TYPE = "fr_location";
     private static final int MAX_NUMBER_OF_ENTRIES_TO_BE_SYNCHRONIZED = 1000;
     private static final String INITIAL_DATETIME = "0000-00-00 00:00:00";
 
     private final LocationService locationService;
-    private final IdMappingsRepository idMappingsRepository;
+    private final IdMappingRepository idMappingsRepository;
     private final LocationMapper locationMapper;
     private final FacilityCatchmentRepository facilityCatchmentRepository;
     private final ScheduledTaskHistory scheduledTaskHistory;
@@ -52,12 +52,12 @@ public class FacilityPull {
 
 
     public FacilityPull(PropertiesReader propertiesReader, RestClient frWebClient, LocationService locationService,
-                        ScheduledTaskHistory scheduledTaskHistory, IdMappingsRepository idMappingsRepository,
+                        ScheduledTaskHistory scheduledTaskHistory, IdMappingRepository idMappingRepository,
                         LocationMapper locationMapper, FacilityCatchmentRepository facilityCatchmentRepository, OMRSLocationService omrsLocationService) {
         this.propertiesReader = propertiesReader;
         this.frWebClient = frWebClient;
         this.locationService = locationService;
-        this.idMappingsRepository = idMappingsRepository;
+        this.idMappingsRepository = idMappingRepository;
         this.scheduledTaskHistory = scheduledTaskHistory;
         this.locationMapper = locationMapper;
         this.facilityCatchmentRepository = facilityCatchmentRepository;
@@ -161,8 +161,8 @@ public class FacilityPull {
             facilityCatchmentRepository.saveMappings(location.getLocationId(), frLocationEntry.getProperties().getCatchments());
 
             String locationUrl = StringUtil.ensureSuffix(propertiesReader.getFrBaseUrl(), "/") + frLocationEntry.getId() + ".json";
-            idMappingsRepository.saveOrUpdateMapping(new IdMapping(location.getUuid(), frLocationEntry.getId(),
-                    ID_MAPPING_TYPE, locationUrl));
+            idMappingsRepository.saveOrUpdateIdMapping(new IdMapping(location.getUuid(), frLocationEntry.getId(),
+                    IdMappingType.FACILITY, locationUrl));
 
         } catch (Exception e) {
             logger.error("Error while creating a new Location : " + e);
@@ -190,9 +190,9 @@ public class FacilityPull {
 
     private void saveOrUpdateFacilityEntries(List<FRLocationEntry> frLocationEntries) {
         for (FRLocationEntry frLocationEntry : frLocationEntries) {
-            IdMapping idMapping = idMappingsRepository.findByExternalId(frLocationEntry.getId());
-            if (idMapping != null)
-                updateExistingLocation(frLocationEntry, idMapping);
+            IdMapping facilityIdMapping = idMappingsRepository.findByExternalId(frLocationEntry.getId(), IdMappingType.FACILITY);
+            if (facilityIdMapping != null)
+                updateExistingLocation(frLocationEntry, facilityIdMapping);
             else {
                 createNewLocation(frLocationEntry);
             }

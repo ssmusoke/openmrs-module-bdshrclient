@@ -13,8 +13,9 @@ import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.fhir.utils.VisitLookupService;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,7 +33,7 @@ public class FHIREncounterMapper {
     private EncounterService encounterService;
 
     @Autowired
-    public IdMappingsRepository idMappingsRepository;
+    public IdMappingRepository idMappingsRepository;
 
     @Autowired
     private LocationService locationService;
@@ -46,16 +47,16 @@ public class FHIREncounterMapper {
     @Autowired
     private FHIRSubResourceMapper fhirSubResourceMapper;
 
-    public org.openmrs.Encounter map(Patient emrPatient, ShrEncounter encounterComposition, SystemProperties systemProperties) throws ParseException {
-        final ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = FHIRBundleHelper.getEncounter(encounterComposition.getBundle());
-        Composition composition = FHIRBundleHelper.getComposition(encounterComposition.getBundle());
+    public org.openmrs.Encounter map(Patient emrPatient, ShrEncounter shrEncounter, SystemProperties systemProperties) throws ParseException {
+        final ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = FHIRBundleHelper.getEncounter(shrEncounter.getBundle());
+        Composition composition = FHIRBundleHelper.getComposition(shrEncounter.getBundle());
         Date encounterDate = composition.getDate();
-        org.openmrs.Encounter openmrsEncounter = getOrCreateEmrEncounter(encounterComposition.getShrEncounterId());
+        org.openmrs.Encounter openmrsEncounter = getOrCreateEmrEncounter(shrEncounter.getShrEncounterId());
         openmrsEncounter.setEncounterDatetime(encounterDate);
         
         openmrsEncounter.setPatient(emrPatient);
 
-        fhirSubResourceMapper.map(openmrsEncounter, encounterComposition, systemProperties);
+        fhirSubResourceMapper.map(openmrsEncounter, shrEncounter, systemProperties);
 
         final String encounterTypeName = fhirEncounter.getType().get(0).getText();
         final EncounterType encounterType = encounterService.getEncounterType(encounterTypeName);
@@ -77,7 +78,7 @@ public class FHIREncounterMapper {
 
     public org.openmrs.Encounter getOrCreateEmrEncounter(String fhirEncounterId) {
         org.openmrs.Encounter openmrsEncounter = null;
-        IdMapping mapping = idMappingsRepository.findByExternalId(fhirEncounterId);
+        IdMapping mapping = idMappingsRepository.findByExternalId(fhirEncounterId, IdMappingType.ENCOUNTER);
         if (mapping != null) {
             openmrsEncounter = encounterService.getEncounterByUuid(mapping.getInternalId());
         }
@@ -121,7 +122,7 @@ public class FHIREncounterMapper {
     }
 
     private void setInternalFacilityId(org.openmrs.Encounter emrEncounter, String facilityId) {
-        IdMapping idMapping = idMappingsRepository.findByExternalId(facilityId);
+        IdMapping idMapping = idMappingsRepository.findByExternalId(facilityId, IdMappingType.FACILITY);
         if (idMapping == null) return;
         Location location = locationService.getLocationByUuid(idMapping.getInternalId());
         emrEncounter.setLocation(location);

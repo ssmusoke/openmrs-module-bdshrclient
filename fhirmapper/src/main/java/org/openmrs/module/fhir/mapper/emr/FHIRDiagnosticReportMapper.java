@@ -5,15 +5,19 @@ import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 import org.apache.commons.lang3.StringUtils;
-import org.openmrs.*;
+import org.openmrs.Concept;
+import org.openmrs.Encounter;
+import org.openmrs.Obs;
+import org.openmrs.Order;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
-import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
+import org.openmrs.module.shrclient.model.EncounterIdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,7 +25,6 @@ import org.springframework.stereotype.Component;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 
 import static org.openmrs.module.fhir.MRSProperties.MRS_CONCEPT_CLASS_LAB_SET;
 import static org.openmrs.module.fhir.MRSProperties.MRS_CONCEPT_NAME_LAB_NOTES;
@@ -34,19 +37,19 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     private FHIRObservationsMapper observationsMapper;
     private ConceptService conceptService;
     private EncounterService encounterService;
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingRepository;
 
     @Autowired
     public FHIRDiagnosticReportMapper(OMRSConceptLookup omrsConceptLookup,
                                       FHIRObservationsMapper observationsMapper,
                                       ConceptService conceptService,
                                       EncounterService encounterService,
-                                      IdMappingsRepository idMappingsRepository) {
+                                      IdMappingRepository idMappingRepository) {
         this.omrsConceptLookup = omrsConceptLookup;
         this.observationsMapper = observationsMapper;
         this.conceptService = conceptService;
         this.encounterService = encounterService;
-        this.idMappingsRepository = idMappingsRepository;
+        this.idMappingRepository = idMappingRepository;
     }
 
     @Override
@@ -90,7 +93,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
             String requestDetailReference = reference.getReference().getValue();
             if (requestDetailReference.startsWith("http://") || requestDetailReference.startsWith("https://")) {
                 String shrEncounterId = new EntityReference().parse(Encounter.class, requestDetailReference);
-                IdMapping orderEncounterIdMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+                EncounterIdMapping orderEncounterIdMapping = (EncounterIdMapping) idMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER);
                 Encounter orderEncounter = encounterService.getEncounterByUuid(orderEncounterIdMapping.getInternalId());
                 return findOrderFromEncounter(orderEncounter.getOrders(), concept);
             }

@@ -93,8 +93,8 @@ public class FHIREncounterMapperIntegrationTest extends BaseModuleWebContextSens
         assertEquals("http://mci.com//api/default/patients/HIDA764177", ((Condition)conditions.get(0)).getPatient().getReference().getValue());
 
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
-        ShrEncounter encounterComposition = new ShrEncounter(encounterBundle, "HIDA764177", "shr-enc-id-1");
-        org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map(emrPatient, encounterComposition, getSystemProperties("1"));
+        ShrEncounter shrEncounter = new ShrEncounter(encounterBundle, "HIDA764177", "shr-enc-id-1");
+        org.openmrs.Encounter emrEncounter = fhirEncounterMapper.map(emrPatient, shrEncounter, getSystemProperties("1"));
 
         final Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);
         assertEquals(2, visitObs.size());

@@ -3,7 +3,7 @@ package org.openmrs.module.shrclient.mapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.PersonAttribute;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.PhoneNumber;
 import org.openmrs.module.shrclient.model.Relation;
@@ -20,21 +20,21 @@ public class PatientMapper {
     private static final String DOB_TYPE_DECLARED = "1";
     private static final String DOB_TYPE_ESTIMATED = "3";
     private BbsCodeService bbsCodeService;
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingsRepository;
     private AddressHelper addressHelper;
     private PersonAttributeMapper personAttributeMapper;
 
-    public PatientMapper(BbsCodeService bbsCodeService, IdMappingsRepository idMappingsRepository) {
+    public PatientMapper(BbsCodeService bbsCodeService, IdMappingRepository idMappingRepository) {
         this.bbsCodeService = bbsCodeService;
-        this.idMappingsRepository = idMappingsRepository;
+        this.idMappingsRepository = idMappingRepository;
         this.addressHelper = new AddressHelper();
         this.personAttributeMapper = new PersonAttributeMapper();
     }
 
-    public PatientMapper(BbsCodeService bbsCodeService, AddressHelper addressHelper, IdMappingsRepository idMappingsRepository) {
+    public PatientMapper(BbsCodeService bbsCodeService, AddressHelper addressHelper, IdMappingRepository idMappingRepository) {
         this.bbsCodeService = bbsCodeService;
         this.addressHelper = addressHelper;
-        this.idMappingsRepository = idMappingsRepository;
+        this.idMappingsRepository = idMappingRepository;
         this.personAttributeMapper = new PersonAttributeMapper();
     }
 

@@ -4,8 +4,9 @@ import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.*;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,7 @@ import java.util.Collection;
 public class CodeableConceptService {
 
     @Autowired
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingsRepository;
 
     public CodeableConceptDt getFHIRCodeableConcept(String code, String system, String display) {
         CodeableConceptDt codeableConcept = new CodeableConceptDt();
@@ -51,16 +52,16 @@ public class CodeableConceptService {
         return codeableConcept;
     }
 
-    private void addTRCodingForConcept(Concept concept, IdMappingsRepository idMappingsRepository, CodeableConceptDt codeableConcept) {
-        IdMapping idMapping = idMappingsRepository.findByInternalId(concept.getUuid());
+    private void addTRCodingForConcept(Concept concept, IdMappingRepository idMappingsRepository, CodeableConceptDt codeableConcept) {
+        IdMapping idMapping = idMappingsRepository.findByInternalId(concept.getUuid(), IdMappingType.CONCEPT);
         if (idMapping != null) {
             addFHIRCoding(codeableConcept, idMapping.getExternalId(), idMapping.getUri(), concept.getName().getName());
         }
     }
 
-    private void addTRCodingsForReferenceTerms(Concept concept, IdMappingsRepository idMappingsRepository, CodeableConceptDt codeableConcept, ConceptMap mapping) {
+    private void addTRCodingsForReferenceTerms(Concept concept, IdMappingRepository idMappingsRepository, CodeableConceptDt codeableConcept, ConceptMap mapping) {
         ConceptReferenceTerm conceptReferenceTerm = mapping.getConceptReferenceTerm();
-        IdMapping idMapping = idMappingsRepository.findByInternalId(conceptReferenceTerm.getUuid());
+        IdMapping idMapping = idMappingsRepository.findByInternalId(conceptReferenceTerm.getUuid(), IdMappingType.CONCEPT_REFERENCE_TERM);
         if (idMapping != null) {
             addFHIRCoding(codeableConcept, conceptReferenceTerm.getCode(), idMapping.getUri(), concept.getName().getName());
         }
@@ -84,7 +85,7 @@ public class CodeableConceptService {
 
     public CodeableConceptDt getTRValueSetCodeableConcept(Concept concept, String valueSetURL, CodeableConceptDt codeableConcept) {
         CodingDt coding = codeableConcept.addCoding();
-        if (null != idMappingsRepository.findByInternalId(concept.getUuid())) {
+        if (null != idMappingsRepository.findByInternalId(concept.getUuid(), IdMappingType.CONCEPT)) {
             coding.setCode(getTRValueSetCode(concept));
             coding.setSystem(valueSetURL);
         }

@@ -13,8 +13,10 @@ import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.fhir.utils.DateUtil;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
+import org.openmrs.module.shrclient.model.EncounterIdMapping;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.util.FhirBundleContextHolder;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterEvent;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -47,7 +49,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
     private ProviderService providerService;
 
     @Autowired
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingRepository;
 
 
     @Before
@@ -64,7 +66,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         List<EncounterEvent> bundles = getEncounterEvents(healthId, shrEncounterId, "encounterBundles/dstu2/testFHIREncounter.xml");
         emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
-        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        EncounterIdMapping idMapping = (EncounterIdMapping) idMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER);
         assertNotNull(idMapping);
         Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
         assertEquals(1, encounter.getEncounterProviders().size());
@@ -97,9 +99,9 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         Patient emrPatient = patientService.getPatient(1);
         emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
-        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
-        assertNotNull(idMapping);
-        Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
+        EncounterIdMapping encounterIdMapping = (EncounterIdMapping) idMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER);
+        assertNotNull(encounterIdMapping);
+        Encounter encounter = encounterService.getEncounterByUuid(encounterIdMapping.getInternalId());
         Set<Order> orders = encounter.getOrders();
         assertFalse(orders.isEmpty());
         assertEquals(1, orders.size());
@@ -116,7 +118,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
 
         emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
-        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        IdMapping idMapping = idMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER);
         assertNotNull(idMapping);
         Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
         Set<Order> orders = encounter.getOrders();
@@ -136,7 +138,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
 
         emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
-        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        IdMapping idMapping = idMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER);
         assertNotNull(idMapping);
         Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
         Set<Order> orders = encounter.getOrders();
@@ -156,7 +158,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
 
         emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
-        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        IdMapping idMapping = idMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER);
         assertNotNull(idMapping);
         Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
         Set<Order> orders = encounter.getOrders();
@@ -177,7 +179,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
 
         emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
-        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        IdMapping idMapping = idMappingRepository.findByExternalId(shrEncounterId,IdMappingType.ENCOUNTER);
         assertNotNull(idMapping);
         Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
         Set<Order> orders = encounter.getOrders();
@@ -198,7 +200,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
 
         emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
-        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        IdMapping idMapping = idMappingRepository.findByExternalId(shrEncounterId,IdMappingType.ENCOUNTER);
         assertNotNull(idMapping);
         Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
         Set<Order> orders = encounter.getOrders();
@@ -218,7 +220,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
 
         emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
 
-        IdMapping idMapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        IdMapping idMapping = idMappingRepository.findByExternalId(shrEncounterId,IdMappingType.ENCOUNTER);
         assertNotNull(idMapping);
         Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
         Set<Order> orders = encounter.getOrders();
@@ -243,7 +245,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         events.get(0).setCategories(asList(category));
         
         emrEncounterService.createOrUpdateEncounters(patient, events, healthId);
-        IdMapping mapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        EncounterIdMapping mapping = (EncounterIdMapping) idMappingRepository.findByExternalId(shrEncounterId,IdMappingType.ENCOUNTER);
         String encounterUUID = mapping.getInternalId();
         Date firstServerUpdateDateTime = mapping.getServerUpdateDateTime();
 
@@ -252,7 +254,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         events.get(0).setCategories(asList(newCategory));
 
         emrEncounterService.createOrUpdateEncounters(patient, events, healthId);
-        mapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        mapping = (EncounterIdMapping) idMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER);
         Encounter encounter2 = encounterService.getEncounterByUuid(mapping.getInternalId());
 
         assertEquals(encounterUUID, encounter2.getUuid());
@@ -268,7 +270,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
 
         List<EncounterEvent> bundles1 = getEncounterEvents(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithObservations.xml");
         emrEncounterService.createOrUpdateEncounters(patient, bundles1, healthId);
-        IdMapping mapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        IdMapping mapping = idMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER);
         Encounter encounter = encounterService.getEncounterByUuid(mapping.getInternalId());
 
         Set<Obs> topLevelObs = encounter.getObsAtTopLevel(true);
@@ -280,7 +282,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
 
         List<EncounterEvent> bundles2 = getEncounterEvents(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithUpdatedObservations.xml");
         emrEncounterService.createOrUpdateEncounters(patient, bundles2, healthId);
-        mapping = idMappingsRepository.findByExternalId(shrEncounterId);
+        mapping = idMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER);
         encounter = encounterService.getEncounterByUuid(mapping.getInternalId());
 
         assertEquals(2, encounter.getObsAtTopLevel(true).size());
@@ -305,8 +307,8 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         List<EncounterEvent> encounterEvents = asList(bundle1, bundle2);
         emrEncounterService.createOrUpdateEncounters(patient, encounterEvents, healthId);
 
-        IdMapping mapping1 = idMappingsRepository.findByExternalId(shrEncounterId1);
-        IdMapping mapping2 = idMappingsRepository.findByExternalId(shrEncounterId2);
+        IdMapping mapping1 = idMappingRepository.findByExternalId(shrEncounterId1, IdMappingType.ENCOUNTER);
+        IdMapping mapping2 = idMappingRepository.findByExternalId(shrEncounterId2, IdMappingType.ENCOUNTER);
 
         assertTrue(mapping1.getLastSyncDateTime().after(mapping2.getLastSyncDateTime()));
     }

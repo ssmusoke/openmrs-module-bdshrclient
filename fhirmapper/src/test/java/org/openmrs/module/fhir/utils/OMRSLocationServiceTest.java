@@ -6,8 +6,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.openmrs.Location;
 import org.openmrs.LocationTag;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 
 import java.util.HashSet;
 
@@ -22,7 +23,7 @@ public class OMRSLocationServiceTest {
     GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Mock
-    IdMappingsRepository idMappingsRepository;
+    IdMappingRepository idMappingRepository;
 
     @InjectMocks
     OMRSLocationService omrsLocationService;
@@ -68,7 +69,7 @@ public class OMRSLocationServiceTest {
     @Test
     public void shouldReturnHIEIdentifierOfALocation() throws Exception {
         String uuid = "location uuid";
-        when(idMappingsRepository.findByInternalId(uuid)).thenReturn(new IdMapping(uuid,"hie id","",""));
+        when(idMappingRepository.findByInternalId(uuid, IdMappingType.FACILITY)).thenReturn(new IdMapping(uuid, "hie id", "", ""));
 
         Location hieLocation = new Location();
         hieLocation.setUuid(uuid);
@@ -79,7 +80,7 @@ public class OMRSLocationServiceTest {
     @Test
     public void shouldReturnNullIfALocationHasNoHIEIdentifierMapping() throws Exception {
         String uuid = "location uuid";
-        when(idMappingsRepository.findByInternalId(uuid)).thenReturn(null);
+        when(idMappingRepository.findByInternalId(uuid, IdMappingType.FACILITY)).thenReturn(null);
 
         Location hieLocation = new Location();
         hieLocation.setUuid(uuid);

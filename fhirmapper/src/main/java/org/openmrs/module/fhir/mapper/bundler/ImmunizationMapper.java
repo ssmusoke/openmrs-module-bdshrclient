@@ -1,13 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
-import ca.uhn.fhir.model.dstu2.composite.BoundCodeableConceptDt;
-import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
-import ca.uhn.fhir.model.dstu2.composite.CodingDt;
-import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
-import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
-import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
-import ca.uhn.fhir.model.dstu2.composite.SimpleQuantityDt;
+import ca.uhn.fhir.model.dstu2.composite.*;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Immunization;
 import ca.uhn.fhir.model.dstu2.valueset.ImmunizationReasonCodesEnum;
@@ -23,8 +17,9 @@ import org.openmrs.module.fhir.mapper.model.ObservationType;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.TrValueSetType;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -40,7 +35,7 @@ import static org.openmrs.module.fhir.MRSProperties.*;
 public class ImmunizationMapper implements EmrObsResourceHandler {
 
     @Autowired
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingsRepository;
     @Autowired
     private ConceptService conceptService;
     @Autowired
@@ -147,7 +142,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
                                 TrValueSetType trValueSetType) {
         Concept reasonConcept = omrsConceptLookup.findTRConceptOfType(trValueSetType);
         Obs immunizationReasonObs = immunizationIncidentObs.getMemberObsForConceptName(reasonConcept.getName().getName());
-        if (immunizationReasonObs != null && idMappingsRepository.findByInternalId(immunizationReasonObs.getValueCoded().getUuid()) != null) {
+        if (immunizationReasonObs != null && idMappingsRepository.findByInternalId(immunizationReasonObs.getValueCoded().getUuid(), IdMappingType.CONCEPT) != null) {
             CodeableConceptDt reason = codeableConceptService.getTRValueSetCodeableConcept(immunizationReasonObs.getValueCoded(),
                     trValueSetType.getTrPropertyValueSetUrl(systemProperties));
             setReason(trValueSetType, explanationComponent, reason);
@@ -177,7 +172,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         Obs quantityUnitsObs = immunizationIncidentObs.getMemberObsForConceptName(quantityUnitsConcept.getName().getName());
         if (quantityUnitsObs != null) {
             dose.setCode(codeableConceptService.getTRValueSetCode(quantityUnitsObs.getValueCoded()));
-            if (idMappingsRepository.findByInternalId(quantityUnitsObs.getValueCoded().getUuid()) != null)
+            if (idMappingsRepository.findByInternalId(quantityUnitsObs.getValueCoded().getUuid(), IdMappingType.CONCEPT) != null)
                 dose.setSystem(TrValueSetType.QUANTITY_UNITS.getTrPropertyValueSetUrl(systemProperties));
         }
     }
@@ -202,7 +197,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
 
     private CodeableConceptDt getVaccineCode(List<Drug> drugs) {
         Drug drugsByConcept = drugs.get(0);
-        IdMapping idMapping = idMappingsRepository.findByInternalId(drugsByConcept.getUuid());
+        IdMapping idMapping = idMappingsRepository.findByInternalId(drugsByConcept.getUuid(), IdMappingType.CONCEPT);
         CodeableConceptDt codeableConcept = new CodeableConceptDt();
         if (idMapping != null) {
             codeableConceptService.addFHIRCoding(codeableConcept, idMapping.getExternalId(), idMapping.getUri(), drugsByConcept.getDisplayName());

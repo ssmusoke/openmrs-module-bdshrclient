@@ -13,8 +13,9 @@ import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,7 +30,7 @@ import static org.openmrs.module.fhir.MRSProperties.*;
 public class TestResultMapper implements EmrObsResourceHandler {
 
     @Autowired
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingRepository;
 
     @Autowired
     private DiagnosticReportBuilder diagnosticReportBuilder;
@@ -134,7 +135,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
         report.setEffective(getOrderTime(obsOrder));
 
         String uuid = obsOrder.getEncounter().getUuid();
-        IdMapping encounterIdMapping = idMappingsRepository.findByInternalId(uuid);
+        IdMapping encounterIdMapping = idMappingRepository.findByInternalId(uuid, IdMappingType.ENCOUNTER);
         if (encounterIdMapping == null) {
             throw new RuntimeException("Encounter id [" + uuid + "] doesn't have id mapping.");
         }

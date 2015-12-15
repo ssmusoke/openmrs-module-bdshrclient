@@ -23,7 +23,6 @@ import org.openmrs.module.fhir.mapper.model.ObservationType;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.TrValueSetType;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -39,8 +38,6 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     @Autowired
     private CodeableConceptService codeableConceptService;
 
-    @Autowired
-    private IdMappingsRepository idMappingsRepository;
 
     @Autowired
     private DiagnosticReportBuilder diagnosticReportBuilder;

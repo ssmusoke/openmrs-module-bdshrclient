@@ -18,7 +18,8 @@ import org.openmrs.Order;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -39,7 +40,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
     private static final int TEST_TYPE_POSITION_IN_SPLITED_CONCEPT_REF_TERM = 3;
 
     @Autowired
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingsRepository;
 
     @Autowired
     private CodeableConceptService codeableConceptService;
@@ -137,7 +138,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
     }
 
     private boolean isSyncedFromTrAndLoincSource(ConceptReferenceTerm conceptReferenceTerm) {
-        return idMappingsRepository.findByInternalId(conceptReferenceTerm.getUuid()) != null &&
+        return idMappingsRepository.findByInternalId(conceptReferenceTerm.getUuid(), IdMappingType.CONCEPT_REFERENCE_TERM) != null &&
                 conceptReferenceTerm.getConceptSource().getName().startsWith(LOINC_SOURCE_NAME);
     }
 

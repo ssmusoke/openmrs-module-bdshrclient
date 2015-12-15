@@ -2,11 +2,7 @@ package org.openmrs.module.fhir.mapper.emr;
 
 import ca.uhn.fhir.model.api.ExtensionDt;
 import ca.uhn.fhir.model.api.IResource;
-import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
-import ca.uhn.fhir.model.dstu2.composite.DurationDt;
-import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
-import ca.uhn.fhir.model.dstu2.composite.SimpleQuantityDt;
-import ca.uhn.fhir.model.dstu2.composite.TimingDt;
+import ca.uhn.fhir.model.dstu2.composite.*;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
 import ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum;
 import ca.uhn.fhir.model.primitive.BooleanDt;
@@ -26,8 +22,9 @@ import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounter;
 import org.openmrs.module.fhir.utils.*;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.util.OpenmrsConstants;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +57,7 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
     @Autowired
     private GlobalPropertyLookUpService globalPropertyLookUpService;
     @Autowired
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingsRepository;
 
     private static final Logger logger = Logger.getLogger(FHIRMedicationOrderMapper.class);
 
@@ -149,7 +146,7 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
                 emrEncounter.addOrder(previousDrugOrder);
             } else {
                 String previousOrderRefId = StringUtils.substringAfterLast(medicationOrder.getPriorPrescription().getReference().getValue(), "/");
-                IdMapping previousOrderMapping = idMappingsRepository.findByExternalId(previousOrderRefId);
+                IdMapping previousOrderMapping = idMappingsRepository.findByExternalId(previousOrderRefId, IdMappingType.MEDICATION_ORDER);
                 if (previousOrderMapping == null) {
                     throw new RuntimeException(String.format("The previous order with SHR reference [%s] is not yet synced to SHR", medicationOrder.getPriorPrescription().getReference().getValue()));
                 }
@@ -164,10 +161,10 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         String encounterUrl = SHREncounterURLUtil.getEncounterUrl(encounterComposition.getShrEncounterId(), encounterComposition.getHealthId(), systemProperties);
         String externalId = StringUtils.substringAfter(medicationOrder.getId().getValue(), "urn:uuid:");
         IdMapping orderIdMapping = new IdMapping(drugOrder.getUuid(), externalId,
-                Constants.ID_MAPPING_MEDICATION_ORDER_TYPE,
+                IdMappingType.MEDICATION_ORDER,
                 String.format(Constants.RESOURCE_MAPPING_URL_FORMAT, encounterUrl,
                         new MedicationOrder().getResourceName(), externalId));
-        idMappingsRepository.saveOrUpdateMapping(orderIdMapping);
+        idMappingsRepository.saveOrUpdateIdMapping(orderIdMapping);
     }
 
     private boolean shouldCreatePreviousOrder(MedicationOrder medicationOrder) {

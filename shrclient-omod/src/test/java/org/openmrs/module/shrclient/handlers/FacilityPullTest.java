@@ -15,11 +15,12 @@ import org.openmrs.LocationTag;
 import org.openmrs.api.LocationService;
 import org.openmrs.module.fhir.utils.OMRSLocationService;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.dao.FacilityCatchmentRepository;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
 import org.openmrs.module.shrclient.mapper.LocationMapper;
 import org.openmrs.module.shrclient.model.FRLocationEntry;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.util.ScheduledTaskHistory;
@@ -38,7 +39,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_REFERENCE_PATH;
-import static org.openmrs.module.shrclient.handlers.FacilityPull.*;
+import static org.openmrs.module.shrclient.handlers.FacilityPull.FR_FACILITY_LEVEL_FEED_URI;
+import static org.openmrs.module.shrclient.handlers.FacilityPull.FR_PATH_INFO;
 
 public class FacilityPullTest {
     @Mock
@@ -51,7 +53,7 @@ public class FacilityPullTest {
     private ScheduledTaskHistory scheduledTaskHistory;
 
     @Mock
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingsRepository;
 
     @Mock
     private FacilityCatchmentRepository facilityCatchmentRepository;
@@ -87,7 +89,7 @@ public class FacilityPullTest {
         when(frWebClient.get("list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", FRLocationEntry[].class)).thenReturn
                 (locationEntries);
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
-        when(idMappingsRepository.findByExternalId(any(String.class))).then(new Answer<Object>() {
+        when(idMappingsRepository.findByExternalId(any(String.class), eq(IdMappingType.FACILITY))).then(new Answer<Object>() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
                 Object[] arguments = invocation.getArguments();
@@ -119,7 +121,7 @@ public class FacilityPullTest {
         when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn
                 (locationEntries);
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
-        when(idMappingsRepository.findByExternalId(any(String.class))).then(new Answer<Object>() {
+        when(idMappingsRepository.findByExternalId(any(String.class),eq(IdMappingType.FACILITY))).then(new Answer<Object>() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
                 Object[] arguments = invocation.getArguments();
@@ -154,7 +156,7 @@ public class FacilityPullTest {
         when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn
                 (oneLocationEntry(String.valueOf(frLocationEntryId)));
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
-        when(idMappingsRepository.findByExternalId(String.valueOf(frLocationEntryId))).thenReturn(getIdMapping(String.valueOf
+        when(idMappingsRepository.findByExternalId(String.valueOf(frLocationEntryId),IdMappingType.FACILITY)).thenReturn(getIdMapping(String.valueOf
                 (frLocationEntryId), existingLocationUuid));
         when(locationService.getLocationByUuid(existingLocationUuid)).thenReturn(getFacilityLocation(existingLocationUuid,
                 frLocationEntryId));
@@ -167,7 +169,7 @@ public class FacilityPullTest {
 
         verify(frWebClient).get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
-        verify(idMappingsRepository).findByExternalId(String.valueOf(frLocationEntryId));
+        verify(idMappingsRepository).findByExternalId(String.valueOf(frLocationEntryId),IdMappingType.FACILITY);
         verify(locationService).getLocationByUuid(existingLocationUuid);
         verify(locationService).saveLocation(any(Location.class));
     }
@@ -184,7 +186,7 @@ public class FacilityPullTest {
         FRLocationEntry[] entries = oneLocationEntry(String.valueOf(frLocationEntryId));
         when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(entries);
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
-        when(idMappingsRepository.findByExternalId(String.valueOf(frLocationEntryId))).thenReturn(null);
+        when(idMappingsRepository.findByExternalId(String.valueOf(frLocationEntryId),IdMappingType.FACILITY)).thenReturn(null);
         when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(newLocationUuid, frLocationEntryId));
         when(omrsLocationService.getHIEFacilityLocationTag()).thenReturn(locationTagId);
         when(locationService.getLocationTag(locationTagId)).thenReturn(new LocationTag(locationTagId));
@@ -197,7 +199,7 @@ public class FacilityPullTest {
         //TODO: verify(propertiesReader, times(3)).getFrProperties();
         verify(frWebClient).get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
-        verify(idMappingsRepository).findByExternalId(String.valueOf(frLocationEntryId));
+        verify(idMappingsRepository).findByExternalId(String.valueOf(frLocationEntryId), IdMappingType.FACILITY);
 
         ArgumentCaptor<Location> locationArgumentCaptor = ArgumentCaptor.forClass(Location.class);
         verify(locationService).saveLocation(locationArgumentCaptor.capture());
@@ -206,7 +208,7 @@ public class FacilityPullTest {
         assertEquals(locationTagId, new ArrayList<>(location.getTags()).get(0).getId());
 
         ArgumentCaptor<IdMapping> idMappingArgumentCaptor = ArgumentCaptor.forClass(IdMapping.class);
-        verify(idMappingsRepository).saveOrUpdateMapping(idMappingArgumentCaptor.capture());
+        verify(idMappingsRepository).saveOrUpdateIdMapping(idMappingArgumentCaptor.capture());
         IdMapping idMapping = idMappingArgumentCaptor.getValue();
         assertEquals(String.valueOf(frLocationEntryId), idMapping.getExternalId());
         assertEquals(newLocationUuid, idMapping.getInternalId());
@@ -221,7 +223,7 @@ public class FacilityPullTest {
         when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn
                 (locationEntries);
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
-        when(idMappingsRepository.findByExternalId(any(String.class))).thenReturn(null);
+        when(idMappingsRepository.findByExternalId(any(String.class), eq(IdMappingType.FACILITY))).thenReturn(null);
         when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString(), 100001));
         when(omrsLocationService.getHIEFacilityLocationTag()).thenReturn(locationTagId);
         when(locationService.getLocationTag(locationTagId)).thenReturn(new LocationTag(locationTagId));
@@ -234,9 +236,9 @@ public class FacilityPullTest {
         verify(frWebClient).get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
         verify(locationService).getLocationTag(locationTagId);
-        verify(idMappingsRepository, times(10)).findByExternalId(any(String.class));
+        verify(idMappingsRepository, times(10)).findByExternalId(any(String.class), eq(IdMappingType.FACILITY));
         verify(locationService, times(10)).saveLocation(any(Location.class));
-        verify(idMappingsRepository, times(10)).saveOrUpdateMapping(any(IdMapping.class));
+        verify(idMappingsRepository, times(10)).saveOrUpdateIdMapping(any(IdMapping.class));
 
     }
 
@@ -261,10 +263,10 @@ public class FacilityPullTest {
 
         verify(frWebClient).get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
-        verify(idMappingsRepository, times(0)).findByExternalId(any(String.class));
+        verify(idMappingsRepository, times(0)).findByExternalId(anyString(), anyString());
         verify(locationService, times(1)).getLocationTag(locationTagId);
         verify(locationService, times(0)).saveLocation(any(Location.class));
-        verify(idMappingsRepository, times(0)).saveOrUpdateMapping(any(IdMapping.class));
+        verify(idMappingsRepository, times(0)).saveOrUpdateIdMapping(any(IdMapping.class));
 
     }
 
@@ -288,7 +290,7 @@ public class FacilityPullTest {
         facilityPull.synchronize();
 
         ArgumentCaptor<IdMapping> captor = ArgumentCaptor.forClass(IdMapping.class);
-        verify(idMappingsRepository).saveOrUpdateMapping(captor.capture());
+        verify(idMappingsRepository).saveOrUpdateIdMapping(captor.capture());
         assertEquals("http://hrmtest.dghs.gov.bd/api/1.0/facilities/100001.json", captor.getValue().getUri());
     }
 
@@ -303,7 +305,7 @@ public class FacilityPullTest {
         FRLocationEntry[] entries = oneLocationEntryWithCatchments(String.valueOf(frLocationEntryId));
         when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn(entries);
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
-        when(idMappingsRepository.findByExternalId(String.valueOf(frLocationEntryId))).thenReturn(null);
+        when(idMappingsRepository.findByExternalId(String.valueOf(frLocationEntryId), IdMappingType.FACILITY)).thenReturn(null);
         when(locationService.saveLocation(any(Location.class))).thenReturn(getFacilityLocation(UUID.randomUUID().toString(),
                 frLocationEntryId));
         when(omrsLocationService.getHIEFacilityLocationTag()).thenReturn(locationTagId);
@@ -316,7 +318,7 @@ public class FacilityPullTest {
         //TODO: verify(propertiesReader, times(3)).getFrProperties();
         verify(frWebClient).get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
-        verify(idMappingsRepository).findByExternalId(String.valueOf(frLocationEntryId));
+        verify(idMappingsRepository).findByExternalId(String.valueOf(frLocationEntryId), IdMappingType.FACILITY);
         verify(facilityCatchmentRepository).saveMappings(frLocationEntryId, getCatchments());
 
         ArgumentCaptor<Integer> idArgumentCaptor = ArgumentCaptor.forClass(Integer.class);
@@ -337,7 +339,7 @@ public class FacilityPullTest {
         when(frWebClient.get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class)).thenReturn
                 (oneLocationEntryWithCatchments(String.valueOf(frLocationEntryId)));
         when(scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI)).thenReturn(feedUri);
-        when(idMappingsRepository.findByExternalId(String.valueOf(frLocationEntryId))).thenReturn(getIdMapping(String.valueOf
+        when(idMappingsRepository.findByExternalId(String.valueOf(frLocationEntryId), IdMappingType.FACILITY)).thenReturn(getIdMapping(String.valueOf
                 (frLocationEntryId), existingLocationUuid));
         when(locationService.getLocationByUuid(existingLocationUuid)).thenReturn(getFacilityLocation(UUID.randomUUID().toString(),
                 frLocationEntryId));
@@ -350,7 +352,7 @@ public class FacilityPullTest {
 
         verify(frWebClient).get("list?offset=0&limit=100&updatedSince=2000-12-31%2023:55:55", FRLocationEntry[].class);
         verify(scheduledTaskHistory).getFeedUriForLastReadEntryByFeedUri(FR_FACILITY_LEVEL_FEED_URI);
-        verify(idMappingsRepository).findByExternalId(String.valueOf(frLocationEntryId));
+        verify(idMappingsRepository).findByExternalId(String.valueOf(frLocationEntryId),IdMappingType.FACILITY);
         verify(locationService).getLocationByUuid(existingLocationUuid);
         verify(locationService).saveLocation(any(Location.class));
         verify(facilityCatchmentRepository).saveMappings(frLocationEntryId, getCatchments());

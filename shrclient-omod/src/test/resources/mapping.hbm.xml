@@ -18,6 +18,20 @@
         <property name="lastSyncDateTime" type="java.util.Date" >
             <column name="last_sync_datetime" default="now()" ></column>
         </property>
+    </class>
+    <class name="EncounterIdMapping" table="encounter_id_mapping">
+        <id name="id" type="long" column="id">
+            <generator class="native">
+                <param name="sequence">id_seq</param>
+            </generator>
+        </id>
+        <discriminator column="id" insert="false"/>
+        <property name="internalId" column="internal_id" type="java.lang.String" not-null="true" length="100"/>
+        <property name="externalId" column="external_id" type="java.lang.String" not-null="true" length="50"/>
+        <property name="uri" column="uri" type="java.lang.String" not-null="false" length="150" />
+        <property name="lastSyncDateTime" type="java.util.Date" >
+            <column name="last_sync_datetime" default="now()" ></column>
+        </property>
         <property name="serverUpdateDateTime" column="server_update_datetime" type="java.util.Date"/>
     </class>
     <class name="FacilityCatchment" table="facility_catchment">

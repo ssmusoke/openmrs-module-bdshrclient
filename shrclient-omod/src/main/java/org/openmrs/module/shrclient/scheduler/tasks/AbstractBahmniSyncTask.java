@@ -5,7 +5,7 @@ import org.ict4h.atomfeed.client.service.EventWorker;
 import org.ict4h.atomfeed.client.service.FeedClient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.feeds.openmrs.OpenMRSFeedClientFactory;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.handlers.EncounterPush;
@@ -57,7 +57,7 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
     private PatientPush getPatientRegistry(PropertiesReader propertiesReader, SystemUserService systemUserService,
                                            ClientRegistry clientRegistry) {
         try {
-            IdMappingsRepository idMappingsRepository = PlatformUtil.getIdMappingsRepository();
+            IdMappingRepository idMappingsRepository = PlatformUtil.getIdMappingsRepository();
             return new PatientPush(
                     Context.getPatientService(),
                     systemUserService,

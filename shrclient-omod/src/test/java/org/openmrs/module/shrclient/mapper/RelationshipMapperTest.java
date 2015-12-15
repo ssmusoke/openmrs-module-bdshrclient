@@ -15,8 +15,9 @@ import org.openmrs.api.PersonService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.ServiceContext;
 import org.openmrs.module.fhir.Constants;
-import org.openmrs.module.shrclient.dao.IdMappingsRepository;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.model.Relation;
 
 import java.io.File;
@@ -34,14 +35,15 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.openmrs.module.fhir.Constants.*;
+import static org.openmrs.module.fhir.Constants.FATHER_NAME_ATTRIBUTE_TYPE;
+import static org.openmrs.module.fhir.Constants.SPOUSE_NAME_ATTRIBUTE_TYPE;
 
 public class RelationshipMapperTest {
 
     @Mock
     private PersonService personService;
     @Mock
-    private IdMappingsRepository idMappingsRepository;
+    private IdMappingRepository idMappingsRepository;
 
     @Before
     public void setup() throws Exception {
@@ -75,7 +77,7 @@ public class RelationshipMapperTest {
 
         List<Relation> relations = new RelationshipMapper().map(patient, idMappingsRepository);
         assertEquals(1, relations.size());
-        verify(idMappingsRepository).saveOrUpdateMapping(any(IdMapping.class));
+        verify(idMappingsRepository).saveOrUpdateIdMapping(any(IdMapping.class));
     }
 
     @Test
@@ -86,14 +88,14 @@ public class RelationshipMapperTest {
 
         String attibuteInternalId = String.format("%s:%s", patient.getUuid(), attributeType.getUuid());
         String externalRelationId = UUID.randomUUID().toString();
-        IdMapping idMapping = new IdMapping(attibuteInternalId, externalRelationId, ID_MAPPING_PERSON_RELATION_TYPE, null);
-        when(idMappingsRepository.findByInternalId(attibuteInternalId)).thenReturn(idMapping);
+        IdMapping relationIdMapping = new IdMapping(attibuteInternalId, externalRelationId, IdMappingType.PERSON_RELATION, null);
+        when(idMappingsRepository.findByInternalId(attibuteInternalId, IdMappingType.PERSON_RELATION)).thenReturn(relationIdMapping);
 
         List<Relation> relations = new RelationshipMapper().map(patient, idMappingsRepository);
 
         assertEquals(1, relations.size());
         assertEquals(externalRelationId, relations.get(0).getId());
-        verify(idMappingsRepository, times(0)).saveOrUpdateMapping(any(IdMapping.class));
+        verify(idMappingsRepository, times(0)).saveOrUpdateIdMapping(any(IdMapping.class));
     }
 
     @Test
