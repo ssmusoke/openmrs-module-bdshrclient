@@ -102,6 +102,7 @@ public class ShrEncounterFeedProcessor {
             EncounterEvent encounterEvent = new EncounterEvent();
             encounterEvent.setTitle(event.getTitle());
             encounterEvent.addContent(bundle);
+            encounterEvent.setCategories(event.getCategories());
             shrEventWorker.process(encounterEvent);
         }
 
