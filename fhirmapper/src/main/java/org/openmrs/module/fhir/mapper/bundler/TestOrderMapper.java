@@ -29,7 +29,7 @@ import java.util.*;
 import static org.openmrs.module.fhir.FHIRProperties.LOINC_SOURCE_NAME;
 import static org.openmrs.module.fhir.MRSProperties.MRS_LAB_ORDER_TYPE;
 import static org.openmrs.module.fhir.utils.FHIRBundleHelper.findResourceByReference;
-import static org.openmrs.module.fhir.utils.FHIRBundleHelper.identifyResource;
+import static org.openmrs.module.fhir.utils.FHIRBundleHelper.identifyFirstResourceWithName;
 
 @Component("fhirTestOrderMapper")
 public class TestOrderMapper implements EmrOrderResourceHandler {
@@ -55,7 +55,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         if (order.getDateStopped() != null) return Collections.EMPTY_LIST;
         resources = new ArrayList<>();
         DiagnosticOrder diagnosticOrder;
-        IResource resource = identifyResource(bundle.getEntry(), new DiagnosticOrder().getResourceName());
+        IResource resource = identifyFirstResourceWithName(bundle.getEntry(), new DiagnosticOrder().getResourceName());
         if (resource != null) {
             diagnosticOrder = (DiagnosticOrder) resource;
         } else {

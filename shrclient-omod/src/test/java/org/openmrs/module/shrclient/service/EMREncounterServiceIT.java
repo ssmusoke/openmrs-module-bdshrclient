@@ -107,7 +107,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     @Ignore("Ignored because of a bug on OpenMRS which doesn't let you save a already expired order")
-    public void shouldDiscontinueAOrderIfUpdated() throws Exception {
+    public void shouldDiscontinueATestOrderIfUpdated() throws Exception {
         executeDataSet("testDataSets/shrDiagnosticOrderSyncTestDS.xml");
         String healthId = "HIDA764177";
         String shrEncounterId = "shr-enc-id";

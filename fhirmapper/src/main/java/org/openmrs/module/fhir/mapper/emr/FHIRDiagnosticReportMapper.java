@@ -103,18 +103,24 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
 
     private Order findOrderFromEncounter(Set<Order> orders, Concept concept) {
         for (Order order : orders) {
-            Concept orderConcept = order.getConcept();
-            if (orderConcept.equals(concept)) {
-                return order;
-            } else if (orderConcept.getConceptClass().getName().equals(MRS_CONCEPT_CLASS_LAB_SET)) {
-                for (Concept setMember : orderConcept.getSetMembers()) {
-                    if (setMember.equals(concept)) {
-                        return order;
+            if (isRunningOrder(order)) {
+                Concept orderConcept = order.getConcept();
+                if (orderConcept.equals(concept)) {
+                    return order;
+                } else if (orderConcept.getConceptClass().getName().equals(MRS_CONCEPT_CLASS_LAB_SET)) {
+                    for (Concept setMember : orderConcept.getSetMembers()) {
+                        if (setMember.equals(concept)) {
+                            return order;
+                        }
                     }
                 }
             }
         }
         return null;
+    }
+
+    private boolean isRunningOrder(Order order) {
+        return Order.Action.NEW.equals(order.getAction()) && order.getDateStopped() == null;
     }
 
     private Obs getNotes(Observation observation, Order order) {

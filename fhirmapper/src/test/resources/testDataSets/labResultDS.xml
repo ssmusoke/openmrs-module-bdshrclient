@@ -131,17 +131,17 @@
 
     <obs obs_id="1" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="ef4554cb-2225-471a-lld7-1434552c337c1" creator="1" concept_id="107" voided="0" order_id="17"/>
-    <obs obs_id="2" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="2" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eee554cb-2225-471a-9cd7-1434552c337c2" creator="1" obs_group_id="1" concept_id="107" voided="0" order_id="17"/>
-    <obs obs_id="4" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="4" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eeea54cb-2a25-471a-9cd7-1434a5aa337a4" creator="1" obs_group_id="2" value_text="Lab Notes" concept_id="103" voided="0" order_id="17"/>
-    <obs obs_id="5" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="5" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eeea54cb-2a25-471a-9cd7-1434a5aa337a5" creator="1" obs_group_id="2" value_numeric="120" concept_id="104" voided="0" order_id="17"/>
-    <obs obs_id="6" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="6" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eeea54cb-2a25-471a-9cd7-1434a5aa337a6" creator="1" obs_group_id="2" value_numeric="130" concept_id="105" voided="0" order_id="17"/>
-    <obs obs_id="7" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="7" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eeea54cb-2a25-471a-9cd7-1434a5aa337a7" creator="1" obs_group_id="2" value_coded="7" concept_id="106" voided="0" order_id="17"/>
-    <obs obs_id="8" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="8" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eeea54cb-2a25-471a-9cd7-1434a5aa337a8" creator="1" obs_group_id="2" value_numeric="120" concept_id="107" voided="0" order_id="17"/>
 
     <!--encounter for test result  -->
@@ -166,58 +166,58 @@
     <obs obs_id="11" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="ef4554cb-22gg-471a-lld7-1434552c337c1" creator="1" concept_id="302" voided="0" order_id="16"/>
 
-    <obs obs_id="12" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="12" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eee554cb-2afa-471a-9cd7-1434552c337c2" creator="1" obs_group_id="11" concept_id="303" voided="0" order_id="16"/>
-    <obs obs_id="21" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="21" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eee554cb-22ff-471a-9cd7-1434552c337c2" creator="1" obs_group_id="12" concept_id="303" voided="0" order_id="16"/>
-    <obs obs_id="41" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="41" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eeea54cb-2aee-471a-9cd7-1434a5aa337a4" creator="1" obs_group_id="21" value_text="Lab Notes" concept_id="103" voided="0" order_id="16"/>
-    <obs obs_id="51" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="51" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eeea54cb-2add-471a-9cd7-1434a5aa337a5" creator="1" obs_group_id="21" value_numeric="120" concept_id="104" voided="0" order_id="16"/>
-    <obs obs_id="61" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="61" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eeea54cb-2acc-471a-9cd7-1434a5aa337a6" creator="1" obs_group_id="21" value_numeric="130" concept_id="105" voided="0" order_id="16"/>
-    <obs obs_id="71" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="71" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eeea54cb-2abb-471a-9cd7-1434a5aa337a7" creator="1" obs_group_id="21" value_coded="7" concept_id="106" voided="0" order_id="16"/>
-    <obs obs_id="81" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="81" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eeea54cb-2aaa-471a-9cd7-1434a5aa337a8" creator="1" obs_group_id="21" value_numeric="120" concept_id="303" voided="0" order_id="16"/>
 
-    <obs obs_id="13" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="13" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="eee554cb-2afa-a7aa-9cd7-143455ac3a7c2" creator="1" obs_group_id="11" concept_id="304" voided="0" order_id="16"/>
-    <obs obs_id="22" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="22" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="hhh554cb-22ff-471a-9cd7-1434552c337c2" creator="1" obs_group_id="13" concept_id="304" voided="0" order_id="16"/>
-    <obs obs_id="42" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="42" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="aaaa54cb-2aee-471a-9cd7-1434a5aa337a4" creator="1" obs_group_id="22" value_text="Lab Notes" concept_id="103" voided="0" order_id="16"/>
-    <obs obs_id="52" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="52" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="sssa54cb-2add-471a-9cd7-1434a5aa337a5" creator="1" obs_group_id="22" value_numeric="120" concept_id="104" voided="0" order_id="16"/>
-    <obs obs_id="62" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="62" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="wwwa54cb-2acc-471a-9cd7-1434a5aa337a6" creator="1" obs_group_id="22" value_numeric="130" concept_id="105" voided="0" order_id="16"/>
-    <obs obs_id="72" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="72" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="ddda54cb-2abb-471a-9cd7-1434a5aa337a7" creator="1" obs_group_id="22" value_coded="7" concept_id="106" voided="0" order_id="16"/>
-    <obs obs_id="82" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="82" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="kkka54cb-2aaa-471a-9cd7-1434a5aa337a8" creator="1" obs_group_id="22" value_numeric="10" concept_id="304" voided="0" order_id="16"/>
 
-    <obs obs_id="14" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="14" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="aeea54cb-2afa-a7aa-9cd7-143455ac3a7c2" creator="1" obs_group_id="11" concept_id="305" voided="0" order_id="16"/>
-    <obs obs_id="23" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="23" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="hhh554cb-2llz-471a-9cd7-1434552c337c2" creator="1" obs_group_id="14" concept_id="305" voided="0" order_id="16"/>
-    <obs obs_id="73" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="73" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="ddda54cb-2abz-471a-9cd7-1434a5aa337a7" creator="1" obs_group_id="23" value_coded="7" concept_id="106" voided="0" order_id="16"/>
-    <obs obs_id="83" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="83" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="ikka5ccb-cazc-47ca-9cd7-1434a5aa337a8" creator="1" obs_group_id="23" value_text="yes" concept_id="305" voided="0" order_id="16"/>
     <!--encounter for blood panel test-->
 
     <!--encounter with test result, no value, only comments-->
     <obs obs_id="101" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="0f4554c1-2225-471a-lld7-1434552c337c1" creator="1" concept_id="107" voided="0" order_id="17"/>
-    <obs obs_id="102" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="102" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="0ee554c1-2225-471a-9cd7-1434552c337c2" creator="1" obs_group_id="101" concept_id="107" voided="0" order_id="17"/>
-    <obs obs_id="104" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="104" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="0eea54c1-2a25-471a-9cd7-1434a5aa337a4" creator="1" obs_group_id="102" value_text="Lab Notes" concept_id="103" voided="0" order_id="17"/>
-    <obs obs_id="105" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="105" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="0eea54c1-2a25-471a-9cd7-1434a5aa337a5" creator="1" obs_group_id="102" value_numeric="120" concept_id="104" voided="0" order_id="17"/>
-    <obs obs_id="106" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="106" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="0eea54c1-2a25-471a-9cd7-1434a5aa337a6" creator="1" obs_group_id="102" value_numeric="130" concept_id="105" voided="0" order_id="17"/>
-    <obs obs_id="107" encounter_id="17" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+    <obs obs_id="107" encounter_id="17" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          uuid="0eea54c1-2a25-471a-9cd7-1434a5aa337a7" creator="1" obs_group_id="102" value_coded="7" concept_id="106" voided="0" order_id="17"/>
     <!--encounter with test result, no value, only comments-->
 
@@ -244,4 +244,34 @@
             care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="1"
             uuid="6d0aea86-70aa-f123-9850-f15206e63ab0"/>
     <!--encounter for panel order for diagnospanelObsic report mapper-->
+
+    <!-- encounter for updated test result download-->
+    <encounter encounter_id="18" encounter_type="2" patient_id="1" visit_id="2" location_id="2"
+               encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
+               voided="false" uuid="6d0af4567-707a-12sr-9850-f15206e63ab0a"/>
+    <encounter_id_mapping id="18" internal_id="6d0af4567-707a-12sr-9850-f15206e63ab0a" external_id="shrEncounterId5" uri="http://localhost:9997/patients/hid/encounters/shrEncounterId5"></encounter_id_mapping>
+
+    <orders order_id="52" order_type_id="16" encounter_id="18" urgency="ROUTINE" concept_id="303" date_stopped="2008-08-08 00:00:01.0"
+            instructions="Hemoglobin" date_activated="2008-08-08 00:00:00.0" order_number="12344" order_action="NEW"
+            care_setting="1" creator="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="1"
+            uuid="6daaes86-2ws4-4629-c23d-f15206e63ab0"/>
+
+    <orders order_id="53" order_type_id="16" encounter_id="18" urgency="ROUTINE" concept_id="303" previous_order_id="52"
+            instructions="Hemoglobin" date_activated="2008-08-08 00:00:01.0" order_number="12344" order_action="DISCONTINUE"
+            care_setting="1" creator="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="1"
+            uuid="6daaes86-2ws4-2kd3-9850-f15206e63ab0"/>
+    
+    <orders order_id="54" order_type_id="16" encounter_id="18" urgency="ROUTINE" concept_id="303"
+            instructions="Hemoglobin" date_activated="2008-08-08 00:00:00.0" order_number="12344" order_action="NEW"
+            care_setting="1" creator="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="1"
+            uuid="6daaes86-2ws4-4629-9850-f15206e63ab0"/>
+
+    <obs obs_id="1001" encounter_id="18" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         uuid="ef4554cb-12ws-471a-lld7-1434552c337c1" creator="1" concept_id="303" voided="0" order_id="54"/>
+    <obs obs_id="1002" encounter_id="18" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         uuid="eee554cb-45rd-471a-9cd7-1434552c337c2" creator="1" obs_group_id="1001" concept_id="303" voided="0" order_id="54"/>
+    <obs obs_id="1003" encounter_id="18" person_id="1" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         uuid="eeea54cb-5y8e-471a-9cd7-1434a5aa337a8" creator="1" obs_group_id="1002" value_numeric="120" concept_id="303" voided="0" order_id="54"/>
+    <!-- encounter for updated test result download-->
+
 </dataset>

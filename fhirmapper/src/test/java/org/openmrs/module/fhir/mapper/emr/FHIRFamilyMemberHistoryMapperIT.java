@@ -45,7 +45,7 @@ public class FHIRFamilyMemberHistoryMapperIT extends BaseModuleWebContextSensiti
     public void shouldMapFamilyHistoryResource() throws Exception {
         executeDataSet("testDataSets/shrClientFamilyHistoryTestDS.xml");
         Bundle bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithFamilyHistory.xml", springContext);
-        FamilyMemberHistory familyHistory = (FamilyMemberHistory) FHIRBundleHelper.identifyResource(bundle.getEntry(), new FamilyMemberHistory().getResourceName());
+        FamilyMemberHistory familyHistory = (FamilyMemberHistory) FHIRBundleHelper.identifyFirstResourceWithName(bundle.getEntry(), new FamilyMemberHistory().getResourceName());
         Encounter encounter = new Encounter();
         EmrEncounter emrEncounter = new EmrEncounter(encounter);
 

@@ -16,11 +16,11 @@ import static java.util.Arrays.asList;
 public class FHIRBundleHelper {
 
     public static Composition getComposition(Bundle bundle) {
-        IResource resource = identifyResource(bundle.getEntry(), "Composition");
+        IResource resource = identifyFirstResourceWithName(bundle.getEntry(), "Composition");
         return resource != null ? (Composition) resource : null;
     }
 
-    public static IResource identifyResource(List<Bundle.Entry> bundleEntryList, String resourceName) {
+    public static IResource identifyFirstResourceWithName(List<Bundle.Entry> bundleEntryList, String resourceName) {
         for (Bundle.Entry bundleEntry : bundleEntryList) {
             if (bundleEntry.getResource().getResourceName().equals(resourceName)) {
                 return bundleEntry.getResource();

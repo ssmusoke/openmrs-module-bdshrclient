@@ -50,7 +50,7 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
     public void setUp() throws Exception {
         executeDataSet("testDataSets/immunizationDS.xml");
         bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithImmunization.xml", springContext);
-        resource = FHIRBundleHelper.identifyResource(bundle.getEntry(), new Immunization().getResourceName());
+        resource = FHIRBundleHelper.identifyFirstResourceWithName(bundle.getEntry(), new Immunization().getResourceName());
         obsHelper = new ObsHelper();
     }
 

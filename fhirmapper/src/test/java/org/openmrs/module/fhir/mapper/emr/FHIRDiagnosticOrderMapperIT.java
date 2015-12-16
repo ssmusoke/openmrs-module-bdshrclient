@@ -137,7 +137,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     private EmrEncounter mapOrder(String filePath, Encounter encounter) throws Exception {
         Bundle bundle = loadSampleFHIREncounter(filePath);
-        IResource resource = FHIRBundleHelper.identifyResource(bundle.getEntry(), new DiagnosticOrder().getResourceName());
+        IResource resource = FHIRBundleHelper.identifyFirstResourceWithName(bundle.getEntry(), new DiagnosticOrder().getResourceName());
         ShrEncounter encounterComposition = new ShrEncounter(bundle, "HIDA764177", "shr-enc-id-1");
         EmrEncounter emrEncounter = new EmrEncounter(encounter);
         diagnosticOrderMapper.map(resource, emrEncounter, encounterComposition, getSystemProperties("1"));

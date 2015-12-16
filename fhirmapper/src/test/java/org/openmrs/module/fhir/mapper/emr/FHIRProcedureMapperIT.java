@@ -51,7 +51,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     public void setUp() throws Exception {
         executeDataSet("testDataSets/procedureDS.xml");
         bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithProcedure.xml", springContext);
-        resource = FHIRBundleHelper.identifyResource(bundle.getEntry(), new Procedure().getResourceName());
+        resource = FHIRBundleHelper.identifyFirstResourceWithName(bundle.getEntry(), new Procedure().getResourceName());
         obsHelper = new ObsHelper();
     }
 
