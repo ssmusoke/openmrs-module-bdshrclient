@@ -849,4 +849,18 @@
         </createIndex>
     </changeSet>
 
+    <changeSet id="bdshrclient-15122015-1800" author="sukreet,sanjana" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) != 0 from shr_id_mapping where type='encounter';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            insert into encounter_id_mapping(internal_id, external_id, uri, last_sync_datetime, server_update_datetime)
+            select internal_id, external_id, uri, last_sync_datetime, server_update_datetime from shr_id_mapping where type='encounter';
+
+            delete from shr_id_mapping where type='encounter';
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
