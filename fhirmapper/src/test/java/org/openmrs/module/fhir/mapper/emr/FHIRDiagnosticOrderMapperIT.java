@@ -11,7 +11,6 @@ import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.OrderService;
-import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
@@ -76,6 +75,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         assertEquals(orderService.getOrderType(16), order.getOrderType());
         assertEquals(orderService.getCareSetting(1), order.getCareSetting());
         assertNotNull(order.getDateActivated());
+        assertNotNull(order.getAutoExpireDate());
     }
 
     @Test

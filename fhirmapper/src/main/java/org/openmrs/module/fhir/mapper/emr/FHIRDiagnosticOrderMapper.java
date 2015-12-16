@@ -5,11 +5,13 @@ import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
 import ca.uhn.fhir.model.dstu2.valueset.DiagnosticOrderStatusEnum;
+import org.joda.time.DateTime;
 import org.openmrs.Concept;
 import org.openmrs.Order;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounter;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.OrderCareSettingLookupService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
@@ -17,14 +19,21 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.List;
 
 @Component
 public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     private static final String ORDER_NAME = "Lab Order";
+    private static final String BAHMNI_ENCOUNTER_SESSION_PROPERTY_NAME = "bahmni.encountersession.duration";
+    private static final String ORDER_DISCONTINUE_REASON = "Cancelled in SHR";
+    private static final int BAHMNI_DEFAULT_ENCOUNTER_SESSION_TIME = 60;
 
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
+
+    @Autowired
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Autowired
     private ProviderLookupService providerLookupService;
@@ -74,14 +83,26 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         testOrder.setOrderType(orderService.getOrderTypeByName(ORDER_NAME));
         testOrder.setConcept(testOrderConcept);
         setOrderer(testOrder, diagnosticOrder);
-        testOrder.setDateActivated(emrEncounter.getEncounter().getEncounterDatetime());
+        Date encounterDatetime = emrEncounter.getEncounter().getEncounterDatetime();
+        testOrder.setDateActivated(encounterDatetime);
+        testOrder.setAutoExpireDate(getAutoExpireDate(encounterDatetime));
         testOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(bundle));
         return testOrder;
+    }
+
+    private Date getAutoExpireDate(Date encounterDatetime) {
+        String configuredSessionDuration = globalPropertyLookUpService.getGlobalPropertyValue(BAHMNI_ENCOUNTER_SESSION_PROPERTY_NAME);
+        int encounterSessionDuration = BAHMNI_DEFAULT_ENCOUNTER_SESSION_TIME;
+        if (configuredSessionDuration != null) {
+            encounterSessionDuration = Integer.parseInt(configuredSessionDuration);
+        }
+        return new DateTime(encounterDatetime.getTime()).plusMinutes(encounterSessionDuration).toDate();
     }
 
     private void handleCancelledOrder(DiagnosticOrder.Item diagnosticOrderItemComponent, Order existingRunningOrder, Order testOrder) {
         if (isCancelledOrder(diagnosticOrderItemComponent)) {
             testOrder.setAction(Order.Action.DISCONTINUE);
+            testOrder.setOrderReasonNonCoded(ORDER_DISCONTINUE_REASON);
             testOrder.setPreviousOrder(existingRunningOrder);
         }
     }

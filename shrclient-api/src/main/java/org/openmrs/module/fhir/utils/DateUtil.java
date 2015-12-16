@@ -8,6 +8,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import static org.apache.commons.lang3.time.DateUtils.addSeconds;
+
 public class DateUtil {
     public static final String FHIR_ISO_DATE_IN_MILLIS_FORMAT = "yyyy-MM-dd'T'HH:mm:ssXXX";
     public static final String UTC_DATE_IN_MILLIS_FORMAT = "yyyy-MM-dd HH:mm:ss.SSSZ"; //2015-02-17 11:32:24.638+0530
@@ -115,5 +117,13 @@ public class DateUtil {
 
     public static Date getDateFromTimestamp(Timestamp timestamp){
         return timestamp!=null ? new Date(timestamp.getTime()) : null;
+    }
+    
+    public static Date aSecondBefore(Date date) {
+        return addSeconds(date, -1);
+    }
+
+    public static Date aSecondAfter(Date date) {
+        return addSeconds(date, 1);
     }
 }
