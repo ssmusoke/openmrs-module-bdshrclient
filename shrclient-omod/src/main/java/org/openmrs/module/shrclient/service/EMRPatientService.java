@@ -66,6 +66,15 @@ public class EMRPatientService {
     }
 
     public org.openmrs.Patient createOrUpdatePatient(Patient mciPatient) {
+        try {
+            return createOrUpdateEmrPatient(mciPatient);
+        } catch (Exception e) {
+            logger.error(String.format("error Occurred while trying to process Patient[%s] from MCI.", mciPatient.getHealthId()), e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public org.openmrs.Patient createOrUpdateEmrPatient(Patient mciPatient) {
         AddressHelper addressHelper = new AddressHelper();
         org.openmrs.Patient emrPatient = identifyEmrPatient(mciPatient.getHealthId());
         if (emrPatient == null) {
