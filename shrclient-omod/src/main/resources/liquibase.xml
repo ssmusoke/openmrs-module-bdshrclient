@@ -858,7 +858,15 @@
         <sql>
             insert into encounter_id_mapping(internal_id, external_id, uri, last_sync_datetime, server_update_datetime)
             select internal_id, external_id, uri, last_sync_datetime, server_update_datetime from shr_id_mapping where type='encounter';
-
+        </sql>
+    </changeSet>
+    <changeSet id="bdshrclient-17122015-1040" author="sukreet,sanjana" context="setup">
+        <preConditions>
+            <sqlCheck expectedResult="1">
+                select count(*) = (select count(*) from encounter_id_mapping) from shr_id_mapping where type='encounter';
+            </sqlCheck>
+        </preConditions>
+        <sql>
             delete from shr_id_mapping where type='encounter';
         </sql>
     </changeSet>
