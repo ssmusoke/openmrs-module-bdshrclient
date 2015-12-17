@@ -58,15 +58,19 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     private void createTestOrders(Bundle bundle, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter) {
         List<DiagnosticOrder.Item> item = diagnosticOrder.getItem();
         for (DiagnosticOrder.Item diagnosticOrderItemComponent : item) {
-            Concept testOrderConcept = omrsConceptLookup.findConceptByCode(diagnosticOrderItemComponent.getCode().getCoding());
-            if (testOrderConcept != null) {
-                Order existingRunningOrder = getExistingRunningOrder(emrEncounter, testOrderConcept);
-                if (isRequestedOrderAlreadyPresent(diagnosticOrderItemComponent, existingRunningOrder)) return;
-                if (isCancelledOrderNotCreated(diagnosticOrderItemComponent, existingRunningOrder)) return;
-                Order testOrder = createTestOrder(bundle, diagnosticOrder, emrEncounter, testOrderConcept);
-                handleCancelledOrder(diagnosticOrderItemComponent, existingRunningOrder, testOrder);
-                emrEncounter.addOrder(testOrder);
-            }
+            createTestOrderForItem(diagnosticOrder, diagnosticOrderItemComponent, bundle, emrEncounter);
+        }
+    }
+
+    private void createTestOrderForItem(DiagnosticOrder diagnosticOrder, DiagnosticOrder.Item diagnosticOrderItemComponent, Bundle bundle, EmrEncounter emrEncounter) {
+        Concept testOrderConcept = omrsConceptLookup.findConceptByCode(diagnosticOrderItemComponent.getCode().getCoding());
+        if (testOrderConcept != null) {
+            Order existingRunningOrder = getExistingRunningOrder(emrEncounter, testOrderConcept);
+            if (isRequestedOrderAlreadyPresent(diagnosticOrderItemComponent, existingRunningOrder)) return;
+            if (isCancelledOrderNotCreated(diagnosticOrderItemComponent, existingRunningOrder)) return;
+            Order testOrder = createTestOrder(bundle, diagnosticOrder, emrEncounter, testOrderConcept);
+            handleCancelledOrder(diagnosticOrderItemComponent, existingRunningOrder, testOrder);
+            emrEncounter.addOrder(testOrder);
         }
     }
 
