@@ -129,6 +129,35 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         assertTrue(CollectionUtils.isEmpty(emrEncounterOrders));
     }
 
+    @Test
+    public void shouldProcessAllCancelledOrdersFirst() throws Exception {
+        Encounter existingEncounter = encounterService.getEncounter(42);
+        Set<Order> orders = existingEncounter.getOrders();
+        assertEquals(1, orders.size());
+        Order existingOrder = orders.iterator().next();
+        assertNull(existingOrder.getDateStopped());
+
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderCancelledAndRequested.xml", existingEncounter);
+
+        Set<Order> emrEncounterOrders = emrEncounter.getOrders();
+        assertEquals(2, emrEncounterOrders.size());
+        Order discontinuedOrder = getOrderWithAction(emrEncounterOrders, DISCONTINUE);
+        assertNotNull(discontinuedOrder);
+        assertEquals(existingOrder, discontinuedOrder.getPreviousOrder());
+        assertThat(discontinuedOrder.getConcept().getId(), is(304));
+        
+        Order newOrder = getOrderWithAction(emrEncounterOrders, NEW);
+        assertNotNull(newOrder);
+        assertThat(newOrder.getConcept().getId(), is(304));
+    }
+
+    private Order getOrderWithAction(Set<Order> orders, Order.Action action) {
+        for (Order order : orders) {
+            if (order.getAction().equals(action)) return order;
+        }
+        return null;
+    }
+
     private EmrEncounter mapOrder(String filePath) throws Exception {
         Encounter encounter = new Encounter();
         encounter.setEncounterDatetime(new Date());

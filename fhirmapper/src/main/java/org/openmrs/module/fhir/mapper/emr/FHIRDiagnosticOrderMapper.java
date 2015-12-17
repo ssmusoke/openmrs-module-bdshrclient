@@ -19,6 +19,7 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -56,10 +57,23 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     }
 
     private void createTestOrders(Bundle bundle, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter) {
-        List<DiagnosticOrder.Item> item = diagnosticOrder.getItem();
-        for (DiagnosticOrder.Item diagnosticOrderItemComponent : item) {
+        List<DiagnosticOrder.Item> cancelledItems = getDiagnosticOrderItemsByStatus(diagnosticOrder, DiagnosticOrderStatusEnum.CANCELLED);
+        for (DiagnosticOrder.Item diagnosticOrderItemComponent : cancelledItems) {
+            cancelTestOrderForItem(diagnosticOrder, diagnosticOrderItemComponent, bundle, emrEncounter);
+        }
+        List<DiagnosticOrder.Item> requestedItems = getDiagnosticOrderItemsByStatus(diagnosticOrder, DiagnosticOrderStatusEnum.REQUESTED);
+        for (DiagnosticOrder.Item diagnosticOrderItemComponent : requestedItems) {
             createTestOrderForItem(diagnosticOrder, diagnosticOrderItemComponent, bundle, emrEncounter);
         }
+    }
+
+    private List<DiagnosticOrder.Item> getDiagnosticOrderItemsByStatus(DiagnosticOrder diagnosticOrder, DiagnosticOrderStatusEnum orderStatus) {
+        ArrayList<DiagnosticOrder.Item> items = new ArrayList<>();
+        for (DiagnosticOrder.Item item : diagnosticOrder.getItem()) {
+            if (orderStatus.getCode().equals(item.getStatus()))
+                items.add(item);
+        }
+        return items;
     }
 
     private void createTestOrderForItem(DiagnosticOrder diagnosticOrder, DiagnosticOrder.Item diagnosticOrderItemComponent, Bundle bundle, EmrEncounter emrEncounter) {
@@ -67,6 +81,15 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         if (testOrderConcept != null) {
             Order existingRunningOrder = getExistingRunningOrder(emrEncounter, testOrderConcept);
             if (isRequestedOrderAlreadyPresent(diagnosticOrderItemComponent, existingRunningOrder)) return;
+            Order testOrder = createTestOrder(bundle, diagnosticOrder, emrEncounter, testOrderConcept);
+            emrEncounter.addOrder(testOrder);
+        }
+    }
+
+    private void cancelTestOrderForItem(DiagnosticOrder diagnosticOrder, DiagnosticOrder.Item diagnosticOrderItemComponent, Bundle bundle, EmrEncounter emrEncounter) {
+        Concept testOrderConcept = omrsConceptLookup.findConceptByCode(diagnosticOrderItemComponent.getCode().getCoding());
+        if (testOrderConcept != null) {
+            Order existingRunningOrder = getExistingRunningOrder(emrEncounter, testOrderConcept);
             if (isCancelledOrderNotCreated(diagnosticOrderItemComponent, existingRunningOrder)) return;
             Order testOrder = createTestOrder(bundle, diagnosticOrder, emrEncounter, testOrderConcept);
             handleCancelledOrder(diagnosticOrderItemComponent, existingRunningOrder, testOrder);
@@ -76,6 +99,13 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
 
     private boolean isRequestedOrderAlreadyPresent(DiagnosticOrder.Item diagnosticOrderItemComponent, Order existingRunningOrder) {
         return isRequestedOrder(diagnosticOrderItemComponent) && existingRunningOrder != null;
+    }
+
+    private boolean isExistingOrderDiscontinued(Order existingRunningOrder, EmrEncounter emrEncounter) {
+        for (Order order : emrEncounter.getOrders()) {
+            if (existingRunningOrder.equals(order.getPreviousOrder())) return true;
+        }
+        return false;
     }
 
     private boolean isCancelledOrderNotCreated(DiagnosticOrder.Item diagnosticOrderItemComponent, Order existingRunningOrder) {
@@ -121,15 +151,16 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
 
     private Order getExistingRunningOrder(EmrEncounter emrEncounter, Concept testOrderConcept) {
         for (Order order : emrEncounter.getEncounter().getOrders()) {
-            if (order.getConcept().equals(testOrderConcept) && isRunningOrder(order)) {
+            if (order.getConcept().equals(testOrderConcept) && isRunningOrder(order, emrEncounter)) {
                 return order;
             }
         }
         return null;
     }
 
-    private boolean isRunningOrder(Order order) {
-        return Order.Action.NEW.equals(order.getAction()) && order.getDateStopped() == null;
+    private boolean isRunningOrder(Order order, EmrEncounter emrEncounter) {
+        return Order.Action.NEW.equals(order.getAction()) && order.getDateStopped() == null 
+                && !isExistingOrderDiscontinued(order, emrEncounter);
     }
 
     private void setOrderer(Order testOrder, DiagnosticOrder diagnosticOrder) {
