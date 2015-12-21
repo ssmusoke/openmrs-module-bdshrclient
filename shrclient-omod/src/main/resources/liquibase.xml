@@ -870,5 +870,67 @@
             delete from shr_id_mapping where type='encounter';
         </sql>
     </changeSet>
+    <changeSet id="bdshrclient-21122015-1740" author="sanjana,sukreet" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="patient_id_mapping"></tableExists>
+            </not>
+        </preConditions>
+        <comment>Create a mapping table for patient external id to internal id mapping</comment>
+        <createTable tableName="patient_id_mapping">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="internal_id" type="varchar(100)"></column>
+            <column name="external_id" type="varchar(50)"></column>
+            <column name="uri" type="varchar(150)"></column>
+            <column name="last_sync_datetime" type="datetime" defaultValueComputed="now()"></column>
+            <column name="server_update_datetime" type="datetime(3)"></column>
+        </createTable>
+    </changeSet>
+    <changeSet id="bdshrclient-21122015-1742" author="sanjana,sukreet" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_patient_id_mapping_internal_id"/>
+            </not>
+        </preConditions>
+        <comment>Creating index patient_id_mapping.internal_id</comment>
+        <createIndex indexName="idx_patient_id_mapping_internal_id" tableName="patient_id_mapping">
+            <column name="internal_id" type="varchar(100)"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="bdshrclient-21122015-1743" author="sanjana,sukreet" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_patient_id_mapping_external_id"/>
+            </not>
+        </preConditions>
+        <comment>Creating index patient_id_mapping.external_id</comment>
+        <createIndex indexName="idx_patient_id_mapping_external_id" tableName="patient_id_mapping">
+            <column name="external_id" type="varchar(50)"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="bdshrclient-21122015-1744" author="sukreet,sanjana" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) != 0 from shr_id_mapping where type='patient';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            insert into patient_id_mapping(internal_id, external_id, uri, last_sync_datetime, server_update_datetime)
+            select internal_id, external_id, uri, last_sync_datetime, server_update_datetime from shr_id_mapping where type='patient';
+        </sql>
+    </changeSet>
+    <changeSet id="bdshrclient-21122015-1745" author="sukreet,sanjana" context="setup">
+        <preConditions>
+            <sqlCheck expectedResult="1">
+                select count(*) = (select count(*) from patient_id_mapping) from shr_id_mapping where type='patient';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            delete from shr_id_mapping where type='patient';
+        </sql>
+    </changeSet>
 
 </databaseChangeLog>

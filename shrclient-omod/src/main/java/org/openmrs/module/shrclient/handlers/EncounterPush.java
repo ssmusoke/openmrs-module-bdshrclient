@@ -17,10 +17,7 @@ import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
 import org.openmrs.module.fhir.utils.SHREncounterURLUtil;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
-import org.openmrs.module.shrclient.model.EncounterIdMapping;
-import org.openmrs.module.shrclient.model.EncounterResponse;
-import org.openmrs.module.shrclient.model.IdMapping;
-import org.openmrs.module.shrclient.model.IdMappingType;
+import org.openmrs.module.shrclient.model.*;
 import org.openmrs.module.shrclient.util.*;
 
 import java.io.IOException;
@@ -167,7 +164,7 @@ public class EncounterPush implements EventWorker {
     }
 
     private String getPatientHealthId(Patient emrPatient) {
-        IdMapping patientIdMapping = idMappingsRepository.findByInternalId(emrPatient.getUuid(), IdMappingType.PATIENT);
+        PatientIdMapping patientIdMapping = (PatientIdMapping) idMappingsRepository.findByInternalId(emrPatient.getUuid(), IdMappingType.PATIENT);
         if (patientIdMapping == null) {
             throw new AtomFeedClientException(String.format("Patient [%s] is not yet synced to MCI.",
                     emrPatient.getUuid()));

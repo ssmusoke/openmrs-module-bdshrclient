@@ -16,6 +16,7 @@ import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.EncounterIdMapping;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
+import org.openmrs.module.shrclient.model.PatientIdMapping;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SHRClient;
 import org.openmrs.module.shrclient.util.SystemProperties;
@@ -90,7 +91,7 @@ public class EncounterPushTest {
         when(shrClient.post(anyString(), eq(bundle))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
         when(compositionBundle.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
         when(idMappingRepository.findByExternalId(facilityId, IdMappingType.FACILITY)).thenReturn(null);
-        IdMapping patientIdMapping = new IdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, IdMappingType.PATIENT, patientUrl);
+        PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, patientUrl);
         when(idMappingRepository.findByInternalId(openMrsEncounter.getPatient().getUuid(), IdMappingType.PATIENT)).thenReturn(patientIdMapping);
 
         encounterPush.process(event);
@@ -128,7 +129,7 @@ public class EncounterPushTest {
         when(shrClient.post(anyString(), eq(bundle))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
         when(compositionBundle.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
         when(idMappingRepository.findByExternalId(facilityId, IdMappingType.FACILITY)).thenReturn(null);
-        IdMapping patientIdMapping = new IdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, IdMappingType.PATIENT, patientUrl);
+        PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, patientUrl);
         when(idMappingRepository.findByInternalId(openMrsEncounter.getPatient().getUuid(), IdMappingType.PATIENT)).thenReturn(patientIdMapping);
 
         encounterPush.process(event);
@@ -160,7 +161,7 @@ public class EncounterPushTest {
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(idMappingRepository.findByInternalId(uuid, IdMappingType.ENCOUNTER)).thenReturn(new EncounterIdMapping(uuid, "shr-uuid", "encounter", null, openMrsEncounter.getDateCreated()));
         when(compositionBundle.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
-        IdMapping patientIdMapping = new IdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, IdMappingType.PATIENT, patientUrl);
+        PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, patientUrl);
         when(idMappingRepository.findByInternalId(openMrsEncounter.getPatient().getUuid(), IdMappingType.PATIENT)).thenReturn(patientIdMapping);
 
         encounterPush.process(event);
@@ -184,7 +185,7 @@ public class EncounterPushTest {
         when(idMappingRepository.findByInternalId(uuid, IdMappingType.ENCOUNTER)).thenReturn(new EncounterIdMapping(uuid, "shr-uuid", "encounter", null));
         when(compositionBundle.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
         when(systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsEncounter)).thenReturn(true);
-        IdMapping patientIdMapping = new IdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, IdMappingType.PATIENT, patientUrl);
+        PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, patientUrl);
         when(idMappingRepository.findByInternalId(openMrsEncounter.getPatient().getUuid(), IdMappingType.PATIENT)).thenReturn(patientIdMapping);
 
         encounterPush.process(event);

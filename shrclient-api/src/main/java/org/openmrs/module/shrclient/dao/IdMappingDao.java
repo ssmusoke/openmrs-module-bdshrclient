@@ -150,7 +150,7 @@ public abstract class IdMappingDao {
                         if (resultSet != null) resultSet.close();
                         if (statement != null) statement.close();
                     } catch (SQLException e) {
-                        logger.warn("Could not close db statement or encounterIdMapping set", e);
+                        logger.warn("Could not close db statement or idmapping set", e);
                     }
                 }
                 return idMapping;

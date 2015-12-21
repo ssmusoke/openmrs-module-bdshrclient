@@ -16,6 +16,7 @@ import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
+import org.openmrs.module.shrclient.model.PatientIdMapping;
 import org.openmrs.module.shrclient.model.mci.api.MciPatientUpdateResponse;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
@@ -129,9 +130,8 @@ public class PatientPushTest {
 
         when(patientService.getPatientByUuid("36c82d16-6237-4495-889f-59bd9e0d8181")).thenReturn(openMrsPatient);
 
-        IdMapping idMapping = new IdMapping(openMrsPatient.getUuid(), "hid123", IdMappingType.PATIENT,
-                "http://mci.com/patients/hid123", dateTime.plusMinutes(1).toDate(), null);
-        when(idMappingsRepository.findByInternalId(openMrsPatient.getUuid(), IdMappingType.PATIENT)).thenReturn(idMapping);
+        PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsPatient.getUuid(), "hid123", "http://mci.com/patients/hid123", dateTime.plusMinutes(1).toDate());
+        when(idMappingsRepository.findByInternalId(openMrsPatient.getUuid(), IdMappingType.PATIENT)).thenReturn(patientIdMapping);
 
         patientPush.process(event);
 

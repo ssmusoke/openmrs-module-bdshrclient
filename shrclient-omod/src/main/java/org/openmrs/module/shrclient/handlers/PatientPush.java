@@ -20,6 +20,7 @@ import org.openmrs.module.shrclient.mapper.PatientMapper;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.model.Patient;
+import org.openmrs.module.shrclient.model.PatientIdMapping;
 import org.openmrs.module.shrclient.model.mci.api.MciPatientUpdateResponse;
 import org.openmrs.module.shrclient.util.*;
 
@@ -68,7 +69,7 @@ public class PatientPush implements EventWorker {
 
             org.openmrs.Patient openMrsPatient = patientService.getPatientByUuid(uuid);
 
-            IdMapping patientIdMapping = idMappingsRepository.findByInternalId(openMrsPatient.getUuid(),IdMappingType.PATIENT);
+            PatientIdMapping patientIdMapping = (PatientIdMapping) idMappingsRepository.findByInternalId(openMrsPatient.getUuid(),IdMappingType.PATIENT);
             if (!shouldUploadPatient(openMrsPatient, event.getUpdatedDate(), patientIdMapping)) {
                 return;
             }
@@ -200,7 +201,7 @@ public class PatientPush implements EventWorker {
     private void saveOrUpdateIdMapping(org.openmrs.Patient emrPatient, String healthId) {
         String patientUuid = emrPatient.getUuid();
         String url = new EntityReference().build(org.openmrs.Patient.class, getSystemProperties(), healthId);
-        idMappingsRepository.saveOrUpdateIdMapping(new IdMapping(patientUuid, healthId, IdMappingType.PATIENT, url, new Date(), null));
+        idMappingsRepository.saveOrUpdateIdMapping(new PatientIdMapping(patientUuid, healthId, url, new Date(), null));
     }
 
     private SystemProperties getSystemProperties() {

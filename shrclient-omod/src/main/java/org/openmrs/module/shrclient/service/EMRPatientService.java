@@ -16,9 +16,9 @@ import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.mapper.PersonAttributeMapper;
 import org.openmrs.module.shrclient.mapper.PhoneNumberMapper;
 import org.openmrs.module.shrclient.mapper.RelationshipMapper;
-import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.model.Patient;
+import org.openmrs.module.shrclient.model.PatientIdMapping;
 import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.util.AddressHelper;
 import org.openmrs.module.shrclient.util.PropertiesReader;
@@ -184,7 +184,7 @@ public class EMRPatientService {
     }
 
     private org.openmrs.Patient identifyEmrPatient(String healthId) {
-        IdMapping patientIdMapping = idMappingsRepository.findByExternalId(healthId, IdMappingType.PATIENT);
+        PatientIdMapping patientIdMapping = (PatientIdMapping) idMappingsRepository.findByExternalId(healthId, IdMappingType.PATIENT);
         if (patientIdMapping == null) return null;
         logger.info("Patient with HealthId " + healthId + " already exists. Using reference to the patient for downloaded encounters.");
         return patientService.getPatientByUuid(patientIdMapping.getInternalId());
@@ -243,6 +243,6 @@ public class EMRPatientService {
                 propertiesReader.getFacilityInstanceProperties(),
                 propertiesReader.getMciProperties(), new Properties());
         String url = new EntityReference().build(org.openmrs.Patient.class, systemProperties, healthId);
-        idMappingsRepository.saveOrUpdateIdMapping(new IdMapping(patientUuid, healthId, IdMappingType.PATIENT, url, new Date(), null));
+        idMappingsRepository.saveOrUpdateIdMapping(new PatientIdMapping(patientUuid, healthId, url, new Date()));
     }
 }
