@@ -91,7 +91,7 @@ public class EMREncounterServiceTest {
         String shrEncounterId = "shr-enc-id";
 
         when(mockIdMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER)).thenReturn(null);
-        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent, healthId);
+        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
         verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class));
     }
 
@@ -123,7 +123,7 @@ public class EMREncounterServiceTest {
         shrProperties.put(SHR_PATIENT_ENC_PATH_PATTERN, "/patients/%s/encounters");
         when(mockPropertiesReader.getShrProperties()).thenReturn(shrProperties);
 
-        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent, healthId);
+        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
 
         verify(mockFhirmapper, times(1)).map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class));
     }
@@ -145,7 +145,7 @@ public class EMREncounterServiceTest {
         Patient emrPatient = new Patient();
         String healthId = "health_id";
 
-        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent, healthId);
+        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
 
         verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class));
     }
@@ -183,7 +183,7 @@ public class EMREncounterServiceTest {
         shrProperties.put(SHR_PATIENT_ENC_PATH_PATTERN, "/patients/%s/encounters");
         when(mockPropertiesReader.getShrProperties()).thenReturn(shrProperties);
 
-        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent, healthId);
+        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
         verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class));
     }
 
@@ -221,7 +221,7 @@ public class EMREncounterServiceTest {
         shrProperties.put(SHR_PATIENT_ENC_PATH_PATTERN, "/patients/%s/encounters");
         when(mockPropertiesReader.getShrProperties()).thenReturn(shrProperties);
 
-        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent, healthId);
+        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
         verify(mockFhirmapper, times(1)).map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class));
     }
 }

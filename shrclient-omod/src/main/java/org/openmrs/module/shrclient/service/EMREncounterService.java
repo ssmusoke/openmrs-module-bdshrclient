@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
+import org.openmrs.Patient;
 import org.openmrs.api.OrderService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.VisitService;
@@ -57,18 +58,18 @@ public class EMREncounterService {
         this.patientDeathService = patientDeathService;
     }
 
-    public void createOrUpdateEncounters(org.openmrs.Patient emrPatient, List<EncounterEvent> bundles, String healthId) {
+    public void createOrUpdateEncounters(Patient emrPatient, List<EncounterEvent> bundles) {
         ArrayList<EncounterEvent> failedEncounters = new ArrayList<>();
         for (EncounterEvent bundle : bundles) {
             try {
-                createOrUpdateEncounter(emrPatient, bundle, healthId);
+                createOrUpdateEncounter(emrPatient, bundle);
             } catch (Exception e) {
                 failedEncounters.add(bundle);
             }
         }
         for (EncounterEvent failedEncounterEvent : failedEncounters) {
             try {
-                createOrUpdateEncounter(emrPatient, failedEncounterEvent, healthId);
+                createOrUpdateEncounter(emrPatient, failedEncounterEvent);
             } catch (Exception e) {
                 //TODO do proper handling, write to log API?
                 logger.error("error Occurred while trying to process Encounter from SHR.", e);
@@ -77,10 +78,11 @@ public class EMREncounterService {
         }
     }
 
-    public void createOrUpdateEncounter(org.openmrs.Patient emrPatient, EncounterEvent encounterEvent, String healthId) throws Exception {
+    public void createOrUpdateEncounter(Patient emrPatient, EncounterEvent encounterEvent) throws Exception {
         String shrEncounterId = encounterEvent.getEncounterId();
+        String healthId = encounterEvent.getHealthId();
         Bundle bundle = encounterEvent.getBundle();
-        logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", encounterEvent.getHealthId(), shrEncounterId));
+        logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", healthId, shrEncounterId));
 
         if (!shouldSyncEncounter(shrEncounterId, encounterEvent)) return;
         SystemProperties systemProperties = new SystemProperties(

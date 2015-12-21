@@ -1,12 +1,8 @@
 package org.openmrs.module.shrclient.feeds.shr;
 
-import ca.uhn.fhir.model.dstu2.resource.Bundle;
-import ca.uhn.fhir.model.dstu2.resource.Composition;
 import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.client.exceptions.AtomFeedClientException;
-import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
-import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.service.EMREncounterService;
 import org.openmrs.module.shrclient.service.EMRPatientService;
@@ -14,8 +10,6 @@ import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.util.StringUtil;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterEvent;
-
-import static org.openmrs.module.fhir.utils.FHIRBundleHelper.getComposition;
 
 public class DefaultEncounterFeedWorker implements EncounterEventWorker {
     private EMRPatientService emrPatientService;
@@ -36,8 +30,7 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
     @Override
     public void process(EncounterEvent encounterEvent) {
         logger.info("Processing bundle with encounter id: " + encounterEvent.getEncounterId());
-        Bundle bundle = encounterEvent.getBundle();
-        String healthId = identifyPatientHealthId(bundle);
+        String healthId = encounterEvent.getHealthId();
         try {
             RestClient mciClient = clientRegistry.getMCIClient();
             Patient patient = mciClient.get(StringUtil.ensureSuffix(propertiesReader.getMciPatientContext(), "/") + healthId, Patient.class);
@@ -48,7 +41,7 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
                 logger.error(message);
                 throw new Exception(message);
             }
-            emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent, healthId);
+            emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
         } catch (Exception e) {
             String message = String.format("Error occurred while trying to process encounter[%s] of patient[%s]",
                     encounterEvent.getEncounterId(), healthId);
@@ -57,8 +50,4 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
         }
     }
 
-    private String identifyPatientHealthId(Bundle bundle) {
-        final Composition composition = getComposition(bundle);
-        return new EntityReference().parse(org.openmrs.Patient.class, composition.getSubject().getReference().getValue());
-    }
 }

@@ -163,7 +163,7 @@ public class MCIPatientLookupService {
             log.info("Clearing unauthorized identity token.");
             identityStore.clearToken();
         }
-        emrEncounterService.createOrUpdateEncounters(emrPatient, bundles, healthId);
+        emrEncounterService.createOrUpdateEncounters(emrPatient, bundles);
     }
 
     private Patient[] searchPatients(String searchParamKey, String searchParamValue) {

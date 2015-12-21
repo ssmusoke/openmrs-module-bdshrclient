@@ -61,6 +61,7 @@ public class DefaultEncounterFeedWorkerTest {
         category.setTerm(ENCOUNTER_UPDATED_CATEGORY_TAG + ":" + encounterUpdatedDate);
         encounterEvent.setCategories(asList(category));
         encounterEvent.addContent(bundle);
+        encounterEvent.setHealthId(healthId);
 
         when(propertiesReader.getMciPatientContext()).thenReturn(mciUrl);
         RestClient mciClient = mock(RestClient.class);
@@ -73,6 +74,6 @@ public class DefaultEncounterFeedWorkerTest {
         encounterFeedWorker.process(encounterEvent);
 
         verify(mciClient, times(1)).get(patientUrl, Patient.class);
-        verify(emrEncounterService, times(1)).createOrUpdateEncounter(openmrsPatient, encounterEvent, healthId);
+        verify(emrEncounterService, times(1)).createOrUpdateEncounter(openmrsPatient, encounterEvent);
     }
 }
