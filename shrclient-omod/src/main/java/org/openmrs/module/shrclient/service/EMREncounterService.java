@@ -9,7 +9,6 @@ import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.api.OrderService;
-import org.openmrs.api.PatientService;
 import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.Confidentiality;
@@ -22,7 +21,9 @@ import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterEvent;
+import org.openmrs.serialization.SerializationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -35,7 +36,7 @@ public class EMREncounterService {
 
     private static final Logger logger = Logger.getLogger(EMREncounterService.class);
 
-    private PatientService patientService;
+    private EMRPatientService emrPatientService;
     private IdMappingRepository idMappingRepository;
     private PropertiesReader propertiesReader;
     private SystemUserService systemUserService;
@@ -45,10 +46,10 @@ public class EMREncounterService {
     private EMRPatientDeathService patientDeathService;
 
     @Autowired
-    public EMREncounterService(PatientService patientService, IdMappingRepository idMappingRepository,
+    public EMREncounterService(@Qualifier("hieEmrPatientService") EMRPatientService emrPatientService, IdMappingRepository idMappingRepository,
                                PropertiesReader propertiesReader, SystemUserService systemUserService,
                                VisitService visitService, FHIRMapper fhirMapper, OrderService orderService, EMRPatientDeathService patientDeathService) {
-        this.patientService = patientService;
+        this.emrPatientService = emrPatientService;
         this.idMappingRepository = idMappingRepository;
         this.propertiesReader = propertiesReader;
         this.systemUserService = systemUserService;
@@ -84,7 +85,7 @@ public class EMREncounterService {
         Bundle bundle = encounterEvent.getBundle();
         logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", healthId, shrEncounterId));
 
-        if (!shouldSyncEncounter(shrEncounterId, encounterEvent)) return;
+        if (!shouldProcessEvent(encounterEvent)) return;
         SystemProperties systemProperties = new SystemProperties(
                 propertiesReader.getFrProperties(),
                 propertiesReader.getTrProperties(),
@@ -130,12 +131,25 @@ public class EMREncounterService {
         return order.getOrderId() == null;
     }
 
-    private boolean shouldSyncEncounter(String encounterId, EncounterEvent encounterEvent) {
+    private boolean shouldProcessEvent(EncounterEvent encounterEvent) {
         if (hasUpdatedEncounterInTheFeed(encounterEvent)) return false;
-        EncounterIdMapping encounterIdMapping = (EncounterIdMapping) idMappingRepository.findByExternalId(encounterId, IdMappingType.ENCOUNTER);
+        EncounterIdMapping encounterIdMapping = (EncounterIdMapping) idMappingRepository.findByExternalId(encounterEvent.getEncounterId(), IdMappingType.ENCOUNTER);
+        mergeIfHealthIdsDonotMatch(encounterIdMapping, encounterEvent);
         Date encounterUpdatedDate = getEncounterUpdatedDate(encounterEvent);
         if (isUpdateAlreadyProcessed(encounterIdMapping, encounterUpdatedDate)) return false;
         return getEncounterConfidentiality(encounterEvent.getBundle()).ordinal() <= Confidentiality.Normal.ordinal();
+    }
+
+    private void mergeIfHealthIdsDonotMatch(EncounterIdMapping encounterIdMapping, EncounterEvent encounterEvent) {
+        if (encounterIdMapping != null && !encounterIdMapping.getHealthId().equals(encounterEvent.getHealthId())) {
+            try {
+                emrPatientService.mergePatients(encounterEvent.getHealthId(), encounterIdMapping.getHealthId());
+
+            } catch (SerializationException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private boolean isUpdateAlreadyProcessed(EncounterIdMapping encounterIdMapping, Date encounterUpdatedDate) {
@@ -167,7 +181,7 @@ public class EMREncounterService {
     private void savePatientDeathInfo(org.openmrs.Patient emrPatient) {
         if (emrPatient.isDead()) {
             emrPatient.setCauseOfDeath(patientDeathService.getCauseOfDeath(emrPatient));
-            patientService.savePatient(emrPatient);
+            emrPatientService.savePatient(emrPatient);
             systemUserService.setOpenmrsShrSystemUserAsCreator(emrPatient);
         }
     }

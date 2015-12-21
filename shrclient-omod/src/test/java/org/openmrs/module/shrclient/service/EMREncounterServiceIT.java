@@ -346,6 +346,8 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         assertTrue(mapping1.getLastSyncDateTime().after(mapping2.getLastSyncDateTime()));
     }
 
+
+
     public Date getDateTimeAfterNMinutes(Date currentTime, int minutes) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(currentTime);

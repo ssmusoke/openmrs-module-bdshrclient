@@ -26,6 +26,8 @@
         <property name="mappingResources">
             <list>
                 <value>mapping.hbm.xml</value>
+                <value>AddressHierarchyEntry.hbm.xml</value>
+                <value>AddressHierarchyLevel.hbm.xml</value>
             </list>
         </property>
         <!--  default properties must be set in the hibernate.default.properties -->
