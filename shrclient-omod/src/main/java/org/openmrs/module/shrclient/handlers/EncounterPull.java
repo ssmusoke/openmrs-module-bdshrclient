@@ -60,11 +60,10 @@ public class EncounterPull {
     }
 
     private DefaultEncounterFeedWorker getEncounterFeedWorker() {
-        EMRPatientService EMRPatientService = PlatformUtil.getRegisteredComponent("hieEmrPatientService", EMRPatientService.class);
-        EMREncounterService EMREncounterService = PlatformUtil.getRegisteredComponent("hieEmrEncounterService", EMREncounterService.class);
+        EMRPatientService emrPatientService = PlatformUtil.getRegisteredComponent("hieEmrPatientService", EMRPatientService.class);
+        EMREncounterService emrEncounterService = PlatformUtil.getRegisteredComponent("hieEmrEncounterService", EMREncounterService.class);
         PropertiesReader propertiesReader = PlatformUtil.getPropertiesReader();
-        IdentityStore identityStore = PlatformUtil.getIdentityStore();
-        return new DefaultEncounterFeedWorker(EMRPatientService, propertiesReader, identityStore, EMREncounterService);
+        return new DefaultEncounterFeedWorker(emrPatientService, emrEncounterService, propertiesReader, clientRegistry);
     }
 
     private HashMap<String, String> getRequestHeaders(PropertiesReader propertiesReader) throws IdentityUnauthorizedException {
