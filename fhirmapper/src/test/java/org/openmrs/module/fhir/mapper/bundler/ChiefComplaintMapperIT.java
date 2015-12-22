@@ -7,6 +7,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.EncounterService;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -39,7 +40,7 @@ public class ChiefComplaintMapperIT extends BaseModuleWebContextSensitiveTest {
         encounter.addParticipant().setIndividual(new ResourceReferenceDt());
         org.openmrs.Encounter openMrsEncounter = encounterService.getEncounter(36);
 
-        List<FHIRResource> complaintResources = chiefComplaintMapper.map(openMrsEncounter.getObsAtTopLevel(false).iterator().next(), encounter, getSystemProperties("1"));
+        List<FHIRResource> complaintResources = chiefComplaintMapper.map(openMrsEncounter.getObsAtTopLevel(false).iterator().next(), new FHIREncounter(encounter), getSystemProperties("1"));
         Assert.assertFalse(complaintResources.isEmpty());
         Assert.assertEquals(1, complaintResources.size());
     }

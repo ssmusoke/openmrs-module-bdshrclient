@@ -14,7 +14,7 @@ import org.openmrs.api.OrderService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
-import org.openmrs.module.fhir.mapper.model.ShrEncounter;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,7 +145,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         assertNotNull(discontinuedOrder);
         assertEquals(existingOrder, discontinuedOrder.getPreviousOrder());
         assertThat(discontinuedOrder.getConcept().getId(), is(304));
-        
+
         Order newOrder = getOrderWithAction(emrEncounterOrders, NEW);
         assertNotNull(newOrder);
         assertThat(newOrder.getConcept().getId(), is(304));
@@ -166,8 +166,8 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     private EmrEncounter mapOrder(String filePath, Encounter encounter) throws Exception {
         Bundle bundle = loadSampleFHIREncounter(filePath);
-        IResource resource = FHIRBundleHelper.identifyFirstResourceWithName(bundle.getEntry(), new DiagnosticOrder().getResourceName());
-        ShrEncounter encounterComposition = new ShrEncounter(bundle, "HIDA764177", "shr-enc-id-1");
+        IResource resource = FHIRBundleHelper.identifyFirstResourceWithName(bundle, new DiagnosticOrder().getResourceName());
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(bundle, "HIDA764177", "shr-enc-id-1");
         EmrEncounter emrEncounter = new EmrEncounter(encounter);
         diagnosticOrderMapper.map(resource, emrEncounter, encounterComposition, getSystemProperties("1"));
         return emrEncounter;

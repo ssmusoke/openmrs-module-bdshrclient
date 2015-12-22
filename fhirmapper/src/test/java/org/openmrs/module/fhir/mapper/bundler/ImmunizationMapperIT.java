@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.ObsService;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +20,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -142,9 +141,9 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
         Immunization immunization = mapImmunization(11, new Encounter());
         CodeableConceptDt immunizationReason = immunization.getExplanation().getReason().get(0);
 
-        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Immunization-Reason",immunizationReason.getCoding().get(0).getSystem());
-        assertEquals("Travel vaccinations",immunizationReason.getCoding().get(0).getCode());
-        assertEquals("Travel vaccinations",immunizationReason.getCoding().get(0).getDisplay());
+        assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Immunization-Reason", immunizationReason.getCoding().get(0).getSystem());
+        assertEquals("Travel vaccinations", immunizationReason.getCoding().get(0).getCode());
+        assertEquals("Travel vaccinations", immunizationReason.getCoding().get(0).getDisplay());
     }
 
     @Test
@@ -154,7 +153,7 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
 
         assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/No-Immunization-Reason", immunizationRefusalReason.getCoding().get(0).getSystem());
         assertEquals("patient objection", immunizationRefusalReason.getCoding().get(0).getCode());
-        assertEquals("patient objection",immunizationRefusalReason.getCoding().get(0).getDisplay());
+        assertEquals("patient objection", immunizationRefusalReason.getCoding().get(0).getDisplay());
     }
 
     @Test
@@ -164,12 +163,12 @@ public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
 
         assertEquals("http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Route-of-Administration", route.getCoding().get(0).getSystem());
         assertEquals("Oral", route.getCoding().get(0).getCode());
-        assertEquals("Oral",route.getCoding().get(0).getDisplay());
+        assertEquals("Oral", route.getCoding().get(0).getDisplay());
     }
 
     private Immunization mapImmunization(int observationId, Encounter fhirEncounter) {
         Obs obs = obsService.getObs(observationId);
-        List<FHIRResource> fhirResources = mapper.map(obs, fhirEncounter, getSystemProperties("1"));
+        List<FHIRResource> fhirResources = mapper.map(obs, new FHIREncounter(fhirEncounter), getSystemProperties("1"));
 
         assertEquals(1, fhirResources.size());
         assertTrue(fhirResources.get(0).getResource() instanceof Immunization);

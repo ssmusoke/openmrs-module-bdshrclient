@@ -14,6 +14,7 @@ import ca.uhn.fhir.model.primitive.InstantDt;
 import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.HibernateLazyLoader;
 import org.openmrs.module.shrclient.util.SystemProperties;
@@ -48,7 +49,7 @@ public class CompositionBundle {
     public Bundle create(org.openmrs.Encounter emrEncounter, String healthId, SystemProperties systemProperties) {
         HibernateLazyLoader hibernateLazyLoader = new HibernateLazyLoader();
         Bundle bundle = new Bundle();
-        Encounter fhirEncounter = encounterMapper.map(emrEncounter, healthId, systemProperties);
+        FHIREncounter fhirEncounter = new FHIREncounter(encounterMapper.map(emrEncounter, healthId, systemProperties));
         Composition composition = createComposition(emrEncounter.getEncounterDatetime(), fhirEncounter, systemProperties);
         bundle.setType(BundleTypeEnum.COLLECTION);
         //TODO: bundle.setBase("urn:uuid:");
@@ -56,7 +57,7 @@ public class CompositionBundle {
         ResourceMetadataMap metadataMap = new ResourceMetadataMap();
         metadataMap.put(ResourceMetadataKeyEnum.UPDATED, new InstantDt(composition.getDate(), TemporalPrecisionEnum.MILLI));
         bundle.setResourceMetadata(metadataMap);
-        final FHIRResource encounterResource = new FHIRResource("Encounter", fhirEncounter.getIdentifier(), fhirEncounter);
+        final FHIRResource encounterResource = new FHIRResource("Encounter", fhirEncounter.getIdentifier(), fhirEncounter.getEncounter());
         addResourceSectionToComposition(composition, encounterResource);
         addBundleEntry(bundle, new FHIRResource("Composition", asList(composition.getIdentifier()), composition));
         addBundleEntry(bundle, encounterResource);
@@ -110,18 +111,17 @@ public class CompositionBundle {
         bundle.addEntry(resourceEntry);
     }
 
-    private Composition createComposition(Date encounterDateTime, Encounter encounter, SystemProperties systemProperties) {
+    private Composition createComposition(Date encounterDateTime, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         Composition composition = new Composition().setDate(encounterDateTime, TemporalPrecisionEnum.MILLI);
-        composition.setEncounter(new ResourceReferenceDt().setReference(encounter.getId()));
+        composition.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId()));
         composition.setStatus(CompositionStatusEnum.FINAL);
         composition.setTitle("Patient Clinical Encounter");
         // TODO : remove creating the identifier if necessary. We can use resource Id to identify resources now.
         String id = new EntityReference().build(Composition.class, systemProperties, UUID.randomUUID().toString());
         composition.setId(id);
         composition.setIdentifier(new IdentifierDt().setValue(id));
-        composition.setSubject(encounter.getPatient());
-        ResourceReferenceDt resourceReferenceAuthor = composition.addAuthor();
-        resourceReferenceAuthor.setReference(encounter.getServiceProvider().getReference());
+        composition.setSubject(fhirEncounter.getPatient());
+        composition.setAuthor(asList(fhirEncounter.getServiceProvider()));
         composition.setConfidentiality(CONFIDENTIALITY_NORMAL);
         composition.setType(codeableConceptService.getFHIRCodeableConcept(LOINC_CODE_DETAILS_NOTE, FHIR_DOC_TYPECODES_URL, LOINC_DETAILS_NOTE_DISPLAY));
         return composition;

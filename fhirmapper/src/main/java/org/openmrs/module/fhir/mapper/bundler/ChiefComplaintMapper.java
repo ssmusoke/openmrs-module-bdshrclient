@@ -3,7 +3,6 @@ package org.openmrs.module.fhir.mapper.bundler;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.*;
 import ca.uhn.fhir.model.dstu2.resource.Condition;
-import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.valueset.ConditionCategoryCodesEnum;
 import ca.uhn.fhir.model.dstu2.valueset.ConditionClinicalStatusCodesEnum;
 import ca.uhn.fhir.model.dstu2.valueset.ConditionVerificationStatusEnum;
@@ -14,6 +13,7 @@ import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,21 +38,21 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+    public List<FHIRResource> map(Obs obs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> chiefComplaints = new ArrayList<>();
         CompoundObservation conditionTemplateObs = new CompoundObservation(obs);
         List<Obs> chiefComplaintDataObsList = conditionTemplateObs.findAllMemberObsForConceptName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA);
         for (Obs chiefComplaintDataObs : chiefComplaintDataObsList) {
-                chiefComplaints.add(createFHIRCondition(fhirEncounter, chiefComplaintDataObs, systemProperties));
+            chiefComplaints.add(createFHIRCondition(fhirEncounter, chiefComplaintDataObs, systemProperties));
         }
         return chiefComplaints;
     }
 
-    private FHIRResource createFHIRCondition(Encounter encounter, Obs obs, SystemProperties systemProperties) {
+    private FHIRResource createFHIRCondition(FHIREncounter fhirEncounter, Obs obs, SystemProperties systemProperties) {
         Condition condition = new Condition();
-        condition.setEncounter(new ResourceReferenceDt().setReference(encounter.getId().getValue()));
-        condition.setPatient(encounter.getPatient());
-        condition.setAsserter(getParticipant(encounter));
+        condition.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId()));
+        condition.setPatient(fhirEncounter.getPatient());
+        condition.setAsserter(fhirEncounter.getFirstParticipantReference());
         condition.setCategory(ConditionCategoryCodesEnum.COMPLAINT);
         condition.setClinicalStatus(ConditionClinicalStatusCodesEnum.ACTIVE);
         condition.setVerificationStatus(ConditionVerificationStatusEnum.PROVISIONAL);
@@ -94,13 +94,5 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
         periodDt.setStart(assertedDateTime, TemporalPrecisionEnum.MILLI);
         periodDt.setEnd(obsDatetime, TemporalPrecisionEnum.MILLI);
         return periodDt;
-    }
-
-    protected ResourceReferenceDt getParticipant(Encounter encounter) {
-        List<Encounter.Participant> participants = encounter.getParticipant();
-        if ((participants != null) && !participants.isEmpty()) {
-            return participants.get(0).getIndividual();
-        }
-        return null;
     }
 }

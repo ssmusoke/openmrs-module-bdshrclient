@@ -5,13 +5,13 @@ import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
-import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -50,7 +50,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<FHIRResource> map(Obs topLevelObs, Encounter fhirEncounter, SystemProperties systemProperties) {
+    public List<FHIRResource> map(Obs topLevelObs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> FHIRResourceList = new ArrayList<>();
         if (topLevelObs != null) {
             if (!isPanel(topLevelObs)) {
@@ -68,7 +68,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
         return obs.getConcept().getConceptClass().getName().equals(MRS_CONCEPT_CLASS_LAB_SET);
     }
 
-    private void buildTestResult(Obs topLevelTestObs, Encounter fhirEncounter, List<FHIRResource> fhirResourceList, SystemProperties systemProperties) {
+    private void buildTestResult(Obs topLevelTestObs, FHIREncounter fhirEncounter, List<FHIRResource> fhirResourceList, SystemProperties systemProperties) {
         DiagnosticReport diagnosticReport = buildDiagnosticReport(topLevelTestObs, fhirEncounter, systemProperties);
         if (diagnosticReport != null) {
             for (Obs resultObsGroup : topLevelTestObs.getGroupMembers()) {
@@ -84,7 +84,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
         }
     }
 
-    private FHIRResource getResultResource(Obs resultObsGroup, Encounter fhirEncounter, SystemProperties systemProperties) {
+    private FHIRResource getResultResource(Obs resultObsGroup, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         CompoundObservation resultGroupObservation = new CompoundObservation(resultObsGroup);
         FHIRResource observationResource = getResultObservation(resultObsGroup, fhirEncounter, systemProperties, resultGroupObservation);
 
@@ -105,10 +105,10 @@ public class TestResultMapper implements EmrObsResourceHandler {
         resultObservation.setStatus(ObservationStatusEnum.FINAL);
     }
 
-    private FHIRResource getResultObservation(Obs resultObsGroup, Encounter fhirEncounter, SystemProperties systemProperties, CompoundObservation resultGroupObservation) {
+    private FHIRResource getResultObservation(Obs resultObsGroup, FHIREncounter fhirEncounter, SystemProperties systemProperties, CompoundObservation resultGroupObservation) {
         Obs resultObs = resultGroupObservation.getMemberObsForConcept(resultObsGroup.getConcept());
         FHIRResource fhirObservationResource = observationBuilder.buildObservationResource(fhirEncounter,
-                systemProperties, UUID.randomUUID().toString(), resultObsGroup.getConcept().getName().getName());
+                UUID.randomUUID().toString(), resultObsGroup.getConcept().getName().getName(), systemProperties);
         Observation fhirObservation = (Observation) fhirObservationResource.getResource();
         fhirObservation.setCode(codeableConceptService.addTRCodingOrDisplay(resultObsGroup.getConcept()));
         if (resultObs != null) {
@@ -124,7 +124,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
         }
     }
 
-    private DiagnosticReport buildDiagnosticReport(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+    private DiagnosticReport buildDiagnosticReport(Obs obs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         DiagnosticReport report = diagnosticReportBuilder.build(obs, fhirEncounter, systemProperties);
         CodeableConceptDt name = codeableConceptService.addTRCoding(obs.getConcept());
         if (name.getCoding() != null && name.getCoding().isEmpty()) {

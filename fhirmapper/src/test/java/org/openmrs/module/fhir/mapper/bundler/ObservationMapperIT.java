@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.ObsService;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -28,10 +29,10 @@ import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
-    ObsService obsService;
+    private ObsService obsService;
 
     @Autowired
-    ObservationMapper observationMapper;
+    private ObservationMapper observationMapper;
     private String prUrl = "http://pr.com/23.json";
     private String prDisplay = "Doc 23";
 
@@ -52,7 +53,7 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
 
         Encounter fhirEncounter = new Encounter();
         fhirEncounter.addParticipant().setIndividual(new ResourceReferenceDt().setReference(prUrl).setDisplay(prDisplay));
-        List<FHIRResource> FHIRResources = observationMapper.map(vitalsObs, fhirEncounter, getSystemProperties("1"));
+        List<FHIRResource> FHIRResources = observationMapper.map(vitalsObs, new FHIREncounter(fhirEncounter), getSystemProperties("1"));
         assertEquals(4, FHIRResources.size());
         for (FHIRResource FHIRResource : FHIRResources) {
             Observation observation = (Observation) FHIRResource.getResource();
@@ -79,7 +80,7 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
 
         Encounter fhirEncounter = new Encounter();
         fhirEncounter.addParticipant().setIndividual(new ResourceReferenceDt().setReference(prUrl).setDisplay(prDisplay));
-        List<FHIRResource> FHIRResources = observationMapper.map(vitalsObs, fhirEncounter, getSystemProperties("1"));
+        List<FHIRResource> FHIRResources = observationMapper.map(vitalsObs, new FHIREncounter(fhirEncounter), getSystemProperties("1"));
         assertEquals(2, FHIRResources.size());
         for (FHIRResource FHIRResource : FHIRResources) {
             Observation observation = (Observation) FHIRResource.getResource();
@@ -105,7 +106,7 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
 
         Encounter fhirEncounter = new Encounter();
         fhirEncounter.addParticipant().setIndividual(new ResourceReferenceDt().setReference(prUrl).setDisplay(prDisplay));
-        List<FHIRResource> FHIRResources = observationMapper.map(vitalsObs, fhirEncounter, getSystemProperties("1"));
+        List<FHIRResource> FHIRResources = observationMapper.map(vitalsObs, new FHIREncounter(fhirEncounter), getSystemProperties("1"));
         assertEquals(2, FHIRResources.size());
         for (FHIRResource FHIRResource : FHIRResources) {
             Observation observation = (Observation) FHIRResource.getResource();
@@ -131,7 +132,7 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
 
         Encounter fhirEncounter = new Encounter();
         fhirEncounter.addParticipant().setIndividual(new ResourceReferenceDt().setReference(prUrl).setDisplay(prDisplay));
-        List<FHIRResource> FHIRResources = observationMapper.map(vitalsObs, fhirEncounter, getSystemProperties("1"));
+        List<FHIRResource> FHIRResources = observationMapper.map(vitalsObs, new FHIREncounter(fhirEncounter), getSystemProperties("1"));
         assertTrue(isEmpty(FHIRResources));
     }
 
@@ -148,8 +149,8 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(2, coding.size());
         int flag = 0;
         for (CodingDt code : coding) {
-            if (assertCoding(code, "103", "/concepts/103")) flag ++;
-            if(assertCoding(code, "M54.418965", "referenceterms/201")) flag ++;
+            if (assertCoding(code, "103", "/concepts/103")) flag++;
+            if (assertCoding(code, "M54.418965", "referenceterms/201")) flag++;
         }
         assertEquals(2, flag);
         assertTrue(133 == ((QuantityDt) observation.getValue()).getValue().doubleValue());

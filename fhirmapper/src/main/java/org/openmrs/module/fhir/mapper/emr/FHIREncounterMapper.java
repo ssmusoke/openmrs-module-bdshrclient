@@ -9,7 +9,7 @@ import org.openmrs.*;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.LocationService;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.mapper.model.ShrEncounter;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.fhir.utils.VisitLookupService;
@@ -47,16 +47,16 @@ public class FHIREncounterMapper {
     @Autowired
     private FHIRSubResourceMapper fhirSubResourceMapper;
 
-    public org.openmrs.Encounter map(Patient emrPatient, ShrEncounter shrEncounter, SystemProperties systemProperties) throws ParseException {
-        final ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = FHIRBundleHelper.getEncounter(shrEncounter.getBundle());
-        Composition composition = FHIRBundleHelper.getComposition(shrEncounter.getBundle());
+    public org.openmrs.Encounter map(Patient emrPatient, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) throws ParseException {
+        final ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = FHIRBundleHelper.getEncounter(shrEncounterBundle.getBundle());
+        Composition composition = FHIRBundleHelper.getComposition(shrEncounterBundle.getBundle());
         Date encounterDate = composition.getDate();
-        org.openmrs.Encounter openmrsEncounter = getOrCreateEmrEncounter(shrEncounter.getShrEncounterId());
+        org.openmrs.Encounter openmrsEncounter = getOrCreateEmrEncounter(shrEncounterBundle.getShrEncounterId());
         openmrsEncounter.setEncounterDatetime(encounterDate);
-        
+
         openmrsEncounter.setPatient(emrPatient);
 
-        fhirSubResourceMapper.map(openmrsEncounter, shrEncounter, systemProperties);
+        fhirSubResourceMapper.map(openmrsEncounter, shrEncounterBundle, systemProperties);
 
         final String encounterTypeName = fhirEncounter.getType().get(0).getText();
         final EncounterType encounterType = encounterService.getEncounterType(encounterTypeName);

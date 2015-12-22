@@ -4,7 +4,6 @@ import ca.uhn.fhir.model.api.ExtensionDt;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.*;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
-import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
 import ca.uhn.fhir.model.dstu2.valueset.MedicationOrderStatusEnum;
 import ca.uhn.fhir.model.dstu2.valueset.TimingAbbreviationEnum;
@@ -13,7 +12,6 @@ import ca.uhn.fhir.model.primitive.BooleanDt;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
 import ca.uhn.fhir.model.primitive.DecimalDt;
 import ca.uhn.fhir.model.primitive.StringDt;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -24,6 +22,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.utils.*;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -72,12 +71,12 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
     }
 
     @Override
-    public List<FHIRResource> map(Order order, Encounter fhirEncounter, Bundle bundle, SystemProperties systemProperties) {
+    public List<FHIRResource> map(Order order, FHIREncounter fhirEncounter, Bundle bundle, SystemProperties systemProperties) {
         List<FHIRResource> fhirResources = new ArrayList<>();
         DrugOrder drugOrder = (DrugOrder) order;
         MedicationOrder medicationOrder = new MedicationOrder();
-        medicationOrder.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValueAsString()));
-        setPatient(fhirEncounter, medicationOrder);
+        medicationOrder.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId()));
+        medicationOrder.setPatient(fhirEncounter.getPatient());
         medicationOrder.setDateWritten(drugOrder.getDateActivated(), TemporalPrecisionEnum.SECOND);
         medicationOrder.setMedication(getMedication(drugOrder));
         medicationOrder.setPrescriber(getOrdererReference(drugOrder, fhirEncounter, systemProperties));
@@ -146,18 +145,14 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         return !drugOrder.getEncounter().equals(drugOrder.getPreviousOrder().getEncounter());
     }
 
-    private ResourceReferenceDt getOrdererReference(Order order, Encounter encounter, SystemProperties systemProperties) {
+    private ResourceReferenceDt getOrdererReference(Order order, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         if (order.getOrderer() != null) {
             String providerUrl = providerLookupService.getProviderRegistryUrl(systemProperties, order.getOrderer());
             if (providerUrl != null) {
                 return new ResourceReferenceDt().setReference(providerUrl);
             }
         }
-        List<Encounter.Participant> participants = encounter.getParticipant();
-        if (!CollectionUtils.isEmpty(participants)) {
-            return participants.get(0).getIndividual();
-        }
-        return null;
+        return fhirEncounter.getFirstParticipantReference();
     }
 
     private MedicationOrder.DosageInstruction getDoseInstructions(DrugOrder drugOrder, SystemProperties systemProperties) {
@@ -214,7 +209,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
             map.put(FHIR_DRUG_ORDER_EVENING_DOSE_KEY, eveningDose);
         }
         TimingAbbreviationEnum timingAbbreviationEnum = null;
-        if(count == 0) return;
+        if (count == 0) return;
 
         else if (count == 1) timingAbbreviationEnum = TimingAbbreviationEnum.QD;
         else if (count == 2) timingAbbreviationEnum = TimingAbbreviationEnum.BID;
@@ -357,9 +352,5 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
             }
         }
         return new CodeableConceptDt().addCoding(coding);
-    }
-
-    private void setPatient(Encounter fhirEncounter, MedicationOrder medicationOrder) {
-        medicationOrder.setPatient(fhirEncounter.getPatient());
     }
 }

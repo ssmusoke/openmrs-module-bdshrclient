@@ -13,7 +13,7 @@ import org.openmrs.api.PatientService;
 import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.Confidentiality;
-import org.openmrs.module.fhir.mapper.model.ShrEncounter;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.EncounterIdMapping;
@@ -93,8 +93,8 @@ public class EMREncounterService {
                 propertiesReader.getMciProperties(),
                 propertiesReader.getShrProperties());
 
-        ShrEncounter shrEncounter = new ShrEncounter(bundle, healthId, shrEncounterId);
-        org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, shrEncounter, systemProperties);
+        ShrEncounterBundle shrEncounterBundle = new ShrEncounterBundle(bundle, healthId, shrEncounterId);
+        org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, shrEncounterBundle, systemProperties);
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
         Date encounterUpdatedDate = getEncounterUpdatedDate(encounterEvent);

@@ -13,10 +13,9 @@ import ca.uhn.fhir.model.primitive.StringDt;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openmrs.api.ConceptService;
 import org.openmrs.api.ObsService;
-import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,10 +40,6 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
     private TestResultMapper testResultMapper;
     @Autowired
     private ObsService obsService;
-    @Autowired
-    private OrderService orderService;
-    @Autowired
-    private ConceptService conceptService;
 
     public TestResultMapperIT() {
         encounterId = "enc-1";
@@ -66,7 +61,7 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldMapLabTestResults() throws Exception {
         Encounter fhirEncounter = buildEncounter();
 
-        List<FHIRResource> fhirResources = testResultMapper.map(obsService.getObs(1), fhirEncounter, getSystemProperties("1"));
+        List<FHIRResource> fhirResources = testResultMapper.map(obsService.getObs(1), new FHIREncounter(fhirEncounter), getSystemProperties("1"));
 
         assertNotNull(fhirResources);
         assertEquals(2, fhirResources.size());
@@ -83,7 +78,7 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldMapLabTestResultsWithoutValue() throws Exception {
         Encounter fhirEncounter = buildEncounter();
 
-        List<FHIRResource> fhirResources = testResultMapper.map(obsService.getObs(101), fhirEncounter, getSystemProperties("1"));
+        List<FHIRResource> fhirResources = testResultMapper.map(obsService.getObs(101), new FHIREncounter(fhirEncounter), getSystemProperties("1"));
 
         assertNotNull(fhirResources);
         assertEquals(2, fhirResources.size());
@@ -99,7 +94,7 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldMapLabPanelResults() throws Exception {
         Encounter fhirEncounter = buildEncounter();
-        List<FHIRResource> fhirResources = testResultMapper.map(obsService.getObs(11), fhirEncounter, getSystemProperties("1"));
+        List<FHIRResource> fhirResources = testResultMapper.map(obsService.getObs(11), new FHIREncounter(fhirEncounter), getSystemProperties("1"));
         assertNotNull(fhirResources);
         assertEquals(6, fhirResources.size());
         assertEquals(3, TestFhirFeedHelper.getResourceByType(new DiagnosticReport().getResourceName(), fhirResources).size());

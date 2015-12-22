@@ -6,7 +6,7 @@ import org.junit.Test;
 import org.openmrs.Encounter;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.MapperTestHelper;
-import org.openmrs.module.fhir.mapper.model.ShrEncounter;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -39,7 +39,7 @@ public class FHIRSubResourceMapperIT extends BaseModuleWebContextSensitiveTest {
         Encounter existingEncounter = encounterService.getEncounter(42);
         assertEquals(1, existingEncounter.getOrders().size());
         Bundle bundle = loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithUpdatedDiagnosticOrder.xml");
-        fhirSubResourceMapper.map(existingEncounter, new ShrEncounter(bundle, "HIDA764177", "SHR-ENC-1"), getSystemProperties("1"));
+        fhirSubResourceMapper.map(existingEncounter, new ShrEncounterBundle(bundle, "HIDA764177", "SHR-ENC-1"), getSystemProperties("1"));
         assertEquals(2, existingEncounter.getOrders().size());
     }
 

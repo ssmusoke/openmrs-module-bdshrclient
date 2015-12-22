@@ -9,7 +9,7 @@ import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
-import org.openmrs.module.fhir.mapper.model.ShrEncounter;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -45,11 +45,11 @@ public class FHIRFamilyMemberHistoryMapperIT extends BaseModuleWebContextSensiti
     public void shouldMapFamilyHistoryResource() throws Exception {
         executeDataSet("testDataSets/shrClientFamilyHistoryTestDS.xml");
         Bundle bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithFamilyHistory.xml", springContext);
-        FamilyMemberHistory familyHistory = (FamilyMemberHistory) FHIRBundleHelper.identifyFirstResourceWithName(bundle.getEntry(), new FamilyMemberHistory().getResourceName());
+        FamilyMemberHistory familyHistory = (FamilyMemberHistory) FHIRBundleHelper.identifyFirstResourceWithName(bundle, new FamilyMemberHistory().getResourceName());
         Encounter encounter = new Encounter();
         EmrEncounter emrEncounter = new EmrEncounter(encounter);
 
-        ShrEncounter encounterComposition = new ShrEncounter(bundle, "98104750156", "shr-enc-id-1");
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(bundle, "98104750156", "shr-enc-id-1");
         familyHistoryMapper.map(familyHistory, emrEncounter, encounterComposition, getSystemProperties("1"));
 
         assertEquals(1, emrEncounter.getTopLevelObs().size());

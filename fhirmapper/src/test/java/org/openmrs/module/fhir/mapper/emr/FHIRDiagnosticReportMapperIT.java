@@ -16,7 +16,7 @@ import org.openmrs.api.OrderService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
-import org.openmrs.module.fhir.mapper.model.ShrEncounter;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +42,6 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
     @Autowired
     private FHIRDiagnosticReportMapper diagnosticReportMapper;
     @Autowired
-    private FHIRObservationsMapper observationsMapper;
-    @Autowired
     private OrderService orderService;
     @Autowired
     private EncounterService encounterService;
@@ -63,12 +61,12 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
     public void shouldMapDiagnosticReportForTestResult() throws Exception {
         Bundle bundle = (Bundle) new MapperTestHelper()
                 .loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithDiagnosticReport.xml", springContext);
-        DiagnosticReport report = (DiagnosticReport) FHIRBundleHelper.identifyFirstResourceWithName(bundle.getEntry(), new DiagnosticReport().getResourceName());
+        DiagnosticReport report = (DiagnosticReport) FHIRBundleHelper.identifyFirstResourceWithName(bundle, new DiagnosticReport().getResourceName());
         Encounter encounter = new Encounter();
         EmrEncounter emrEncounter = new EmrEncounter(encounter);
         encounter.setPatient(patientService.getPatient(1));
 
-        ShrEncounter encounterComposition = new ShrEncounter(bundle, "98101039678", "shr-enc-id-1");
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-1");
         diagnosticReportMapper.map(report, emrEncounter, encounterComposition, getSystemProperties("1"));
         Set<Obs> obsSet = emrEncounter.getTopLevelObs();
         assertEquals(1, obsSet.size());
@@ -77,20 +75,20 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         assertEquals(hemoglobinConcept, topLevelObs.getConcept());
         Order testOrder = orderService.getOrder(50);
         assertEquals(testOrder, topLevelObs.getOrder());
-        
+
         assertTestObs(topLevelObs, hemoglobinConcept, 20.0, "changed", testOrder);
     }
 
     @Test
     public void shouldProcessPanelResults() throws Exception {
         Bundle bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithPanelReport.xml", springContext);
-        List<IResource> resources = FHIRBundleHelper.identifyResourcesByName(bundle.getEntry(), new DiagnosticReport().getResourceName());
+        List<IResource> resources = FHIRBundleHelper.identifyResourcesByName(bundle, new DiagnosticReport().getResourceName());
         Encounter encounter = new Encounter();
         EmrEncounter emrEncounter = new EmrEncounter(encounter);
         encounter.setPatient(patientService.getPatient(1));
         for (IResource resource : resources) {
             DiagnosticReport report = (DiagnosticReport) resource;
-            ShrEncounter encounterComposition = new ShrEncounter(bundle, "98101039678", "shr-enc-id-1");
+            ShrEncounterBundle encounterComposition = new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-1");
             diagnosticReportMapper.map(report, emrEncounter, encounterComposition, getSystemProperties("1"));
         }
         Set<Obs> obsSet = emrEncounter.getTopLevelObs();
@@ -117,20 +115,20 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
     public void shouldUpdateTestResultsIfUpdatedAndAssociateWithActiveOrder() throws Exception {
         Encounter existingEncounter = encounterService.getEncounter(18);
         Bundle bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithUpdatedTestResult.xml", springContext);
-        DiagnosticReport report = (DiagnosticReport) FHIRBundleHelper.identifyFirstResourceWithName(bundle.getEntry(), new DiagnosticReport().getResourceName());
+        DiagnosticReport report = (DiagnosticReport) FHIRBundleHelper.identifyFirstResourceWithName(bundle, new DiagnosticReport().getResourceName());
 
         EmrEncounter emrEncounter = new EmrEncounter(existingEncounter);
-        ShrEncounter encounterComposition = new ShrEncounter(bundle, "98101039678", "shrEncounterId5");
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(bundle, "98101039678", "shrEncounterId5");
 
         Concept hemoglobinConcept = conceptService.getConcept(303);
         Order activeTestOrder = orderService.getOrder(54);
-        
+
         Set<Obs> existingObsGroup = existingEncounter.getObsAtTopLevel(false);
         assertEquals(1, existingObsGroup.size());
         assertTestObs(existingObsGroup.iterator().next(), hemoglobinConcept, 120.0, null, activeTestOrder);
 
         diagnosticReportMapper.map(report, emrEncounter, encounterComposition, getSystemProperties("1"));
-        
+
         assertEquals(1, emrEncounter.getTopLevelObs().size());
         Set<Obs> updatedObsGroup = emrEncounter.getTopLevelObs();
         assertEquals(1, updatedObsGroup.size());
@@ -144,15 +142,15 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
 
         Obs resultObsGroupObs = resultObsGroupMembers.iterator().next();
         assertEquals(testOrder, resultObsGroupObs.getOrder());
-        
-        if(resultValueNumeric != null) {
+
+        if (resultValueNumeric != null) {
             Obs resultObs = findObsByConcept(resultObsGroupObs.getGroupMembers(), resultObsConcept);
             assertNotNull(resultObs);
             assertEquals(testOrder, resultObs.getOrder());
             assertEquals(resultValueNumeric, resultObs.getValueNumeric());
         }
 
-        if(notesValue != null) {
+        if (notesValue != null) {
             Concept labNotesConcept = conceptService.getConcept(103);
             Obs notesObs = findObsByConcept(resultObsGroupObs.getGroupMembers(), labNotesConcept);
             assertNotNull(notesObs);

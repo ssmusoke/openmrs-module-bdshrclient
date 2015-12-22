@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.ObsService;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ import static org.openmrs.module.fhir.TestFhirFeedHelper.getResourceByReference;
 public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
-    ObsService obsService;
+    private ObsService obsService;
 
     @Autowired
     private ProcedureMapper procedureMapper;
@@ -62,14 +63,16 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldNotMapIfProcedureTypeIsNotPresent() throws Exception {
         Obs obs = obsService.getObs(1500);
-        List<FHIRResource> fhirResources = procedureMapper.map(obs, new Encounter(), getSystemProperties("1"));
+        final Encounter fhirEncounter = new Encounter();
+        List<FHIRResource> fhirResources = procedureMapper.map(obs, new FHIREncounter(fhirEncounter), getSystemProperties("1"));
         assertTrue(CollectionUtils.isEmpty(fhirResources));
     }
 
     @Test
     public void shouldNotMapDiagnosisReportIfDiagnosticTestIsNotPresent() throws Exception {
         Obs obs = obsService.getObs(1501);
-        List<FHIRResource> fhirResources = procedureMapper.map(obs, new Encounter(), getSystemProperties("1"));
+        final Encounter fhirEncounter = new Encounter();
+        List<FHIRResource> fhirResources = procedureMapper.map(obs, new FHIREncounter(fhirEncounter), getSystemProperties("1"));
         assertTrue(fhirResources.size() == 1);
         assertTrue(fhirResources.get(0).getResource() instanceof Procedure);
     }
@@ -217,7 +220,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(fhirEncounter.getId().getValue(), result.getEncounter().getReference().getValue());
         assertEquals("patient", result.getSubject().getReference().getValue());
         assertTrue(result.getValue() instanceof StringDt);
-        assertEquals("Blood Pressure is very high", ((StringDt)result.getValue()).getValue());
+        assertEquals("Blood Pressure is very high", ((StringDt) result.getValue()).getValue());
         assertEquals(ObservationStatusEnum.FINAL, result.getStatusElement().getValueAsEnum());
         assertTestCoding(result.getCode().getCoding());
     }
@@ -239,7 +242,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     private List<FHIRResource> mapProcedure(int observationId, Encounter fhirEncounter) {
         Obs obs = obsService.getObs(observationId);
-        List<FHIRResource> fhirResources = procedureMapper.map(obs, fhirEncounter, getSystemProperties("1"));
+        List<FHIRResource> fhirResources = procedureMapper.map(obs, new FHIREncounter(fhirEncounter), getSystemProperties("1"));
         return fhirResources;
     }
 

@@ -1,12 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.ExtensionDt;
-import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
-import ca.uhn.fhir.model.dstu2.composite.CodingDt;
-import ca.uhn.fhir.model.dstu2.composite.DurationDt;
-import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
-import ca.uhn.fhir.model.dstu2.composite.SimpleQuantityDt;
-import ca.uhn.fhir.model.dstu2.composite.TimingDt;
+import ca.uhn.fhir.model.dstu2.composite.*;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
@@ -24,6 +19,7 @@ import org.junit.Test;
 import org.openmrs.Order;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir.FHIRProperties;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +58,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldMapMedicationOrderDateAndRouteAndOrderer() throws Exception {
         Order order = orderService.getOrder(16);
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         assertTrue(orderMapper.canHandle(order));
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
@@ -71,7 +67,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
         Date expectedDate = DateUtil.parseDate("2008-08-08 00:00:00");
         assertMedicationOrder(medicationOrder, expectedDate);
-        assertEquals(fhirEncounter.getId().getValue(), medicationOrder.getEncounter().getReference().getValue());
+        assertEquals(fhirEncounter.getId(), medicationOrder.getEncounter().getReference().getValue());
         assertEquals(1, medicationOrder.getDosageInstruction().size());
         MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.getDosageInstruction().get(0);
         assertTrue(containsCoding(dosageInstruction.getRoute().getCoding(),
@@ -84,7 +80,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldNotSetPrescriberIfNotHIEProvider() throws Exception {
         Order order = orderService.getOrder(17);
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         assertEquals(1, fhirResources.size());
@@ -96,7 +92,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldCalculateSchedulesForTwiceAWeek() throws Exception {
         Order order = orderService.getOrder(17);
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
@@ -107,7 +103,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldCalculateSchedulesForEveryThreeHoursFor10Weeks() throws Exception {
         Order order = orderService.getOrder(18);
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
@@ -118,7 +114,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldCalculateSchedulesForEveryTwoHoursFor48Hours() throws Exception {
         Order order = orderService.getOrder(19);
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
@@ -129,7 +125,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldSetScheduledDate() throws Exception {
         Order order = orderService.getOrder(20);
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         MedicationOrder medicationOrder = (MedicationOrder) fhirResources.get(0).getResource();
@@ -141,7 +137,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldSetAsNeeded() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         Order order = orderService.getOrder(20);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
@@ -156,7 +152,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapDoseFromMedicationFormsValueset() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
         Order order = orderService.getOrder(19);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
 
@@ -166,7 +162,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapDoseFromMedicationPackageFormsFormsValueset() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
         Order order = orderService.getOrder(18);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
 
@@ -176,7 +172,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldNotSetSystemAndCodeIfDoseFromQuantityUnits() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
         Order order = orderService.getOrder(17);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
 
@@ -186,7 +182,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldSetDispenseRequestForLocalQuantity() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         Order order = orderService.getOrder(20);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
@@ -198,7 +194,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapAdditionalInstructionsAndNotes() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         Order order = orderService.getOrder(21);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
@@ -211,7 +207,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldNotMapAdditionalInstructionsIfNull() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         Order order = orderService.getOrder(29);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
@@ -222,7 +218,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapMorningAfternoonAndNightDose() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         Order order = orderService.getOrder(22);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
@@ -243,7 +239,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapMorningAfternoonDoseOnly() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         Order order = orderService.getOrder(23);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
@@ -264,7 +260,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapEveningDoseOnly() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         Order order = orderService.getOrder(24);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
@@ -285,7 +281,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldSetStatusAndDateEndedForStoppedDrugOrders() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         Order order = orderService.getOrder(25);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
@@ -297,7 +293,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldSetPreviousOrderReferenceForEditedDrugOrders() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         Order order = orderService.getOrder(26);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
@@ -309,7 +305,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldSetPreviousOrderEncounterUrlForEditedDrugOrdersInDifferentEncounters() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         Order order = orderService.getOrder(77);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
@@ -321,7 +317,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldSetOrderActionExtension() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         Order order = orderService.getOrder(24);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
@@ -344,7 +340,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapNonCodedDrugOrders() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
 
         Order order = orderService.getOrder(27);
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
@@ -361,7 +357,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapADrugOrderWithoutDose() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
         Order order = orderService.getOrder(28);
 
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
@@ -375,7 +371,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapADrugOrderWithCustomDoseAsZero() throws Exception {
-        Encounter fhirEncounter = getFhirEncounter();
+        FHIREncounter fhirEncounter = getFhirEncounter();
         Order order = orderService.getOrder(29);
 
         List<FHIRResource> fhirResources = orderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
@@ -384,7 +380,7 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(1, medicationOrder.getDosageInstruction().size());
         MedicationOrder.DosageInstruction dosageInstruction = medicationOrder.getDosageInstructionFirstRep();
 
-        SimpleQuantityDt dose = (SimpleQuantityDt)dosageInstruction.getDose();
+        SimpleQuantityDt dose = (SimpleQuantityDt) dosageInstruction.getDose();
         assertNotNull(dose.getUnit());
         assertNull(dosageInstruction.getTiming().getRepeat().getFrequency());
         assertNull(dosageInstruction.getTiming().getRepeat().getPeriod());
@@ -395,11 +391,11 @@ public class DrugOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertTrue(CollectionUtils.isEmpty(dosageInstruction.getUndeclaredExtensionsByUrl(fhirExtensionUrl)));
     }
 
-    private Encounter getFhirEncounter() {
-        Encounter fhirEncounter = new Encounter();
-        fhirEncounter.setId("shrEncId");
-        fhirEncounter.setPatient(new ResourceReferenceDt().setReference("hid"));
-        return fhirEncounter;
+    private FHIREncounter getFhirEncounter() {
+        Encounter encounter = new Encounter();
+        encounter.setId("shrEncId");
+        encounter.setPatient(new ResourceReferenceDt().setReference("hid"));
+        return new FHIREncounter(encounter);
     }
 
     private void assertTimingRepeat(MedicationOrder.DosageInstruction dosageInstruction, int expectedFrequency, int expectedPeriod, UnitsOfTimeEnum expectedPeriodUnits, int expectedDuration, UnitsOfTimeEnum expectedDurationUnits) throws ParseException {

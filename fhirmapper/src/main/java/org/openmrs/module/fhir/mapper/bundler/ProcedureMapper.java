@@ -8,7 +8,6 @@ import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
-import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 import ca.uhn.fhir.model.dstu2.resource.Procedure;
 import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
@@ -19,6 +18,7 @@ import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
@@ -38,7 +38,6 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     @Autowired
     private CodeableConceptService codeableConceptService;
 
-
     @Autowired
     private DiagnosticReportBuilder diagnosticReportBuilder;
 
@@ -55,17 +54,17 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+    public List<FHIRResource> map(Obs obs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         CompoundObservation compoundObservationProcedure = new CompoundObservation(obs);
         return mapProcedure(obs, fhirEncounter, systemProperties, compoundObservationProcedure);
     }
 
-    private List<FHIRResource> mapProcedure(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties, CompoundObservation compoundObservationProcedure) {
+    private List<FHIRResource> mapProcedure(Obs obs, FHIREncounter fhirEncounter, SystemProperties systemProperties, CompoundObservation compoundObservationProcedure) {
         List<FHIRResource> resources = new ArrayList<>();
         Procedure procedure = new Procedure();
 
         procedure.setSubject(fhirEncounter.getPatient());
-        procedure.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValue()));
+        procedure.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId()));
         CodeableConceptDt procedureType = getProcedure(compoundObservationProcedure);
         if (procedureType != null) {
             procedure.setCode(procedureType);
@@ -102,7 +101,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         return annotationDts.isEmpty() ? null : annotationDts;
     }
 
-    private void addReportToProcedure(CompoundObservation compoundObservationProcedure, Encounter fhirEncounter, SystemProperties systemProperties, Procedure procedure, List<FHIRResource> allResources) {
+    private void addReportToProcedure(CompoundObservation compoundObservationProcedure, FHIREncounter fhirEncounter, SystemProperties systemProperties, Procedure procedure, List<FHIRResource> allResources) {
         List<Obs> diagnosticStudyObses = compoundObservationProcedure.findAllMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_STUDY);
         for (Obs diagnosticStudyObs : diagnosticStudyObses) {
             DiagnosticReport diagnosticReport = buildDiagnosticReport(new CompoundObservation(diagnosticStudyObs), fhirEncounter, systemProperties, allResources);
@@ -164,7 +163,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         return period;
     }
 
-    private DiagnosticReport buildDiagnosticReport(CompoundObservation diagnosticStudyObs, Encounter fhirEncounter, SystemProperties systemProperties, List<FHIRResource> allResources) {
+    private DiagnosticReport buildDiagnosticReport(CompoundObservation diagnosticStudyObs, FHIREncounter fhirEncounter, SystemProperties systemProperties, List<FHIRResource> allResources) {
         CodeableConceptDt diagnosisTestName = getNameToDiagnosticReport(diagnosticStudyObs);
         if (diagnosisTestName != null) {
             DiagnosticReport diagnosticReport = diagnosticReportBuilder.build(diagnosticStudyObs.getRawObservation(), fhirEncounter, systemProperties);

@@ -10,6 +10,7 @@ import org.junit.After;
 import org.junit.Test;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +21,9 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 import static org.openmrs.module.fhir.FHIRProperties.UCUM_UNIT_FOR_YEARS;
 import static org.openmrs.module.fhir.FHIRProperties.UCUM_URL;
+import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -48,7 +49,7 @@ public class FamilyMemberHistoryMapperIT extends BaseModuleWebContextSensitiveTe
         encounter.addParticipant().setIndividual(new ResourceReferenceDt());
         org.openmrs.Encounter openMrsEncounter = encounterService.getEncounter(36);
 
-        List<FHIRResource> familyHistoryResources = familyMemberHistoryMapper.map(openMrsEncounter.getObsAtTopLevel(false).iterator().next(), encounter, getSystemProperties("1"));
+        List<FHIRResource> familyHistoryResources = familyMemberHistoryMapper.map(openMrsEncounter.getObsAtTopLevel(false).iterator().next(), new FHIREncounter(encounter), getSystemProperties("1"));
         assertFalse(familyHistoryResources.isEmpty());
         assertEquals(1, familyHistoryResources.size());
 

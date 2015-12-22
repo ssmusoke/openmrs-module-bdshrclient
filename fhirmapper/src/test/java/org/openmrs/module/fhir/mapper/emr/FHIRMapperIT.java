@@ -2,14 +2,13 @@ package org.openmrs.module.fhir.mapper.emr;
 
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.MapperTestHelper;
-import org.openmrs.module.fhir.mapper.model.ShrEncounter;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -22,7 +21,7 @@ import java.util.Set;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
-import static org.openmrs.module.fhir.MRSProperties.*;
+import static org.openmrs.module.fhir.MRSProperties.UNVERIFIED_BY_TR;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -56,7 +55,7 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
 
         Patient patient = patientService.getPatient(1);
 
-        ShrEncounter encounterComposition = new ShrEncounter(encounterBundle, "98101039678", "shr-enc-id");
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(encounterBundle, "98101039678", "shr-enc-id");
         Encounter encounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
         assertEquals(4, encounter.getAllObs().size());
 
@@ -86,7 +85,7 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
 
         Patient patient = patientService.getPatient(1);
 
-        ShrEncounter encounterComposition = new ShrEncounter(encounterBundle, "98101039678", "shr-enc-id");
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(encounterBundle, "98101039678", "shr-enc-id");
         Encounter encounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
         assertEquals(6, encounter.getAllObs().size());
 
@@ -129,7 +128,7 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
         Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithNotSyncedTRConcepts.xml", springContext);
 
         Patient patient = patientService.getPatient(1);
-        ShrEncounter encounterComposition = new ShrEncounter(encounterBundle, "98101039678", "shr-enc-id");
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(encounterBundle, "98101039678", "shr-enc-id");
         Encounter encounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
     }
 
@@ -147,7 +146,7 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
         assertNull(conceptService.getConceptByName(conceptNameHeightAndWeight));
 
         Patient patient = patientService.getPatient(1);
-        ShrEncounter encounterComposition = new ShrEncounter(encounterBundle, "98101039678", "shr-enc-id");
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(encounterBundle, "98101039678", "shr-enc-id");
         Encounter emrEncounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
 
         assertEquals(3, emrEncounter.getAllObs().size());
@@ -181,7 +180,7 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
 
         Patient patient = patientService.getPatient(1);
 
-        ShrEncounter encounterComposition = new ShrEncounter(encounterBundle, "98101039678", "shr-enc-id");
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(encounterBundle, "98101039678", "shr-enc-id");
         Encounter encounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
         assertEquals(6, encounter.getAllObs().size());
 
@@ -233,7 +232,7 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
         Obs diastolicObs = identifyObsByConcept(bpObs.getGroupMembers(), conceptService.getConcept(305));
         assertThat(diastolicObs.getValueNumeric(), is(120.0));
 
-        ShrEncounter encounterComposition = new ShrEncounter(encounterBundle, "98101039678", "shr-enc-id-1");
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(encounterBundle, "98101039678", "shr-enc-id-1");
         Encounter mappedEncounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
 
         assertEquals(existingEncounter, mappedEncounter);

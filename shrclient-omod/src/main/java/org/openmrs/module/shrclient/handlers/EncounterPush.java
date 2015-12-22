@@ -150,8 +150,8 @@ public class EncounterPush implements EventWorker {
         }
     }
 
-    private String getEncounterIdFromResponse(String shrEncounterUuid) throws java.io.IOException {
-        EncounterResponse encounterResponse = configureObjectMapper().readValue(shrEncounterUuid,
+    private String getEncounterIdFromResponse(String shrEncounterResponse) throws java.io.IOException {
+        EncounterResponse encounterResponse = configureObjectMapper().readValue(shrEncounterResponse,
                 EncounterResponse.class);
         //TODO : set the right url
         return encounterResponse.getEncounterId();

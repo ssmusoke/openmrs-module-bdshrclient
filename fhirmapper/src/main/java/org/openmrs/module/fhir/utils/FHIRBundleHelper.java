@@ -16,12 +16,12 @@ import static java.util.Arrays.asList;
 public class FHIRBundleHelper {
 
     public static Composition getComposition(Bundle bundle) {
-        IResource resource = identifyFirstResourceWithName(bundle.getEntry(), "Composition");
+        IResource resource = identifyFirstResourceWithName(bundle, "Composition");
         return resource != null ? (Composition) resource : null;
     }
 
-    public static IResource identifyFirstResourceWithName(List<Bundle.Entry> bundleEntryList, String resourceName) {
-        for (Bundle.Entry bundleEntry : bundleEntryList) {
+    public static IResource identifyFirstResourceWithName(Bundle bundle, String resourceName) {
+        for (Bundle.Entry bundleEntry : bundle.getEntry()) {
             if (bundleEntry.getResource().getResourceName().equals(resourceName)) {
                 return bundleEntry.getResource();
             }
@@ -43,9 +43,9 @@ public class FHIRBundleHelper {
         return topLevelResources;
     }
 
-    public static List<IResource> identifyResourcesByName(List<Bundle.Entry> bundleEntryList, String resourceName) {
+    public static List<IResource> identifyResourcesByName(Bundle bundle, String resourceName) {
         List<IResource> resources = new ArrayList<>();
-        for (Bundle.Entry bundleEntry : bundleEntryList) {
+        for (Bundle.Entry bundleEntry : bundle.getEntry()) {
             if (bundleEntry.getResource().getResourceName().equals(resourceName)) {
                 resources.add(bundleEntry.getResource());
             }
@@ -78,7 +78,7 @@ public class FHIRBundleHelper {
                 IdDt entryResourceId = entryResource.getId();
                 boolean hasFullUrlDefined = !org.apache.commons.lang3.StringUtils.isBlank(entry.getFullUrl());
                 if (resourceReference.hasResourceType() && entryResourceId.hasResourceType()
-                        && entryResourceId.getValue().equals(resourceReference.getValue()) ) {
+                        && entryResourceId.getValue().equals(resourceReference.getValue())) {
                     matchedResources.add(entryResource);
                 } else if (entryResourceId.getIdPart().equals(resourceReference.getIdPart())) {
                     matchedResources.add(entryResource);

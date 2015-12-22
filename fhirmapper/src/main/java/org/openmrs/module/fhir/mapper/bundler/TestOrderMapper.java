@@ -7,7 +7,6 @@ import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
-import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Specimen;
 import ca.uhn.fhir.model.dstu2.valueset.DiagnosticOrderStatusEnum;
 import org.apache.commons.collections.CollectionUtils;
@@ -16,6 +15,7 @@ import org.openmrs.ConceptMap;
 import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.Order;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
@@ -51,11 +51,11 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
     }
 
     @Override
-    public List<FHIRResource> map(Order order, Encounter fhirEncounter, Bundle bundle, SystemProperties systemProperties) {
+    public List<FHIRResource> map(Order order, FHIREncounter fhirEncounter, Bundle bundle, SystemProperties systemProperties) {
         if (order.getDateStopped() != null) return Collections.EMPTY_LIST;
         resources = new ArrayList<>();
         DiagnosticOrder diagnosticOrder;
-        IResource resource = identifyFirstResourceWithName(bundle.getEntry(), new DiagnosticOrder().getResourceName());
+        IResource resource = identifyFirstResourceWithName(bundle, new DiagnosticOrder().getResourceName());
         if (resource != null) {
             diagnosticOrder = (DiagnosticOrder) resource;
         } else {
@@ -177,7 +177,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         return result;
     }
 
-    private DiagnosticOrder createDiagnosticOrder(Order order, Encounter fhirEncounter, SystemProperties systemProperties) {
+    private DiagnosticOrder createDiagnosticOrder(Order order, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         DiagnosticOrder diagnosticOrder;
         diagnosticOrder = new DiagnosticOrder();
         diagnosticOrder.setSubject(fhirEncounter.getPatient());
@@ -185,22 +185,18 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         String id = new EntityReference().build(Order.class, systemProperties, UUID.randomUUID().toString());
         diagnosticOrder.addIdentifier().setValue(id);
         diagnosticOrder.setId(id);
-        diagnosticOrder.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValue()));
+        diagnosticOrder.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId()));
         diagnosticOrder.setStatus(DiagnosticOrderStatusEnum.REQUESTED);
         return diagnosticOrder;
     }
 
-    private ResourceReferenceDt getOrdererReference(Order order, Encounter encounter, SystemProperties systemProperties) {
+    private ResourceReferenceDt getOrdererReference(Order order, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         if (order.getOrderer() != null) {
             String providerUrl = providerLookupService.getProviderRegistryUrl(systemProperties, order.getOrderer());
             if (providerUrl != null) {
                 return new ResourceReferenceDt().setReference(providerUrl);
             }
         }
-        List<Encounter.Participant> participants = encounter.getParticipant();
-        if (!CollectionUtils.isEmpty(participants)) {
-            return participants.get(0).getIndividual();
-        }
-        return null;
+        return fhirEncounter.getFirstParticipantReference();
     }
 }

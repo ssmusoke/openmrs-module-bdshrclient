@@ -16,7 +16,7 @@ import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.ObsHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
-import org.openmrs.module.fhir.mapper.model.ShrEncounter;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.fhir.utils.TrValueSetType;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -51,7 +51,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     public void setUp() throws Exception {
         executeDataSet("testDataSets/procedureDS.xml");
         bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithProcedure.xml", springContext);
-        resource = FHIRBundleHelper.identifyFirstResourceWithName(bundle.getEntry(), new Procedure().getResourceName());
+        resource = FHIRBundleHelper.identifyFirstResourceWithName(bundle, new Procedure().getResourceName());
         obsHelper = new ObsHelper();
     }
 
@@ -146,7 +146,7 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     private Obs mapProceduresObs() {
         EmrEncounter emrEncounter = new EmrEncounter(new Encounter());
-        fhirProcedureMapper.map(resource, emrEncounter, new ShrEncounter(bundle, "98101039678", "shr-enc-id-1"), getSystemProperties("1"));
+        fhirProcedureMapper.map(resource, emrEncounter, new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-1"), getSystemProperties("1"));
 
         Set<Obs> allObs = emrEncounter.getObs();
         assertEquals(1, allObs.size());

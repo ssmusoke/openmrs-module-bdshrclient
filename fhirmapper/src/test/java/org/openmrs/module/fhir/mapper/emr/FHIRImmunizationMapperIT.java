@@ -14,7 +14,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.ObsHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
-import org.openmrs.module.fhir.mapper.model.ShrEncounter;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +37,7 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
     private ApplicationContext springContext;
 
     @Autowired
-    FHIRImmunizationMapper mapper;
+    private FHIRImmunizationMapper mapper;
 
     @Autowired
     private ConceptService conceptService;
@@ -50,7 +50,7 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
     public void setUp() throws Exception {
         executeDataSet("testDataSets/immunizationDS.xml");
         bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithImmunization.xml", springContext);
-        resource = FHIRBundleHelper.identifyFirstResourceWithName(bundle.getEntry(), new Immunization().getResourceName());
+        resource = FHIRBundleHelper.identifyFirstResourceWithName(bundle, new Immunization().getResourceName());
         obsHelper = new ObsHelper();
     }
 
@@ -181,7 +181,7 @@ public class FHIRImmunizationMapperIT extends BaseModuleWebContextSensitiveTest 
 
     private Obs mapImmunizationIncidentObs() {
         EmrEncounter emrEncounter = new EmrEncounter(new Encounter());
-        ShrEncounter encounterComposition = new ShrEncounter(bundle, "98104750156", "shr-enc-id-1");
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(bundle, "98104750156", "shr-enc-id-1");
         mapper.map(resource, emrEncounter, encounterComposition, getSystemProperties("1"));
 
         Set<Obs> allObs = emrEncounter.getObs();

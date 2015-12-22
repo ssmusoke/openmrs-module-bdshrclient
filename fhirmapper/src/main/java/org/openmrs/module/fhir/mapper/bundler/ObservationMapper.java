@@ -2,7 +2,6 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.IDatatype;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
-import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
 import org.apache.commons.lang3.StringUtils;
@@ -10,6 +9,7 @@ import org.openmrs.Obs;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.bundler.condition.ObservationValueMapper;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.mapper.model.RelatedObservation;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
@@ -59,7 +59,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+    public List<FHIRResource> map(Obs obs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> result = new ArrayList<>();
 
         if (null != obs && !hasIgnoredConcept(obs)) {
@@ -80,7 +80,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
         return false;
     }
 
-    public List<FHIRResource> mapToFhirObservation(Obs observation, Encounter fhirEncounter, SystemProperties systemProperties) {
+    public List<FHIRResource> mapToFhirObservation(Obs observation, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> result = new ArrayList<>();
         FHIRResource entry = mapObservation(observation, fhirEncounter, systemProperties);
         Observation fhirObservation = (Observation) entry.getResource();
@@ -92,8 +92,8 @@ public class ObservationMapper implements EmrObsResourceHandler {
         return result;
     }
 
-    private FHIRResource mapObservation(Obs openmrsObs, Encounter fhirEncounter, SystemProperties systemProperties) {
-        FHIRResource fhirObservationResource = observationBuilder.buildObservationResource(fhirEncounter, systemProperties, openmrsObs.getUuid(), openmrsObs.getConcept().getName().getName());
+    private FHIRResource mapObservation(Obs openmrsObs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
+        FHIRResource fhirObservationResource = observationBuilder.buildObservationResource(fhirEncounter, openmrsObs.getUuid(), openmrsObs.getConcept().getName().getName(), systemProperties);
         Observation fhirObservation = (Observation) fhirObservationResource.getResource();
         fhirObservation.setStatus(ObservationStatusEnum.PRELIMINARY);
         mapCode(openmrsObs, fhirObservation);
@@ -101,7 +101,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
         return fhirObservationResource;
     }
 
-    private void mapGroupMember(Obs obs, Encounter fhirEncounter, Observation parentObservation, List<FHIRResource> result, SystemProperties systemProperties) {
+    private void mapGroupMember(Obs obs, FHIREncounter fhirEncounter, Observation parentObservation, List<FHIRResource> result, SystemProperties systemProperties) {
         if (hasIgnoredConcept(obs)) {
             return;
         }

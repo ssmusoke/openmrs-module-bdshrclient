@@ -112,7 +112,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         String healthId = "HIDA764177";
         String shrEncounterId = "shr-enc-id";
 
-        List<EncounterEvent> bundleWithNewTestOrder = getEncounterEvents(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithDiagnosticOrder.xml");
+        List<EncounterEvent> bundleWithNewTestOrder = getEncounterEvents(shrEncounterId, "encounterBundles/dstu2/encounterWithDiagnosticOrder.xml");
         Patient emrPatient = patientService.getPatient(1);
         emrEncounterService.createOrUpdateEncounters(emrPatient, bundleWithNewTestOrder);
 
@@ -125,7 +125,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         Order firstOrder = orders.iterator().next();
         assertNull(firstOrder.getDateStopped());
         assertEquals(Order.Action.NEW, firstOrder.getAction());
-        List<EncounterEvent> bundleWithCancelledTestOrder = getEncounterEvents(healthId, shrEncounterId, "encounterBundles/dstu2/encounterWithCancelledDiagnosticOrder.xml");
+        List<EncounterEvent> bundleWithCancelledTestOrder = getEncounterEvents(shrEncounterId, "encounterBundles/dstu2/encounterWithCancelledDiagnosticOrder.xml");
 
         emrEncounterService.createOrUpdateEncounters(emrPatient, bundleWithCancelledTestOrder);
 

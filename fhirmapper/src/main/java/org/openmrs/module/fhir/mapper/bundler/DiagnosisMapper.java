@@ -5,7 +5,6 @@ import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Condition;
-import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.valueset.ConditionCategoryCodesEnum;
 import ca.uhn.fhir.model.dstu2.valueset.ConditionVerificationStatusEnum;
 import org.apache.commons.collections.CollectionUtils;
@@ -15,6 +14,7 @@ import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,21 +44,21 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+    public List<FHIRResource> map(Obs obs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> diagnoses = new ArrayList<>();
 
-        FHIRResource fhirCondition = createFHIRCondition(fhirEncounter, obs, systemProperties);
+        FHIRResource fhirCondition = createFHIRCondition(obs, fhirEncounter, systemProperties);
         if (fhirCondition != null) {
             diagnoses.add(fhirCondition);
         }
         return diagnoses;
     }
 
-    private FHIRResource createFHIRCondition(Encounter encounter, Obs obs, SystemProperties systemProperties) {
+    private FHIRResource createFHIRCondition(Obs obs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         Condition condition = new Condition();
-        condition.setEncounter(new ResourceReferenceDt().setReference(encounter.getId().getValueAsString()));
-        condition.setPatient(encounter.getPatient());
-        ResourceReferenceDt participant = getParticipant(encounter);
+        condition.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId()));
+        condition.setPatient(fhirEncounter.getPatient());
+        ResourceReferenceDt participant = fhirEncounter.getFirstParticipantReference();
         if (null != participant) {
             condition.setAsserter(participant);
         }
@@ -104,13 +104,5 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         Concept diagnosisStatus = member.getValueCoded();
         ConditionVerificationStatusEnum status = diaConditionStatus.get(diagnosisStatus.getName().getName());
         return status != null ? status : ConditionVerificationStatusEnum.CONFIRMED;
-    }
-
-    protected ResourceReferenceDt getParticipant(Encounter encounter) {
-        List<Encounter.Participant> participants = encounter.getParticipant();
-        if ((participants != null) && !participants.isEmpty()) {
-            return participants.get(0).getIndividual();
-        }
-        return null;
     }
 }

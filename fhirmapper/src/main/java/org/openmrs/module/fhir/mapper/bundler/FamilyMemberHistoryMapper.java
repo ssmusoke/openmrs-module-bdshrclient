@@ -5,7 +5,6 @@ import ca.uhn.fhir.model.dstu2.composite.AgeDt;
 import ca.uhn.fhir.model.dstu2.composite.AnnotationDt;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
-import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.FamilyMemberHistory;
 import ca.uhn.fhir.model.dstu2.valueset.FamilyHistoryStatusEnum;
 import ca.uhn.fhir.model.primitive.DateDt;
@@ -16,6 +15,7 @@ import org.openmrs.Obs;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
@@ -47,7 +47,7 @@ public class FamilyMemberHistoryMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+    public List<FHIRResource> map(Obs obs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> fhirResources = new ArrayList<>();
         for (Obs person : obs.getGroupMembers()) {
             FamilyMemberHistory familyMemberHistory = createFamilyMemberHistory(person, fhirEncounter, systemProperties);
@@ -56,7 +56,7 @@ public class FamilyMemberHistoryMapper implements EmrObsResourceHandler {
         return fhirResources;
     }
 
-    private FamilyMemberHistory createFamilyMemberHistory(Obs person, Encounter fhirEncounter, SystemProperties systemProperties) {
+    private FamilyMemberHistory createFamilyMemberHistory(Obs person, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         FamilyMemberHistory familyMemberHistory = new FamilyMemberHistory();
         familyMemberHistory.setPatient(fhirEncounter.getPatient());
         familyMemberHistory.setStatus(FamilyHistoryStatusEnum.PARTIAL);

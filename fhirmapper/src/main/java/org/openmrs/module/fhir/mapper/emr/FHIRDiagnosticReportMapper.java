@@ -13,7 +13,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.fhir.mapper.model.ShrEncounter;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.EncounterIdMapping;
@@ -58,7 +58,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounter encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle encounterComposition, SystemProperties systemProperties) {
         DiagnosticReport diagnosticReport = (DiagnosticReport) resource;
         Concept concept = omrsConceptLookup.findConceptByCode(diagnosticReport.getCode().getCoding());
         if (concept == null) {
@@ -134,7 +134,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
         return null;
     }
 
-    private Set<Obs> buildResultObsGroup(ShrEncounter encounterComposition, EmrEncounter emrEncounter, DiagnosticReport diagnosticReport, Order order, Concept concept) {
+    private Set<Obs> buildResultObsGroup(ShrEncounterBundle encounterComposition, EmrEncounter emrEncounter, DiagnosticReport diagnosticReport, Order order, Concept concept) {
         Set<Obs> resultObsGroups = new HashSet<>();
         List<IResource> resultObservationList = findResourcesByReference(encounterComposition.getBundle(), diagnosticReport.getResult());
 
@@ -146,12 +146,11 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
         return resultObsGroups;
     }
 
-    private void populateResultsAndNotes(ShrEncounter encounterComposition, EmrEncounter emrEncounter, Order order, Observation resultObservation, Obs resultObsGroup) {
-        Observation observationResource = resultObservation;
-        Obs resultObs = observationsMapper.mapObs(encounterComposition, emrEncounter, observationResource);
+    private void populateResultsAndNotes(ShrEncounterBundle encounterComposition, EmrEncounter emrEncounter, Order order, Observation resultObservation, Obs resultObsGroup) {
+        Obs resultObs = observationsMapper.mapObs(encounterComposition, emrEncounter, resultObservation);
         resultObs.setOrder(order);
         resultObsGroup.addGroupMember(resultObs);
-        resultObsGroup.addGroupMember(getNotes(observationResource, order));
+        resultObsGroup.addGroupMember(getNotes(resultObservation, order));
     }
 
     private Obs findObsByOrder(EmrEncounter emrEncounter, Order order) {

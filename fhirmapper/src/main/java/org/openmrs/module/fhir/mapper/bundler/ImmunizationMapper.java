@@ -2,7 +2,6 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.*;
-import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Immunization;
 import ca.uhn.fhir.model.dstu2.valueset.ImmunizationReasonCodesEnum;
 import ca.uhn.fhir.model.dstu2.valueset.ImmunizationRouteCodesEnum;
@@ -13,6 +12,7 @@ import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
@@ -50,7 +50,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     }
 
     @Override
-    public List<FHIRResource> map(Obs obs, Encounter fhirEncounter, SystemProperties systemProperties) {
+    public List<FHIRResource> map(Obs obs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> resources = new ArrayList<>();
         CompoundObservation immunizationTemplateObs = new CompoundObservation(obs);
         List<Obs> allObsForConceptName = immunizationTemplateObs.getAllObsForConceptName(MRS_CONCEPT_IMMUNIZATION_INCIDENT_GROUP);
@@ -66,10 +66,10 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         return resources;
     }
 
-    private Immunization createImmunizationResource(CompoundObservation immunizationIncidentObs, Encounter fhirEncounter, SystemProperties systemProperties) {
+    private Immunization createImmunizationResource(CompoundObservation immunizationIncidentObs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         Immunization immunization = new Immunization();
         immunization.setPatient(fhirEncounter.getPatient());
-        immunization.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId().getValue()));
+        immunization.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId()));
         Obs vaccineObs = immunizationIncidentObs.getMemberObsForConceptName(MRS_CONCEPT_VACCINE);
         List<Drug> drugs = identifyDrugs(vaccineObs);
         if (CollectionUtils.isEmpty(drugs)) {
@@ -80,7 +80,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         setIdentifier(immunizationIncidentObs, systemProperties, immunization);
         immunization.setDate(getVaccinationDate(immunizationIncidentObs), TemporalPrecisionEnum.MILLI);
         immunization.setWasNotGiven(getIndicator(immunizationIncidentObs, MRS_CONCEPT_VACCINATION_REFUSED));
-        immunization.setRequester(getRequester(fhirEncounter));
+        immunization.setRequester(fhirEncounter.getFirstParticipantReference());
         immunization.setReported(getIndicator(immunizationIncidentObs, MRS_CONCEPT_VACCINATION_REPORTED));
         immunization.setDoseQuantity(getDosage(immunizationIncidentObs, systemProperties));
         immunization.setExplanation(getExplation(immunizationIncidentObs, systemProperties));
@@ -150,7 +150,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     }
 
     private void setReason(TrValueSetType trValueSetType, Immunization.Explanation explanationComponent, CodeableConceptDt reason) {
-        if(TrValueSetType.IMMUNIZATION_REFUSAL_REASON.equals(trValueSetType)) {
+        if (TrValueSetType.IMMUNIZATION_REFUSAL_REASON.equals(trValueSetType)) {
             explanationComponent.addReasonNotGiven(reason);
         } else {
             BoundCodeableConceptDt<ImmunizationReasonCodesEnum> conceptDt = explanationComponent.addReason();
@@ -175,11 +175,6 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
             if (idMappingsRepository.findByInternalId(quantityUnitsObs.getValueCoded().getUuid(), IdMappingType.CONCEPT) != null)
                 dose.setSystem(TrValueSetType.QUANTITY_UNITS.getTrPropertyValueSetUrl(systemProperties));
         }
-    }
-
-    private ResourceReferenceDt getRequester(Encounter fhirEncounter) {
-        List<Encounter.Participant> participants = fhirEncounter.getParticipant();
-        return CollectionUtils.isNotEmpty(participants) ? participants.get(0).getIndividual() : null;
     }
 
     private void setIdentifier(CompoundObservation obs, SystemProperties systemProperties, Immunization immunization) {

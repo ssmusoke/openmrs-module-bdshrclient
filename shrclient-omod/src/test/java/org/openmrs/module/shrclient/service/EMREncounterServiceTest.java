@@ -14,7 +14,7 @@ import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
-import org.openmrs.module.fhir.mapper.model.ShrEncounter;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
@@ -92,7 +92,7 @@ public class EMREncounterServiceTest {
 
         when(mockIdMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER)).thenReturn(null);
         emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
-        verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class));
+        verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class));
     }
 
     @Test
@@ -116,7 +116,7 @@ public class EMREncounterServiceTest {
         String shrEncounterId = "shr-enc-id";
 
         when(mockIdMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER)).thenReturn(null);
-        when(mockFhirmapper.map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class))).thenReturn(new Encounter());
+        when(mockFhirmapper.map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class))).thenReturn(new Encounter());
         when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://shr.com/");
         Properties shrProperties = new Properties();
         shrProperties.put(SHR_REFERENCE_PATH, "http://shr.com/");
@@ -125,7 +125,7 @@ public class EMREncounterServiceTest {
 
         emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
 
-        verify(mockFhirmapper, times(1)).map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class));
+        verify(mockFhirmapper, times(1)).map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class));
     }
 
     @Test
@@ -147,7 +147,7 @@ public class EMREncounterServiceTest {
 
         emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
 
-        verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class));
+        verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class));
     }
 
     @Test
@@ -176,7 +176,7 @@ public class EMREncounterServiceTest {
         String uri = "http://shr.com/patients/HID/encounters/shr_encounter_id";
         EncounterIdMapping mapping = new EncounterIdMapping(UUID.randomUUID().toString(), shrEncounterId, uri, twoMinutesAfter, twoMinutesAfter);
         when(mockIdMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER)).thenReturn(mapping);
-        when(mockFhirmapper.map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class))).thenReturn(new Encounter());
+        when(mockFhirmapper.map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class))).thenReturn(new Encounter());
         when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://shr.com/");
         Properties shrProperties = new Properties();
         shrProperties.put(SHR_REFERENCE_PATH, "http://shr.com/");
@@ -184,7 +184,7 @@ public class EMREncounterServiceTest {
         when(mockPropertiesReader.getShrProperties()).thenReturn(shrProperties);
 
         emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
-        verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class));
+        verify(mockFhirmapper, times(0)).map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class));
     }
 
     @Test
@@ -214,7 +214,7 @@ public class EMREncounterServiceTest {
         String uri = "http://shr.com/patients/HID/encounters/shr_encounter_id";
         EncounterIdMapping mapping = new EncounterIdMapping(UUID.randomUUID().toString(), shrEncounterId, uri, currentTime, currentTime);
         when(mockIdMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER)).thenReturn(mapping);
-        when(mockFhirmapper.map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class))).thenReturn(new Encounter());
+        when(mockFhirmapper.map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class))).thenReturn(new Encounter());
         when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://shr.com/");
         Properties shrProperties = new Properties();
         shrProperties.put(SHR_REFERENCE_PATH, "http://shr.com/");
@@ -222,6 +222,6 @@ public class EMREncounterServiceTest {
         when(mockPropertiesReader.getShrProperties()).thenReturn(shrProperties);
 
         emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
-        verify(mockFhirmapper, times(1)).map(eq(emrPatient), any(ShrEncounter.class), any(SystemProperties.class));
+        verify(mockFhirmapper, times(1)).map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class));
     }
 }

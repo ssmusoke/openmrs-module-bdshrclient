@@ -16,6 +16,7 @@ import org.openmrs.api.EncounterService;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     private OrderService orderService;
+    
     private final String patientRef = "http://mci.com/patients/HID-123";
     private final String fhirEncounterId = "SHR-ENC1";
 
@@ -66,7 +68,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldMapTestOrderForAPanelOrTest() throws Exception {
         Encounter encounter = encounterService.getEncounter(36);
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = createFhirEncounter();
+        FHIREncounter fhirEncounter = createFhirEncounter();
         assertEquals(1, encounter.getOrders().size());
         Bundle bundle = new Bundle();
         Order order = encounter.getOrders().iterator().next();
@@ -83,7 +85,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldMapTestOrderWithoutLoincName() throws Exception {
         Encounter encounter = encounterService.getEncounter(38);
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = createFhirEncounter();
+        FHIREncounter fhirEncounter = createFhirEncounter();
         assertEquals(2, encounter.getOrders().size());
         Bundle bundle = new Bundle();
         Order order = encounter.getOrders().iterator().next();
@@ -95,7 +97,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldMapTestOrdersToSameDiagnosticOrder() throws Exception {
         Encounter encounter = encounterService.getEncounter(38);
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = createFhirEncounter();
+        FHIREncounter fhirEncounter = createFhirEncounter();
         assertEquals(2, encounter.getOrders().size());
         Bundle bundle = new Bundle();
         Iterator<Order> orderIterator = encounter.getOrders().iterator();
@@ -116,7 +118,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldAddASpecimen() throws Exception {
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = createFhirEncounter();
+        FHIREncounter fhirEncounter = createFhirEncounter();
         Order order = orderService.getOrder(20);
         List<FHIRResource> mappedResources = testOrderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         assertEquals(2, mappedResources.size());
@@ -137,7 +139,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldNotAddSpecimenIfAlreadyPresentForSameAccession() throws Exception {
         Encounter encounter = encounterService.getEncounter(39);
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = createFhirEncounter();
+        FHIREncounter fhirEncounter = createFhirEncounter();
         assertEquals(2, encounter.getOrders().size());
         Bundle bundle = new Bundle();
         Iterator<Order> orderIterator = encounter.getOrders().iterator();
@@ -158,7 +160,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     @Test
     public void shouldAddSpecimenForDifferentAccession() throws Exception {
         Encounter encounter = encounterService.getEncounter(40);
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = createFhirEncounter();
+        FHIREncounter fhirEncounter = createFhirEncounter();
         assertEquals(2, encounter.getOrders().size());
         Bundle bundle = new Bundle();
         Iterator<Order> orderIterator = encounter.getOrders().iterator();
@@ -181,7 +183,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldNotMapAStoppedTestOrder() throws Exception {
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = createFhirEncounter();
+        FHIREncounter fhirEncounter = createFhirEncounter();
         Order order = orderService.getOrder(24);
         List<FHIRResource> fhirResources = testOrderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         assertTrue(fhirResources.isEmpty());
@@ -189,7 +191,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldMapADiscountinuedOrder() throws Exception {
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = createFhirEncounter();
+        FHIREncounter fhirEncounter = createFhirEncounter();
         Order order = orderService.getOrder(25);
         List<FHIRResource> fhirResources = testOrderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         assertEquals(1, fhirResources.size());
@@ -224,11 +226,11 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(DiagnosticOrderStatusEnum.REQUESTED.getCode(), diagnosticOrder.getStatus());
     }
 
-    private ca.uhn.fhir.model.dstu2.resource.Encounter createFhirEncounter() {
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = new ca.uhn.fhir.model.dstu2.resource.Encounter();
-        fhirEncounter.setPatient(new ResourceReferenceDt(patientRef));
-        fhirEncounter.setId(fhirEncounterId);
-        return fhirEncounter;
+    private FHIREncounter createFhirEncounter() {
+        ca.uhn.fhir.model.dstu2.resource.Encounter encounter = new ca.uhn.fhir.model.dstu2.resource.Encounter();
+        encounter.setPatient(new ResourceReferenceDt(patientRef));
+        encounter.setId(fhirEncounterId);
+        return new FHIREncounter(encounter);
     }
 
     @SuppressWarnings("unchecked")

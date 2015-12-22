@@ -10,7 +10,7 @@ import org.openmrs.Concept;
 import org.openmrs.Order;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
-import org.openmrs.module.fhir.mapper.model.ShrEncounter;
+import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.OrderCareSettingLookupService;
@@ -51,7 +51,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounter encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle encounterComposition, SystemProperties systemProperties) {
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) resource;
         createTestOrders(encounterComposition.getBundle(), diagnosticOrder, emrEncounter);
     }
@@ -159,7 +159,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     }
 
     private boolean isRunningOrder(Order order, EmrEncounter emrEncounter) {
-        return Order.Action.NEW.equals(order.getAction()) && order.getDateStopped() == null 
+        return Order.Action.NEW.equals(order.getAction()) && order.getDateStopped() == null
                 && !isExistingOrderDiscontinued(order, emrEncounter);
     }
 
