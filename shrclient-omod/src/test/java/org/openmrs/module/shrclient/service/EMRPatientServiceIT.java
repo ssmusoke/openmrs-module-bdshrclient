@@ -42,7 +42,7 @@ public class EMRPatientServiceIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/patientUpdateDS.xml");
         org.openmrs.module.shrclient.model.Patient patient = getPatientFromJson("patients_response/patientWithRelations.json");
 
-        emrPatientService.createOrUpdatePatient(patient);
+        emrPatientService.createOrUpdateEmrPatient(patient);
 
         Patient savedPatient = patientService.getPatient(1);
 
@@ -62,9 +62,9 @@ public class EMRPatientServiceIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/patientUpdateDS.xml");
         org.openmrs.module.shrclient.model.Patient patient = getPatientFromJson("patients_response/patientWithRelations.json");
 
-        emrPatientService.createOrUpdatePatient(patient);
+        emrPatientService.createOrUpdateEmrPatient(patient);
         //updated twice
-        emrPatientService.createOrUpdatePatient(patient);
+        emrPatientService.createOrUpdateEmrPatient(patient);
 
         Patient savedPatient = patientService.getPatient(1);
 
@@ -93,8 +93,8 @@ public class EMRPatientServiceIT extends BaseModuleWebContextSensitiveTest {
         org.openmrs.module.shrclient.model.Patient patientToBeRetired = getPatientFromJson("patients_response/patientWithRelations.json");
         org.openmrs.module.shrclient.model.Patient patientToBeRetained = getPatientFromJson("patients_response/p12341467785.json");
 
-        emrPatientService.createOrUpdatePatient(patientToBeRetained);
-        emrPatientService.createOrUpdatePatient(patientToBeRetired);
+        emrPatientService.createOrUpdateEmrPatient(patientToBeRetained);
+        emrPatientService.createOrUpdateEmrPatient(patientToBeRetired);
         String retainedHealthId = patientToBeRetained.getHealthId();
 
         emrPatientService.mergePatients(retainedHealthId, patientToBeRetired.getHealthId());
@@ -138,8 +138,8 @@ public class EMRPatientServiceIT extends BaseModuleWebContextSensitiveTest {
         org.openmrs.module.shrclient.model.Patient patientToBeRetired = getPatientFromJson("patients_response/patientWithRelations.json");
         org.openmrs.module.shrclient.model.Patient patientToBeRetained = getPatientFromJson("patients_response/p12341467785.json");
 
-        emrPatientService.createOrUpdatePatient(patientToBeRetained);
-        emrPatientService.createOrUpdatePatient(patientToBeRetired);
+        emrPatientService.createOrUpdateEmrPatient(patientToBeRetained);
+        emrPatientService.createOrUpdateEmrPatient(patientToBeRetired);
         String retainedHealthId = patientToBeRetained.getHealthId();
 
         List<Encounter> encountersOfToBeRetiredPatient = encounterService.getEncountersByPatientId(11);

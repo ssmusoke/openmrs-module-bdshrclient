@@ -79,6 +79,10 @@ public class Patient {
     @JsonInclude(NON_EMPTY)
     private Boolean active;
 
+    @JsonProperty("merged_with")
+    @JsonInclude(NON_EMPTY)
+    private String mergedWith;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -300,5 +304,12 @@ public class Patient {
 
     }
 
+    public String getMergedWith() {
+        return mergedWith;
+    }
+
+    public void setMergedWith(String mergedWith) {
+        this.mergedWith = mergedWith;
+    }
 }
 

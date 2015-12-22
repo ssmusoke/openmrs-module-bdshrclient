@@ -7,6 +7,7 @@ import com.sun.syndication.feed.atom.Category;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
@@ -18,6 +19,7 @@ import org.openmrs.module.shrclient.util.RestClient;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterEvent;
 
 import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.openmrs.module.shrclient.web.controller.dto.EncounterEvent.ENCOUNTER_UPDATED_CATEGORY_TAG;
@@ -68,11 +70,61 @@ public class DefaultEncounterFeedWorkerTest {
         Patient patient = new Patient();
         when(mciClient.get(patientUrl, Patient.class)).thenReturn(patient);
         org.openmrs.Patient openmrsPatient = new org.openmrs.Patient();
-        when(emrPatientService.createOrUpdatePatient(patient)).thenReturn(openmrsPatient);
+        when(emrPatientService.createOrUpdateEmrPatient(patient)).thenReturn(openmrsPatient);
 
         encounterFeedWorker.process(encounterEvent);
 
         verify(mciClient, times(1)).get(patientUrl, Patient.class);
         verify(emrEncounterService, times(1)).createOrUpdateEncounter(openmrsPatient, encounterEvent);
+    }
+
+    @Test
+    public void shouldDownloadMergedWithPatientIfEncounterEventIsForRetiredPatient() throws Exception {
+        EncounterEvent failedEncounterEventWithRetiredPatient = new EncounterEvent();
+        failedEncounterEventWithRetiredPatient.setTitle("Encounter:shr-enc-id");
+        Bundle bundle = new Bundle();
+        String retiredPatientId1 = "retired_patient_id_1";
+        String retiredPatientId2 = "retired_patient_id_2";
+        String activePatientId = "active_patient_id";
+        ResourceReferenceDt patientReference = new ResourceReferenceDt(String.format("http://mci.com/api/patients/%s", retiredPatientId1));
+        Composition composition = new Composition();
+        composition.setSubject(patientReference);
+        Bundle.Entry atomEntry = new Bundle.Entry();
+        atomEntry.setResource(composition);
+        bundle.addEntry(atomEntry);
+
+        failedEncounterEventWithRetiredPatient.addContent(bundle);
+        RestClient mciClient = mock(RestClient.class);
+        when(clientRegistry.getMCIClient()).thenReturn(mciClient);
+        when(propertiesReader.getMciPatientContext()).thenReturn("http://mci.com/api/patients");
+        when(emrPatientService.createOrUpdateEmrPatient(any(Patient.class))).thenReturn(new org.openmrs.Patient());
+        Patient retiredPatient1 = getRetiredPatient(retiredPatientId1, retiredPatientId2);
+        Patient retiredPatient2 = getRetiredPatient(retiredPatientId2, activePatientId);
+
+        Patient activePatient = new Patient();
+        activePatient.setHealthId(activePatientId);
+        when(mciClient.get("http://mci.com/api/patients/"+ retiredPatientId1, Patient.class)).thenReturn(retiredPatient1);
+        when(mciClient.get("http://mci.com/api/patients/" + retiredPatientId2, Patient.class)).thenReturn(retiredPatient2);
+        when(mciClient.get("http://mci.com/api/patients/" + activePatientId, Patient.class)).thenReturn(activePatient);
+
+        encounterFeedWorker.process(failedEncounterEventWithRetiredPatient);
+
+        verify(mciClient, times(1)).get("http://mci.com/api/patients/"+ retiredPatientId1,Patient.class);
+        verify(mciClient, times(1)).get("http://mci.com/api/patients/"+ retiredPatientId2,Patient.class);
+        verify(mciClient, times(1)).get("http://mci.com/api/patients/"+ activePatientId,Patient.class);
+        ArgumentCaptor<Patient> patientArgumentCaptor = ArgumentCaptor.forClass(Patient.class);
+        verify(emrPatientService, times(1)).createOrUpdateEmrPatient(patientArgumentCaptor.capture());
+
+        Patient toBeMappedMCIPatient = patientArgumentCaptor.getValue();
+        assertEquals("active_patient_id", toBeMappedMCIPatient.getHealthId());
+
+    }
+
+    private Patient getRetiredPatient(String healthId, String mergedWith) {
+        Patient retiredPatient = new Patient();
+        retiredPatient.setHealthId(healthId);
+        retiredPatient.setActive(false);
+        retiredPatient.setMergedWith(mergedWith);
+        return retiredPatient;
     }
 }

@@ -3,6 +3,7 @@ package org.openmrs.module.shrclient.feeds.shr;
 import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.client.exceptions.AtomFeedClientException;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
+import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.service.EMREncounterService;
 import org.openmrs.module.shrclient.service.EMRPatientService;
@@ -32,9 +33,8 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
         logger.info("Processing bundle with encounter id: " + encounterEvent.getEncounterId());
         String healthId = encounterEvent.getHealthId();
         try {
-            RestClient mciClient = clientRegistry.getMCIClient();
-            Patient patient = mciClient.get(StringUtil.ensureSuffix(propertiesReader.getMciPatientContext(), "/") + healthId, Patient.class);
-            org.openmrs.Patient emrPatient = emrPatientService.createOrUpdatePatient(patient);
+            Patient patient = downloadActivePatient(healthId);
+            org.openmrs.Patient emrPatient = emrPatientService.createOrUpdateEmrPatient(patient);
 
             if (null == emrPatient) {
                 String message = String.format("Can not identify patient[%s]", healthId);
@@ -48,6 +48,15 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
             logger.error(message);
             throw new AtomFeedClientException(message, e);
         }
+    }
+
+    private Patient downloadActivePatient(String healthId) throws IdentityUnauthorizedException {
+        RestClient mciClient = clientRegistry.getMCIClient();
+        Patient patient = mciClient.get(StringUtil.ensureSuffix(propertiesReader.getMciPatientContext(), "/") + healthId, Patient.class);
+        if(!patient.isActive() && patient.getMergedWith()!= null) {
+            patient = downloadActivePatient(patient.getMergedWith());
+        }
+        return patient;
     }
 
 }

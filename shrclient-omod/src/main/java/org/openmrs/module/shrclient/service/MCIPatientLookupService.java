@@ -98,7 +98,7 @@ public class MCIPatientLookupService {
         Patient mciPatient = searchPatientByHealthId(healthId);
         if (mciPatient != null) {
             Map<String, String> downloadResponse = new HashMap<>();
-            org.openmrs.Patient emrPatient = emrPatientService.createOrUpdatePatient(mciPatient);
+            org.openmrs.Patient emrPatient = emrPatientService.createOrUpdateEmrPatient(mciPatient);
             if (emrPatient != null) {
                 createOrUpdateEncounters(healthId, emrPatient);
             }

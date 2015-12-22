@@ -66,72 +66,68 @@ public class EMRPatientService {
         this.personAttributeMapper = new PersonAttributeMapper(personService);
     }
 
-    public org.openmrs.Patient createOrUpdatePatient(Patient mciPatient) {
+    public org.openmrs.Patient createOrUpdateEmrPatient(Patient mciPatient) {
         try {
-            return createOrUpdateEmrPatient(mciPatient);
+            AddressHelper addressHelper = new AddressHelper();
+            org.openmrs.Patient emrPatient = getEMRPatientByHealthId(mciPatient.getHealthId());
+            if (emrPatient == null) {
+                emrPatient = new org.openmrs.Patient();
+            }
+            emrPatient.setGender(mciPatient.getGender());
+            setIdentifier(emrPatient);
+            setPersonName(emrPatient, mciPatient);
+            setDeathInfo(emrPatient, mciPatient);
+            emrPatient.addAddress(addressHelper.setPersonAddress(emrPatient.getPersonAddress(), mciPatient.getAddress()));
+
+            addPersonAttribute(emrPatient, NATIONAL_ID_ATTRIBUTE, mciPatient.getNationalId());
+            addPersonAttribute(emrPatient, HEALTH_ID_ATTRIBUTE, mciPatient.getHealthId());
+            addPersonAttribute(emrPatient, BIRTH_REG_NO_ATTRIBUTE, mciPatient.getBirthRegNumber());
+            addPersonAttribute(emrPatient, HOUSE_HOLD_CODE_ATTRIBUTE, mciPatient.getHouseHoldCode());
+            String banglaName = mciPatient.getBanglaName();
+            if (StringUtils.isNotBlank(banglaName)) {
+                banglaName = banglaName.replaceAll(REGEX_TO_MATCH_MULTIPLE_WHITE_SPACE, " ");
+            }
+            addPersonAttribute(emrPatient, GIVEN_NAME_LOCAL, getGivenNameLocal(banglaName));
+            addPersonAttribute(emrPatient, FAMILY_NAME_LOCAL, getFamilyNameLocal(banglaName));
+            addPersonAttribute(emrPatient, PHONE_NUMBER, PhoneNumberMapper.map(mciPatient.getPhoneNumber()));
+            mapRelations(emrPatient, mciPatient);
+
+            String occupationConceptName = bbsCodeService.getOccupationConceptName(mciPatient.getOccupation());
+            String occupationConceptId = getConceptId(occupationConceptName);
+            if (occupationConceptId != null) {
+                addPersonAttribute(emrPatient, OCCUPATION_ATTRIBUTE, occupationConceptId);
+            } else {
+                logger.warn(String.format("Can't update occupation for patient. " +
+                                "Can't identify relevant concept for patient hid:%s, occupation:%s, code:%s",
+                        mciPatient.getHealthId(), occupationConceptName, mciPatient.getOccupation()));
+            }
+
+
+            String educationConceptName = bbsCodeService.getEducationConceptName(mciPatient.getEducationLevel());
+            String educationConceptId = getConceptId(educationConceptName);
+            if (educationConceptId != null) {
+                addPersonAttribute(emrPatient, EDUCATION_ATTRIBUTE, educationConceptId);
+            } else {
+                logger.warn(String.format("Can't update education for patient. " +
+                                "Can't identify relevant concept for patient hid:%s, education:%s, code:%s",
+                        mciPatient.getHealthId(), educationConceptName, mciPatient.getEducationLevel()));
+            }
+
+            Date dob = mciPatient.getDateOfBirth();
+            emrPatient.setBirthdate(dob);
+            if (DOB_TYPE_ESTIMATED.equals(mciPatient.getDobType())) {
+                emrPatient.setBirthdateEstimated(Boolean.TRUE);
+                emrPatient.setBirthdateEstimated(Boolean.FALSE);
+            }
+
+            org.openmrs.Patient patient = patientService.savePatient(emrPatient);
+            systemUserService.setOpenmrsShrSystemUserAsCreator(emrPatient);
+            addPatientToIdMapping(patient, mciPatient.getHealthId());
+            return emrPatient;
         } catch (Exception e) {
             logger.error(String.format("error Occurred while trying to process Patient[%s] from MCI.", mciPatient.getHealthId()), e);
             throw new RuntimeException(e);
         }
-    }
-
-    public org.openmrs.Patient createOrUpdateEmrPatient(Patient mciPatient) {
-        AddressHelper addressHelper = new AddressHelper();
-        org.openmrs.Patient emrPatient = getEMRPatientByHealthId(mciPatient.getHealthId());
-        if (emrPatient == null) {
-            emrPatient = new org.openmrs.Patient();
-        }
-        emrPatient.setGender(mciPatient.getGender());
-        setIdentifier(emrPatient);
-        setPersonName(emrPatient, mciPatient);
-        setDeathInfo(emrPatient, mciPatient);
-        emrPatient.addAddress(addressHelper.setPersonAddress(emrPatient.getPersonAddress(), mciPatient.getAddress()));
-
-        addPersonAttribute(emrPatient, NATIONAL_ID_ATTRIBUTE, mciPatient.getNationalId());
-        addPersonAttribute(emrPatient, HEALTH_ID_ATTRIBUTE, mciPatient.getHealthId());
-        addPersonAttribute(emrPatient, BIRTH_REG_NO_ATTRIBUTE, mciPatient.getBirthRegNumber());
-        addPersonAttribute(emrPatient, HOUSE_HOLD_CODE_ATTRIBUTE, mciPatient.getHouseHoldCode());
-        String banglaName = mciPatient.getBanglaName();
-        if (StringUtils.isNotBlank(banglaName)) {
-            banglaName = banglaName.replaceAll(REGEX_TO_MATCH_MULTIPLE_WHITE_SPACE, " ");
-        }
-        addPersonAttribute(emrPatient, GIVEN_NAME_LOCAL, getGivenNameLocal(banglaName));
-        addPersonAttribute(emrPatient, FAMILY_NAME_LOCAL, getFamilyNameLocal(banglaName));
-        addPersonAttribute(emrPatient, PHONE_NUMBER, PhoneNumberMapper.map(mciPatient.getPhoneNumber()));
-        mapRelations(emrPatient, mciPatient);
-
-        String occupationConceptName = bbsCodeService.getOccupationConceptName(mciPatient.getOccupation());
-        String occupationConceptId = getConceptId(occupationConceptName);
-        if (occupationConceptId != null) {
-            addPersonAttribute(emrPatient, OCCUPATION_ATTRIBUTE, occupationConceptId);
-        } else {
-            logger.warn(String.format("Can't update occupation for patient. " +
-                            "Can't identify relevant concept for patient hid:%s, occupation:%s, code:%s",
-                    mciPatient.getHealthId(), occupationConceptName, mciPatient.getOccupation()));
-        }
-
-
-        String educationConceptName = bbsCodeService.getEducationConceptName(mciPatient.getEducationLevel());
-        String educationConceptId = getConceptId(educationConceptName);
-        if (educationConceptId != null) {
-            addPersonAttribute(emrPatient, EDUCATION_ATTRIBUTE, educationConceptId);
-        } else {
-            logger.warn(String.format("Can't update education for patient. " +
-                            "Can't identify relevant concept for patient hid:%s, education:%s, code:%s",
-                    mciPatient.getHealthId(), educationConceptName, mciPatient.getEducationLevel()));
-        }
-
-        Date dob = mciPatient.getDateOfBirth();
-        emrPatient.setBirthdate(dob);
-        if (DOB_TYPE_ESTIMATED.equals(mciPatient.getDobType())) {
-            emrPatient.setBirthdateEstimated(Boolean.TRUE);
-            emrPatient.setBirthdateEstimated(Boolean.FALSE);
-        }
-
-        org.openmrs.Patient patient = patientService.savePatient(emrPatient);
-        systemUserService.setOpenmrsShrSystemUserAsCreator(emrPatient);
-        addPatientToIdMapping(patient, mciPatient.getHealthId());
-        return emrPatient;
     }
 
     private void mapRelations(org.openmrs.Patient emrPatient, Patient mciPatient) {
