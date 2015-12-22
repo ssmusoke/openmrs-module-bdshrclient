@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.ict4h.atomfeed.client.service.FeedClient;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
+import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.feeds.openmrs.OpenMRSFeedClientFactory;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
@@ -44,7 +44,7 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
         try {
             return new EncounterPush(Context.getEncounterService(),
                     propertiesReader,
-                    PlatformUtil.getRegisteredComponent(CompositionBundle.class),
+                    PlatformUtil.getRegisteredComponent(CompositionBundleCreator.class),
                     PlatformUtil.getIdMappingsRepository(),
                     clientRegistry,
                     systemUserService);

@@ -7,14 +7,16 @@ import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Composition;
-import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.valueset.BundleTypeEnum;
 import ca.uhn.fhir.model.dstu2.valueset.CompositionStatusEnum;
 import ca.uhn.fhir.model.primitive.InstantDt;
 import org.apache.commons.collections.CollectionUtils;
+import org.openmrs.Encounter;
 import org.openmrs.Obs;
+import org.openmrs.Order;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.FHIREncounter;
+import org.openmrs.module.fhir.mapper.model.FHIRResource;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.HibernateLazyLoader;
 import org.openmrs.module.shrclient.util.SystemProperties;
@@ -31,7 +33,7 @@ import static org.openmrs.module.fhir.FHIRProperties.*;
 
 @Component
 @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-public class CompositionBundle {
+public class CompositionBundleCreator {
 
     public static final String CONFIDENTIALITY_NORMAL = "N";
     @Autowired
@@ -48,45 +50,53 @@ public class CompositionBundle {
 
     public Bundle create(org.openmrs.Encounter emrEncounter, String healthId, SystemProperties systemProperties) {
         HibernateLazyLoader hibernateLazyLoader = new HibernateLazyLoader();
-        Bundle bundle = new Bundle();
-        FHIREncounter fhirEncounter = new FHIREncounter(encounterMapper.map(emrEncounter, healthId, systemProperties));
+        FHIREncounter fhirEncounter = encounterMapper.map(emrEncounter, healthId, systemProperties);
         Composition composition = createComposition(emrEncounter.getEncounterDatetime(), fhirEncounter, systemProperties);
+        Bundle bundle = createBundle(composition);
+        addBundleEntry(bundle, new FHIRResource("Composition", asList(composition.getIdentifier()), composition));
+        FHIRResource encounterResource = new FHIRResource("Encounter", fhirEncounter.getIdentifier(), fhirEncounter.getEncounter());
+        addResourceSectionToComposition(composition, encounterResource);
+        addBundleEntry(bundle, encounterResource);
+
+        mapObs(emrEncounter, systemProperties, fhirEncounter, composition, bundle);
+        mapOrders(emrEncounter, systemProperties, hibernateLazyLoader, fhirEncounter, composition, bundle);
+
+        return bundle;
+    }
+
+    public void mapOrders(Encounter emrEncounter, SystemProperties systemProperties, HibernateLazyLoader hibernateLazyLoader, FHIREncounter fhirEncounter, Composition composition, Bundle bundle) {
+        Set<Order> orders = emrEncounter.getOrders();
+        for (Order order : orders) {
+            order = hibernateLazyLoader.load(order);
+            for (EmrOrderResourceHandler handler : orderResourceHandlers) {
+                if (!handler.canHandle(order)) continue;
+                List<FHIRResource> mappedResources = handler.map(order, fhirEncounter, bundle, systemProperties);
+                if (CollectionUtils.isEmpty(mappedResources)) continue;
+                addResourcesToBundle(mappedResources, composition, bundle);
+            }
+        }
+    }
+
+    public void mapObs(Encounter emrEncounter, SystemProperties systemProperties, FHIREncounter fhirEncounter, Composition composition, Bundle bundle) {
+        final Set<Obs> observations = emrEncounter.getObsAtTopLevel(false);
+        for (Obs obs : observations) {
+            for (EmrObsResourceHandler handler : obsResourceHandlers) {
+                if (!handler.canHandle(obs)) continue;
+                List<FHIRResource> mappedResources = handler.map(obs, fhirEncounter, systemProperties);
+                if (CollectionUtils.isEmpty(mappedResources)) continue;
+                addResourcesToBundle(mappedResources, composition, bundle);
+            }
+        }
+    }
+
+    public Bundle createBundle(Composition composition) {
+        Bundle bundle = new Bundle();
         bundle.setType(BundleTypeEnum.COLLECTION);
         //TODO: bundle.setBase("urn:uuid:");
         bundle.setId(UUID.randomUUID().toString());
         ResourceMetadataMap metadataMap = new ResourceMetadataMap();
         metadataMap.put(ResourceMetadataKeyEnum.UPDATED, new InstantDt(composition.getDate(), TemporalPrecisionEnum.MILLI));
         bundle.setResourceMetadata(metadataMap);
-        final FHIRResource encounterResource = new FHIRResource("Encounter", fhirEncounter.getIdentifier(), fhirEncounter.getEncounter());
-        addResourceSectionToComposition(composition, encounterResource);
-        addBundleEntry(bundle, new FHIRResource("Composition", asList(composition.getIdentifier()), composition));
-        addBundleEntry(bundle, encounterResource);
-
-        final Set<Obs> observations = emrEncounter.getObsAtTopLevel(false);
-        for (Obs obs : observations) {
-            for (EmrObsResourceHandler handler : obsResourceHandlers) {
-                if (handler.canHandle(obs)) {
-                    List<FHIRResource> mappedResources = handler.map(obs, fhirEncounter, systemProperties);
-                    if (CollectionUtils.isNotEmpty(mappedResources)) {
-                        addResourcesToBundle(mappedResources, composition, bundle);
-                    }
-                }
-            }
-        }
-
-        Set<org.openmrs.Order> orders = emrEncounter.getOrders();
-        for (org.openmrs.Order order : orders) {
-            order = hibernateLazyLoader.load(order);
-            for (EmrOrderResourceHandler handler : orderResourceHandlers) {
-                if (handler.canHandle(order)) {
-                    List<FHIRResource> mappedResources = handler.map(order, fhirEncounter, bundle, systemProperties);
-                    if (CollectionUtils.isNotEmpty(mappedResources)) {
-                        addResourcesToBundle(mappedResources, composition, bundle);
-                    }
-                }
-            }
-        }
-
         return bundle;
     }
 

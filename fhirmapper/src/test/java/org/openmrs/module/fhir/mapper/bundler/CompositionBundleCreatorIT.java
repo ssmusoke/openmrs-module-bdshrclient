@@ -20,13 +20,12 @@ import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 import static org.openmrs.module.fhir.FHIRProperties.*;
 
-
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
-    CompositionBundle compositionBundle;
+    private CompositionBundleCreator compositionBundleCreator;
 
     private static String HEALTH_ID = "1234512345123";
 
@@ -49,7 +48,7 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
     @Test
     public void shouldCreateFhirBundle() throws Exception {
         String facilityId = "10000036";
-        Bundle bundle = compositionBundle.create(Context.getEncounterService().getEncounter(36), HEALTH_ID, getSystemProperties(facilityId));
+        Bundle bundle = compositionBundleCreator.create(Context.getEncounterService().getEncounter(36), HEALTH_ID, getSystemProperties(facilityId));
         assertNotNull(bundle);
         String bundleXml = FhirContextHelper.getFhirContext().newXmlParser().encodeResourceToString(bundle);
         assertNotNull(bundleXml);
@@ -57,7 +56,7 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
 
     @Test
     public void shouldPopulateCompositionType() throws Exception {
-        Bundle bundle = compositionBundle.create(Context.getEncounterService().getEncounter(36), HEALTH_ID, getSystemProperties("12345"));
+        Bundle bundle = compositionBundleCreator.create(Context.getEncounterService().getEncounter(36), HEALTH_ID, getSystemProperties("12345"));
         assertNotNull(bundle);
         Composition composition = FHIRBundleHelper.getComposition(bundle);
         CodingDt type = composition.getType().getCoding().get(0);
@@ -67,9 +66,9 @@ public class CompositionBundleCreatorIT extends BaseModuleWebContextSensitiveTes
     }
 
     private void ensureBundleCreatorHasResourceHandlers(String handlerName) throws NoSuchFieldException, IllegalAccessException {
-        final Field field = compositionBundle.getClass().getDeclaredField(handlerName);
+        final Field field = compositionBundleCreator.getClass().getDeclaredField(handlerName);
         field.setAccessible(true);
-        Object instances = field.get(compositionBundle);
+        Object instances = field.get(compositionBundleCreator);
         assertNotNull(instances);
         if (instances instanceof List) {
             assertTrue(((List) instances).size() > 0);

@@ -13,7 +13,7 @@ import org.openmrs.Patient;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.fhir.MRSProperties;
-import org.openmrs.module.fhir.mapper.bundler.CompositionBundle;
+import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
 import org.openmrs.module.fhir.utils.SHREncounterURLUtil;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
@@ -32,7 +32,7 @@ public class EncounterPush implements EventWorker {
 
     private static final Logger log = Logger.getLogger(EncounterPush.class);
     private IdMappingRepository idMappingsRepository;
-    private CompositionBundle compositionBundle;
+    private CompositionBundleCreator compositionBundleCreator;
     private EncounterService encounterService;
     private PropertiesReader propertiesReader;
     private ClientRegistry clientRegistry;
@@ -41,7 +41,7 @@ public class EncounterPush implements EventWorker {
     private SystemUserService systemUserService;
 
     public EncounterPush(EncounterService encounterService, PropertiesReader propertiesReader,
-                         CompositionBundle compositionBundle, IdMappingRepository idMappingsRepository,
+                         CompositionBundleCreator compositionBundleCreator, IdMappingRepository idMappingsRepository,
                          ClientRegistry clientRegistry,
                          SystemUserService systemUserService) throws IdentityUnauthorizedException {
         this.encounterService = encounterService;
@@ -49,7 +49,7 @@ public class EncounterPush implements EventWorker {
         this.clientRegistry = clientRegistry;
         this.systemUserService = systemUserService;
         this.shrClient = clientRegistry.getSHRClient();
-        this.compositionBundle = compositionBundle;
+        this.compositionBundleCreator = compositionBundleCreator;
         this.idMappingsRepository = idMappingsRepository;
         this.encounterUuidsProcessed = new ArrayList<>();
     }
@@ -127,7 +127,7 @@ public class EncounterPush implements EventWorker {
         try {
             String encPathPattern = StringUtil.removePrefix(propertiesReader.getShrPatientEncPathPattern(), "/");
             String shrEncounterCreateResponse = shrClient.post(String.format(encPathPattern, healthId),
-                    compositionBundle.create(openMrsEncounter, healthId, systemProperties));
+                    compositionBundleCreator.create(openMrsEncounter, healthId, systemProperties));
             return getEncounterIdFromResponse(shrEncounterCreateResponse);
         } catch (IdentityUnauthorizedException e) {
             log.error("Clearing unauthorized identity token.");
@@ -142,7 +142,7 @@ public class EncounterPush implements EventWorker {
             String encPath = String.format(encPathPattern, healthId);
             String encUpdateUrl = String.format("%s/%s", encPath, shrEncounterId);
             shrClient.put(encUpdateUrl,
-                    compositionBundle.create(openMrsEncounter, healthId, systemProperties));
+                    compositionBundleCreator.create(openMrsEncounter, healthId, systemProperties));
         } catch (IdentityUnauthorizedException e) {
             log.error("Clearing unauthorized identity token.");
             clientRegistry.clearIdentityToken();

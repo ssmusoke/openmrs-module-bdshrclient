@@ -16,6 +16,7 @@ import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.Order;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.FHIREncounter;
+import org.openmrs.module.fhir.mapper.model.FHIRResource;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;

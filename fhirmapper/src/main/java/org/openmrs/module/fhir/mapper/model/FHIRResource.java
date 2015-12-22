@@ -1,4 +1,4 @@
-package org.openmrs.module.fhir.mapper.bundler;
+package org.openmrs.module.fhir.mapper.model;
 
 
 import ca.uhn.fhir.model.api.IResource;

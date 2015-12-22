@@ -14,6 +14,7 @@ import org.openmrs.ConceptNumeric;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.FHIRProperties;
+import org.openmrs.module.fhir.mapper.bundler.ObservationValueMapper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;

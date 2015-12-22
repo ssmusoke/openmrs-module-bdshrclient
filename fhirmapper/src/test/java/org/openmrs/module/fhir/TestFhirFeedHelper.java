@@ -3,7 +3,7 @@ package org.openmrs.module.fhir;
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
-import org.openmrs.module.fhir.mapper.bundler.FHIRResource;
+import org.openmrs.module.fhir.mapper.model.FHIRResource;
 
 import java.util.ArrayList;
 import java.util.List;

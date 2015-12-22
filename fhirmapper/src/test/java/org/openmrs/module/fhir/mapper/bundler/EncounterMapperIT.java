@@ -5,12 +5,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Encounter;
 import org.openmrs.api.EncounterService;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -37,37 +37,37 @@ public class EncounterMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldTakeTheLocationIdAsServiceProviderIdWhenLocationIsTaggedAsADGHSFacility() throws Exception {
         Encounter savedEncounter = encounterService.getEncounter(36);
 
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
-        assertEquals("http://localhost:9997/api/1.0/facilities/1300012.json",fhirEncounter.getServiceProvider().getReference().getValue());
+        FHIREncounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
+        assertEquals("http://localhost:9997/api/1.0/facilities/1300012.json", fhirEncounter.getServiceProvider().getReference().getValue());
     }
 
     @Test
     public void shouldTakeConfiguredFacilityIdAsServiceProviderIdWhenLocationIsNotTaggedAsADGHSFacility() throws Exception {
         Encounter savedEncounter = encounterService.getEncounter(37);
 
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
-        assertEquals("http://localhost:9997/api/1.0/facilities/1.json",fhirEncounter.getServiceProvider().getReference().getValue());
+        FHIREncounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
+        assertEquals("http://localhost:9997/api/1.0/facilities/1.json", fhirEncounter.getServiceProvider().getReference().getValue());
     }
 
     @Test
     public void shouldNotSetParticipantIfEncounterHasNoProvider() throws Exception {
         Encounter savedEncounter = encounterService.getEncounter(37);
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
-        assertTrue(fhirEncounter.getParticipant().isEmpty());
+        FHIREncounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
+        assertNull(fhirEncounter.getFirstParticipantReference());
     }
 
     @Test
     public void shouldNotSetParticipantIfEncounterHasNoHIEProvider() throws Exception {
         Encounter savedEncounter = encounterService.getEncounter(36);
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
-        assertTrue(fhirEncounter.getParticipant().isEmpty());
+        FHIREncounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
+        assertNull(fhirEncounter.getFirstParticipantReference());
     }
 
     @Test
     public void shouldSetParticipantIfEncounterHasHIEProvider() throws Exception {
         Encounter savedEncounter = encounterService.getEncounter(38);
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
-        assertEquals(1, fhirEncounter.getParticipant().size());
-        assertEquals("http://localhost:9997/api/1.0/providers/23.json", fhirEncounter.getParticipant().get(0).getIndividual().getReference().getValue());
+        FHIREncounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
+        assertEquals(1, fhirEncounter.getParticipantReferences().size());
+        assertEquals("http://localhost:9997/api/1.0/providers/23.json", fhirEncounter.getFirstParticipantReference().getReference().getValue());
     }
 }

@@ -10,6 +10,7 @@ import org.openmrs.EncounterType;
 import org.openmrs.Patient;
 import org.openmrs.Visit;
 import org.openmrs.VisitType;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.utils.OMRSLocationService;
 
 import static org.junit.Assert.assertEquals;
@@ -37,7 +38,7 @@ public class EncounterMapperTest {
         encounter.setPatient(patient);
         encounter.setVisit(getVisit());
         String healthId = "1234";
-        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = encounterMapper.map(encounter, healthId, getSystemProperties("1"));
+        FHIREncounter fhirEncounter = encounterMapper.map(encounter, healthId, getSystemProperties("1"));
 
         ResourceReferenceDt subject = fhirEncounter.getPatient();
         assertEquals(healthId, subject.getDisplay().getValue());

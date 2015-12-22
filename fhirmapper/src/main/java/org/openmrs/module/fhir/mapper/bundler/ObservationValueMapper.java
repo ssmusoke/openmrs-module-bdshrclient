@@ -1,4 +1,4 @@
-package org.openmrs.module.fhir.mapper.bundler.condition;
+package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.IDatatype;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;

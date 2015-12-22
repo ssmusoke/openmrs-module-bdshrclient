@@ -12,6 +12,7 @@ import org.openmrs.Location;
 import org.openmrs.Patient;
 import org.openmrs.Provider;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.utils.OMRSLocationService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.shrclient.util.SystemProperties;
@@ -30,7 +31,8 @@ public class EncounterMapper {
     private ProviderLookupService providerLookupService;
 
     private Logger logger = Logger.getLogger(EncounterMapper.class);
-    public Encounter map(org.openmrs.Encounter openMrsEncounter, String healthId, SystemProperties systemProperties) {
+
+    public FHIREncounter map(org.openmrs.Encounter openMrsEncounter, String healthId, SystemProperties systemProperties) {
         Encounter encounter = new Encounter();
         encounter.setStatus(EncounterStateEnum.FINISHED);
         setClass(openMrsEncounter, encounter);
@@ -39,7 +41,7 @@ public class EncounterMapper {
         encounter.setServiceProvider(getServiceProvider(openMrsEncounter, systemProperties));
         setIdentifiers(encounter, openMrsEncounter, systemProperties);
         setType(encounter, openMrsEncounter);
-        return encounter;
+        return new FHIREncounter(encounter);
     }
 
     private void setType(Encounter encounter, org.openmrs.Encounter openMrsEncounter) {
