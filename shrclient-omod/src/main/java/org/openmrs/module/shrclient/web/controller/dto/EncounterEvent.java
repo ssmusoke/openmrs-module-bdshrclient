@@ -1,12 +1,16 @@
 package org.openmrs.module.shrclient.web.controller.dto;
 
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.Composition;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.sun.syndication.feed.atom.Category;
 import org.apache.commons.lang3.StringUtils;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
 
 import java.util.List;
+
+import static org.openmrs.module.fhir.utils.FHIRBundleHelper.getComposition;
 
 public class EncounterEvent {
     public static final String LATEST_UPDATE_CATEGORY_TAG = "latest_update_event_id";
@@ -47,16 +51,13 @@ public class EncounterEvent {
         return bundle;
     }
 
-    public void setHealthId(String healthId) {
-        this.healthId = healthId;
-    }
-
     public void setPublishedDate(String date) {
         this.publishedDate = date;
     }
 
     public void addContent(Bundle bundle) {
         this.bundle = bundle;
+        this.healthId = identifyPatientHealthId(bundle);
     }
 
     public String getTitle() {
@@ -101,5 +102,10 @@ public class EncounterEvent {
             }
         }
         return null;
+    }
+
+    private String identifyPatientHealthId(Bundle bundle) {
+        final Composition composition = getComposition(bundle);
+        return new EntityReference().parse(org.openmrs.Patient.class, composition.getSubject().getReference().getValue());
     }
 }

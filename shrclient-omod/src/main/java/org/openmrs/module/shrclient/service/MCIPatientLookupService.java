@@ -156,14 +156,14 @@ public class MCIPatientLookupService {
 
     private void createOrUpdateEncounters(String healthId, org.openmrs.Patient emrPatient) {
         final String url = String.format("/patients/%s/encounters", healthId);
-        List<EncounterEvent> bundles = null;
+        List<EncounterEvent> encounterEvents = null;
         try {
-            bundles = new ClientRegistry(propertiesReader, identityStore).getSHRClient().getEncounters(url);
+            encounterEvents = new ClientRegistry(propertiesReader, identityStore).getSHRClient().getEncounters(url);
         } catch (IdentityUnauthorizedException e) {
             log.info("Clearing unauthorized identity token.");
             identityStore.clearToken();
         }
-        emrEncounterService.createOrUpdateEncounters(emrPatient, bundles);
+        emrEncounterService.createOrUpdateEncounters(emrPatient, encounterEvents);
     }
 
     private Patient[] searchPatients(String searchParamKey, String searchParamValue) {

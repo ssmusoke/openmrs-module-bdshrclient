@@ -58,13 +58,13 @@ public class EMREncounterService {
         this.patientDeathService = patientDeathService;
     }
 
-    public void createOrUpdateEncounters(Patient emrPatient, List<EncounterEvent> bundles) {
+    public void createOrUpdateEncounters(Patient emrPatient, List<EncounterEvent> encounterEvents) {
         ArrayList<EncounterEvent> failedEncounters = new ArrayList<>();
-        for (EncounterEvent bundle : bundles) {
+        for (EncounterEvent encounterEvent : encounterEvents) {
             try {
-                createOrUpdateEncounter(emrPatient, bundle);
+                createOrUpdateEncounter(emrPatient, encounterEvent);
             } catch (Exception e) {
-                failedEncounters.add(bundle);
+                failedEncounters.add(encounterEvent);
             }
         }
         for (EncounterEvent failedEncounterEvent : failedEncounters) {
