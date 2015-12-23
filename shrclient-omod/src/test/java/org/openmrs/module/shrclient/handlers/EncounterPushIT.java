@@ -3,13 +3,8 @@ package org.openmrs.module.shrclient.handlers;
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
-import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
-import com.github.tomakehurst.wiremock.http.Request;
-import com.github.tomakehurst.wiremock.http.RequestListener;
-import com.github.tomakehurst.wiremock.http.Response;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
-import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.junit.After;
 import org.junit.Before;
@@ -30,12 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.openmrs.module.shrclient.util.Headers.*;
@@ -164,5 +157,45 @@ public class EncounterPushIT extends BaseModuleWebContextSensitiveTest {
         assertNotNull(orderMapping.getLastSyncDateTime());
         String orderUrl = encounterIdMapping.getUri() + "#MedicationOrder/" + orderUuid;
         assertEquals(orderUrl, orderMapping.getUri());
+    }
+
+    @Test
+    public void shouldAddDiagnosisConditionToIdMappings() throws Exception {
+        executeDataSet("testDataSets/diagnosisTestDS.xml");
+
+        String shrEncounterId = "shr_enc_id_3";
+        givenThat(post(urlEqualTo("/patients/98104750156/encounters"))
+                .withHeader(AUTH_TOKEN_KEY, equalTo(accessToken))
+                .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
+                .withHeader(FROM_KEY, equalTo(email))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody("{\"encounterId\" : \"" + shrEncounterId + "\"}")));
+
+        String encounterUuid = "6d0af6767-707a-4629-9850-f15206e63ab0";
+        String visitDiagnosisObsUuid = "ef4554cb-2225-471a-9cd7-1434552c337c";
+        final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + encounterUuid
+                + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
+
+        encounterPush.process(event);
+
+        final List<LoggedRequest> loggedRequests = findAll(postRequestedFor(urlEqualTo("/patients/98104750156/encounters")));
+        assertEquals(1, loggedRequests.size());
+        String bundleXML = loggedRequests.get(0).getBodyAsString();
+        Bundle bundle = (Bundle) FhirBundleContextHolder.getFhirContext().newXmlParser().parseResource(bundleXML);
+        final IResource resourceByReference = FHIRBundleHelper.findResourceByReference(bundle, new ResourceReferenceDt("urn:uuid:" + visitDiagnosisObsUuid));
+        assertNotNull(resourceByReference);
+
+        IdMapping encounterIdMapping = idMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER);
+        assertNotNull(encounterIdMapping);
+        assertEquals(encounterUuid, encounterIdMapping.getInternalId());
+        assertNotNull(encounterIdMapping.getLastSyncDateTime());
+
+        IdMapping diagnosisMapping = idMappingRepository.findByInternalId(visitDiagnosisObsUuid, IdMappingType.DIAGNOSIS);
+        assertNotNull(diagnosisMapping);
+        assertEquals(visitDiagnosisObsUuid, diagnosisMapping.getInternalId());
+        assertEquals(resourceByReference.getId().getIdPart(), diagnosisMapping.getExternalId());
+        String diagnosisUrl = encounterIdMapping.getUri() + "#Condition/" + visitDiagnosisObsUuid;
+        assertEquals(diagnosisUrl, diagnosisMapping.getUri());
     }
 }

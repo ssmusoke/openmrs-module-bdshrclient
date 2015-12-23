@@ -1,6 +1,7 @@
 package org.openmrs.module.shrclient.handlers;
 
 import ca.uhn.fhir.model.dstu2.resource.BaseResource;
+import ca.uhn.fhir.model.dstu2.resource.Condition;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,14 +9,16 @@ import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.exceptions.AtomFeedClientException;
 import org.ict4h.atomfeed.client.service.EventWorker;
-import org.openmrs.Encounter;
-import org.openmrs.Order;
-import org.openmrs.OrderType;
+import org.openmrs.*;
 import org.openmrs.Patient;
 import org.openmrs.api.EncounterService;
+import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
+import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.mapper.model.ObservationType;
+import org.openmrs.module.fhir.utils.SHREncounterURLUtil;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.*;
@@ -85,6 +88,7 @@ public class EncounterPush implements EventWorker {
             encounterUuidsProcessed.add(openMrsEncounter.getUuid());
             saveEncounterIdMapping(openMrsEncounter.getUuid(), healthId, shrEncounterId, systemProperties);
             saveOrderIdMapping(openMrsEncounter.getOrders(), healthId, shrEncounterId, systemProperties);
+            saveIdMappingForDiagnosis(openMrsEncounter, healthId, shrEncounterId, systemProperties);
         } catch (Exception e) {
             log.error("Error while processing encounter sync event.", e);
             throw new RuntimeException(e);
@@ -105,6 +109,22 @@ public class EncounterPush implements EventWorker {
                 String externalId = String.format(MRSProperties.RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterId, order.getUuid());
                 idMappingsRepository.saveOrUpdateIdMapping(new MedicationOrderIdMapping(order.getUuid(), externalId, orderUrl));
             }
+        }
+    }
+
+    public void saveIdMappingForDiagnosis(Encounter openMrsEncounter, String healthId, String shrEncounterId, SystemProperties systemProperties) {
+        HashMap<String, String> conditionUrlReferenceIds = new HashMap<>();
+        conditionUrlReferenceIds.put(EntityReference.HEALTH_ID_REFERENCE, healthId);
+        conditionUrlReferenceIds.put(EntityReference.ENCOUNTER_ID_REFERENCE, shrEncounterId);
+        conditionUrlReferenceIds.put(EntityReference.REFERENCE_RESOURCE_NAME, new Condition().getResourceName());
+        EntityReference entityReference = new EntityReference();
+        for (Obs obs : openMrsEncounter.getObsAtTopLevel(false)) {
+            CompoundObservation compoundObservation = new CompoundObservation(obs);
+            if (!compoundObservation.isOfType(ObservationType.VISIT_DIAGNOSES)) continue;
+            conditionUrlReferenceIds.remove(EntityReference.REFERENCE_ID);
+            conditionUrlReferenceIds.put(EntityReference.REFERENCE_ID, obs.getUuid());
+            String diagnosisUrl = entityReference.build(BaseResource.class, systemProperties, conditionUrlReferenceIds);
+            idMappingsRepository.saveOrUpdateIdMapping(new DiagnosisIdMapping(obs.getUuid(), obs.getUuid(), diagnosisUrl));
         }
     }
 

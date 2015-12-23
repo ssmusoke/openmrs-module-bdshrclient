@@ -70,9 +70,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
             Concept memberConcept = member.getConcept();
             if (isCodedDiagnosisObservation(memberConcept)) {
                 CodeableConceptDt diagnosisCode = codeableConceptService.addTRCoding(member.getValueCoded());
-                if (CollectionUtils.isEmpty(diagnosisCode.getCoding())) {
-                    return null;
-                }
+                if (CollectionUtils.isEmpty(diagnosisCode.getCoding())) return null;
                 condition.setCode(diagnosisCode);
             } else if (isDiagnosisCertaintyObservation(memberConcept)) {
                 condition.setVerificationStatus(getConditionStatus(member));
@@ -83,9 +81,9 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         }
 
         IdentifierDt identifier = condition.addIdentifier();
-        String obsId = new EntityReference().build(IResource.class, systemProperties, visitDiagnosisObs.getUuid());
-        identifier.setValue(obsId);
-        condition.setId(obsId);
+        String diagnosisResourceId = new EntityReference().build(IResource.class, systemProperties, visitDiagnosisObs.getUuid());
+        identifier.setValue(diagnosisResourceId);
+        condition.setId(diagnosisResourceId);
         condition.setNotes(visitDiagnosisObs.getComment());
         return new FHIRResource(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS_DISPLAY, condition.getIdentifier(), condition);
     }

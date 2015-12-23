@@ -24,12 +24,19 @@ public abstract class IdMappingDao {
     }
 
     public abstract String getMappingTable();
+
     public abstract String getFetchByExternalIdSql();
+
     public abstract String getFetchByInternalIdSql();
+
     public abstract String getFetchByHealthIdSql();
+
     public abstract PreparedStatement getInsertIdMappingStatement(Connection connection, IdMapping idMapping) throws SQLException;
+
     public abstract PreparedStatement getUpdateIdMappingStatement(Connection connection, IdMapping idMapping) throws SQLException;
+
     public abstract PreparedStatement getCheckMappingExistsStatement(Connection connection, IdMapping idMapping) throws SQLException;
+
     public abstract IdMapping buildIdMapping(ResultSet resultSet) throws SQLException;
 
     private boolean mappingExists(final IdMapping idMapping) {
@@ -68,13 +75,15 @@ public abstract class IdMappingDao {
             @Override
             public Object execute(Connection connection) {
                 PreparedStatement statement = null;
-                try{
+                try {
                     if (!mappingExists(idMapping)) {
                         statement = getInsertIdMappingStatement(connection, idMapping);
                         statement.execute();
-                    }else {
+                    } else {
                         statement = getUpdateIdMappingStatement(connection, idMapping);
-                        statement.executeUpdate();
+                        if (null != statement) {
+                            statement.executeUpdate();
+                        }
                     }
 
                 } catch (Exception e) {
@@ -99,7 +108,7 @@ public abstract class IdMappingDao {
 
     protected IdMapping findByInternalId(final String internalId) {
         List<IdMapping> idMappings = getIdMappings(internalId, getFetchByInternalIdSql());
-        return idMappings.size() > 0 ? idMappings.get(0): null;
+        return idMappings.size() > 0 ? idMappings.get(0) : null;
     }
 
     protected List<IdMapping> findByHealthId(String healthID) {

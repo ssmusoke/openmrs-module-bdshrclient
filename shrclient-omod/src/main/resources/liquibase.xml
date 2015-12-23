@@ -1042,5 +1042,42 @@
             insert into global_property (property, description, property_value, uuid) values ('shr.login.location.tag', 'Location tag id for Login Locations', @location_tag_id, uuid());
         </sql>
     </changeSet>
-
+    <changeSet id="bdshrclient-23122015-1657" author="dubey,neha" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="diagnosis_id_mapping"/>
+            </not>
+        </preConditions>
+        <comment>Create a mapping table for diagnosis external id to internal id mapping</comment>
+        <createTable tableName="diagnosis_id_mapping">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="internal_id" type="varchar(50)"/>
+            <column name="external_id" type="varchar(100)"/>
+            <column name="uri" type="varchar(150)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="bdshrclient-23122015-1700" author="dubey,neha" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_diagnosis_id_mapping_internal_id"/>
+            </not>
+        </preConditions>
+        <comment>Creating index diagnosis_id_mapping.internal_id</comment>
+        <createIndex indexName="idx_diagnosis_id_mapping_internal_id" tableName="diagnosis_id_mapping">
+            <column name="internal_id" type="varchar(50)"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="bdshrclient-23122015-1701" author="dubey,neha" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_diagnosis_id_mapping_external_id"/>
+            </not>
+        </preConditions>
+        <comment>Creating index diagnosis_id_mapping.external_id</comment>
+        <createIndex indexName="idx_diagnosis_id_mapping_external_id" tableName="diagnosis_id_mapping">
+            <column name="external_id" type="varchar(50)"/>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>
