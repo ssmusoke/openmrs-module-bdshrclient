@@ -55,17 +55,6 @@ public class PropertiesReader {
 
     private Map<String, Properties> allProperties = new HashMap<String, Properties>();
 
-    public HashMap<String, String> getBaseUrls(){
-        HashMap<String, String> baseUrls = new HashMap<>();
-        baseUrls.put("mci", getMciBaseUrl()) ;
-        baseUrls.put("fr", getFrBaseUrl()) ;
-        baseUrls.put("shr", getShrBaseUrl()) ;
-        baseUrls.put("lr", getLrBaseUrl()) ;
-        baseUrls.put("tr",getTrBaseUrl());
-        baseUrls.put("pr", getPrBaseUrl());
-        return baseUrls;
-    }
-
     private String getTrBaseUrl() {
         Properties properties = getTrProperties();
         return properties.getProperty(PropertyKeyConstants.TR_REFERENCE_PATH).trim();

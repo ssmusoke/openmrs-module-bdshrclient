@@ -10,6 +10,7 @@ import org.ict4h.atomfeed.client.exceptions.AtomFeedClientException;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
+import org.openmrs.OrderType;
 import org.openmrs.Patient;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.MRSProperties;
@@ -97,7 +98,7 @@ public class EncounterPush implements EventWorker {
         orderUrlReferenceIds.put(EntityReference.REFERENCE_RESOURCE_NAME, new MedicationOrder().getResourceName());
         EntityReference entityReference = new EntityReference();
         for (Order order : orders) {
-            if (order.getOrderType().getName().equals(MRSProperties.MRS_DRUG_ORDER_TYPE)) {
+            if (order.getOrderType().getUuid().equals(OrderType.DRUG_ORDER_TYPE_UUID)) {
                 orderUrlReferenceIds.remove(EntityReference.REFERENCE_ID);
                 orderUrlReferenceIds.put(EntityReference.REFERENCE_ID, order.getUuid());
                 String orderUrl = entityReference.build(BaseResource.class, systemProperties, orderUrlReferenceIds);

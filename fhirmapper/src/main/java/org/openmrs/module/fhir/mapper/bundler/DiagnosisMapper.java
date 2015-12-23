@@ -55,7 +55,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         return diagnoses;
     }
 
-    private FHIRResource createFHIRCondition(Obs obs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
+    private FHIRResource createFHIRCondition(Obs visitDiagnosisObs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         Condition condition = new Condition();
         condition.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId()));
         condition.setPatient(fhirEncounter.getPatient());
@@ -65,7 +65,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         }
         condition.setCategory(ConditionCategoryCodesEnum.DIAGNOSIS);
 
-        final Set<Obs> obsMembers = obs.getGroupMembers(false);
+        final Set<Obs> obsMembers = visitDiagnosisObs.getGroupMembers(false);
         for (Obs member : obsMembers) {
             Concept memberConcept = member.getConcept();
             if (isCodedDiagnosisObservation(memberConcept)) {
@@ -83,10 +83,10 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         }
 
         IdentifierDt identifier = condition.addIdentifier();
-        String obsId = new EntityReference().build(IResource.class, systemProperties, obs.getUuid());
+        String obsId = new EntityReference().build(IResource.class, systemProperties, visitDiagnosisObs.getUuid());
         identifier.setValue(obsId);
         condition.setId(obsId);
-
+        condition.setNotes(visitDiagnosisObs.getComment());
         return new FHIRResource(FHIRProperties.FHIR_CONDITION_CODE_DIAGNOSIS_DISPLAY, condition.getIdentifier(), condition);
     }
 

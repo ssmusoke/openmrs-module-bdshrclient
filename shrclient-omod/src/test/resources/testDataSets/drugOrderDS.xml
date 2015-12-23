@@ -22,6 +22,10 @@
     <person_attribute person_attribute_id="1" person_id="1" value="98104750156" person_attribute_type_id="100"
                       creator="1"
                       date_created="2005-09-22 00:00:00" uuid="399e3a7b-6482-487d-94ce-c0zbbzcazcca"></person_attribute>
+    <patient_id_mapping id="110" internal_id="75e04d42-3ca8-11e3-bf2b-0800271c1b75" external_id="98104750156"
+                        uri="http:/localhost:9997/api/v1/patients/98104750156"/>
+
+
     <care_setting care_setting_id="1" name="OutPatient" description="OutPatient" care_setting_type="OUTPATIENT"
                   creator="1" date_created="2008-08-19 12:35:30.0" retired="false"
                   uuid="6f0c9a92-6f24-11e3-af88-005056821db0"/>
@@ -286,4 +290,23 @@
                 quantity_units="50" dispense_as_written="true" dose_units="807"/>
     <medication_order_id_mapping id="1" internal_id="amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0" external_id="shr_enc_id_1:amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0"
                     uri="encounters/shr_enc_id_1#MedicationOrder/amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0"/>
+    <!--Encounter for download, drug order edited in previous order-->
+    
+    <!--Encounter for upload drug order-->
+    <encounter encounter_id="38" encounter_type="1" patient_id="110" visit_id="1" location_id="2"
+               encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
+               voided="false" uuid="6d0af6767-123r-4629-9850-ttc2c6e63ab0"/>
+
+    <encounter_provider encounter_provider_id="2" encounter_id="38" provider_id="22" creator="1"
+                        date_created="2008-07-01 14:09:05.0"
+                        voided="false" uuid="6g0bf6767-707a-4329-j73e-f15206e63ab0"/>
+
+    <orders order_id="25" order_type_id="1" encounter_id="38" urgency="ROUTINE" concept_id="301"
+            date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-3" order_action="NEW"
+            care_setting="1" date_created="2008-08-19 12:20:22.0" voided="false" patient_id="110" orderer="22"
+            auto_expire_date="2008-10-09 23:59:59" uuid="amkbja86-1e43-g1f3-9qw0-ccc2c6c63ab0"/>
+    <drug_order order_id="25" drug_inventory_id="301" as_needed="false" quantity="192" duration="2"
+                duration_units="803" dosing_instructions="{&quot;instructions&quot;:&quot;As directed&quot;,&quot;eveningDose&quot;:30}"
+                quantity_units="50" dispense_as_written="true" dose_units="807"/>
+    <!--Encounter for upload drug order-->
 </dataset>
