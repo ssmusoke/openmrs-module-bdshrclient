@@ -76,6 +76,11 @@ public class SHRIdMappingDao extends IdMappingDao {
         return String.format("select distinct map.internal_id, map.external_id, map.type, map.uri, map.last_sync_datetime,map.server_update_datetime from %s map where map.internal_id=?", getMappingTable());
     }
 
+    @Override
+    public String getFetchByHealthIdSql() {
+        return String.format("select map.internal_id, map.external_id, map.type, map.uri, map.last_sync_datetime, map.server_update_datetime from %s map where map.uri like ?", getMappingTable());
+    }
+
     private String getInsertMappingSql() {
         return String.format("insert into %s (internal_id, external_id, type, uri, last_sync_datetime, server_update_datetime) values (?,?,?,?,?,?)", getMappingTable());
     }

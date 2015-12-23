@@ -26,6 +26,7 @@ public abstract class IdMappingDao {
     public abstract String getMappingTable();
     public abstract String getFetchByExternalIdSql();
     public abstract String getFetchByInternalIdSql();
+    public abstract String getFetchByHealthIdSql();
     public abstract PreparedStatement getInsertIdMappingStatement(Connection connection, IdMapping idMapping) throws SQLException;
     public abstract PreparedStatement getUpdateIdMappingStatement(Connection connection, IdMapping idMapping) throws SQLException;
     public abstract PreparedStatement getCheckMappingExistsStatement(Connection connection, IdMapping idMapping) throws SQLException;
@@ -99,6 +100,11 @@ public abstract class IdMappingDao {
     protected IdMapping findByInternalId(final String internalId) {
         List<IdMapping> idMappings = getIdMappings(internalId, getFetchByInternalIdSql());
         return idMappings.size() > 0 ? idMappings.get(0): null;
+    }
+
+    protected List<IdMapping> findByHealthId(String healthID) {
+        String likeHealthId = "%" + healthID + "%";
+        return getIdMappings(likeHealthId, getFetchByHealthIdSql());
     }
 
     private List<IdMapping> getIdMappings(final String id, final String query) {

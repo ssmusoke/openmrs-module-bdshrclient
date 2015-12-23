@@ -71,10 +71,14 @@ public class EncounterIdMappingDao extends IdMappingDao {
         return String.format("select distinct map.internal_id, map.external_id, map.uri, map.last_sync_datetime, map.server_update_datetime " +
                 "from %s map where map.external_id=?", getMappingTable());
     }
-    
     @Override
     public String getFetchByInternalIdSql(){
         return String.format("select distinct map.internal_id, map.external_id, map.uri, map.last_sync_datetime, map.server_update_datetime from %s map where map.internal_id=?", getMappingTable());
+    }
+
+    @Override
+    public String getFetchByHealthIdSql() {
+        return String.format("select map.internal_id, map.external_id, map.uri, map.last_sync_datetime, map.server_update_datetime from %s map where map.uri like ?", getMappingTable());
     }
 
     private String getInsertMappingSql() {
@@ -84,8 +88,8 @@ public class EncounterIdMappingDao extends IdMappingDao {
     private String getUpdateMappingSql() {
         return String.format("update %s set last_sync_datetime = ?, server_update_datetime = ? where internal_id = ?", getMappingTable());
     }
-
     private String getMappingExistsQuery() {
         return String.format("select distinct map.internal_id from %s map where map.internal_id=? and map.external_id=?", getMappingTable());
     }
+
 }

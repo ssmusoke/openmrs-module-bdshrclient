@@ -5,6 +5,7 @@ import org.openmrs.module.shrclient.model.IdMappingType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -32,6 +33,13 @@ public class IdMappingRepository {
     public IdMapping findByInternalId(String internalId, String idMappingType) {
        return idMappingDao(idMappingType).findByInternalId(internalId);
     }
+     public List<IdMapping> findByHealthId(String healthId){
+         List<IdMapping> idMappings = new ArrayList<>();
+         idMappings.addAll(encounterIdMappingDao.findByHealthId(healthId));
+         idMappings.addAll(shrIdMappingDao.findByHealthId(healthId));
+         return idMappings;
+     }
+
 
     private IdMappingDao idMappingDao(String idMappingType){
         if(IdMappingType.ENCOUNTER.equals(idMappingType))
