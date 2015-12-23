@@ -808,6 +808,17 @@
             <column name="uuid" valueComputed="uuid()"/>
         </insert>
     </changeSet>
+    <changeSet id="bdshrclient-11122015-1138" author="dubey" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="server_update_datetime" tableName="shr_id_mapping"/>
+            </not>
+        </preConditions>
+        <comment>Creating column shr_id_mapping.server_update_datetime</comment>
+        <addColumn tableName="shr_id_mapping">
+            <column name="server_update_datetime" type="datetime(3)"/>
+        </addColumn>
+    </changeSet>
     <changeSet id="bdshrclient-14122015-1700" author="sanjana,sukreet" context="setup">
         <preConditions onFail="MARK_RAN">
             <not>
