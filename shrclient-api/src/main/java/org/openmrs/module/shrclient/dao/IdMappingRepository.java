@@ -19,15 +19,15 @@ public class IdMappingRepository {
         this.shrIdMappingDao = shrIdMappingDao;
     }
 
-    public void saveOrUpdateIdMapping(final IdMapping idMapping) {
+    public void saveOrUpdateIdMapping(IdMapping idMapping) {
         idMappingDao(idMapping.getType()).saveOrUpdateIdMapping(idMapping);
     }
 
-    public IdMapping findByExternalId(final String externalId, String idMappingType){
+    public IdMapping findByExternalId(String externalId, String idMappingType){
         return idMappingDao(idMappingType).findByExternalId(externalId);
     }
 
-    public IdMapping findByInternalId(final String internalId, String idMappingType) {
+    public IdMapping findByInternalId(String internalId, String idMappingType) {
        return idMappingDao(idMappingType).findByInternalId(internalId);
     }
 

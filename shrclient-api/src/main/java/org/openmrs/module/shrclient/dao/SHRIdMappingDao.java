@@ -52,15 +52,9 @@ public class SHRIdMappingDao extends IdMappingDao{
     }
 
     @Override
-    public IdMapping buildIdMappingByExternalId(ResultSet resultSet, String externalId) throws SQLException {
-        return new IdMapping(resultSet.getString(1), externalId, resultSet.getString(2),
-                resultSet.getString(3), new Date(resultSet.getTimestamp(4).getTime()), DateUtil.getDateFromTimestamp(resultSet.getTimestamp(5)));
-    }
-
-    @Override
-    public IdMapping buildIdMappingByInternalId(ResultSet resultSet, String internalId) throws SQLException {
-        return new IdMapping(internalId, resultSet.getString(1), resultSet.getString(2),
-                resultSet.getString(3), new Date(resultSet.getTimestamp(4).getTime()),DateUtil.getDateFromTimestamp(resultSet.getTimestamp(5)));
+    public IdMapping buildIdMapping(ResultSet resultSet) throws SQLException {
+        return new IdMapping(resultSet.getString(1), resultSet.getString(2), resultSet.getString(3),
+                resultSet.getString(4), new Date(resultSet.getTimestamp(5).getTime()),DateUtil.getDateFromTimestamp(resultSet.getTimestamp(6)));
     }
 
     @Override
@@ -75,12 +69,12 @@ public class SHRIdMappingDao extends IdMappingDao{
 
     @Override
     public String getFetchByExternalIdSql() {
-        return String.format("select distinct map.internal_id, map.type, map.uri, map.last_sync_datetime, map.server_update_datetime " +
+        return String.format("select distinct map.internal_id, map.external_id, map.type, map.uri, map.last_sync_datetime, map.server_update_datetime " +
                 "from %s map where map.external_id=?", getMappingTable());
     }
 
     @Override
     public String getFetchByInternalIdSql() {
-        return String.format("select distinct map.external_id, map.type, map.uri, map.last_sync_datetime,map.server_update_datetime from %s map where map.internal_id=?", getMappingTable());
+        return String.format("select distinct map.internal_id, map.external_id, map.type, map.uri, map.last_sync_datetime,map.server_update_datetime from %s map where map.internal_id=?", getMappingTable());
     }
 }

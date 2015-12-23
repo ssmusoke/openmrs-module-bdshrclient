@@ -10,6 +10,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class IdMappingDao {
 
@@ -28,8 +30,7 @@ public abstract class IdMappingDao {
     public abstract String getFetchByInternalIdSql();
     public abstract PreparedStatement getInsertIdMappingStatement(Connection connection, IdMapping idMapping) throws SQLException;
     public abstract PreparedStatement getUpdateIdMappingStatement(Connection connection, IdMapping idMapping) throws SQLException;
-    public abstract IdMapping buildIdMappingByExternalId(ResultSet resultSet, String externalId) throws SQLException;
-    public abstract IdMapping buildIdMappingByInternalId(ResultSet resultSet, String internalId) throws SQLException;
+    public abstract IdMapping buildIdMapping(ResultSet resultSet) throws SQLException;
 
     protected boolean mappingExists(final IdMapping idMapping) {
         return database.executeInTransaction(new Database.TxWork<Boolean>() {
@@ -95,52 +96,29 @@ public abstract class IdMappingDao {
     }
 
     protected IdMapping findByExternalId(final String externalId) {
-        return database.executeInTransaction(new Database.TxWork<IdMapping>() {
-            @Override
-            public IdMapping execute(Connection connection) {
-                PreparedStatement statement = null;
-                ResultSet resultSet = null;
-                IdMapping result = null;
-                try {
-                    statement = connection.prepareStatement(getFetchByExternalIdSql());
-                    statement.setString(1, externalId);
-                    resultSet = statement.executeQuery();
-                    while (resultSet.next()) {
-                        if (StringUtils.isNotBlank(resultSet.getString(1))) {
-                            result = buildIdMappingByExternalId(resultSet,externalId) ;
-                            break;
-                        }
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException("Error occurred while querying id mapping", e);
-                } finally {
-                    try {
-                        if (resultSet != null) resultSet.close();
-                        if (statement != null) statement.close();
-                    } catch (SQLException e) {
-                        logger.warn("Could not close db statement or result set", e);
-                    }
-                }
-                return result;
-            }
-        });
+        List<IdMapping> idMappings = getIdMappings(externalId, getFetchByExternalIdSql());
+        return idMappings.size() > 0 ? idMappings.get(0) : null;
     }
 
     protected IdMapping findByInternalId(final String internalId) {
-        return database.executeInTransaction(new Database.TxWork<IdMapping>() {
+        List<IdMapping> idMappings = getIdMappings(internalId, getFetchByInternalIdSql());
+        return idMappings.size() > 0 ? idMappings.get(0): null;
+    }
+
+    private List<IdMapping> getIdMappings(final String id, final String query) {
+        return database.executeInTransaction(new Database.TxWork<List<IdMapping>>() {
             @Override
-            public IdMapping execute(Connection connection) {
+            public List<IdMapping> execute(Connection connection) {
                 PreparedStatement statement = null;
                 ResultSet resultSet = null;
-                IdMapping idMapping = null;
+                List<IdMapping> idMappings = new ArrayList<>();
                 try {
-                    statement = connection.prepareStatement(getFetchByInternalIdSql());
-                    statement.setString(1, internalId);
+                    statement = connection.prepareStatement(query);
+                    statement.setString(1, id);
                     resultSet = statement.executeQuery();
                     while (resultSet.next()) {
                         if (StringUtils.isNotBlank(resultSet.getString(1))) {
-                            idMapping = buildIdMappingByInternalId(resultSet, internalId) ;
-                            break;
+                            idMappings.add(buildIdMapping(resultSet));
                         }
                     }
                 } catch (Exception e) {
@@ -153,7 +131,7 @@ public abstract class IdMappingDao {
                         logger.warn("Could not close db statement or idmapping set", e);
                     }
                 }
-                return idMapping;
+                return idMappings;
             }
         });
     }

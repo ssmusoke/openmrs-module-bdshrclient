@@ -3,6 +3,7 @@ package org.openmrs.module.shrclient.dao;
 import org.apache.log4j.Logger;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.DatabaseConstants;
+import org.openmrs.module.shrclient.model.EncounterIdMapping;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.PatientIdMapping;
 import org.openmrs.module.shrclient.util.Database;
@@ -53,15 +54,9 @@ public class PatientIdMappingDao extends IdMappingDao {
     }
 
     @Override
-    public PatientIdMapping buildIdMappingByExternalId(ResultSet resultSet, String externalId) throws SQLException {
-        return new PatientIdMapping(resultSet.getString(1), externalId, resultSet.getString(2),
-                new Date(resultSet.getTimestamp(3).getTime()),DateUtil.getDateFromTimestamp(resultSet.getTimestamp(4)));
-    }
-
-    @Override
-    public PatientIdMapping buildIdMappingByInternalId(ResultSet resultSet, String internalId) throws SQLException {
-        return new PatientIdMapping(internalId, resultSet.getString(1),
-                resultSet.getString(2), new Date(resultSet.getTimestamp(3).getTime()), DateUtil.getDateFromTimestamp(resultSet.getTimestamp(4)));
+    public PatientIdMapping buildIdMapping(ResultSet resultSet) throws SQLException {
+        return new PatientIdMapping(resultSet.getString(1), resultSet.getString(2), resultSet.getString(3),
+                new Date(resultSet.getTimestamp(4).getTime()),DateUtil.getDateFromTimestamp(resultSet.getTimestamp(5)));
     }
 
     @Override
@@ -76,12 +71,12 @@ public class PatientIdMappingDao extends IdMappingDao {
 
     @Override
     public String getFetchByExternalIdSql(){
-        return String.format("select distinct map.internal_id, map.uri, map.last_sync_datetime, map.server_update_datetime " +
+        return String.format("select distinct map.internal_id, map.external_id, map.uri, map.last_sync_datetime, map.server_update_datetime " +
                 "from %s map where map.external_id=?", getMappingTable());
     }
 
     public String getFetchByInternalIdSql(){
-        return String.format("select distinct map.external_id, map.uri, map.last_sync_datetime, map.server_update_datetime from %s map where map.internal_id=?", getMappingTable());
+        return String.format("select distinct map.internal_id, map.external_id, map.uri, map.last_sync_datetime, map.server_update_datetime from %s map where map.internal_id=?", getMappingTable());
     }
 
 }
