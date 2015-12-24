@@ -44,11 +44,14 @@ public class EMREncounterService {
     private FHIRMapper fhirMapper;
     private OrderService orderService;
     private EMRPatientDeathService patientDeathService;
+    private EMRPatientMergeService emrPatientMergeService;
+
 
     @Autowired
     public EMREncounterService(@Qualifier("hieEmrPatientService") EMRPatientService emrPatientService, IdMappingRepository idMappingRepository,
                                PropertiesReader propertiesReader, SystemUserService systemUserService,
-                               VisitService visitService, FHIRMapper fhirMapper, OrderService orderService, EMRPatientDeathService patientDeathService) {
+                               VisitService visitService, FHIRMapper fhirMapper, OrderService orderService,
+                               EMRPatientDeathService patientDeathService, EMRPatientMergeService emrPatientMergeService) {
         this.emrPatientService = emrPatientService;
         this.idMappingRepository = idMappingRepository;
         this.propertiesReader = propertiesReader;
@@ -57,6 +60,7 @@ public class EMREncounterService {
         this.fhirMapper = fhirMapper;
         this.orderService = orderService;
         this.patientDeathService = patientDeathService;
+        this.emrPatientMergeService = emrPatientMergeService;
     }
 
     public void createOrUpdateEncounters(Patient emrPatient, List<EncounterEvent> encounterEvents) {
@@ -143,7 +147,7 @@ public class EMREncounterService {
     private void mergeIfHealthIdsDonotMatch(EncounterIdMapping encounterIdMapping, EncounterEvent encounterEvent) {
         if (encounterIdMapping != null && !encounterIdMapping.getHealthId().equals(encounterEvent.getHealthId())) {
             try {
-                emrPatientService.mergePatients(encounterEvent.getHealthId(), encounterIdMapping.getHealthId());
+                emrPatientMergeService.mergePatients(encounterEvent.getHealthId(), encounterIdMapping.getHealthId());
 
             } catch (SerializationException e) {
                 e.printStackTrace();

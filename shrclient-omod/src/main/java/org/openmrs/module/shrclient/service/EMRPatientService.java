@@ -40,8 +40,6 @@ public class EMRPatientService {
 
     private BbsCodeService bbsCodeService;
     private PatientService patientService;
-    private PersonService personService;
-    private OrderService orderService;
     private IdMappingRepository idMappingsRepository;
     private PropertiesReader propertiesReader;
     private SystemUserService systemUserService;
@@ -52,17 +50,15 @@ public class EMRPatientService {
     public EMRPatientService(BbsCodeService bbsCodeService,
                              PatientService patientService,
                              PersonService personService,
-                             OrderService orderService, IdMappingRepository idMappingRepository,
+                             IdMappingRepository idMappingRepository,
                              PropertiesReader propertiesReader,
                              SystemUserService systemUserService, EMRPatientDeathService patientDeathService, EncounterService encounterService) {
         this.bbsCodeService = bbsCodeService;
         this.patientService = patientService;
-        this.orderService = orderService;
         this.idMappingsRepository = idMappingRepository;
         this.propertiesReader = propertiesReader;
         this.systemUserService = systemUserService;
         this.patientDeathService = patientDeathService;
-        this.personService = personService;
         this.personAttributeMapper = new PersonAttributeMapper(personService);
     }
 
@@ -180,7 +176,7 @@ public class EMRPatientService {
         }
     }
 
-    private org.openmrs.Patient getEMRPatientByHealthId(String healthId) {
+    public org.openmrs.Patient getEMRPatientByHealthId(String healthId) {
         PatientIdMapping patientIdMapping = (PatientIdMapping) idMappingsRepository.findByExternalId(healthId, IdMappingType.PATIENT);
         if (patientIdMapping == null) return null;
         logger.info("Patient with HealthId " + healthId + " already exists. Using reference to the patient for downloaded encounters.");
@@ -247,47 +243,5 @@ public class EMRPatientService {
         patientService.savePatient(emrPatient);
     }
 
-    public void mergePatients(String toBeRetainedHealthId, String toBeRetiredHealthId) throws SerializationException {
-        org.openmrs.Patient toBeRetainedPatient = getEMRPatientByHealthId(toBeRetainedHealthId);
-        org.openmrs.Patient toBeRetiredPatient = getEMRPatientByHealthId(toBeRetiredHealthId);
-
-        voidPatientAttributes(toBeRetiredPatient, "Merged with " + toBeRetiredHealthId);
-        List<Order> voidedOrdersList = voidAllUnvoidedOrders(toBeRetiredPatient);
-
-        patientService.mergePatients(toBeRetainedPatient, toBeRetiredPatient);
-        
-        unVoidRequiredOrders(voidedOrdersList);
-    }
-
-    private List<Order> voidAllUnvoidedOrders(org.openmrs.Patient toBeRetiredPatient) {
-        List<Order> voidedOrders = new ArrayList<>();
-        List<Order> orders = orderService.getAllOrdersByPatient(toBeRetiredPatient);
-        for (Order order : orders) {
-                if (!order.isVoided()) {
-                    order.setVoided(true);
-                    voidedOrders.add(order);
-
-                }
-        }
-        return voidedOrders;
-    }
-
-    private void unVoidRequiredOrders(List<Order> voidedOrdersList) {
-        for (Order order : voidedOrdersList) {
-            order.setVoided(false);
-        }
-
-    }
-
-    private void voidPatientAttributes(org.openmrs.Patient toBeRetiredPatient, String voidReason) {
-        Set<PersonAddress> addresses = toBeRetiredPatient.getAddresses();
-        for (PersonAddress address : addresses) {
-            personService.voidPersonAddress(address, voidReason);
-        }
-        Set<PersonAttribute> attributes = toBeRetiredPatient.getAttributes();
-        for (PersonAttribute attribute : new HashSet<>(attributes)) {
-            toBeRetiredPatient.removeAttribute(attribute);
-        }
-    }
 }
 

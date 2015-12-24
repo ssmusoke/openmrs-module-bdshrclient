@@ -58,6 +58,8 @@ public class EMREncounterServiceTest {
     private ConceptService mockConceptService;
     @Mock
     private EMRPatientDeathService patientDeathService;
+    @Mock
+    private EMRPatientMergeService emrPatientMergeService;
 
     private EMREncounterService emrEncounterService;
 
@@ -71,7 +73,7 @@ public class EMREncounterServiceTest {
     public void setUp() throws Exception {
         initMocks(this);
         emrEncounterService = new EMREncounterService(mockEMRPatientService, mockIdMappingRepository, mockPropertiesReader
-                , mockSystemUserService, mockVisitService, mockFhirmapper, null, patientDeathService);
+                , mockSystemUserService, mockVisitService, mockFhirmapper, null, patientDeathService, emrPatientMergeService);
     }
 
     @Test
