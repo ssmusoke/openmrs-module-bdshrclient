@@ -107,6 +107,10 @@ public abstract class IdMappingDao {
         return getIdMappings(likeHealthId, getFetchByHealthIdSql());
     }
 
+    protected String getUpdateURIByInternalIdSql() {
+        return String.format("update %s set uri=?, last_sync_datetime=? where internal_id=?", getMappingTable());
+    }
+
     private List<IdMapping> getIdMappings(final String id, final String query) {
         return database.executeInTransaction(new Database.TxWork<List<IdMapping>>() {
             @Override

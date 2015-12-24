@@ -255,7 +255,7 @@ public class EMRPatientService {
         List<Order> voidedOrdersList = voidAllUnvoidedOrders(toBeRetiredPatient);
 
         patientService.mergePatients(toBeRetainedPatient, toBeRetiredPatient);
-
+        
         unVoidRequiredOrders(voidedOrdersList);
     }
 
