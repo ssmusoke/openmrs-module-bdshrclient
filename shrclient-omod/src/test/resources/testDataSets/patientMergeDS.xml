@@ -51,6 +51,8 @@
     <encounter encounter_id="57" encounter_type="1" patient_id="11" visit_id="1" location_id="2"
                encounter_datetime="2015-07-10 12:00:00.0" creator="1" date_created="2015-07-10 12:00:00.0"
                voided="false" uuid="6d0af6767-707a-4629-9850-ttc2c6e63ab0"/>
+    <encounter_id_mapping id="1111" internal_id="6d0af6767-707a-4629-9850-ttc2c6e63ab0" external_id="shr_enc_id_1" uri="http://shr.com/patients/11421467785/encounters/shr_enc_id_1" />
+
 
     <encounter_provider encounter_provider_id="2" encounter_id="57" provider_id="22" creator="1"
                         date_created="2015-07-10 12:00:00.0"
@@ -60,6 +62,8 @@
     <encounter encounter_id="77" encounter_type="1" patient_id="21" visit_id="2" location_id="2"
                encounter_datetime="2015-07-10 12:00:00.0" creator="1" date_created="2015-07-10 12:00:00.0"
                voided="false" uuid="6d0af6767-707a-4629-9850-ttc2c6e33abc"/>
+    <encounter_id_mapping id="1112" internal_id="6d0af6767-707a-4629-9850-ttc2c6e33abc" external_id="shr_enc_id_2" uri="http://shr.com/patients/12341467785/encounters/shr_enc_id_1" />
+
 
     <encounter_provider encounter_provider_id="2" encounter_id="57" provider_id="22" creator="1"
                         date_created="2015-07-10 12:00:00.0"

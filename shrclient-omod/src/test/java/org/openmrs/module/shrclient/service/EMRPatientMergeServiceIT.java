@@ -9,6 +9,8 @@ import org.openmrs.*;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.Constants;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
+import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -37,6 +39,8 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
     EMRPatientService emrPatientService;
     @Autowired
     EMRPatientMergeService emrPatientMergeService;
+    @Autowired
+    IdMappingRepository idMappingRepository;
 
     @Test
     public void shouldMergePatientAttributesAndVoidToBeRetiredPatient() throws Exception {
@@ -132,6 +136,31 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
         Iterator<Order> orderIterator =  mergedEncounterOne.getOrders().iterator();
         assertTrue(orderIterator.next().isVoided());
         assertFalse(orderIterator.next().isVoided());
+
+    }
+
+    @Test
+    public void shouldUpdateIDmappingsAfterMerge() throws Exception {
+        executeDataSet("testDataSets/attributeTypesDS.xml");
+        executeDataSet("testDataSets/dhakaAddressHierarchy.xml");
+        executeDataSet("testDataSets/patientMergeDS.xml");
+        org.openmrs.module.shrclient.model.Patient patientToBeRetired = getPatientFromJson("patients_response/patientWithRelations.json");
+        org.openmrs.module.shrclient.model.Patient patientToBeRetained = getPatientFromJson("patients_response/p12341467785.json");
+
+        emrPatientService.createOrUpdateEmrPatient(patientToBeRetained);
+        emrPatientService.createOrUpdateEmrPatient(patientToBeRetired);
+        String retainedHealthId = patientToBeRetained.getHealthId();
+        String retiredHealthId = patientToBeRetired.getHealthId();
+
+        assertEquals(1, idMappingRepository.findByHealthId(retainedHealthId).size());
+        assertEquals(1, idMappingRepository.findByHealthId(retiredHealthId).size());
+
+        emrPatientMergeService.mergePatients(retainedHealthId, patientToBeRetired.getHealthId());
+
+        assertEquals(2, idMappingRepository.findByHealthId(retainedHealthId).size());
+        assertEquals(0, idMappingRepository.findByHealthId(retiredHealthId).size());
+
+
 
     }
 

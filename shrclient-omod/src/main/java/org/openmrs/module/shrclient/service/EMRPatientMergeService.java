@@ -4,6 +4,7 @@ import org.openmrs.*;
 import org.openmrs.api.OrderService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.serialization.SerializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,15 +22,18 @@ public class EMRPatientMergeService {
     private PatientService patientService;
     private EMRPatientService emrPatientService;
     private PersonService personService;
+    private IdMappingRepository idMappingRepository;
 
     @Autowired
     public EMRPatientMergeService(PatientService patientService,
                                   PersonService personService,
-                                  OrderService orderService, EMRPatientService emrPatientService) {
+                                  OrderService orderService,
+                                  EMRPatientService emrPatientService, IdMappingRepository idMappingRepository) {
         this.patientService = patientService;
         this.orderService = orderService;
         this.personService = personService;
         this.emrPatientService = emrPatientService;
+        this.idMappingRepository = idMappingRepository;
     }
 
 
@@ -41,7 +45,7 @@ public class EMRPatientMergeService {
         List<Order> voidedOrdersList = voidAllUnvoidedOrders(toBeRetiredPatient);
 
         patientService.mergePatients(toBeRetainedPatient, toBeRetiredPatient);
-
+        idMappingRepository.replaceHealthId(toBeRetiredHealthId, toBeRetainedHealthId);
         unVoidRequiredOrders(voidedOrdersList);
     }
 

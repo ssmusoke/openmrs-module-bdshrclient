@@ -77,7 +77,7 @@ public class IdMappingRepository {
                 } finally {
                     try {
                         if (updateEncounterIdMappingBatch != null) updateEncounterIdMappingBatch.close();
-                        if (updateShrIdMappingBatch != null) updateEncounterIdMappingBatch.close();
+                        if (updateShrIdMappingBatch != null) updateShrIdMappingBatch.close();
                         connection.setAutoCommit(true);
                     } catch (SQLException e) {
                         logger.warn("Could not close db statement or resultset", e);
