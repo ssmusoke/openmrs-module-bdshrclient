@@ -50,7 +50,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     public List<FHIRResource> map(Obs obs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> resources = new ArrayList<>();
         CompoundObservation immunizationTemplateObs = new CompoundObservation(obs);
-        List<Obs> allObsForConceptName = immunizationTemplateObs.getAllObsForConceptName(MRS_CONCEPT_IMMUNIZATION_INCIDENT_GROUP);
+        List<Obs> allObsForConceptName = immunizationTemplateObs.getAllMemberObsForConceptName(MRS_CONCEPT_IMMUNIZATION_INCIDENT_GROUP);
         if (allObsForConceptName.isEmpty()) return new ArrayList<>();
 
         for (Obs immunizationGroupObs : allObsForConceptName) {
@@ -88,7 +88,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
     }
 
     private void setNotes(CompoundObservation immunizationIncidentObs, Immunization immunization) {
-        List<Obs> notesObsList = immunizationIncidentObs.findAllMemberObsForConceptName(MRS_CONCEPT_IMMUNIZATION_NOTE);
+        List<Obs> notesObsList = immunizationIncidentObs.getAllMemberObsForConceptName(MRS_CONCEPT_IMMUNIZATION_NOTE);
         for (Obs obs : notesObsList) {
             immunization.addNote().setText(obs.getValueText());
         }

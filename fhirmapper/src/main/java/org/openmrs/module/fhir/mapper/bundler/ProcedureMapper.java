@@ -89,7 +89,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     }
 
     private List<AnnotationDt> getProcedureNotes(CompoundObservation procedure) {
-        List<Obs> notesObses = procedure.findAllMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_NOTES);
+        List<Obs> notesObses = procedure.getAllMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_NOTES);
         ArrayList<AnnotationDt> annotationDts = new ArrayList<>();
         for (Obs notesObs : notesObses) {
             annotationDts.add(new AnnotationDt().setText(notesObs.getValueText()));
@@ -98,7 +98,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     }
 
     private void addReportToProcedure(CompoundObservation compoundObservationProcedure, FHIREncounter fhirEncounter, SystemProperties systemProperties, Procedure procedure, List<FHIRResource> allResources) {
-        List<Obs> diagnosticStudyObses = compoundObservationProcedure.findAllMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_STUDY);
+        List<Obs> diagnosticStudyObses = compoundObservationProcedure.getAllMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_STUDY);
         for (Obs diagnosticStudyObs : diagnosticStudyObses) {
             DiagnosticReport diagnosticReport = buildDiagnosticReport(new CompoundObservation(diagnosticStudyObs), fhirEncounter, systemProperties, allResources);
             if (diagnosticReport != null) {
@@ -137,7 +137,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     }
 
     private List<CodeableConceptDt> getProcedureFollowUp(CompoundObservation compoundObservationProcedure) {
-        List<Obs> followupObses = compoundObservationProcedure.findAllMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_FOLLOWUP);
+        List<Obs> followupObses = compoundObservationProcedure.getAllMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_FOLLOWUP);
         List<CodeableConceptDt> followUpCodeableConcepts = new ArrayList<>();
         for (Obs followupObs : followupObses) {
             followUpCodeableConcepts.add(codeableConceptService.addTRCodingOrDisplay(followupObs.getValueCoded()));
@@ -172,7 +172,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     }
 
     private void addDiagnosticResults(CompoundObservation diagnosticStudyObs, SystemProperties systemProperties, List<FHIRResource> allResources, DiagnosticReport diagnosticReport) {
-        for (Obs diagnosticResultObs : diagnosticStudyObs.findAllMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_RESULT)) {
+        for (Obs diagnosticResultObs : diagnosticStudyObs.getAllMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSTIC_RESULT)) {
             FHIRResource resultObservation = getResultObservationResource(diagnosticResultObs, diagnosticReport, systemProperties);
             if (resultObservation != null) {
                 diagnosticReport.addResult()
@@ -184,7 +184,7 @@ public class ProcedureMapper implements EmrObsResourceHandler {
     }
 
     private void addDiagnosisToDiagnosticReport(DiagnosticReport diagnosticReport, CompoundObservation compoundDiagnosticStudyObs) {
-        List<Obs> diagnosisObses = compoundDiagnosticStudyObs.findAllMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSIS);
+        List<Obs> diagnosisObses = compoundDiagnosticStudyObs.getAllMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_DIAGNOSIS);
         for (Obs diagnosisObs : diagnosisObses) {
             CodeableConceptDt codeableType = codeableConceptService.addTRCodingOrDisplay(diagnosisObs.getValueCoded());
             if (codeableType != null && !codeableType.isEmpty()) {

@@ -123,7 +123,7 @@
     <obs obs_id="6" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          creator="1" obs_group_id="1" concept_id="408" voided="0" uuid="eeea54cb-2a25-471a-9cd7-1430o575337a"/>
     <obs obs_id="7" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
-         creator="1" obs_group_id="1" value_coded="8" concept_id="411" voided="0" uuid="eeea54cb-2a25-471a-9cd7-14t0t5t5333a"/>
+         creator="1" obs_group_id="1" value_coded="8" concept_id="411" voided="0" uuid="eeea54cb-2a25-sjna-9cd7-14t0t5t5333a"/>
     <!--diagnosis with tr concept-->
 
     <!--diagnosis with local concept-->
@@ -142,6 +142,76 @@
     <obs obs_id="14" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
          creator="1" obs_group_id="8" value_coded="8" concept_id="411" voided="0" uuid="eeea54cb-2w4d-471a-9cd7-14t0t5t5333a"/>
     <!--diagnosis with local concept-->
-    
+
+    <!--updated diagnosis in the same encounter session-->
+    <obs obs_id="21" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" concept_id="401" voided="0" comments = "Some Comment" uuid="1f4r5sc3-29fl-471a-9cd7-1434552c337c"/>
+    <obs obs_id="22" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="21" value_coded="400" concept_id="402" voided="0" uuid="1f4r5sc3-2225-471a-9cd7-1434552c337c"/>
+    <obs obs_id="23" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="21" value_coded="406" concept_id="405" voided="0" uuid="1f4r5sc3-2s25-471a-9sd7-1s34552c337c"/>
+    <obs obs_id="24" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="21" value_coded="407" concept_id="404" voided="1" uuid="1f4r5sc3-2a25-471a-9cd7-1434a5aa337a"/>
+    <obs obs_id="25" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="21" concept_id="409" value_text="1f4r5sc3-29fl-471a-9cd7-1434552c337c" voided="0" uuid="1f4r5sc3-2a25-471a-9cd7-1430o5d5337a"/>
+    <obs obs_id="26" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="21" concept_id="408" voided="0" uuid="1f4r5sc3-2a25-471a-9cd7-1430o575337a"/>
+    <obs obs_id="27" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="21" value_coded="8" concept_id="411" voided="0" uuid="1f4r5sc3-2a25-471a-9cd7-14t0t5t5333a"/>
+    <obs obs_id="28" encounter_id="36" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="21" value_coded="417" concept_id="404" voided="0" uuid="1f4r5sc3-2a25-471a-yt3e-1434a5aa337a"/>
+    <!--updated diagnosis in the same encounter session-->
+
+
     <!--encounter with diagnosis-->
+    <!--encounter and diagnosis created initially-->
+    <encounter encounter_id="37" encounter_type="1" patient_id="1" visit_id="1" location_id="2"
+               encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
+               voided="false" uuid="6d0af6767-707a-4629-20dk-f15206e63ab0"/>
+    <encounter_provider encounter_provider_id="2" encounter_id="37" provider_id="22" creator="1" date_created="2008-07-01 14:09:05.0"
+                        voided="false" uuid="6g0bf6767-20dk-4329-9850-f15206e63ab0"/>
+    <encounter_id_mapping id="1" internal_id="6d0af6767-707a-4629-20dk-f15206e63ab0"
+                          external_id="shr_enc_id_1" uri="http://shr.com/patients/1234512345123/encounters/shr_enc_id_1" />
+
+    <obs obs_id="31" encounter_id="37" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" concept_id="401" voided="0" comments = "Some Comment" uuid="ef4554cb-3lci-471a-9cd7-1434552c337c"/>
+    <obs obs_id="32" encounter_id="37" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="31" value_coded="400" concept_id="402" voided="0" uuid="eee554cb-3lci-471a-9cd7-1434552c337c"/>
+    <obs obs_id="33" encounter_id="37" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="31" value_coded="406" concept_id="405" voided="0" uuid="eee554cb-3lci-471a-9sd7-1s34552c337c"/>
+    <obs obs_id="34" encounter_id="37" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="31" value_coded="407" concept_id="404" voided="0" uuid="eeea54cb-3lci-471a-9cd7-1434a5aa337a"/>
+    <obs obs_id="35" encounter_id="37" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="31" concept_id="409" value_text="ef4554cb-3lci-471a-9cd7-1434552c337c" voided="0" uuid="eeea54cb-2a25-3lci-9cd7-1430o5d5337a"/>
+    <obs obs_id="36" encounter_id="37" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="31" concept_id="408" voided="0" uuid="eeea54cb-2a25-471a-3lci-1430o575337a"/>
+    <obs obs_id="37" encounter_id="37" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="31" value_coded="7" concept_id="411" voided="0" uuid="eeea54cb-2a25-3lci-9cd7-14t0t5t5333a"/>
+    <diagnosis_id_mapping id="1" internal_id="ef4554cb-3lci-471a-9cd7-1434552c337c"
+                          external_id="ef4554cb-3lci-471a-9cd7-1434552c337c" uri="http://shr.com/patients/1234512345123/encounters/shr_enc_id_1#Condition/ef4554cb-3lci-471a-9cd7-1434552c337c" />
+    <!--encounter and diagnosis created initially-->
+
+    <!--new encounter with diagnosis (31) updated-->
+    <encounter encounter_id="38" encounter_type="1" patient_id="1" visit_id="1" location_id="2"
+               encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
+               voided="false" uuid="6d0af6767-707a-4629-20dv-f15206e63ab0"/>
+    <encounter_provider encounter_provider_id="2" encounter_id="38" provider_id="22" creator="1" date_created="2008-07-01 14:09:05.0"
+                        voided="false" uuid="6g0bf6767-707a-2cwd-9850-f15206e63ab0"/>
+
+    <obs obs_id="41" encounter_id="38" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" concept_id="401" voided="0" comments="Some Updated Comment" uuid="ef4554cb-2225-471a-j45g-1434552c337c"/>
+    <obs obs_id="42" encounter_id="38" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="41" value_coded="400" concept_id="402" voided="0" uuid="eee554cb-2225-471a-b3e6-1434552c337c"/>
+    <obs obs_id="43" encounter_id="38" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="41" value_coded="406" concept_id="405" voided="0" uuid="eee554cb-2s25-471a-l93s-1s34552c337c"/>
+    <obs obs_id="44" encounter_id="38" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="41" value_coded="417" concept_id="404" voided="0" uuid="eeea54cb-2a25-471a-1q23-1434a5aa337a"/>
+    <obs obs_id="45" encounter_id="38" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="41" concept_id="409" value_text="ef4554cb-3lci-471a-9cd7-1434552c337c" voided="0" uuid="eeea54cb-2a25-7y56-9cd7-1430o5d5337a"/>
+    <obs obs_id="46" encounter_id="38" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="41" concept_id="408" voided="0" uuid="eeea54cb-2a25-nadd-9cd7-1430o575337a"/>
+    <obs obs_id="47" encounter_id="38" person_id="2" obs_datetime="2008-08-18 15:09:05.0" date_created="2008-08-18 15:09:05.0"
+         creator="1" obs_group_id="41" value_coded="8" concept_id="411" voided="0" uuid="eeea54cb-2a25-471a-9cd7-14t0t5t5333a"/>
+    <!--new encounter with diagnosis (31) updated-->
+    <!--diagnosis updated in different encounter sessions-->
 </dataset>

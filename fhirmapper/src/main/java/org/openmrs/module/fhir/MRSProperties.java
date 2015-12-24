@@ -13,6 +13,9 @@ public class MRSProperties {
     public static final String MRS_CONCEPT_NAME_CODED_DIAGNOSIS = "Coded Diagnosis";
     public static final String MRS_CONCEPT_NAME_DIAGNOSIS_CERTAINTY = "Diagnosis Certainty";
     public static final String MRS_CONCEPT_NAME_DIAGNOSIS_ORDER = "Diagnosis order";
+    public final static String MRS_CONCEPT_NAME_INITIAL_DIAGNOSIS = "Bahmni Initial Diagnosis";
+    public final static String MRS_CONCEPT_NAME_DIAGNOSIS_STATUS = "Bahmni Diagnosis Status";
+    public final static String MRS_CONCEPT_NAME_DIAGNOSIS_REVISED = "Bahmni Diagnosis Revised";
 
     public static final String MRS_CONCEPT_NAME_COMPLAINT_CONDITION_TEMPLATE = "Condition Complaint Template";
     public static final String MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA = "Condition Chief Complaint Data";

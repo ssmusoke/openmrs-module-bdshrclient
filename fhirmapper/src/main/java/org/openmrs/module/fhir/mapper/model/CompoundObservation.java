@@ -26,16 +26,6 @@ public class CompoundObservation {
         return null;
     }
 
-    public List<Obs> getAllObsForConceptName(String conceptName) {
-        List<Obs> obsList = new ArrayList<>();
-        for (Obs groupMember : this.observation.getGroupMembers()) {
-            if (conceptName.equals(groupMember.getConcept().getName().getName())) {
-                obsList.add(groupMember);
-            }
-        }
-        return obsList;
-    }
-
     public Obs getMemberObsForConcept(Concept concept) {
         for (Obs groupMember : this.observation.getGroupMembers()) {
             if (concept.equals(groupMember.getConcept())) {
@@ -45,7 +35,7 @@ public class CompoundObservation {
         return null;
     }
 
-    public List<Obs> findAllMemberObsForConcept(Concept concept) {
+    public List<Obs> getAllMemberObsForConcept(Concept concept) {
         List<Obs> memberObsList = new ArrayList<>();
         for (Obs groupMember : this.observation.getGroupMembers()) {
             if (concept.equals(groupMember.getConcept())) {
@@ -56,7 +46,7 @@ public class CompoundObservation {
     }
 
 
-    public List<Obs> findAllMemberObsForConceptName(String conceptName) {
+    public List<Obs> getAllMemberObsForConceptName(String conceptName) {
         List<Obs> memberObsList = new ArrayList<>();
         for (Obs groupMember : this.observation.getGroupMembers()) {
             if (conceptName.equals(groupMember.getConcept().getName().getName())) {

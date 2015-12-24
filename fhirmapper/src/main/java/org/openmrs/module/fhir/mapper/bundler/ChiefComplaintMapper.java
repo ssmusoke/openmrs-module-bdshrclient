@@ -42,7 +42,7 @@ public class ChiefComplaintMapper implements EmrObsResourceHandler {
     public List<FHIRResource> map(Obs obs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> chiefComplaints = new ArrayList<>();
         CompoundObservation conditionTemplateObs = new CompoundObservation(obs);
-        List<Obs> chiefComplaintDataObsList = conditionTemplateObs.findAllMemberObsForConceptName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA);
+        List<Obs> chiefComplaintDataObsList = conditionTemplateObs.getAllMemberObsForConceptName(MRSProperties.MRS_CONCEPT_NAME_CHIEF_COMPLAINT_DATA);
         for (Obs chiefComplaintDataObs : chiefComplaintDataObsList) {
             chiefComplaints.add(createFHIRCondition(fhirEncounter, chiefComplaintDataObs, systemProperties));
         }

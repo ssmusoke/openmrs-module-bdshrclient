@@ -60,9 +60,9 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
         Concept codedDiagnosis = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_CODED_DIAGNOSIS);
         Concept visitDiagnosis = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_VISIT_DIAGNOSES);
 
-        Concept bahmniInitialDiagnosis = conceptService.getConceptByName("Bahmni Initial Diagnosis");
-        Concept bahmniDiagnosisStatus = conceptService.getConceptByName("Bahmni Diagnosis Status");
-        Concept bahmniDiagnosisRevised = conceptService.getConceptByName("Bahmni Diagnosis Revised");
+        Concept bahmniInitialDiagnosis = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_INITIAL_DIAGNOSIS);
+        Concept bahmniDiagnosisStatus = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_DIAGNOSIS_STATUS);
+        Concept bahmniDiagnosisRevised = conceptService.getConceptByName(MRSProperties.MRS_CONCEPT_NAME_DIAGNOSIS_REVISED);
 
         Concept diagnosisConceptAnswer = omrsConceptLookup.findConceptByCode(condition.getCode().getCoding());
         Concept diagnosisSeverityAnswer = identifyDiagnosisSeverity(diagnosisOrder);

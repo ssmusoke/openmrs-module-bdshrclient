@@ -68,7 +68,7 @@ public class FamilyMemberHistoryMapper implements EmrObsResourceHandler {
     }
 
     private void mapRelationshipConditions(FamilyMemberHistory familyMemberHistory, Obs person) {
-        List<Obs> familyMemberConditionObservations = new CompoundObservation(person).findAllMemberObsForConceptName(MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION);
+        List<Obs> familyMemberConditionObservations = new CompoundObservation(person).getAllMemberObsForConceptName(MRSProperties.MRS_CONCEPT_NAME_RELATIONSHIP_CONDITION);
         for (Obs familyMemberConditionObs : familyMemberConditionObservations) {
             FamilyMemberHistory.Condition familyMemberCondition = familyMemberHistory.addCondition();
             CompoundObservation familyMemberConditonCompoundObs = new CompoundObservation(familyMemberConditionObs);
