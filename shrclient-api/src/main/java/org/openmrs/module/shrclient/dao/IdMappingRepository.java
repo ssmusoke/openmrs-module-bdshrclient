@@ -57,22 +57,14 @@ public class IdMappingRepository {
                 PreparedStatement updateEncounterIdMappingBatch = null;
                 PreparedStatement updateShrIdMappingBatch = null;
                 try {
-                    connection.setAutoCommit(false);
                     updateEncounterIdMappingBatch = getBatchStatement(connection, reassignedEncounterIdMappings);
                     updateShrIdMappingBatch = getBatchStatement(connection, reassignedSHRIdMappings);
                     executeBatch(updateEncounterIdMappingBatch, updateShrIdMappingBatch);
-                    connection.commit();
-                } catch (Exception e) {
-                    try {
-                        connection.rollback();
-                    } catch (SQLException e1) {
-                        e1.printStackTrace();
-                    }
+                }catch (Exception e) {
                     throw new RuntimeException("Error occurred while replacing healthids of id mapping", e);
                 } finally {
                     try {
                         close(updateShrIdMappingBatch, updateEncounterIdMappingBatch);
-                        connection.setAutoCommit(true);
                     } catch (SQLException e) {
                         logger.warn("Could not close db statement or resultset", e);
                     }
