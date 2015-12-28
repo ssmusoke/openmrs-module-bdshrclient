@@ -34,6 +34,8 @@ public class DefaultEncounterFeedWorker implements EncounterEventWorker {
         String healthId = encounterEvent.getHealthId();
         try {
             Patient patient = downloadActivePatient(healthId);
+            if(healthId != patient.getHealthId())
+                encounterEvent.setHealthId(patient.getHealthId());
             org.openmrs.Patient emrPatient = emrPatientService.createOrUpdateEmrPatient(patient);
 
             if (null == emrPatient) {

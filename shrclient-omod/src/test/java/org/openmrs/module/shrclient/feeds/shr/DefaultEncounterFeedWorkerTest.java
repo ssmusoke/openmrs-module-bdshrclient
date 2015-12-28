@@ -97,7 +97,8 @@ public class DefaultEncounterFeedWorkerTest {
         RestClient mciClient = mock(RestClient.class);
         when(clientRegistry.getMCIClient()).thenReturn(mciClient);
         when(propertiesReader.getMciPatientContext()).thenReturn("http://mci.com/api/patients");
-        when(emrPatientService.createOrUpdateEmrPatient(any(Patient.class))).thenReturn(new org.openmrs.Patient());
+        org.openmrs.Patient savedEMRPatient = new org.openmrs.Patient();
+        when(emrPatientService.createOrUpdateEmrPatient(any(Patient.class))).thenReturn(savedEMRPatient);
         Patient retiredPatient1 = getRetiredPatient(retiredPatientId1, retiredPatientId2);
         Patient retiredPatient2 = getRetiredPatient(retiredPatientId2, activePatientId);
 
@@ -113,10 +114,16 @@ public class DefaultEncounterFeedWorkerTest {
         verify(mciClient, times(1)).get("http://mci.com/api/patients/"+ retiredPatientId2,Patient.class);
         verify(mciClient, times(1)).get("http://mci.com/api/patients/"+ activePatientId,Patient.class);
         ArgumentCaptor<Patient> patientArgumentCaptor = ArgumentCaptor.forClass(Patient.class);
-        verify(emrPatientService, times(1)).createOrUpdateEmrPatient(patientArgumentCaptor.capture());
+        ArgumentCaptor<EncounterEvent> encounterEventArgumentCaptor = ArgumentCaptor.forClass(EncounterEvent.class);
 
+        verify(emrPatientService, times(1)).createOrUpdateEmrPatient(patientArgumentCaptor.capture());
         Patient toBeMappedMCIPatient = patientArgumentCaptor.getValue();
         assertEquals("active_patient_id", toBeMappedMCIPatient.getHealthId());
+
+        verify(emrEncounterService, times(1)).createOrUpdateEncounter(eq(savedEMRPatient), encounterEventArgumentCaptor.capture());
+        EncounterEvent capturedEncounterEvent = encounterEventArgumentCaptor.getValue();
+        assertEquals("active_patient_id", capturedEncounterEvent.getHealthId());
+
 
     }
 

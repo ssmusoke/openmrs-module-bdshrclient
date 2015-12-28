@@ -69,6 +69,10 @@ public class EncounterEvent {
         this.encounterId = StringUtils.substringAfter(title, "Encounter:");
     }
 
+    public void setHealthId(String healthId){
+        this.healthId = healthId;
+    }
+
     public String getLink() {
         return link;
     }
