@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FHIREncounter {
-
     private Encounter encounter;
 
     public FHIREncounter(Encounter encounter) {

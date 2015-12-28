@@ -4,15 +4,21 @@ import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.resource.Condition;
 import ca.uhn.fhir.model.dstu2.valueset.ConditionVerificationStatusEnum;
+import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Concept;
 import org.openmrs.ConceptAnswer;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
+import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
+import org.openmrs.module.fhir.utils.SHREncounterURLUtil;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
+import org.openmrs.module.shrclient.model.DiagnosisIdMapping;
+import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,6 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.openmrs.module.fhir.utils.SHREncounterURLUtil.getEncounterUrl;
+
 @Component
 public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
 
@@ -30,6 +38,8 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
     private ConceptService conceptService;
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
+    @Autowired
+    private IdMappingRepository idMappingsRepository;
 
 
     public FHIRDiagnosisConditionMapper() {
@@ -50,7 +60,7 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
         Condition condition = (Condition) resource;
 
         Obs visitDiagnosisObs = new Obs();
@@ -91,8 +101,21 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
 
         Obs bahmniDiagRevisedObs = addToObsGroup(visitDiagnosisObs, bahmniDiagnosisRevised);
         bahmniDiagRevisedObs.setValueBoolean(false);
+        
+        saveIdMappingForDiagnosis(condition, visitDiagnosisObs, shrEncounterBundle, systemProperties);
 
+        visitDiagnosisObs.setComment(condition.getNotes());
         emrEncounter.addObs(visitDiagnosisObs);
+
+    }
+
+    public void saveIdMappingForDiagnosis(Condition condition, Obs visitDiagnosisObs, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
+        String encounterUrl = getEncounterUrl(shrEncounterBundle.getShrEncounterId(), shrEncounterBundle.getHealthId(), systemProperties);
+        String externalId = StringUtils.substringAfter(condition.getId().getValue(), "urn:uuid:");
+        String diagnosisUrl = String.format(Constants.RESOURCE_MAPPING_URL_FORMAT, encounterUrl,
+                new Condition().getResourceName(), externalId);
+        IdMapping diagnosisIdMapping = new DiagnosisIdMapping(visitDiagnosisObs.getUuid(), externalId, diagnosisUrl);
+        idMappingsRepository.saveOrUpdateIdMapping(diagnosisIdMapping);
     }
 
 
@@ -127,9 +150,9 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
 
     }
 
-    private Concept identifyDiagnosisSeverity(Concept diagnosisOrder) {
+    private Concept identifyDiagnosisSeverity(Concept diagnosisOrderConcept) {
         Concept severityAnswerConcept = null;
-        Collection<ConceptAnswer> answers = diagnosisOrder.getAnswers();
+        Collection<ConceptAnswer> answers = diagnosisOrderConcept.getAnswers();
         for (ConceptAnswer answer : answers) {
             if (answer.getAnswerConcept().getName().getName().equals(MRSProperties.MRS_DIAGNOSIS_SEVERITY_PRIMARY)) {
                 severityAnswerConcept = answer.getAnswerConcept();

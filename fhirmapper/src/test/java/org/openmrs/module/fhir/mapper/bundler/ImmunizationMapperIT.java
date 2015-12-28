@@ -29,7 +29,7 @@ import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 public class ImmunizationMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
-    ObsService obsService;
+    private ObsService obsService;
 
     @Autowired
     private ImmunizationMapper mapper;

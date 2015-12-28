@@ -35,9 +35,9 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
         Observation observation = (Observation) resource;
-        Obs result = mapObs(encounterComposition, emrEncounter, observation);
+        Obs result = mapObs(shrEncounterBundle, emrEncounter, observation);
         if (result == null) return;
         emrEncounter.addObs(result);
     }

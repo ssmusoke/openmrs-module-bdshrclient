@@ -48,11 +48,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Autowired
     private EncounterService encounterService;
-
-    private Bundle loadSampleFHIREncounter(String filePath) throws Exception {
-        return (Bundle) new MapperTestHelper().loadSampleFHIREncounter(filePath, springContext);
-    }
-
+    
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/labOrderDS.xml");
@@ -172,4 +168,9 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         diagnosticOrderMapper.map(resource, emrEncounter, encounterComposition, getSystemProperties("1"));
         return emrEncounter;
     }
+
+    private Bundle loadSampleFHIREncounter(String filePath) throws Exception {
+        return (Bundle) new MapperTestHelper().loadSampleFHIREncounter(filePath, springContext);
+    }
+
 }

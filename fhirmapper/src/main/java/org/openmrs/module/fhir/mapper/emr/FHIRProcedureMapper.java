@@ -42,7 +42,7 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
         Procedure procedure = (Procedure) resource;
 
         Obs proceduresObs = new Obs();
@@ -57,9 +57,9 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
         proceduresObs.addGroupMember(getProcedureStatusObs(procedure));
 
         for (ResourceReferenceDt reportReference : procedure.getReport()) {
-            IResource diagnosticReportResource = FHIRBundleHelper.findResourceByReference(encounterComposition.getBundle(), reportReference);
+            IResource diagnosticReportResource = FHIRBundleHelper.findResourceByReference(shrEncounterBundle.getBundle(), reportReference);
             if (diagnosticReportResource != null && diagnosticReportResource instanceof DiagnosticReport) {
-                proceduresObs.addGroupMember(getDiagnosisStudyObs((DiagnosticReport) diagnosticReportResource, encounterComposition.getBundle()));
+                proceduresObs.addGroupMember(getDiagnosisStudyObs((DiagnosticReport) diagnosticReportResource, shrEncounterBundle.getBundle()));
             }
         }
         emrEncounter.addObs(proceduresObs);

@@ -51,9 +51,9 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) resource;
-        createTestOrders(encounterComposition.getBundle(), diagnosticOrder, emrEncounter);
+        createTestOrders(shrEncounterBundle.getBundle(), diagnosticOrder, emrEncounter);
     }
 
     private void createTestOrders(Bundle bundle, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter) {

@@ -42,7 +42,7 @@ public class FHIRFamilyMemberHistoryMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
         FamilyMemberHistory familyMemberHistory = (FamilyMemberHistory) resource;
         Obs familyHistoryObs = new Obs();
         familyHistoryObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_NAME_FAMILY_HISTORY));

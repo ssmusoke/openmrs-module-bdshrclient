@@ -58,7 +58,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     }
 
     @Override
-    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle encounterComposition, SystemProperties systemProperties) {
+    public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
         DiagnosticReport diagnosticReport = (DiagnosticReport) resource;
         Concept concept = omrsConceptLookup.findConceptByCode(diagnosticReport.getCode().getCoding());
         if (concept == null) {
@@ -70,7 +70,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
         }
         Obs topLevelResultObsGroup = buildObs(concept, order);
 
-        Set<Obs> resultObsGroups = buildResultObsGroup(encounterComposition, emrEncounter, diagnosticReport, order, concept);
+        Set<Obs> resultObsGroups = buildResultObsGroup(shrEncounterBundle, emrEncounter, diagnosticReport, order, concept);
 
         for (Obs resultObs : resultObsGroups) {
             topLevelResultObsGroup.addGroupMember(resultObs);
