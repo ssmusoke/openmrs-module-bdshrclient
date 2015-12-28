@@ -5,12 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Test;
-import org.openmrs.*;
+import org.openmrs.Encounter;
+import org.openmrs.Order;
+import org.openmrs.Patient;
+import org.openmrs.PersonAddress;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
-import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -31,10 +34,8 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
 
     @Autowired
     private PatientService patientService;
-
     @Autowired
     private EncounterService encounterService;
-
     @Autowired
     EMRPatientService emrPatientService;
     @Autowired
@@ -152,16 +153,21 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
         String retainedHealthId = patientToBeRetained.getHealthId();
         String retiredHealthId = patientToBeRetired.getHealthId();
 
-        assertEquals(1, idMappingRepository.findByHealthId(retainedHealthId).size());
-        assertEquals(1, idMappingRepository.findByHealthId(retiredHealthId).size());
+        assertEquals(1, idMappingRepository.findByHealthId(retainedHealthId, IdMappingType.ENCOUNTER).size());
+        assertEquals(1, idMappingRepository.findByHealthId(retiredHealthId, IdMappingType.ENCOUNTER).size());
+        assertEquals(1, idMappingRepository.findByHealthId(retiredHealthId, IdMappingType.MEDICATION_ORDER).size());
+        assertEquals(0, idMappingRepository.findByHealthId(retainedHealthId, IdMappingType.MEDICATION_ORDER).size());
 
         emrPatientMergeService.mergePatients(retainedHealthId, patientToBeRetired.getHealthId());
 
-        assertEquals(2, idMappingRepository.findByHealthId(retainedHealthId).size());
-        assertEquals(0, idMappingRepository.findByHealthId(retiredHealthId).size());
+        assertEquals(2, idMappingRepository.findByHealthId(retainedHealthId, IdMappingType.ENCOUNTER).size());
+        assertEquals(0, idMappingRepository.findByHealthId(retiredHealthId, IdMappingType.ENCOUNTER).size());
 
 
-
+        assertEquals(1, idMappingRepository.findByHealthId(retiredHealthId, IdMappingType.PATIENT).size());
+        assertEquals(1, idMappingRepository.findByHealthId(retainedHealthId, IdMappingType.PATIENT).size());
+        assertEquals(0, idMappingRepository.findByHealthId(retiredHealthId, IdMappingType.MEDICATION_ORDER).size());
+        assertEquals(1, idMappingRepository.findByHealthId(retainedHealthId, IdMappingType.MEDICATION_ORDER).size());
     }
 
     private org.openmrs.module.shrclient.model.Patient getPatientFromJson(String patientJson) throws IOException {

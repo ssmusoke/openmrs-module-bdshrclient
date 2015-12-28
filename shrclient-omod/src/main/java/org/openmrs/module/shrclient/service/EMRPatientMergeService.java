@@ -1,8 +1,10 @@
 package org.openmrs.module.shrclient.service;
 
-import org.openmrs.*;
+import org.openmrs.Order;
+import org.openmrs.PatientIdentifier;
+import org.openmrs.PersonAddress;
+import org.openmrs.PersonAttribute;
 import org.openmrs.api.OrderService;
-import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.serialization.SerializationException;
@@ -19,17 +21,14 @@ public class EMRPatientMergeService {
 
 
     private OrderService orderService;
-    private PatientService patientService;
     private EMRPatientService emrPatientService;
     private PersonService personService;
     private IdMappingRepository idMappingRepository;
 
     @Autowired
-    public EMRPatientMergeService(PatientService patientService,
-                                  PersonService personService,
+    public EMRPatientMergeService(PersonService personService,
                                   OrderService orderService,
                                   EMRPatientService emrPatientService, IdMappingRepository idMappingRepository) {
-        this.patientService = patientService;
         this.orderService = orderService;
         this.personService = personService;
         this.emrPatientService = emrPatientService;
@@ -44,7 +43,7 @@ public class EMRPatientMergeService {
         voidOrRetirePatientData(toBeRetiredPatient, "Merged with " + toBeRetiredHealthId);
         List<Order> voidedOrdersList = voidAllUnvoidedOrders(toBeRetiredPatient);
 
-        patientService.mergePatients(toBeRetainedPatient, toBeRetiredPatient);
+        emrPatientService.mergePatients(toBeRetainedPatient, toBeRetiredPatient);
         idMappingRepository.replaceHealthId(toBeRetiredHealthId, toBeRetainedHealthId);
         unVoidRequiredOrders(voidedOrdersList);
     }

@@ -3,7 +3,10 @@ package org.openmrs.module.shrclient.service;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.openmrs.*;
-import org.openmrs.api.*;
+import org.openmrs.api.AdministrationService;
+import org.openmrs.api.EncounterService;
+import org.openmrs.api.PatientService;
+import org.openmrs.api.PersonService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
@@ -26,7 +29,9 @@ import org.openmrs.serialization.SerializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
 
 import static org.openmrs.module.fhir.Constants.*;
 
@@ -241,6 +246,10 @@ public class EMRPatientService {
 
     public void savePatient(org.openmrs.Patient emrPatient) {
         patientService.savePatient(emrPatient);
+    }
+
+    public void mergePatients(org.openmrs.Patient toBeRetainedPatient, org.openmrs.Patient toBeRetiredPatient) throws SerializationException {
+        patientService.mergePatients(toBeRetainedPatient, toBeRetiredPatient);
     }
 
 }

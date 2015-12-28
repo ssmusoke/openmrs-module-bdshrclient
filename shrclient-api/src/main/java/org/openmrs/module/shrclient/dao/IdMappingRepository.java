@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.sql.Statement;
 import java.util.Date;
 import java.util.List;
 
@@ -44,28 +44,23 @@ public class IdMappingRepository {
         return idMappingDao(idMappingType).findByInternalId(internalId);
     }
 
-    public List<IdMapping> findByHealthId(String healthId) {
-        List<IdMapping> idMappings = new ArrayList<>();
-        idMappings.addAll(encounterIdMappingDao.findByHealthId(healthId));
-        idMappings.addAll(shrIdMappingDao.findByHealthId(healthId));
-
-        return idMappings;
+    public List<IdMapping> findByHealthId(String healthId, String idMappingType) {
+        return idMappingDao(idMappingType).findByHealthId(healthId);
     }
 
     public void replaceHealthId(final String toBeReplaced, final String toReplaceWith) {
-        final List<IdMapping> modifiedSHRIdMappings = modifyIdMappings(shrIdMappingDao.findByHealthId(toBeReplaced), toBeReplaced, toReplaceWith);
-        final List<IdMapping> modifiedEncounterIdMappings = modifyIdMappings(encounterIdMappingDao.findByHealthId(toBeReplaced), toBeReplaced, toReplaceWith);
+        final List<IdMapping> reassignedSHRIdMappings = updateHealthIds(findByHealthId(toBeReplaced, "other"), toBeReplaced, toReplaceWith);
+        final List<IdMapping> reassignedEncounterIdMappings = updateHealthIds(findByHealthId(toBeReplaced, IdMappingType.ENCOUNTER), toBeReplaced, toReplaceWith);
         database.executeInTransaction(new Database.TxWork<Object>() {
             @Override
-            public Object execute(Connection connection){
+            public Object execute(Connection connection) {
                 PreparedStatement updateEncounterIdMappingBatch = null;
                 PreparedStatement updateShrIdMappingBatch = null;
                 try {
                     connection.setAutoCommit(false);
-                    updateEncounterIdMappingBatch = getBatchStatement(connection, modifiedEncounterIdMappings, IdMappingType.ENCOUNTER);
-                    updateShrIdMappingBatch = getBatchStatement(connection, modifiedSHRIdMappings, "");
-                    updateEncounterIdMappingBatch.executeBatch();
-                    updateShrIdMappingBatch.executeBatch();
+                    updateEncounterIdMappingBatch = getBatchStatement(connection, reassignedEncounterIdMappings);
+                    updateShrIdMappingBatch = getBatchStatement(connection, reassignedSHRIdMappings);
+                    executeBatch(updateEncounterIdMappingBatch, updateShrIdMappingBatch);
                     connection.commit();
                 } catch (Exception e) {
                     try {
@@ -73,11 +68,10 @@ public class IdMappingRepository {
                     } catch (SQLException e1) {
                         e1.printStackTrace();
                     }
-                    throw new RuntimeException("Error occurred while creating id mapping", e);
+                    throw new RuntimeException("Error occurred while replacing healthids of id mapping", e);
                 } finally {
                     try {
-                        if (updateEncounterIdMappingBatch != null) updateEncounterIdMappingBatch.close();
-                        if (updateShrIdMappingBatch != null) updateShrIdMappingBatch.close();
+                        close(updateShrIdMappingBatch, updateEncounterIdMappingBatch);
                         connection.setAutoCommit(true);
                     } catch (SQLException e) {
                         logger.warn("Could not close db statement or resultset", e);
@@ -88,17 +82,22 @@ public class IdMappingRepository {
         });
     }
 
-    private List<IdMapping> modifyIdMappings(List<IdMapping> idMappings, String originalHID, String replaceHID) {
+    private List<IdMapping> updateHealthIds(List<IdMapping> idMappings, String originalHID, String replaceHID) {
+        Date modifiedDate = new Date();
         for (IdMapping idMapping : idMappings) {
             String uri = idMapping.getUri();
             idMapping.setUri(uri.replace(originalHID, replaceHID));
-            idMapping.setLastSyncDateTime(new Date());
+            idMapping.setLastSyncDateTime(modifiedDate);
         }
         return idMappings;
     }
 
 
-    private PreparedStatement getBatchStatement(Connection connection, List<IdMapping> idMappings, String idMappingType) throws SQLException {
+    private PreparedStatement getBatchStatement(Connection connection, List<IdMapping> idMappings) throws SQLException {
+        if(idMappings.size() == 0){
+            return null;
+        }
+        String idMappingType = idMappings.get(0).getType();
         String updateURIByInternalIdSql = idMappingDao(idMappingType).getUpdateURIByInternalIdSql();
         PreparedStatement preparedStatement = connection.prepareStatement(updateURIByInternalIdSql);
         for (IdMapping idMapping : idMappings) {
@@ -108,6 +107,21 @@ public class IdMappingRepository {
             preparedStatement.addBatch();
         }
         return preparedStatement;
+    }
+
+    private void close(Statement... statements) throws SQLException {
+        for (Statement statement : statements) {
+            if(statement!=null)
+                statement.close();
+        }
+    }
+
+    private void executeBatch(Statement... statements) throws SQLException {
+        for (Statement statement : statements) {
+            if(statement!= null){
+                statement.executeBatch();
+            }
+        }
     }
 
 
