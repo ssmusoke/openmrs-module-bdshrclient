@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.openmrs.Provider;
 import org.openmrs.ProviderAttributeType;
 import org.openmrs.api.ProviderService;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.mapper.ProviderMapper;
 import org.openmrs.module.shrclient.model.ProviderEntry;
 import org.openmrs.module.shrclient.util.PropertiesReader;
@@ -74,7 +75,7 @@ public class ProviderPullTest {
         verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(PR_FEED_URI);
         verify(providerService, times(5)).saveProvider(any(Provider.class));
         verify(providerService, times(5)).getProviderByIdentifier(anyString());
-        String format = new SimpleDateFormat("YYYY-MM-dd").format(new Date());
+        String format = new SimpleDateFormat(DateUtil.SIMPLE_DATE_FORMAT).format(new Date());
         verify(scheduledTaskHistory, times(1)).setFeedUriForLastReadEntryByFeedUri(contains("list?offset=0&limit=100&updatedSince=" + format), eq(PR_FEED_URI));
         verify(scheduledTaskHistory, times(1)).setLastReadEntryId("23", PR_FEED_URI);
     }
@@ -91,7 +92,7 @@ public class ProviderPullTest {
         verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(PR_FEED_URI);
         verify(providerService, times(5)).saveProvider(any(Provider.class));
         verify(providerService, times(5)).getProviderByIdentifier(anyString());
-        String format = new SimpleDateFormat("YYYY-MM-dd").format(new Date());
+        String format = new SimpleDateFormat(DateUtil.SIMPLE_DATE_FORMAT).format(new Date());
         verify(scheduledTaskHistory, times(1)).setFeedUriForLastReadEntryByFeedUri(contains("/providers/list?offset=0&limit=100&updatedSince=" + format), eq(PR_FEED_URI));
         verify(scheduledTaskHistory, times(1)).setLastReadEntryId("23", PR_FEED_URI);
     }
@@ -107,7 +108,7 @@ public class ProviderPullTest {
         verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(PR_FEED_URI);
         verify(providerService, times(5)).saveProvider(any(Provider.class));
         verify(providerService, times(5)).getProviderByIdentifier(anyString());
-        String format = new SimpleDateFormat("YYYY-MM-dd").format(new Date());
+        String format = new SimpleDateFormat(DateUtil.SIMPLE_DATE_FORMAT).format(new Date());
         verify(scheduledTaskHistory, times(1)).setFeedUriForLastReadEntryByFeedUri(contains("/providers/list?offset=0&limit=100&updatedSince=" + format), eq(PR_FEED_URI));
         verify(scheduledTaskHistory, times(1)).setLastReadEntryId("23", PR_FEED_URI);
     }
