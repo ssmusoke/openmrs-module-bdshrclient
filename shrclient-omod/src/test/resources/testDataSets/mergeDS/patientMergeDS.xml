@@ -45,7 +45,7 @@
            voided_by="1" uuid="ad41fb41-a41a-4ad6-8835-2f59099acf5a" voided="0"/>
 
     <visit visit_id="2" date_started="2014-07-11 00:00:00" date_created="2015-07-11 00:00:00" patient_id="21"
-           visit_type_id="1" date_stopped="2015-07-17 23:59:59" location_id="2" creator="1" changed_by="1"
+           visit_type_id="1" location_id="2" creator="1" changed_by="1"
            voided_by="1" uuid="ad41fb41-a41a-4567-8835-2f59099acf5a" voided="0"/>
 
     <encounter encounter_id="57" encounter_type="1" patient_id="11" visit_id="1" location_id="2"

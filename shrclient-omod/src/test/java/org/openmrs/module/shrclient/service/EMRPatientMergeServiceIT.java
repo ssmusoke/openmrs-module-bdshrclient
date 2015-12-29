@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Test;
-import org.openmrs.Encounter;
-import org.openmrs.Order;
-import org.openmrs.Patient;
-import org.openmrs.PersonAddress;
+import org.openmrs.*;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.Constants;
@@ -47,7 +44,7 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
     public void shouldMergePatientAttributesAndVoidToBeRetiredPatient() throws Exception {
         executeDataSet("testDataSets/attributeTypesDS.xml");
         executeDataSet("testDataSets/dhakaAddressHierarchy.xml");
-        executeDataSet("testDataSets/patientMergeDS.xml");
+        executeDataSet("testDataSets/mergeDS/patientMergeDS.xml");
         org.openmrs.module.shrclient.model.Patient patientToBeRetired = getPatientFromJson("patients_response/patientWithRelations.json");
         org.openmrs.module.shrclient.model.Patient patientToBeRetained = getPatientFromJson("patients_response/p12341467785.json");
 
@@ -92,7 +89,7 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
     public void shouldMergeEncountersWhenPatientsAreMerged() throws Exception {
         executeDataSet("testDataSets/attributeTypesDS.xml");
         executeDataSet("testDataSets/dhakaAddressHierarchy.xml");
-        executeDataSet("testDataSets/patientMergeDS.xml");
+        executeDataSet("testDataSets/mergeDS/patientMergeDS.xml");
         org.openmrs.module.shrclient.model.Patient patientToBeRetired = getPatientFromJson("patients_response/patientWithRelations.json");
         org.openmrs.module.shrclient.model.Patient patientToBeRetained = getPatientFromJson("patients_response/p12341467785.json");
 
@@ -141,10 +138,101 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
     }
 
     @Test
+    public void shouldCloseActiveVisitOfRetiredPatientIfRetainedPatientHasActiveVisit() throws Exception {
+        executeDataSet("testDataSets/attributeTypesDS.xml");
+        executeDataSet("testDataSets/dhakaAddressHierarchy.xml");
+        executeDataSet("testDataSets/mergeDS/retainedPatientWithActiveVisitDS.xml");
+        org.openmrs.module.shrclient.model.Patient patientToBeRetired = getPatientFromJson("patients_response/patientWithRelations.json");
+        org.openmrs.module.shrclient.model.Patient patientToBeRetained = getPatientFromJson("patients_response/p12341467785.json");
+
+        emrPatientService.createOrUpdateEmrPatient(patientToBeRetained);
+        emrPatientService.createOrUpdateEmrPatient(patientToBeRetired);
+        String retainedHealthId = patientToBeRetained.getHealthId();
+
+        List<Encounter> encountersOfToBeRetiredPatient = encounterService.getEncountersByPatientId(11);
+        List<Encounter> encountersOfToBeRetainedPatient = encounterService.getEncountersByPatientId(21);
+
+        Date stopDateOfActiveVisitOfRetiredPatientBeforeMerge = encountersOfToBeRetiredPatient.get(0).getVisit().getStopDatetime();
+        Date startDateOfActiveVisitOfRetiredPatientBeforeMerge = encountersOfToBeRetiredPatient.get(0).getVisit().getStartDatetime();
+        Date stopDateOfClosedVisitOfRetiredPatientBeforeMerge = encountersOfToBeRetiredPatient.get(1).getVisit().getStopDatetime();
+        Date startDateOfClosedVisitOfRetiredPatientBeforeMerge = encountersOfToBeRetiredPatient.get(1).getVisit().getStartDatetime();
+        Date stopDateOfActiveVisitOfRetainedPatientBeforeMerge = encountersOfToBeRetainedPatient.get(0).getVisit().getStopDatetime();
+        Date startDateOfActiveVisitOfRetainedPatientBeforeMerge = encountersOfToBeRetainedPatient.get(0).getVisit().getStartDatetime();
+
+        assertNull(stopDateOfActiveVisitOfRetiredPatientBeforeMerge);
+        assertNull(stopDateOfActiveVisitOfRetainedPatientBeforeMerge);
+
+        emrPatientMergeService.mergePatients(retainedHealthId, patientToBeRetired.getHealthId());
+
+        List<Encounter> encountersOfToBeRetiredPatientAfterMerge = encounterService.getEncountersByPatientId(11);
+        List<Encounter> encountersOfToBeRetainedPatientAfterMerge = encounterService.getEncountersByPatientId(21);
+
+        assertEquals(0, encountersOfToBeRetiredPatientAfterMerge.size());
+        assertEquals(3, encountersOfToBeRetainedPatientAfterMerge.size());
+
+        assertEquals(startDateOfActiveVisitOfRetainedPatientBeforeMerge, encountersOfToBeRetainedPatientAfterMerge.get(0).getVisit().getStartDatetime());
+        assertNull(encountersOfToBeRetainedPatientAfterMerge.get(0).getVisit().getStopDatetime());
+
+        //active visit retired patient closes on merge if retained patient has active visit
+        assertEquals(startDateOfActiveVisitOfRetiredPatientBeforeMerge, encountersOfToBeRetainedPatientAfterMerge.get(1).getVisit().getStartDatetime());
+        assertNotNull(encountersOfToBeRetainedPatientAfterMerge.get(1).getVisit().getStopDatetime());
+
+        //closed visit times of retired patient donot change
+        assertEquals(startDateOfClosedVisitOfRetiredPatientBeforeMerge, encountersOfToBeRetainedPatientAfterMerge.get(2).getVisit().getStartDatetime());
+        assertEquals(stopDateOfClosedVisitOfRetiredPatientBeforeMerge, encountersOfToBeRetainedPatientAfterMerge.get(2).getVisit().getStopDatetime());
+    }
+
+    @Test
+    public void shouldRetainActiveVisitOfRetiredPatientIfRetainedPatientHasNoActiveVisit() throws Exception {
+        executeDataSet("testDataSets/attributeTypesDS.xml");
+        executeDataSet("testDataSets/dhakaAddressHierarchy.xml");
+        executeDataSet("testDataSets/mergeDS/retainedPatientWithNoActiveVisitDS.xml");
+        org.openmrs.module.shrclient.model.Patient patientToBeRetired = getPatientFromJson("patients_response/patientWithRelations.json");
+        org.openmrs.module.shrclient.model.Patient patientToBeRetained = getPatientFromJson("patients_response/p12341467785.json");
+
+        emrPatientService.createOrUpdateEmrPatient(patientToBeRetained);
+        emrPatientService.createOrUpdateEmrPatient(patientToBeRetired);
+        String retainedHealthId = patientToBeRetained.getHealthId();
+
+        List<Encounter> encountersOfToBeRetiredPatient = encounterService.getEncountersByPatientId(11);
+        List<Encounter> encountersOfToBeRetainedPatient = encounterService.getEncountersByPatientId(21);
+
+        Date stopDateOfActiveVisitOfRetiredPatientBeforeMerge = encountersOfToBeRetiredPatient.get(0).getVisit().getStopDatetime();
+        Date startDateOfActiveVisitOfRetiredPatientBeforeMerge = encountersOfToBeRetiredPatient.get(0).getVisit().getStartDatetime();
+        Date stopDateOfClosedVisitOfRetiredPatientBeforeMerge = encountersOfToBeRetiredPatient.get(1).getVisit().getStopDatetime();
+        Date startDateOfClosedVisitOfRetiredPatientBeforeMerge = encountersOfToBeRetiredPatient.get(1).getVisit().getStartDatetime();
+        Date stopDateOfClosedVisitOfRetainedPatientBeforeMerge = encountersOfToBeRetainedPatient.get(0).getVisit().getStopDatetime();
+        Date startDateOfClosedVisitOfRetainedPatientBeforeMerge = encountersOfToBeRetainedPatient.get(0).getVisit().getStartDatetime();
+
+        assertNull(stopDateOfActiveVisitOfRetiredPatientBeforeMerge);
+        assertNotNull(stopDateOfClosedVisitOfRetainedPatientBeforeMerge);
+
+        emrPatientMergeService.mergePatients(retainedHealthId, patientToBeRetired.getHealthId());
+
+        List<Encounter> encountersOfToBeRetiredPatientAfterMerge = encounterService.getEncountersByPatientId(11);
+        List<Encounter> encountersOfToBeRetainedPatientAfterMerge = encounterService.getEncountersByPatientId(21);
+
+        assertEquals(0, encountersOfToBeRetiredPatientAfterMerge.size());
+        assertEquals(3, encountersOfToBeRetainedPatientAfterMerge.size());
+
+        assertEquals(startDateOfClosedVisitOfRetainedPatientBeforeMerge, encountersOfToBeRetainedPatientAfterMerge.get(0).getVisit().getStartDatetime());
+        assertEquals(stopDateOfClosedVisitOfRetainedPatientBeforeMerge, encountersOfToBeRetainedPatientAfterMerge.get(0).getVisit().getStopDatetime());
+
+        //active visit retired patient remains active on merge if retained patient has no active visit
+        assertEquals(startDateOfActiveVisitOfRetiredPatientBeforeMerge, encountersOfToBeRetainedPatientAfterMerge.get(1).getVisit().getStartDatetime());
+        assertNull(encountersOfToBeRetainedPatientAfterMerge.get(1).getVisit().getStopDatetime());
+
+        //closed visit times of retired patient donot change
+        assertEquals(startDateOfClosedVisitOfRetiredPatientBeforeMerge, encountersOfToBeRetainedPatientAfterMerge.get(2).getVisit().getStartDatetime());
+        assertEquals(stopDateOfClosedVisitOfRetiredPatientBeforeMerge, encountersOfToBeRetainedPatientAfterMerge.get(2).getVisit().getStopDatetime());
+
+    }
+
+    @Test
     public void shouldUpdateIDmappingsAfterMerge() throws Exception {
         executeDataSet("testDataSets/attributeTypesDS.xml");
         executeDataSet("testDataSets/dhakaAddressHierarchy.xml");
-        executeDataSet("testDataSets/patientMergeDS.xml");
+        executeDataSet("testDataSets/mergeDS/patientMergeDS.xml");
         org.openmrs.module.shrclient.model.Patient patientToBeRetired = getPatientFromJson("patients_response/patientWithRelations.json");
         org.openmrs.module.shrclient.model.Patient patientToBeRetained = getPatientFromJson("patients_response/p12341467785.json");
 

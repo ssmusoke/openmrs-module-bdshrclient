@@ -1,26 +1,22 @@
 package org.openmrs.module.shrclient.service;
 
-import org.openmrs.Order;
-import org.openmrs.PatientIdentifier;
-import org.openmrs.PersonAddress;
-import org.openmrs.PersonAttribute;
+import org.openmrs.*;
 import org.openmrs.api.OrderService;
 import org.openmrs.api.PersonService;
+import org.openmrs.api.VisitService;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.serialization.SerializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service("hieEmrPatientMergeService")
 public class EMRPatientMergeService {
 
 
     private OrderService orderService;
+    private VisitService visitService;
     private EMRPatientService emrPatientService;
     private PersonService personService;
     private IdMappingRepository idMappingRepository;
@@ -28,11 +24,12 @@ public class EMRPatientMergeService {
     @Autowired
     public EMRPatientMergeService(PersonService personService,
                                   OrderService orderService,
-                                  EMRPatientService emrPatientService, IdMappingRepository idMappingRepository) {
+                                  EMRPatientService emrPatientService, IdMappingRepository idMappingRepository, VisitService visitService) {
         this.orderService = orderService;
         this.personService = personService;
         this.emrPatientService = emrPatientService;
         this.idMappingRepository = idMappingRepository;
+        this.visitService = visitService;
     }
 
 
@@ -40,9 +37,10 @@ public class EMRPatientMergeService {
         org.openmrs.Patient toBeRetainedPatient = emrPatientService.getEMRPatientByHealthId(toBeRetainedHealthId);
         org.openmrs.Patient toBeRetiredPatient = emrPatientService.getEMRPatientByHealthId(toBeRetiredHealthId);
 
-        voidOrRetirePatientData(toBeRetiredPatient, "Merged with " + toBeRetiredHealthId);
+        String voidReason = "Merged with " + toBeRetiredHealthId;
+        retainOneActiveVisit(toBeRetiredPatient, toBeRetainedPatient);
+        voidOrRetirePatientData(toBeRetiredPatient, voidReason);
         List<Order> voidedOrdersList = voidAllUnvoidedOrders(toBeRetiredPatient);
-
         emrPatientService.mergePatients(toBeRetainedPatient, toBeRetiredPatient);
         idMappingRepository.replaceHealthId(toBeRetiredHealthId, toBeRetainedHealthId);
         unVoidRequiredOrders(voidedOrdersList);
@@ -92,6 +90,18 @@ public class EMRPatientMergeService {
         Set<PersonAddress> addresses = toBeRetiredPatient.getAddresses();
         for(PersonAddress address : addresses) {
             personService.voidPersonAddress(address, voidReason);
+        }
+    }
+
+    private void retainOneActiveVisit(Patient toBeRetiredPatient, Patient toBeRetainedPatient) {
+        List<Visit> unVoidedActiveVisitsOfRetainedPatient = visitService.getActiveVisitsByPatient(toBeRetainedPatient);
+        if (unVoidedActiveVisitsOfRetainedPatient.size() > 0) {
+            Date stopTime = new Date();
+            List<Visit> activeVisitsOfRetiredPatient = visitService.getActiveVisitsByPatient(toBeRetiredPatient);
+            for (Visit visit : activeVisitsOfRetiredPatient) {
+                visit.setStopDatetime(stopTime);
+            }
+
         }
     }
 }
