@@ -43,7 +43,6 @@ public class ProviderPullTest {
     @Mock
     private ProviderService providerService;
 
-    private Properties properties;
     private ProviderEntry[] providerEntries;
     private ProviderPull providerPull;
 
@@ -53,7 +52,7 @@ public class ProviderPullTest {
         ProviderMapper providerMapper = new ProviderMapper(providerService);
         providerPull = new ProviderPull(propertiesReader, prClient, scheduledTaskHistory, providerMapper);
         providerEntries = getProviderEntries();
-        properties = new Properties();
+        Properties properties = new Properties();
         properties.put("pr.pathInfo", "list");
         properties.put("pr.providerUrlFormat", "/providers/%s.json");
         properties.put("pr.referenceUrl", "http://hrmtest.dghs.gov.bd/api/1.0/providers");

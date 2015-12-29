@@ -24,29 +24,25 @@ public abstract class IdMappingDao {
     }
 
     public abstract String getMappingTable();
-    public abstract String getInsertMappingSql();
-    public abstract String getUpdateMappingSql();
     public abstract String getFetchByExternalIdSql();
     public abstract String getFetchByInternalIdSql();
     public abstract PreparedStatement getInsertIdMappingStatement(Connection connection, IdMapping idMapping) throws SQLException;
     public abstract PreparedStatement getUpdateIdMappingStatement(Connection connection, IdMapping idMapping) throws SQLException;
+    public abstract PreparedStatement getCheckMappingExistsStatement(Connection connection, IdMapping idMapping) throws SQLException;
     public abstract IdMapping buildIdMapping(ResultSet resultSet) throws SQLException;
 
-    protected boolean mappingExists(final IdMapping idMapping) {
+    private boolean mappingExists(final IdMapping idMapping) {
         return database.executeInTransaction(new Database.TxWork<Boolean>() {
             @Override
             public Boolean execute(Connection connection) {
-                String query = getMappingExistsQuery();
                 PreparedStatement statement = null;
                 ResultSet resultSet = null;
                 boolean result = false;
                 try {
-                    statement = connection.prepareStatement(query);
-                    statement.setString(1, idMapping.getInternalId());
-                    statement.setString(2, idMapping.getExternalId());
+                    statement = getCheckMappingExistsStatement(connection, idMapping);
                     resultSet = statement.executeQuery();
                     while (resultSet.next()) {
-                        if (StringUtils.isNotBlank(resultSet.getString(1))) {
+                        if (null != resultSet.getObject(1)) {
                             result = true;
                             break;
                         }
@@ -135,9 +131,4 @@ public abstract class IdMappingDao {
             }
         });
     }
-
-    private String getMappingExistsQuery() {
-        return String.format("select distinct map.internal_id from %s map where map.internal_id=? and map.external_id=?", getMappingTable());
-    }
-
 }

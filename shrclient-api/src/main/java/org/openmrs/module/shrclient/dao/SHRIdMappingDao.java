@@ -15,7 +15,7 @@ import java.sql.SQLException;
 import java.util.Date;
 
 @Component("shrIdMappingDao")
-public class SHRIdMappingDao extends IdMappingDao{
+public class SHRIdMappingDao extends IdMappingDao {
 
 
     @Autowired
@@ -52,19 +52,17 @@ public class SHRIdMappingDao extends IdMappingDao{
     }
 
     @Override
+    public PreparedStatement getCheckMappingExistsStatement(Connection connection, IdMapping idMapping) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement(getMappingExistsQuery());
+        statement.setString(1, idMapping.getInternalId());
+        statement.setString(2, idMapping.getExternalId());
+        return statement;
+    }
+
+    @Override
     public IdMapping buildIdMapping(ResultSet resultSet) throws SQLException {
         return new IdMapping(resultSet.getString(1), resultSet.getString(2), resultSet.getString(3),
-                resultSet.getString(4), new Date(resultSet.getTimestamp(5).getTime()),DateUtil.getDateFromTimestamp(resultSet.getTimestamp(6)));
-    }
-
-    @Override
-    public String getInsertMappingSql() {
-        return String.format("insert into %s (internal_id, external_id, type, uri, last_sync_datetime, server_update_datetime) values (?,?,?,?,?,?)", getMappingTable());
-    }
-
-    @Override
-    public String getUpdateMappingSql() {
-        return String.format("update %s set last_sync_datetime = ?,server_update_datetime = ? where internal_id = ?", getMappingTable());
+                resultSet.getString(4), new Date(resultSet.getTimestamp(5).getTime()), DateUtil.getDateFromTimestamp(resultSet.getTimestamp(6)));
     }
 
     @Override
@@ -76,5 +74,17 @@ public class SHRIdMappingDao extends IdMappingDao{
     @Override
     public String getFetchByInternalIdSql() {
         return String.format("select distinct map.internal_id, map.external_id, map.type, map.uri, map.last_sync_datetime,map.server_update_datetime from %s map where map.internal_id=?", getMappingTable());
+    }
+
+    private String getInsertMappingSql() {
+        return String.format("insert into %s (internal_id, external_id, type, uri, last_sync_datetime, server_update_datetime) values (?,?,?,?,?,?)", getMappingTable());
+    }
+
+    private String getUpdateMappingSql() {
+        return String.format("update %s set last_sync_datetime = ?,server_update_datetime = ? where internal_id = ?", getMappingTable());
+    }
+
+    private String getMappingExistsQuery() {
+        return String.format("select distinct map.internal_id from %s map where map.internal_id=? and map.external_id=?", getMappingTable());
     }
 }
