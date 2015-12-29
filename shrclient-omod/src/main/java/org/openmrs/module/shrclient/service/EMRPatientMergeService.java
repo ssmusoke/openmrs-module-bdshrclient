@@ -37,20 +37,42 @@ public class EMRPatientMergeService {
         org.openmrs.Patient toBeRetainedPatient = emrPatientService.getEMRPatientByHealthId(toBeRetainedHealthId);
         org.openmrs.Patient toBeRetiredPatient = emrPatientService.getEMRPatientByHealthId(toBeRetiredHealthId);
 
-        String voidReason = "Merged with " + toBeRetiredHealthId;
         retainOneActiveVisit(toBeRetiredPatient, toBeRetainedPatient);
-        voidOrRetirePatientData(toBeRetiredPatient, voidReason);
-        List<Order> voidedOrdersList = voidAllUnvoidedOrders(toBeRetiredPatient);
+        voidAttributes(toBeRetiredPatient);
+        voidIdentifiers(toBeRetiredPatient);
+        List<Order> voidedOrdersList = voidUnvoidedOrders(toBeRetiredPatient);
+
         emrPatientService.mergePatients(toBeRetainedPatient, toBeRetiredPatient);
         idMappingRepository.replaceHealthId(toBeRetiredHealthId, toBeRetainedHealthId);
+
+        String voidReason = String.format("Merged from patient #%s", toBeRetiredPatient.getId());
         unVoidRequiredOrders(voidedOrdersList);
+        voidUnpreferredNames(toBeRetainedPatient.getNames(), voidReason);
+        voidUnpreferredAddress(toBeRetainedPatient.getAddresses(), voidReason);
     }
 
-    private List<Order> voidAllUnvoidedOrders(org.openmrs.Patient toBeRetiredPatient) {
+    private void voidUnpreferredAddress(Set<PersonAddress> addresses, String voidReason) {
+        for (PersonAddress address : addresses) {
+            if(!address.getPreferred()){
+                personService.voidPersonAddress(address, voidReason);
+            }
+        }
+    }
+
+    private void voidUnpreferredNames(Set<PersonName> names, String voidReason) {
+        for (PersonName name : names) {
+            if(!name.getPreferred())
+            personService.voidPersonName(name, voidReason);
+
+        }
+    }
+
+
+    private List<Order> voidUnvoidedOrders(org.openmrs.Patient patient) {
         List<Order> voidedOrders = new ArrayList<>();
-        List<Order> orders = orderService.getAllOrdersByPatient(toBeRetiredPatient);
-        for(Order order : orders) {
-            if(!order.isVoided()) {
+        List<Order> orders = orderService.getAllOrdersByPatient(patient);
+        for (Order order : orders) {
+            if (!order.isVoided()) {
                 order.setVoided(true);
                 voidedOrders.add(order);
 
@@ -60,44 +82,31 @@ public class EMRPatientMergeService {
     }
 
     private void unVoidRequiredOrders(List<Order> voidedOrdersList) {
-        for(Order order : voidedOrdersList) {
+        for (Order order : voidedOrdersList) {
             order.setVoided(false);
         }
 
     }
 
-    private void voidOrRetirePatientData(org.openmrs.Patient toBeRetiredPatient, String voidReason) {
-        voidAddress(toBeRetiredPatient, voidReason);
-        removeAttributes(toBeRetiredPatient);
-        voidIdentifiers(toBeRetiredPatient);
-    }
-
-    private void voidIdentifiers(org.openmrs.Patient toBeRetiredPatient) {
-        Set<PatientIdentifier> identifiers = toBeRetiredPatient.getIdentifiers();
-        for(PatientIdentifier identifier : identifiers) {
+    private void voidIdentifiers(Patient patient) {
+        Set<PatientIdentifier> identifiers = patient.getIdentifiers();
+        for (PatientIdentifier identifier : identifiers) {
             identifier.setVoided(true);
         }
     }
 
-    private void removeAttributes(org.openmrs.Patient toBeRetiredPatient) {
-        Set<PersonAttribute> attributes = toBeRetiredPatient.getAttributes();
-        for(PersonAttribute attribute : new HashSet<>(attributes)) {
-            toBeRetiredPatient.removeAttribute(attribute);
+    private void voidAttributes(org.openmrs.Patient patient) {
+        Set<PersonAttribute> attributes = patient.getAttributes();
+        for (PersonAttribute attribute : new HashSet<>(attributes)) {
+            attribute.setVoided(true);
         }
     }
 
-    private void voidAddress(org.openmrs.Patient toBeRetiredPatient, String voidReason) {
-        Set<PersonAddress> addresses = toBeRetiredPatient.getAddresses();
-        for(PersonAddress address : addresses) {
-            personService.voidPersonAddress(address, voidReason);
-        }
-    }
-
-    private void retainOneActiveVisit(Patient toBeRetiredPatient, Patient toBeRetainedPatient) {
+    private void retainOneActiveVisit(Patient patient, Patient toBeRetainedPatient) {
         List<Visit> unVoidedActiveVisitsOfRetainedPatient = visitService.getActiveVisitsByPatient(toBeRetainedPatient);
         if (unVoidedActiveVisitsOfRetainedPatient.size() > 0) {
             Date stopTime = new Date();
-            List<Visit> activeVisitsOfRetiredPatient = visitService.getActiveVisitsByPatient(toBeRetiredPatient);
+            List<Visit> activeVisitsOfRetiredPatient = visitService.getActiveVisitsByPatient(patient);
             for (Visit visit : activeVisitsOfRetiredPatient) {
                 visit.setStopDatetime(stopTime);
             }

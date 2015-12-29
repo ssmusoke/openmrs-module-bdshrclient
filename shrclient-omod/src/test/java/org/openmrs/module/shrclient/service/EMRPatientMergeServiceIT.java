@@ -56,25 +56,51 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
 
         Patient retiredPatient = patientService.getPatient(11);
         Patient retainedPatient = patientService.getPatient(21);
+        String expectedVoidReason = String.format("Merged with patient #%s", "21");
 
         assertTrue(retiredPatient.getVoided());
-//        assertEquals(String.format("Merged with %s", retainedHealthId), retiredPatient.getVoidReason());
-        assertFalse(retainedPatient.getVoided());
+        assertEquals(expectedVoidReason, retiredPatient.getVoidReason());
 
+        assertTrue(retiredPatient.getPerson().getPersonAddress().getVoided());
+        assertEquals(expectedVoidReason, retiredPatient.getPerson().getPersonAddress().getVoidReason());
+
+        assertEquals(0, retiredPatient.getActiveIdentifiers().size());
+        assertEquals(7, retiredPatient.getAttributes().size());
+        assertEquals(expectedVoidReason, retiredPatient.getAttributes().iterator().next().getVoidReason());
+
+        assertEquals(0, retiredPatient.getActiveAttributes().size());
+        assertEquals(1, retiredPatient.getNames().size());
+        PersonName retiredPatientName = retiredPatient.getNames().iterator().next();
+        assertTrue(retiredPatientName.getVoided());
+        assertEquals(expectedVoidReason, retiredPatientName.getVoidReason());
+
+        assertFalse(retainedPatient.getVoided());
         assertEquals(retainedHealthId, retainedPatient.getAttribute(Constants.HEALTH_ID_ATTRIBUTE).getValue());
         assertEquals("7654376543777", retainedPatient.getAttribute(Constants.NATIONAL_ID_ATTRIBUTE).getValue());
         assertEquals("54098599985409999", retainedPatient.getAttribute(Constants.BIRTH_REG_NO_ATTRIBUTE).getValue());
         assertEquals("121", retainedPatient.getAttribute(Constants.HOUSE_HOLD_CODE_ATTRIBUTE).getValue());
         assertEquals("123", retainedPatient.getAttribute(Constants.PHONE_NUMBER).getValue());
-
         assertEquals("F", retainedPatient.getGender());
+
+        assertEquals(2, retainedPatient.getNames().size());
+        assertEquals(7, retainedPatient.getActiveAttributes().size());
+        Iterator<PersonName> personNameIterator = retainedPatient.getNames().iterator();
         assertEquals("Abdul", retainedPatient.getGivenName());
         assertEquals("Khan", retainedPatient.getFamilyName());
+        String expectedVoidMessageForUnPreferred = "Merged from patient #11";
+        personNameIterator.next();
+        PersonName nameFromRetiredPatient = personNameIterator.next();
+        assertTrue(nameFromRetiredPatient.getVoided());
+        assertEquals(expectedVoidMessageForUnPreferred, nameFromRetiredPatient.getVoidReason());
+
         assertEquals("Rahman Khan", retainedPatient.getAttribute(Constants.FATHER_NAME_ATTRIBUTE_TYPE).getValue());
         assertEquals("Bismillah", retainedPatient.getAttribute(Constants.SPOUSE_NAME_ATTRIBUTE_TYPE).getValue());
+
         assertEquals(2, retainedPatient.getAddresses().size());
         Iterator<PersonAddress> addressIterator = retainedPatient.getAddresses().iterator();
         PersonAddress retainedPatientAddress = addressIterator.next();
+        assertFalse(retainedPatientAddress.getVoided());
+        assertTrue(retainedPatientAddress.getPreferred());
         assertEquals("Dhaka", retainedPatientAddress.getStateProvince());
         assertEquals("Dhaka", retainedPatientAddress.getCountyDistrict());
         assertEquals("Adabor", retainedPatientAddress.getAddress5());
@@ -82,7 +108,10 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
         assertEquals("Urban Ward No-30 (43)", retainedPatientAddress.getAddress3());
         assertEquals("house", retainedPatientAddress.getAddress1());
 
-        assertFalse(addressIterator.next().getPreferred());
+        PersonAddress retainedPatientAddress2 = addressIterator.next();
+        assertFalse(retainedPatientAddress2.getPreferred());
+        assertTrue(retainedPatientAddress2.getVoided());
+        assertEquals(expectedVoidMessageForUnPreferred, retainedPatientAddress2.getVoidReason());
     }
 
     @Test
