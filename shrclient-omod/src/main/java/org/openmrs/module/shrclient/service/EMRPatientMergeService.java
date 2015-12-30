@@ -40,21 +40,23 @@ public class EMRPatientMergeService {
         retainOneActiveVisit(toBeRetiredPatient, toBeRetainedPatient);
         voidAttributes(toBeRetiredPatient);
         voidIdentifiers(toBeRetiredPatient);
-        List<Order> voidedOrdersList = voidUnvoidedOrders(toBeRetiredPatient);
+        List<Order> ordersOfRetiredPatientVoidedOnMerge = voidUnvoidedOrders(toBeRetiredPatient);
 
         emrPatientService.mergePatients(toBeRetainedPatient, toBeRetiredPatient);
         idMappingRepository.replaceHealthId(toBeRetiredHealthId, toBeRetainedHealthId);
 
         String voidReason = String.format("Merged from patient #%s", toBeRetiredPatient.getId());
-        unVoidRequiredOrders(voidedOrdersList);
+        unVoidRequiredOrders(ordersOfRetiredPatientVoidedOnMerge);
         voidUnpreferredNames(toBeRetainedPatient.getNames(), voidReason);
         voidUnpreferredAddress(toBeRetainedPatient.getAddresses(), voidReason);
+        personService.savePerson(toBeRetainedPatient.getPerson());
     }
 
     private void voidUnpreferredAddress(Set<PersonAddress> addresses, String voidReason) {
         for (PersonAddress address : addresses) {
             if(!address.getPreferred()){
-                personService.voidPersonAddress(address, voidReason);
+                address.setVoided(true);
+                address.setVoidReason(voidReason);
             }
         }
     }
@@ -62,8 +64,8 @@ public class EMRPatientMergeService {
     private void voidUnpreferredNames(Set<PersonName> names, String voidReason) {
         for (PersonName name : names) {
             if(!name.getPreferred())
-            personService.voidPersonName(name, voidReason);
-
+                name.setVoided(true);
+                name.setVoidReason(voidReason);
         }
     }
 
