@@ -39,9 +39,9 @@
         <openMRSRuntimeVersion>1.12.0-SNAPSHOT</openMRSRuntimeVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <webservicesRestModuleVersion>2.12</webservicesRestModuleVersion>
-        <openmrsAtomfeedVersion>2.5.0</openmrsAtomfeedVersion>
+        <openmrsAtomfeedVersion>2.5.1-SNAPSHOT</openmrsAtomfeedVersion>
         <openmrs.address.hierarchy.version>2.7</openmrs.address.hierarchy.version>
-        <atomfeed.version>1.9.0</atomfeed.version>
+        <atomfeed.version>1.9.1-SNAPSHOT</atomfeed.version>
         <jackson.version>2.3.3</jackson.version>
         <httpclient.version>4.3.3</httpclient.version>
         <log4j.version>1.2.15</log4j.version>

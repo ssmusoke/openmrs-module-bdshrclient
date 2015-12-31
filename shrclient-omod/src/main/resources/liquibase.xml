@@ -943,5 +943,27 @@
             delete from shr_id_mapping where type='patient';
         </sql>
     </changeSet>
+    <changeSet id="bdshrclient-31122015-1041" context="setup" author="neha, dubey">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="date_created" tableName="event_records"/>
+            </not>
+        </preConditions>
+        <comment>Creating column date_created for queue table. This indicates the time event was raised or created.</comment>
+        <addColumn tableName="event_records">
+            <column name="date_created" type="TIMESTAMP" defaultValueDate="CURRENT_TIMESTAMP"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="bdshrclient-31122015-1043" context="setup" author="neha, dubey">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="tags" tableName="failed_events"/>
+            </not>
+        </preConditions>
+        <comment>Creating column tags for failed_events table. This is same as atom spec feed.entry.categories.</comment>
+        <addColumn tableName="failed_events">
+            <column name="tags" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
 
 </databaseChangeLog>
