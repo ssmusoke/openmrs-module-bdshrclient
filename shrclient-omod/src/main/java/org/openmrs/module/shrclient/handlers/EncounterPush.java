@@ -87,18 +87,19 @@ public class EncounterPush implements EventWorker {
             encounterUuidsProcessed.add(openMrsEncounter.getUuid());
             String encounterUrl = SHREncounterURLUtil.getEncounterUrl(shrEncounterId, healthId, systemProperties);
             saveEncounterIdMapping(openMrsEncounter, shrEncounterId, encounterUrl);
-            saveOrderIdMapping(openMrsEncounter.getOrders(), encounterUrl);
+            saveOrderIdMapping(openMrsEncounter.getOrders(), shrEncounterId, encounterUrl);
         } catch (Exception e) {
             log.error("Error while processing encounter sync event.", e);
             throw new RuntimeException(e);
         }
     }
 
-    private void saveOrderIdMapping(Set<Order> orders, String encounterUrl) {
+    private void saveOrderIdMapping(Set<Order> orders, String shrEncounterId, String encounterUrl) {
         for (Order order : orders) {
             if (order.getOrderType().getName().equals(MRSProperties.MRS_DRUG_ORDER_TYPE)) {
                 String orderUrl = String.format(Constants.RESOURCE_MAPPING_URL_FORMAT, encounterUrl, new MedicationOrder().getResourceName(), order.getUuid());
-                idMappingsRepository.saveOrUpdateIdMapping(new IdMapping(order.getUuid(), order.getUuid(), IdMappingType.MEDICATION_ORDER, orderUrl));
+                String externalId = String.format(MRSProperties.RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterId, order.getUuid());
+                idMappingsRepository.saveOrUpdateIdMapping(new MedicationOrderIdMapping(order.getUuid(), externalId, orderUrl));
             }
         }
     }

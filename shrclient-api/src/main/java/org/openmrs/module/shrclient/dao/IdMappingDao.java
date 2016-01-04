@@ -107,8 +107,19 @@ public abstract class IdMappingDao {
         return getIdMappings(likeHealthId, getFetchByHealthIdSql());
     }
 
-    protected String getUpdateURIByInternalIdSql() {
-        return String.format("update %s set uri=?, last_sync_datetime=? where internal_id=?", getMappingTable());
+    protected PreparedStatement getBatchStatement(Connection connection, List<IdMapping> idMappings) throws SQLException {
+        if (idMappings.size() == 0) {
+            return null;
+        }
+        String updateURIByInternalIdSql = String.format("update %s set uri=?, last_sync_datetime=? where internal_id=?", getMappingTable());
+        PreparedStatement preparedStatement = connection.prepareStatement(updateURIByInternalIdSql);
+        for (IdMapping idMapping : idMappings) {
+            preparedStatement.setString(1, idMapping.getUri());
+            preparedStatement.setTimestamp(2, idMapping.getLastSyncTimestamp());
+            preparedStatement.setString(3, idMapping.getInternalId());
+            preparedStatement.addBatch();
+        }
+        return preparedStatement;
     }
 
     private List<IdMapping> getIdMappings(final String id, final String query) {

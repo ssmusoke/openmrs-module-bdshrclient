@@ -141,7 +141,7 @@
                     </quantity>
                 </dispenseRequest>
                 <priorPrescription>
-                    <reference value="encounters/shr_enc_id_1#MedicationOrder/amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0"/>
+                    <reference value="encounters/shr_enc_id_3#MedicationOrder/amkb3idk-cie3-g1f3-9qw0-ccc2c6c63ab0"/>
                 </priorPrescription>
             </MedicationOrder>
         </resource>

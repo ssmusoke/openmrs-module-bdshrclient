@@ -19,6 +19,7 @@ public class IdMappingRepository {
 
     EncounterIdMappingDao encounterIdMappingDao;
     PatientIdMappingDao patientIdMappingDao;
+    MedicationOrderIdMappingDao medicationOrderIdMappingDao;
     SHRIdMappingDao shrIdMappingDao;
     Database database;
     Logger logger = Logger.getLogger(IdMappingRepository.class);
@@ -29,6 +30,7 @@ public class IdMappingRepository {
         this.database = database;
         this.encounterIdMappingDao = new EncounterIdMappingDao(database);
         this.patientIdMappingDao = new PatientIdMappingDao(database);
+        this.medicationOrderIdMappingDao = new MedicationOrderIdMappingDao(database);
         this.shrIdMappingDao = new SHRIdMappingDao(database);
     }
 
@@ -49,22 +51,22 @@ public class IdMappingRepository {
     }
 
     public void replaceHealthId(final String toBeReplaced, final String toReplaceWith) {
-        final List<IdMapping> reassignedSHRIdMappings = updateHealthIds(findByHealthId(toBeReplaced, "other"), toBeReplaced, toReplaceWith);
         final List<IdMapping> reassignedEncounterIdMappings = updateHealthIds(findByHealthId(toBeReplaced, IdMappingType.ENCOUNTER), toBeReplaced, toReplaceWith);
+        final List<IdMapping> reassignedMedicationOrderIdMappings = updateHealthIds(findByHealthId(toBeReplaced, IdMappingType.MEDICATION_ORDER), toBeReplaced, toReplaceWith);
         database.executeInTransaction(new Database.TxWork<Object>() {
             @Override
             public Object execute(Connection connection) {
                 PreparedStatement updateEncounterIdMappingBatch = null;
-                PreparedStatement updateShrIdMappingBatch = null;
+                PreparedStatement updateMedicationOrderMappingBatch = null;
                 try {
-                    updateEncounterIdMappingBatch = getBatchStatement(connection, reassignedEncounterIdMappings);
-                    updateShrIdMappingBatch = getBatchStatement(connection, reassignedSHRIdMappings);
-                    executeBatch(updateEncounterIdMappingBatch, updateShrIdMappingBatch);
-                }catch (Exception e) {
+                    updateEncounterIdMappingBatch = idMappingDao(IdMappingType.ENCOUNTER).getBatchStatement(connection, reassignedEncounterIdMappings);
+                    updateMedicationOrderMappingBatch = idMappingDao(IdMappingType.MEDICATION_ORDER).getBatchStatement(connection, reassignedMedicationOrderIdMappings);
+                    executeBatch(updateEncounterIdMappingBatch, updateMedicationOrderMappingBatch);
+                } catch (Exception e) {
                     throw new RuntimeException("Error occurred while replacing healthids of id mapping", e);
                 } finally {
                     try {
-                        close(updateShrIdMappingBatch, updateEncounterIdMappingBatch);
+                        close(updateMedicationOrderMappingBatch, updateEncounterIdMappingBatch);
                     } catch (SQLException e) {
                         logger.warn("Could not close db statement or resultset", e);
                     }
@@ -84,44 +86,29 @@ public class IdMappingRepository {
         return idMappings;
     }
 
-
-    private PreparedStatement getBatchStatement(Connection connection, List<IdMapping> idMappings) throws SQLException {
-        if(idMappings.size() == 0){
-            return null;
-        }
-        String idMappingType = idMappings.get(0).getType();
-        String updateURIByInternalIdSql = idMappingDao(idMappingType).getUpdateURIByInternalIdSql();
-        PreparedStatement preparedStatement = connection.prepareStatement(updateURIByInternalIdSql);
-        for (IdMapping idMapping : idMappings) {
-            preparedStatement.setString(1, idMapping.getUri());
-            preparedStatement.setTimestamp(2, idMapping.getLastSyncTimestamp());
-            preparedStatement.setString(3, idMapping.getInternalId());
-            preparedStatement.addBatch();
-        }
-        return preparedStatement;
-    }
-
     private void close(Statement... statements) throws SQLException {
         for (Statement statement : statements) {
-            if(statement!=null)
+            if (statement != null)
                 statement.close();
         }
     }
 
     private void executeBatch(Statement... statements) throws SQLException {
         for (Statement statement : statements) {
-            if(statement!= null){
+            if (statement != null) {
                 statement.executeBatch();
             }
         }
-    }
 
+    }
 
     private IdMappingDao idMappingDao(String idMappingType) {
         if (IdMappingType.ENCOUNTER.equals(idMappingType))
             return encounterIdMappingDao;
         else if (IdMappingType.PATIENT.equals(idMappingType))
             return patientIdMappingDao;
+        else if (IdMappingType.MEDICATION_ORDER.equals(idMappingType))
+            return medicationOrderIdMappingDao;
         else
             return shrIdMappingDao;
     }

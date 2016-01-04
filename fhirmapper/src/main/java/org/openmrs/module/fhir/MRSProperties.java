@@ -109,4 +109,6 @@ public class MRSProperties {
     public static final String CONCEPT_MAP_TYPE_MAY_BE_A = "MAY BE A";
 
     public static final String ENCOUNTER_UPDATE_VOID_REASON = "DLN:Encounter updated";
+
+    public static final String RESOURCE_MAPPING_EXTERNAL_ID_FORMAT = "%s:%s";
 }

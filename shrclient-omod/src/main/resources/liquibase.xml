@@ -965,5 +965,67 @@
             <column name="tags" type="varchar(255)"/>
         </addColumn>
     </changeSet>
-
+    <changeSet id="bdshrclient-31122015-1551" author="dubey,neha" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="medication_order_id_mapping"/>
+            </not>
+        </preConditions>
+        <comment>Create a mapping table for medication order external id to internal id mapping</comment>
+        <createTable tableName="medication_order_id_mapping">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="internal_id" type="varchar(50)"/>
+            <column name="external_id" type="varchar(100)"/>
+            <column name="uri" type="varchar(150)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="bdshrclient-31122015-1552" author="dubey,neha" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_medication_order_id_mapping_internal_id"/>
+            </not>
+        </preConditions>
+        <comment>Creating index medication_order_id_mapping.internal_id</comment>
+        <createIndex indexName="idx_medication_order_id_mapping_internal_id" tableName="medication_order_id_mapping">
+            <column name="internal_id" type="varchar(50)"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="bdshrclient-31122015-1553" author="dubey,neha" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_medication_order_id_mapping_external_id"/>
+            </not>
+        </preConditions>
+        <comment>Creating index medication_order_id_mapping.external_id</comment>
+        <createIndex indexName="idx_medication_order_id_mapping_external_id" tableName="medication_order_id_mapping">
+            <column name="external_id" type="varchar(100)"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="bdshrclient-31122015-1601" author="dubey,neha" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) != 0 from shr_id_mapping where type='MedicationOrder';
+            </sqlCheck>
+        </preConditions>
+        <comment>Moving medication order mappings to medication_order_mapping table</comment>
+        <sql>
+            insert into medication_order_id_mapping(internal_id, external_id, uri)
+            select internal_id,
+            concat_ws(':',substring_index(substring_index(uri,'/encounters/',-1),'#MedicationOrder/', 1), external_id),
+            uri from shr_id_mapping where type='MedicationOrder';
+        </sql>
+    </changeSet>
+    <changeSet id="bdshrclient-31122015-1605" author="dubey,neha" context="setup">
+        <preConditions>
+            <sqlCheck expectedResult="1">
+                select count(*) = (select count(*) from medication_order_id_mapping) from shr_id_mapping where type='MedicationOrder';
+            </sqlCheck>
+        </preConditions>
+        <comment>deleting medication order mappings form shr_id_mapping table</comment>
+        <sql>
+            delete from shr_id_mapping where type='MedicationOrder';
+        </sql>
+    </changeSet>
 </databaseChangeLog>

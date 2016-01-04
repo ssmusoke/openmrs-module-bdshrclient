@@ -5,8 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Date;
 
 public class EncounterIdMapping extends IdMapping{
-
-
     private String healthId;
 
     public EncounterIdMapping(String internalId, String externalId, String uri, Date lastSyncDateTime, Date serverUpdateDateTime) {
@@ -21,5 +19,4 @@ public class EncounterIdMapping extends IdMapping{
     public String getHealthId(){
         return this.healthId;
     }
-
 }
