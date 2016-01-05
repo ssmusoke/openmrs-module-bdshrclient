@@ -12,7 +12,7 @@
                 <identifier>
                     <value value="urn:uuid:b6e96bb0-3c95-4d19-9918-41cfc0559423"/>
                 </identifier>
-                <date value="2015-09-22T17:04:38.000+05:30"/>
+                <date value="2008-08-02T17:04:38.000+05:30"/>
                 <type>
                     <coding>
                         <system value="http://hl7.org/fhir/vs/doc-typecodes"/>
@@ -88,7 +88,7 @@
                 <identifier>
                     <value value="urn:uuid:amkbja86-awaa-11f3-9qw4-ccc26cc6ccbc"/>
                 </identifier>
-                <dateWritten value="2008-08-19T12:20:22.000+05:30"/>
+                <dateWritten value="2008-08-02T17:04:38.000+05:30"/>
                 <status value="active"/>
                 <patient>
                     <reference value="hid"/>
@@ -101,7 +101,7 @@
                 </encounter>
                 <medicationCodeableConcept>
                     <coding>
-                        <system value="drugs/104"/>
+                        <system value="http://tr.com/ws/rest/v1/tr/drugs/104"/>
                         <code value="104"/>
                         <display value="Lactic Acid"/>
                     </coding>

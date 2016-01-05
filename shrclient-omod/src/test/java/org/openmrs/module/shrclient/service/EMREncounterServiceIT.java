@@ -109,7 +109,6 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
     @Ignore("Ignored because of a bug on OpenMRS which doesn't let you save a already expired order")
     public void shouldDiscontinueATestOrderIfUpdated() throws Exception {
         executeDataSet("testDataSets/shrDiagnosticOrderSyncTestDS.xml");
-        String healthId = "HIDA764177";
         String shrEncounterId = "shr-enc-id";
 
         List<EncounterEvent> bundleWithNewTestOrder = getEncounterEvents(shrEncounterId, "encounterBundles/dstu2/encounterWithDiagnosticOrder.xml");
@@ -207,7 +206,6 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    @Ignore("Ignored because of a bug on OpenMRS which doesn't let you revise a retrospective drug order edit")
     public void shouldSaveDrugOrderEditedInDifferentEncounter() throws Exception {
         executeDataSet("testDataSets/drugOrderDS.xml");
         String shrEncounterId = "shr-enc-id";
@@ -227,7 +225,6 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    @Ignore("Ignored because of a bug on OpenMRS which doesn't let you revise a retrospective drug order edit")
     public void shouldSaveDrugOrderEditedInSameEncounter() throws Exception {
         executeDataSet("testDataSets/drugOrderDS.xml");
         String shrEncounterId = "shr-enc-id";
@@ -379,5 +376,4 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
     public void tearDown() throws Exception {
         deleteAllData();
     }
-
 }

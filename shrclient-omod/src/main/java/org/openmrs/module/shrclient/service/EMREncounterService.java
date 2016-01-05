@@ -126,7 +126,7 @@ public class EMREncounterService {
         });
         for (Order order : ordersList) {
             if (isNewOrder(order)) {
-                orderService.saveOrder(order, null);
+                orderService.saveRetrospectiveOrder(order, null);
             }
         }
     }
