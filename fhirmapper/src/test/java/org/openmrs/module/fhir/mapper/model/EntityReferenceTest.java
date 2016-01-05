@@ -1,5 +1,7 @@
 package org.openmrs.module.fhir.mapper.model;
 
+import ca.uhn.fhir.model.dstu2.resource.BaseResource;
+import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
 import org.junit.Test;
 import org.openmrs.Encounter;
 import org.openmrs.Location;
@@ -12,13 +14,14 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
-import static org.openmrs.module.fhir.utils.PropertyKeyConstants.*;
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.FACILITY_URL_FORMAT;
+import static org.openmrs.module.fhir.utils.PropertyKeyConstants.PROVIDER_REFERENCE_PATH;
 
 public class EntityReferenceTest {
     @Test
     public void shouldDefaultToIdForTypesNotDefined() {
         EntityReference entityReference = new EntityReference();
-        assertEquals("urn:uuid:1", entityReference.build(Integer.class, getSystemProperties("1234"), "1"));
+        assertEquals("urn:uuid:1", entityReference.build(Integer.class, getSystemProperties(), "1"));
     }
 
     /**
@@ -28,30 +31,7 @@ public class EntityReferenceTest {
     @Test
     public void shouldCreatePatientReference() {
         EntityReference entityReference = new EntityReference();
-        assertEquals("http://mci.com/api/default/patients/1", entityReference.build(Patient.class, getSystemProperties("1234"), "1"));
-    }
-
-    @Test
-    public void shouldCreateEncounterReference() {
-        EntityReference entityReference = new EntityReference();
-        assertEquals("1", entityReference.build(Encounter.class, getSystemProperties("1234"), "1"));
-    }
-
-    /**
-     * NOTE: while communicating with the SHR and building encounter document, the public url should be used.
-     * Because it is possible that an internal application may use SHR using IP address or url not exposed to public http
-     */
-    @Test
-    public void shouldCreateFacilityLocationReference() {
-        EntityReference entityReference = new EntityReference();
-        assertEquals("http://fr.com/api/1.0/facilities/1234.json", entityReference.build(Location.class, getSystemProperties("1234"), "1234"));
-    }
-
-    @Test
-    public void shouldParseFacilityLocationReference() throws Exception {
-        EntityReference entityReference = new EntityReference();
-        String facilityId = "1013101";
-        assertEquals(facilityId, entityReference.parse(Location.class, "http://public.com/api/1.0/facilities/1013101.json" + facilityId + ".json"));
+        assertEquals("http://mci.com/api/default/patients/1", entityReference.build(Patient.class, getSystemProperties(), "1"));
     }
 
     @Test
@@ -62,20 +42,86 @@ public class EntityReferenceTest {
     }
 
     @Test
+    public void shouldParseEncounterUrl() {
+        EntityReference entityReference = new EntityReference();
+        assertEquals("enc1", entityReference.parse(Encounter.class, "http://shr.com/patients/hid1/encounters/enc1"));
+    }
+
+    @Test
+    public void shouldGetEncounterIdFromResourceUrl() {
+        EntityReference entityReference = new EntityReference();
+        assertEquals("enc1", entityReference.parse(Encounter.class, "http://shr.com/patients/hid1/encounters/enc1#MedicationOrder/order1"));
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void shouldNotCreateEncounterReferenceWithOnlyId() {
+        EntityReference entityReference = new EntityReference();
+        entityReference.build(Encounter.class, getSystemProperties(), "1");
+    }
+
+    @Test
+    public void shouldCreateEncounterReferenceFromHealthIdAndEncounterId() {
+        EntityReference entityReference = new EntityReference();
+        String encounterUrl = entityReference.build(Encounter.class, getSystemProperties(), new HashMap<String, String>() {{
+            put(EntityReference.HEALTH_ID_REFERENCE, "hid1");
+            put(EntityReference.REFERENCE_ID, "enc1");
+        }});
+        assertEquals("http://shr.com/patients/hid1/encounters/enc1", encounterUrl);
+    }
+
+    /**
+     * NOTE: while communicating with the SHR and building encounter document, the public url should be used.
+     * Because it is possible that an internal application may use SHR using IP address or url not exposed to public http
+     */
+    @Test
+    public void shouldCreateFacilityLocationReference() {
+        EntityReference entityReference = new EntityReference();
+        assertEquals("http://fr.com/api/1.0/facilities/1234.json", entityReference.build(Location.class, getSystemProperties(), "1234"));
+    }
+
+    @Test
+    public void shouldParseFacilityLocationReference() throws Exception {
+        EntityReference entityReference = new EntityReference();
+        String facilityId = "1013101";
+        assertEquals(facilityId, entityReference.parse(Location.class, "http://public.com/api/1.0/facilities/1013101.json" + facilityId + ".json"));
+    }
+
+    @Test
     public void shouldCreateProviderReference() {
         EntityReference entityReference = new EntityReference();
-        assertEquals("http://example.com/api/1.0/providers/1234.json", entityReference.build(Provider.class, getSystemProperties("1234"), "1234"));
+        assertEquals("http://example.com/api/1.0/providers/1234.json", entityReference.build(Provider.class, getSystemProperties(), "1234"));
     }
 
     @Test
     public void shouldParseProviderUrl() {
         EntityReference entityReference = new EntityReference();
-        assertEquals("1234",entityReference.parse(Provider.class, "http://example.com/api/1.0/providers/1234.json"));
+        assertEquals("1234", entityReference.parse(Provider.class, "http://example.com/api/1.0/providers/1234.json"));
     }
 
-    private SystemProperties getSystemProperties(String facilityId) {
+    @Test(expected = RuntimeException.class)
+    public void shouldNotCreateFHIRResourceReferenceWithOnlyId() {
+        EntityReference entityReference = new EntityReference();
+        entityReference.build(BaseResource.class, getSystemProperties(), "1234");
+    }
+
+    @Test
+    public void shouldCreateFHIRResourceUrl() {
+        EntityReference entityReference = new EntityReference();
+        String resourceUrl = entityReference.build(BaseResource.class, getSystemProperties(), new HashMap<String, String>() {{
+            put(EntityReference.HEALTH_ID_REFERENCE, "hid1");
+            put(EntityReference.ENCOUNTER_ID_REFERENCE, "enc1");
+            put(EntityReference.REFERENCE_RESOURCE_NAME, "MedicationOrder");
+            put(EntityReference.REFERENCE_ID, "resource-1");
+        }});
+        assertEquals("http://shr.com/patients/hid1/encounters/enc1#MedicationOrder/resource-1", resourceUrl);
+
+    }
+
+    private SystemProperties getSystemProperties() {
         Properties shrProperties = new Properties();
-        shrProperties.setProperty(FACILITY_ID, facilityId);
+        shrProperties.put(PropertyKeyConstants.SHR_REFERENCE_PATH, "http://shr.com/");
+        shrProperties.put(PropertyKeyConstants.SHR_PATIENT_ENC_PATH_PATTERN, "patients/%s/encounters");
+
         Properties trProperties = new Properties();
 
         Properties frProperties = new Properties();
@@ -94,6 +140,6 @@ public class EntityReferenceTest {
         mciProperties.put(PropertyKeyConstants.MCI_REFERENCE_PATH, "http://mci.com/");
         mciProperties.put(PropertyKeyConstants.MCI_PATIENT_CONTEXT, "/api/default/patients");
 
-        return new SystemProperties(frProperties, trProperties, prPoperties, facilityInstanceProperties, mciProperties, new Properties());
+        return new SystemProperties(frProperties, trProperties, prPoperties, facilityInstanceProperties, mciProperties, shrProperties);
     }
 }

@@ -33,7 +33,7 @@ public class FHIREncounterMapper {
     private EncounterService encounterService;
 
     @Autowired
-    public IdMappingRepository idMappingsRepository;
+    public IdMappingRepository idMappingRepository;
 
     @Autowired
     private LocationService locationService;
@@ -78,7 +78,7 @@ public class FHIREncounterMapper {
 
     public org.openmrs.Encounter getOrCreateEmrEncounter(String fhirEncounterId) {
         org.openmrs.Encounter openmrsEncounter = null;
-        IdMapping mapping = idMappingsRepository.findByExternalId(fhirEncounterId, IdMappingType.ENCOUNTER);
+        IdMapping mapping = idMappingRepository.findByExternalId(fhirEncounterId, IdMappingType.ENCOUNTER);
         if (mapping != null) {
             openmrsEncounter = encounterService.getEncounterByUuid(mapping.getInternalId());
         }
@@ -122,7 +122,7 @@ public class FHIREncounterMapper {
     }
 
     private void setInternalFacilityId(org.openmrs.Encounter emrEncounter, String facilityId) {
-        IdMapping idMapping = idMappingsRepository.findByExternalId(facilityId, IdMappingType.FACILITY);
+        IdMapping idMapping = idMappingRepository.findByExternalId(facilityId, IdMappingType.FACILITY);
         if (idMapping == null) return;
         Location location = locationService.getLocationByUuid(idMapping.getInternalId());
         emrEncounter.setLocation(location);

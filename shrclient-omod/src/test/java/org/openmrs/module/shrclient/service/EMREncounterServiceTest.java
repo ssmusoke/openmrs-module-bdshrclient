@@ -68,7 +68,6 @@ public class EMREncounterServiceTest {
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
-
     @Before
     public void setUp() throws Exception {
         initMocks(this);

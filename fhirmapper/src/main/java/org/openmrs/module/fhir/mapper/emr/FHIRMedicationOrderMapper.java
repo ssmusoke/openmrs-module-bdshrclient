@@ -3,6 +3,7 @@ package org.openmrs.module.fhir.mapper.emr;
 import ca.uhn.fhir.model.api.ExtensionDt;
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.*;
+import ca.uhn.fhir.model.dstu2.resource.BaseResource;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
 import ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum;
 import ca.uhn.fhir.model.primitive.BooleanDt;
@@ -16,10 +17,10 @@ import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.bahmniemrapi.drugorder.dosinginstructions.FlexibleDosingInstructions;
-import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.*;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
@@ -163,12 +164,20 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
     }
 
     private void addDrugOrderToIdMapping(DrugOrder drugOrder, MedicationOrder medicationOrder, ShrEncounterBundle encounterComposition, SystemProperties systemProperties) {
-        String encounterUrl = SHREncounterURLUtil.getEncounterUrl(encounterComposition.getShrEncounterId(), encounterComposition.getHealthId(), systemProperties);
         String shrOrderId = medicationOrder.getId().getIdPart();
+        String orderUrl = getOrderUrl(encounterComposition, systemProperties, shrOrderId);
         String externalId = String.format(RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, encounterComposition.getShrEncounterId(), shrOrderId);
-        MedicationOrderIdMapping orderIdMapping = new MedicationOrderIdMapping(drugOrder.getUuid(), externalId,
-                String.format(Constants.RESOURCE_MAPPING_URL_FORMAT, encounterUrl, new MedicationOrder().getResourceName(), shrOrderId));
+        MedicationOrderIdMapping orderIdMapping = new MedicationOrderIdMapping(drugOrder.getUuid(), externalId, orderUrl);
         idMappingsRepository.saveOrUpdateIdMapping(orderIdMapping);
+    }
+
+    private String getOrderUrl(ShrEncounterBundle encounterComposition, SystemProperties systemProperties, String shrOrderId) {
+        HashMap<String, String> orderUrlReferenceIds = new HashMap<>();
+        orderUrlReferenceIds.put(EntityReference.HEALTH_ID_REFERENCE, encounterComposition.getHealthId());
+        orderUrlReferenceIds.put(EntityReference.ENCOUNTER_ID_REFERENCE, encounterComposition.getShrEncounterId());
+        orderUrlReferenceIds.put(EntityReference.REFERENCE_RESOURCE_NAME, new MedicationOrder().getResourceName());
+        orderUrlReferenceIds.put(EntityReference.REFERENCE_ID, shrOrderId);
+        return new EntityReference().build(BaseResource.class, systemProperties, orderUrlReferenceIds);
     }
 
     private boolean shouldCreatePreviousOrder(MedicationOrder medicationOrder) {

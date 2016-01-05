@@ -1,5 +1,6 @@
 package org.openmrs.module.shrclient.handlers;
 
+import ca.uhn.fhir.model.dstu2.resource.BaseResource;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,20 +12,16 @@ import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.api.EncounterService;
-import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
-import org.openmrs.module.fhir.utils.SHREncounterURLUtil;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.*;
 import org.openmrs.module.shrclient.util.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -85,27 +82,42 @@ public class EncounterPush implements EventWorker {
                 shrEncounterId = pushEncounterCreate(openMrsEncounter, healthId, systemProperties);
             }
             encounterUuidsProcessed.add(openMrsEncounter.getUuid());
-            String encounterUrl = SHREncounterURLUtil.getEncounterUrl(shrEncounterId, healthId, systemProperties);
-            saveEncounterIdMapping(openMrsEncounter, shrEncounterId, encounterUrl);
-            saveOrderIdMapping(openMrsEncounter.getOrders(), shrEncounterId, encounterUrl);
+            saveEncounterIdMapping(openMrsEncounter.getUuid(), healthId, shrEncounterId, systemProperties);
+            saveOrderIdMapping(openMrsEncounter.getOrders(), healthId, shrEncounterId, systemProperties);
         } catch (Exception e) {
             log.error("Error while processing encounter sync event.", e);
             throw new RuntimeException(e);
         }
     }
 
-    private void saveOrderIdMapping(Set<Order> orders, String shrEncounterId, String encounterUrl) {
+    private void saveOrderIdMapping(Set<Order> orders, String healthId, String shrEncounterId, SystemProperties systemProperties) {
+        HashMap<String, String> orderUrlReferenceIds = new HashMap<>();
+        orderUrlReferenceIds.put(EntityReference.HEALTH_ID_REFERENCE, healthId);
+        orderUrlReferenceIds.put(EntityReference.ENCOUNTER_ID_REFERENCE, shrEncounterId);
+        orderUrlReferenceIds.put(EntityReference.REFERENCE_RESOURCE_NAME, new MedicationOrder().getResourceName());
+        EntityReference entityReference = new EntityReference();
         for (Order order : orders) {
             if (order.getOrderType().getName().equals(MRSProperties.MRS_DRUG_ORDER_TYPE)) {
-                String orderUrl = String.format(Constants.RESOURCE_MAPPING_URL_FORMAT, encounterUrl, new MedicationOrder().getResourceName(), order.getUuid());
+                orderUrlReferenceIds.remove(EntityReference.REFERENCE_ID);
+                orderUrlReferenceIds.put(EntityReference.REFERENCE_ID, order.getUuid());
+                String orderUrl = entityReference.build(BaseResource.class, systemProperties, orderUrlReferenceIds);
                 String externalId = String.format(MRSProperties.RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterId, order.getUuid());
                 idMappingsRepository.saveOrUpdateIdMapping(new MedicationOrderIdMapping(order.getUuid(), externalId, orderUrl));
             }
         }
     }
 
-    private void saveEncounterIdMapping(Encounter openMrsEncounter, String shrEncounterId, String encounterUrl) {
-        idMappingsRepository.saveOrUpdateIdMapping(new EncounterIdMapping(openMrsEncounter.getUuid(), shrEncounterId, encounterUrl, new Date()));
+    private void saveEncounterIdMapping(String openMrsEncounterUuid, String healthId, String shrEncounterId, SystemProperties systemProperties) {
+        String shrEncounterUrl = getShrEncounterUrl(healthId, shrEncounterId, systemProperties);
+        idMappingsRepository.saveOrUpdateIdMapping(new EncounterIdMapping(openMrsEncounterUuid, shrEncounterId, shrEncounterUrl, new Date()));
+    }
+
+    private String getShrEncounterUrl(String healthId, String shrEncounterId, SystemProperties systemProperties) {
+        HashMap<String, String> encounterUrlReferenceIds1 = new HashMap<>();
+        encounterUrlReferenceIds1.put(EntityReference.HEALTH_ID_REFERENCE, healthId);
+        encounterUrlReferenceIds1.put(EntityReference.REFERENCE_ID, shrEncounterId);
+        HashMap<String, String> encounterUrlReferenceIds = encounterUrlReferenceIds1;
+        return new EntityReference().build(Encounter.class, systemProperties, encounterUrlReferenceIds);
     }
 
     private boolean shouldUploadEncounter(Encounter openMrsEncounter) {

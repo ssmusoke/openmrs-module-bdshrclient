@@ -12,6 +12,7 @@ import org.openmrs.api.OrderService;
 import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.Confidentiality;
+import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
@@ -29,7 +30,6 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 import static org.openmrs.module.fhir.mapper.model.Confidentiality.getConfidentiality;
-import static org.openmrs.module.fhir.utils.SHREncounterURLUtil.getEncounterUrl;
 
 @Service("hieEmrEncounterService")
 public class EMREncounterService {
@@ -109,10 +109,13 @@ public class EMREncounterService {
         savePatientDeathInfo(emrPatient);
     }
 
-    private void addEncounterToIdMapping(Encounter newEmrEncounter, String externalUuid, String healthId, SystemProperties systemProperties, Date encounterUpdatedDate) {
+    private void addEncounterToIdMapping(Encounter newEmrEncounter, String shrEncounterId, String healthId, SystemProperties systemProperties, Date encounterUpdatedDate) {
         String internalUuid = newEmrEncounter.getUuid();
-        String shrEncounterUrl = getEncounterUrl(externalUuid, healthId, systemProperties);
-        EncounterIdMapping encounterIdMapping = new EncounterIdMapping(internalUuid, externalUuid, shrEncounterUrl, new Date(), encounterUpdatedDate);
+        HashMap<String, String> encounterUrlReferenceIds = new HashMap<>();
+        encounterUrlReferenceIds.put(EntityReference.HEALTH_ID_REFERENCE, healthId);
+        encounterUrlReferenceIds.put(EntityReference.REFERENCE_ID, shrEncounterId);
+        String shrEncounterUrl = new EntityReference().build(Encounter.class, systemProperties, encounterUrlReferenceIds);
+        EncounterIdMapping encounterIdMapping = new EncounterIdMapping(internalUuid, shrEncounterId, shrEncounterUrl, new Date(), encounterUpdatedDate);
         idMappingRepository.saveOrUpdateIdMapping(encounterIdMapping);
     }
 

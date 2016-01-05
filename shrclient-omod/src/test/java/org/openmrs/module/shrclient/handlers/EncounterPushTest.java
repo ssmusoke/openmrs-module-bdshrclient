@@ -85,7 +85,7 @@ public class EncounterPushTest {
         org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter(uuid);
         final Bundle bundle = new Bundle();
 
-        when(propertiesReader.getShrProperties()).thenReturn(getShrProperties(facilityId));
+        when(propertiesReader.getShrProperties()).thenReturn(getShrProperties());
         when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(shrClient.post(anyString(), eq(bundle))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
@@ -123,7 +123,7 @@ public class EncounterPushTest {
         openMrsEncounter.addOrder(drugOrder);
         final Bundle bundle = new Bundle();
 
-        when(propertiesReader.getShrProperties()).thenReturn(getShrProperties(facilityId));
+        when(propertiesReader.getShrProperties()).thenReturn(getShrProperties());
         when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(shrClient.post(anyString(), eq(bundle))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
@@ -157,7 +157,7 @@ public class EncounterPushTest {
         openMrsEncounter.setDateChanged(dateCreated.plusMinutes(10).toDate());
         final Bundle bundle = new Bundle();
 
-        when(propertiesReader.getShrProperties()).thenReturn(getShrProperties(facilityId));
+        when(propertiesReader.getShrProperties()).thenReturn(getShrProperties());
         when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(idMappingRepository.findByInternalId(uuid, IdMappingType.ENCOUNTER)).thenReturn(new EncounterIdMapping(uuid, "shr-uuid", "encounter", null, openMrsEncounter.getDateCreated()));
@@ -181,7 +181,7 @@ public class EncounterPushTest {
         org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter(uuid);
         final Bundle bundle = new Bundle();
 
-        when(propertiesReader.getShrProperties()).thenReturn(getShrProperties(facilityId));
+        when(propertiesReader.getShrProperties()).thenReturn(getShrProperties());
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(idMappingRepository.findByInternalId(uuid, IdMappingType.ENCOUNTER)).thenReturn(new EncounterIdMapping(uuid, "shr-uuid", "encounter", null));
         when(compositionBundleCreator.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
@@ -239,9 +239,8 @@ public class EncounterPushTest {
         return openMrsEncounter;
     }
 
-    private Properties getShrProperties(String facilityId) {
+    private Properties getShrProperties() {
         Properties shrProperties = new Properties();
-        shrProperties.setProperty(FACILITY_ID, facilityId);
         shrProperties.setProperty(SHR_REFERENCE_PATH, "http://localhost:9997");
         shrProperties.setProperty(SHR_PATIENT_ENC_PATH_PATTERN, "/patients/%s/encounters");
         return shrProperties;
