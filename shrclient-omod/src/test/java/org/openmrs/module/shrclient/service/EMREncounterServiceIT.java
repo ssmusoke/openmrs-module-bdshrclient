@@ -40,10 +40,10 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
     private PatientService patientService;
 
     @Autowired
-    EMREncounterService emrEncounterService;
+    private EMREncounterService emrEncounterService;
 
     @Autowired
-    EncounterService encounterService;
+    private EncounterService encounterService;
 
     @Autowired
     private ProviderService providerService;
@@ -342,7 +342,6 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
 
         assertTrue(mapping1.getLastSyncDateTime().after(mapping2.getLastSyncDateTime()));
     }
-
 
 
     public Date getDateTimeAfterNMinutes(Date currentTime, int minutes) {

@@ -17,7 +17,7 @@ public class Constants {
     public static final String OCCUPATION_ATTRIBUTE = "occupation";
 
     public static final String EDUCATION_ATTRIBUTE = "education";
-    
+
     public static final String HOUSE_HOLD_CODE_ATTRIBUTE = "householdCode";
 
     public static final String IDENTIFIER_SOURCE_NAME = "BDH";

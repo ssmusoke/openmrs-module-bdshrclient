@@ -120,6 +120,15 @@ public class EMREncounterService {
     }
 
     private void saveOrders(Encounter newEmrEncounter) {
+        List<Order> ordersList = sortOrdersOnDateActivated(newEmrEncounter);
+        for (Order order : ordersList) {
+            if (isNewOrder(order)) {
+                orderService.saveRetrospectiveOrder(order, null);
+            }
+        }
+    }
+
+    private List<Order> sortOrdersOnDateActivated(Encounter newEmrEncounter) {
         List<Order> ordersList = new ArrayList<>(newEmrEncounter.getOrders());
         Collections.sort(ordersList, new Comparator<Order>() {
             @Override
@@ -127,11 +136,7 @@ public class EMREncounterService {
                 return o1.getDateActivated().compareTo(o2.getDateActivated());
             }
         });
-        for (Order order : ordersList) {
-            if (isNewOrder(order)) {
-                orderService.saveRetrospectiveOrder(order, null);
-            }
-        }
+        return ordersList;
     }
 
     private boolean isNewOrder(Order order) {

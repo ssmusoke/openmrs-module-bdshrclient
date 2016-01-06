@@ -11,8 +11,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.openmrs.Encounter;
+import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
+import org.openmrs.api.OrderContext;
+import org.openmrs.api.OrderService;
 import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
@@ -60,19 +63,21 @@ public class EMREncounterServiceTest {
     private EMRPatientDeathService patientDeathService;
     @Mock
     private EMRPatientMergeService emrPatientMergeService;
+    @Mock
+    private OrderService mockOrderService;
+    @Mock
+    private EMRPatientService mockEMRPatientService;
 
     private EMREncounterService emrEncounterService;
 
-    @Mock
-    private EMRPatientService mockEMRPatientService;
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        emrEncounterService = new EMREncounterService(mockEMRPatientService, mockIdMappingRepository, mockPropertiesReader
-                , mockSystemUserService, mockVisitService, mockFhirmapper, null, patientDeathService, emrPatientMergeService);
+        emrEncounterService = new EMREncounterService(mockEMRPatientService, mockIdMappingRepository, mockPropertiesReader,
+                mockSystemUserService, mockVisitService, mockFhirmapper, mockOrderService, patientDeathService, emrPatientMergeService);
     }
 
     @Test
@@ -225,9 +230,48 @@ public class EMREncounterServiceTest {
         verify(mockFhirmapper, times(1)).map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class));
     }
 
+    @Test
+    public void shouldNotSaveOrderIfAlreadySaved() throws Exception {
+        Bundle.Entry atomEntry = new Bundle.Entry();
+        String healthId = "health_id";
+        atomEntry.setResource(getComposition(healthId));
+        Bundle bundle = new Bundle();
+        bundle.addEntry(atomEntry);
+
+        Calendar calendar = Calendar.getInstance();
+        Date currentTime = DateTime.now().toDate();
+        calendar.setTime(currentTime);
+        calendar.add(Calendar.MINUTE, 2);
+        Date twoMinutesAfter = calendar.getTime();
+
+        String shrEncounterId = "shr_encounter_id";
+        EncounterEvent encounterEvent = getEncounterEvent(bundle, shrEncounterId);
+        String twoMinutesAfterDateString = DateUtil.toISOString(twoMinutesAfter);
+        Category category = new Category();
+        category.setTerm(ENCOUNTER_UPDATED_CATEGORY_TAG + ":" + twoMinutesAfterDateString);
+        encounterEvent.setCategories(asList(category));
+        Patient emrPatient = new Patient();
+
+        String uri = String.format("http://shr.com/patients/%s/encounters/shr_encounter_id", healthId);
+        EncounterIdMapping mapping = new EncounterIdMapping(UUID.randomUUID().toString(), shrEncounterId, uri, currentTime, currentTime);
+        when(mockIdMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER)).thenReturn(mapping);
+        Encounter encounter = new Encounter();
+        encounter.addOrder(new Order(1));
+        when(mockFhirmapper.map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class))).thenReturn(encounter);
+        when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://shr.com/");
+        Properties shrProperties = new Properties();
+        shrProperties.put(SHR_REFERENCE_PATH, "http://shr.com/");
+        shrProperties.put(SHR_PATIENT_ENC_PATH_PATTERN, "/patients/%s/encounters");
+        when(mockPropertiesReader.getShrProperties()).thenReturn(shrProperties);
+
+        emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
+        verify(mockFhirmapper, times(1)).map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class));
+        verify(mockOrderService, times(0)).saveRetrospectiveOrder(any(Order.class), isNull(OrderContext.class));
+    }
+
     private Composition getComposition(String healthId) {
         Composition composition = new Composition();
-        composition.setSubject(new ResourceReferenceDt("http://mci.com/api/default/patients/"+ healthId));
+        composition.setSubject(new ResourceReferenceDt("http://mci.com/api/default/patients/" + healthId));
         return composition;
     }
 

@@ -60,7 +60,7 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
     @Autowired
     private GlobalPropertyLookUpService globalPropertyLookUpService;
     @Autowired
-    private IdMappingRepository idMappingsRepository;
+    private IdMappingRepository idMappingRepository;
 
     private static final Logger logger = Logger.getLogger(FHIRMedicationOrderMapper.class);
 
@@ -75,11 +75,13 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
 
     @Override
     public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle encounterComposition, SystemProperties systemProperties) {
-        DrugOrder drugOrder = mapDrugOrder(encounterComposition, (MedicationOrder) resource, emrEncounter, systemProperties);
+        MedicationOrder medicationOrder = (MedicationOrder) resource;
+        if (!shouldSyncMedicationOrder(encounterComposition, medicationOrder)) return;
+        DrugOrder drugOrder = createDrugOrder(encounterComposition, medicationOrder, emrEncounter, systemProperties);
         emrEncounter.addOrder(drugOrder);
     }
 
-    private DrugOrder mapDrugOrder(ShrEncounterBundle encounterComposition, MedicationOrder medicationOrder, EmrEncounter emrEncounter, SystemProperties systemProperties) {
+    private DrugOrder createDrugOrder(ShrEncounterBundle encounterComposition, MedicationOrder medicationOrder, EmrEncounter emrEncounter, SystemProperties systemProperties) {
         DrugOrder drugOrder = new DrugOrder();
         DrugOrder previousDrugOrder = createOrFetchPreviousOrder(encounterComposition, medicationOrder, emrEncounter, systemProperties);
         if (previousDrugOrder != null) {
@@ -123,6 +125,15 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         return drugOrder;
     }
 
+    private boolean shouldSyncMedicationOrder(ShrEncounterBundle encounterComposition, MedicationOrder medicationOrder) {
+        return fetchOrderByExternalId(encounterComposition.getShrEncounterId(), medicationOrder.getId().getIdPart()) == null;
+    }
+
+    private MedicationOrderIdMapping fetchOrderByExternalId(String shrEncounterId, String medicationOrderId) {
+        String externalId = String.format(RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterId, medicationOrderId);
+        return (MedicationOrderIdMapping) idMappingRepository.findByExternalId(externalId, IdMappingType.MEDICATION_ORDER);
+    }
+
     private void setOrderAction(DrugOrder drugOrder, MedicationOrder medicationOrder) {
         List<ExtensionDt> extensions = medicationOrder.getUndeclaredExtensionsByUrl(FHIRProperties.getFhirExtensionUrl(FHIRProperties.MEDICATIONORDER_ACTION_EXTENSION_NAME));
         if (extensions == null || extensions.isEmpty()) {
@@ -143,24 +154,39 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
 
     private DrugOrder createOrFetchPreviousOrder(ShrEncounterBundle encounterComposition, MedicationOrder medicationOrder, EmrEncounter emrEncounter, SystemProperties systemProperties) {
         if (hasPriorPrescription(medicationOrder)) {
-            DrugOrder previousDrugOrder;
-            if (shouldCreatePreviousOrder(medicationOrder)) {
-                previousDrugOrder = mapDrugOrder(encounterComposition, (MedicationOrder) FHIRBundleHelper.findResourceByReference(encounterComposition.getBundle(), medicationOrder.getPriorPrescription()), emrEncounter, systemProperties);
-                emrEncounter.addOrder(previousDrugOrder);
+            if (isMedicationOrderInSameEncounter(medicationOrder)) {
+                return fetchPreviousOrderFromSameEncounter(encounterComposition, medicationOrder, emrEncounter, systemProperties);
             } else {
                 String previousOrderUrl = medicationOrder.getPriorPrescription().getReference().getValue();
-                String prevOrderEncounterId = StringUtils.substringBefore(StringUtils.substringAfterLast(previousOrderUrl, "encounters/"), "#");
+                String prevOrderEncounterId = new EntityReference().parse(Encounter.class, previousOrderUrl);
                 String previousOrderRefId = StringUtils.substringAfterLast(previousOrderUrl, "/");
                 String externalId = String.format(RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, prevOrderEncounterId, previousOrderRefId);
-                MedicationOrderIdMapping previousOrderMapping = (MedicationOrderIdMapping) idMappingsRepository.findByExternalId(externalId, IdMappingType.MEDICATION_ORDER);
+                MedicationOrderIdMapping previousOrderMapping = (MedicationOrderIdMapping) idMappingRepository.findByExternalId(externalId, IdMappingType.MEDICATION_ORDER);
                 if (previousOrderMapping == null) {
                     throw new RuntimeException(String.format("The previous order with SHR reference [%s] is not yet synced to SHR", previousOrderUrl));
                 }
-                previousDrugOrder = (DrugOrder) orderService.getOrderByUuid(previousOrderMapping.getInternalId());
+                return (DrugOrder) orderService.getOrderByUuid(previousOrderMapping.getInternalId());
             }
-            return previousDrugOrder;
         }
         return null;
+    }
+
+    private DrugOrder fetchPreviousOrderFromSameEncounter(ShrEncounterBundle encounterComposition, MedicationOrder medicationOrder, EmrEncounter emrEncounter, SystemProperties systemProperties) {
+        DrugOrder previousDrugOrder;
+        MedicationOrderIdMapping medicationOrderIdMapping = fetchOrderByExternalId(encounterComposition.getShrEncounterId(), medicationOrder.getPriorPrescription().getReference().getIdPart());
+        if (medicationOrderIdMapping != null) {
+            previousDrugOrder = (DrugOrder) orderService.getOrderByUuid(medicationOrderIdMapping.getInternalId());
+        } else {
+            previousDrugOrder = createPreviousOrder(encounterComposition, medicationOrder, emrEncounter, systemProperties);
+        }
+        return previousDrugOrder;
+    }
+
+    private DrugOrder createPreviousOrder(ShrEncounterBundle encounterComposition, MedicationOrder medicationOrder, EmrEncounter emrEncounter, SystemProperties systemProperties) {
+        DrugOrder previousDrugOrder;
+        previousDrugOrder = createDrugOrder(encounterComposition, (MedicationOrder) FHIRBundleHelper.findResourceByReference(encounterComposition.getBundle(), medicationOrder.getPriorPrescription()), emrEncounter, systemProperties);
+        emrEncounter.addOrder(previousDrugOrder);
+        return previousDrugOrder;
     }
 
     private void addDrugOrderToIdMapping(DrugOrder drugOrder, MedicationOrder medicationOrder, ShrEncounterBundle encounterComposition, SystemProperties systemProperties) {
@@ -168,7 +194,7 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         String orderUrl = getOrderUrl(encounterComposition, systemProperties, shrOrderId);
         String externalId = String.format(RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, encounterComposition.getShrEncounterId(), shrOrderId);
         MedicationOrderIdMapping orderIdMapping = new MedicationOrderIdMapping(drugOrder.getUuid(), externalId, orderUrl);
-        idMappingsRepository.saveOrUpdateIdMapping(orderIdMapping);
+        idMappingRepository.saveOrUpdateIdMapping(orderIdMapping);
     }
 
     private String getOrderUrl(ShrEncounterBundle encounterComposition, SystemProperties systemProperties, String shrOrderId) {
@@ -180,7 +206,7 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         return new EntityReference().build(BaseResource.class, systemProperties, orderUrlReferenceIds);
     }
 
-    private boolean shouldCreatePreviousOrder(MedicationOrder medicationOrder) {
+    private boolean isMedicationOrderInSameEncounter(MedicationOrder medicationOrder) {
         ResourceReferenceDt priorPrescription = medicationOrder.getPriorPrescription();
         if (priorPrescription != null && !priorPrescription.isEmpty()) {
             if (priorPrescription.getReference().getValue().startsWith("urn:uuid")) {
