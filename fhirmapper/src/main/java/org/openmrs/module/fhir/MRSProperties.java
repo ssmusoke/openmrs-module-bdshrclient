@@ -58,8 +58,8 @@ public class MRSProperties {
     public static final String MRS_CONCEPT_CLASS_LAB_SET = "LabSet";
 
     public static final String MRS_DRUG_ORDER_TYPE = "Drug Order";
-
     public static final String MRS_LAB_ORDER_TYPE = "Lab Order";
+    public static final String MRS_PROCEDURE_ORDER_TYPE = "Procedure Order";
 
     public static final String DRUG_ORDER_QUANTITY_UNITS_CONCEPT_NAME = "Unit(s)";
     public static final String TR_VALUESET_RELATIONSHIP_TYPE = "Relationship Type";

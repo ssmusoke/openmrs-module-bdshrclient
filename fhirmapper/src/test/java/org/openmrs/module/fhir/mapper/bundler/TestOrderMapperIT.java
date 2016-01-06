@@ -62,7 +62,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         List<FHIRResource> mappedResources = testOrderMapper.map(order, createFhirEncounter(), new Bundle(), getSystemProperties("1"));
         assertTrue(CollectionUtils.isNotEmpty(mappedResources));
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) mappedResources.get(0).getResource();
-        assertDiagnosticOrder(patientRef, fhirEncounterId, diagnosticOrder);
+        assertDiagnosticOrder(diagnosticOrder);
         assertOrderItems(diagnosticOrder);
     }
 
@@ -217,7 +217,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertTrue(MapperTestHelper.containsCoding(specimen.getType().getCoding(), null, null, specimenType));
     }
 
-    private void assertDiagnosticOrder(String patientRef, String fhirEncounterId, DiagnosticOrder diagnosticOrder) {
+    private void assertDiagnosticOrder(DiagnosticOrder diagnosticOrder) {
         assertEquals(patientRef, diagnosticOrder.getSubject().getReference().getValue());
         assertTrue(diagnosticOrder.getOrderer().getReference().getValue().endsWith("812.json"));
         assertFalse(diagnosticOrder.getId().isEmpty());
