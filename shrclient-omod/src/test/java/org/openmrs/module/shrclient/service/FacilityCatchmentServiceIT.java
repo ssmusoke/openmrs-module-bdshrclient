@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.module.shrclient.dao.FacilityCatchmentRepository;
 import org.openmrs.module.shrclient.model.FacilityCatchment;
+import org.openmrs.module.shrclient.service.impl.FacilityCatchmentServiceImpl;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -23,7 +24,7 @@ public class FacilityCatchmentServiceIT extends BaseModuleWebContextSensitiveTes
 
     @Before
     public void setUp() throws Exception {
-        facilityCatchmentService = new FacilityCatchmentService(facilityCatchmentRepository);
+        facilityCatchmentService = new FacilityCatchmentServiceImpl(facilityCatchmentRepository);
     }
 
 

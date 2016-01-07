@@ -9,6 +9,7 @@ import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
+import org.openmrs.module.shrclient.service.impl.EMRPatientDeathServiceImpl;
 
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -29,7 +30,7 @@ public class EMRPatientDeathServiceTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        patientDeathService = new EMRPatientDeathService(null, mockConceptService, mockGlobalPropertyLookUpService);
+        patientDeathService = new EMRPatientDeathServiceImpl(null, mockConceptService, mockGlobalPropertyLookUpService);
     }
 
     @Test

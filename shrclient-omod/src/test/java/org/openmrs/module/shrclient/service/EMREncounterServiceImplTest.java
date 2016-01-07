@@ -24,6 +24,7 @@ import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.EncounterIdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
+import org.openmrs.module.shrclient.service.impl.EMREncounterServiceImpl;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
@@ -44,7 +45,7 @@ import static org.openmrs.module.fhir.utils.PropertyKeyConstants.SHR_REFERENCE_P
 import static org.openmrs.module.shrclient.web.controller.dto.EncounterEvent.ENCOUNTER_UPDATED_CATEGORY_TAG;
 import static org.openmrs.module.shrclient.web.controller.dto.EncounterEvent.LATEST_UPDATE_CATEGORY_TAG;
 
-public class EMREncounterServiceTest {
+public class EMREncounterServiceImplTest {
     @Mock
     private FHIRMapper mockFhirmapper;
     @Mock
@@ -76,7 +77,7 @@ public class EMREncounterServiceTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        emrEncounterService = new EMREncounterService(mockEMRPatientService, mockIdMappingRepository, mockPropertiesReader,
+        emrEncounterService = new EMREncounterServiceImpl(mockEMRPatientService, mockIdMappingRepository, mockPropertiesReader,
                 mockSystemUserService, mockVisitService, mockFhirmapper, mockOrderService, patientDeathService, emrPatientMergeService);
     }
 
