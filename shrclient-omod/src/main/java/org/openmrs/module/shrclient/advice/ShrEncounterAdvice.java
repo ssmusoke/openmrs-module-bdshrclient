@@ -9,8 +9,11 @@ import org.ict4h.atomfeed.server.service.EventService;
 import org.ict4h.atomfeed.server.service.EventServiceImpl;
 import org.ict4h.atomfeed.transaction.AFTransactionWorkWithoutResult;
 import org.joda.time.DateTime;
+import org.openmrs.Location;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.atomfeed.transaction.support.AtomFeedSpringTransactionManager;
+import org.openmrs.module.fhir.utils.OMRSLocationService;
+import org.openmrs.module.shrclient.util.PlatformUtil;
 import org.springframework.aop.AfterReturningAdvice;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -29,17 +32,23 @@ public class ShrEncounterAdvice implements AfterReturningAdvice {
     private AtomFeedSpringTransactionManager atomFeedSpringTransactionManager;
     private EncounterAdviceState encounterAdviceState;
     private static final Logger logger = Logger.getLogger(ShrEncounterAdvice.class);
+    private OMRSLocationService locationService;
 
     public ShrEncounterAdvice() {
         atomFeedSpringTransactionManager = findTransactionManager();
         eventService = getEventService(atomFeedSpringTransactionManager);
         encounterAdviceState = new EncounterAdviceState();
+        //need to ask how to inject it
+        locationService = PlatformUtil.getRegisteredComponent(OMRSLocationService.class);
     }
 
-    public ShrEncounterAdvice(AtomFeedSpringTransactionManager atomFeedSpringTransactionManager, EventService eventService, EncounterAdviceState encounterAdviceState) {
+    public ShrEncounterAdvice(AtomFeedSpringTransactionManager atomFeedSpringTransactionManager,
+                              EventService eventService, EncounterAdviceState encounterAdviceState,
+                              OMRSLocationService locationService) {
         this.atomFeedSpringTransactionManager = atomFeedSpringTransactionManager;
         this.eventService = eventService;
         this.encounterAdviceState = encounterAdviceState;
+        this.locationService = locationService;
     }
 
     @Override
@@ -50,8 +59,16 @@ public class ShrEncounterAdvice implements AfterReturningAdvice {
         final boolean alreadyRaisedEvent = encounterAdviceState.hasAlreadyProcessedEncounter((String) encounterUuid);
         if (alreadyRaisedEvent) {
             //we have already raised an event
-            logger.warn("Not creating an Event since it is deduced that its already raised for Encounter:"+encounterUuid);
+            logger.warn("Not creating an Event since it is deduced that its already raised for Encounter:" + encounterUuid);
             return;
+        }
+
+        Object locationProperty = PropertyUtils.getProperty(returnValue, "location");
+        if (locationProperty != null) {
+            Location location = (Location) locationProperty;
+            if (!locationService.isLoginLocation(location)) {
+                return;
+            }
         }
 
         String url = String.format(ENCOUNTER_REST_URL, encounterUuid);

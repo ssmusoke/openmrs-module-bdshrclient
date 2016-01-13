@@ -94,7 +94,8 @@ public class MRSProperties {
     public static final String GLOBAL_PROPERTY_CONCEPT_CAUSE_OF_DEATH = "concept.causeOfDeath";
     public static final String GLOBAL_PROPERTY_CONCEPT_UNSPECIFIED_CAUSE_OF_DEATH = "concept.unspecifiedCauseOfDeath";
 
-    public static final String GLOBAL_PROPERTY_CONCEPT_SHR_HIE_FACILITY_LOCATION_TAG = "shr.hie.facilities.location.tag";
+    public static final String GLOBAL_PROPERTY_SHR_HIE_FACILITY_LOCATION_TAG_ID = "shr.hie.facilities.location.tag";
+    public static final String GLOBAL_PROPERTY_SHR_LOGIN_LOCATION_TAG_ID = "shr.login.location.tag";
     public static final String GLOBAL_PROPERTY_SHR_SYSTEM_USER_TAG = "shr.system.user";
     public static final String GLOBAL_PROPERTY_EMR_PRIMARY_IDENTIFIER_TYPE = "emr.primaryIdentifierType";
 
@@ -111,4 +112,6 @@ public class MRSProperties {
     public static final String ENCOUNTER_UPDATE_VOID_REASON = "DLN:Encounter updated";
 
     public static final String RESOURCE_MAPPING_EXTERNAL_ID_FORMAT = "%s:%s";
+    
+    public static final String MRS_LOGIN_LOCATION_TAG_NAME = "Login Location";
 }
