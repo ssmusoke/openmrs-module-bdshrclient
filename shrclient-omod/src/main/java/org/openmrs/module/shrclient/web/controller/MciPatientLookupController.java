@@ -45,6 +45,4 @@ public class MciPatientLookupController {
             return null;
         }
     }
-
-
 }

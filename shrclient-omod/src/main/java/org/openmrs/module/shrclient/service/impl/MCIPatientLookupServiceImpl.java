@@ -1,7 +1,10 @@
 package org.openmrs.module.shrclient.service.impl;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.Transformer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.openmrs.PatientIdentifier;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
@@ -12,6 +15,7 @@ import org.openmrs.module.shrclient.model.Address;
 import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.model.mci.api.MciPatientSearchResponse;
 import org.openmrs.module.shrclient.service.EMREncounterService;
+import org.openmrs.module.shrclient.service.EMRPatientMergeService;
 import org.openmrs.module.shrclient.service.EMRPatientService;
 import org.openmrs.module.shrclient.service.MCIPatientLookupService;
 import org.openmrs.module.shrclient.util.PropertiesReader;
@@ -22,10 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 
@@ -44,14 +45,17 @@ public class MCIPatientLookupServiceImpl implements MCIPatientLookupService {
     private PropertiesReader propertiesReader;
     private IdentityStore identityStore;
     private EMREncounterService emrEncounterService;
+    private EMRPatientMergeService emrPatientMergeService;
 
     @Autowired
     public MCIPatientLookupServiceImpl(@Qualifier("hieEmrPatientService") EMRPatientService emrPatientService, PropertiesReader propertiesReader,
-                                       IdentityStore identityStore, @Qualifier("hieEmrEncounterService") EMREncounterService emrEncounterService) {
+                                       IdentityStore identityStore, @Qualifier("hieEmrEncounterService") EMREncounterService emrEncounterService,
+                                       EMRPatientMergeService emrPatientMergeService) {
         this.emrPatientService = emrPatientService;
         this.propertiesReader = propertiesReader;
         this.identityStore = identityStore;
         this.emrEncounterService = emrEncounterService;
+        this.emrPatientMergeService = emrPatientMergeService;
         this.patientContext = propertiesReader.getMciPatientContext();
     }
 
@@ -92,6 +96,7 @@ public class MCIPatientLookupServiceImpl implements MCIPatientLookupService {
             }
         }
         if (!patientList.isEmpty()) {
+            sortPatientList(patientList);
             return mapSearchResults(patientList);
         }
         return null;
@@ -102,15 +107,59 @@ public class MCIPatientLookupServiceImpl implements MCIPatientLookupService {
         final String healthId = request.getHid();
         Patient mciPatient = searchPatientByHealthId(healthId);
         if (mciPatient != null) {
-            Map<String, String> downloadResponse = new HashMap<>();
             org.openmrs.Patient emrPatient = emrPatientService.createOrUpdateEmrPatient(mciPatient);
             if (emrPatient != null) {
+                Map<String, Object> downloadResponse = new HashMap<>();
+                List<String> mergedHealthIds = null;
+                if(CollectionUtils.isNotEmpty(request.getInactiveHids())) {
+                    mergedHealthIds = emrPatientMergeService.mergePatients(mciPatient.getHealthId(), request.getInactiveHids());
+                }
                 createOrUpdateEncounters(healthId, emrPatient);
+                downloadResponse.put("uuid", emrPatient.getUuid());
+                downloadResponse.put("hid", healthId);
+                List<String> localIds = convertPatientIdentifiersToList(emrPatient.getIdentifiers());
+                downloadResponse.put("localIds", localIds);
+                if (CollectionUtils.isNotEmpty(mergedHealthIds)) {
+                    List<Object> mergedHealthIdsWithLocalIds = getMergedHealthIdsWithLocalIds(mergedHealthIds);
+                    downloadResponse.put("mergedIdentifiers", mergedHealthIdsWithLocalIds);
+                }
+                return downloadResponse;
             }
-            downloadResponse.put("uuid", emrPatient.getUuid());
-            return downloadResponse;
         }
         return null;
+    }
+
+    private void sortPatientList(List<Patient> patientList) {
+        Collections.sort(patientList, new Comparator<Patient>() {
+            @Override
+            public int compare(Patient o1, Patient o2) {
+                return o2.isActive().compareTo(o1.isActive());
+            }
+        });
+    }
+
+    private List<String> convertPatientIdentifiersToList(Set<PatientIdentifier> identifiers) {
+        List<String> localIds = new ArrayList<>();
+        org.apache.commons.collections4.CollectionUtils.collect(identifiers, new Transformer<PatientIdentifier, String>() {
+            @Override
+            public String transform(PatientIdentifier patientIdentifier) {
+                return patientIdentifier.getIdentifier();
+            }
+        }, localIds);
+        return localIds;
+    }
+
+    private List<Object> getMergedHealthIdsWithLocalIds(List<String> mergedHealthIds) {
+        List<Object> mergedHidWithLocalIds = new ArrayList<>();
+        for (String mergedHealthId : mergedHealthIds) {
+            org.openmrs.Patient mergedPatient = emrPatientService.getEMRPatientByHealthId(mergedHealthId);
+            List<String> localIdentifiers = convertPatientIdentifiersToList(mergedPatient.getIdentifiers());
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("hid", mergedHealthId);
+            map.put("localIds", localIdentifiers);
+            mergedHidWithLocalIds.add(map);
+        }
+        return mergedHidWithLocalIds;
     }
 
     private Object[] mapSearchResults(List<Patient> patientList) {
@@ -118,9 +167,31 @@ public class MCIPatientLookupServiceImpl implements MCIPatientLookupService {
         for (Patient patient : patientList) {
             if (patient.isActive()) {
                 results.add(mapToPatientUIModel(patient));
+            } else {
+                ArrayList<String> inactiveHids = new ArrayList<>();
+                inactiveHids.add(patient.getHealthId());
+                Patient activePatient = searchActivePatient(patient.getMergedWith(), inactiveHids);
+                results.add(mapToPatientMergeUIModel(patient, activePatient, inactiveHids));
             }
         }
         return results.toArray();
+    }
+
+    private Patient searchActivePatient(String hid, List<String> inactiveHids) {
+        Patient mergedWithPatient = searchPatientByHealthId(hid);
+        if(mergedWithPatient != null && !mergedWithPatient.isActive()) {
+            inactiveHids.add(mergedWithPatient.getHealthId());
+            return searchActivePatient(mergedWithPatient.getMergedWith(), inactiveHids);
+        }
+        return mergedWithPatient;
+    }
+
+    private Object mapToPatientMergeUIModel(Patient inactivePatient, Patient activePatient, ArrayList<String> inactiveHids) {
+        Map<String, Object> patientModel = mapToPatientUIModel(activePatient);
+        patientModel.put("inactiveHID", inactivePatient.getHealthId());
+        patientModel.put("inactiveHIDs", inactiveHids);
+        patientModel.put("active", false);
+        return patientModel;
     }
 
     private Map<String, Object> mapToPatientUIModel(Patient mciPatient) {
@@ -145,6 +216,7 @@ public class MCIPatientLookupServiceImpl implements MCIPatientLookupService {
                         .createUserGeneratedUnionOrUrbanWardId()));
         }
         patientModel.put("address", addressModel);
+        patientModel.put("active", mciPatient.isActive());
         return patientModel;
     }
 

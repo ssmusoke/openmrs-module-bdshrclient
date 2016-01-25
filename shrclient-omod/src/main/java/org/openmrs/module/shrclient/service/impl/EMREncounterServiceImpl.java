@@ -93,8 +93,9 @@ public class EMREncounterServiceImpl implements EMREncounterService {
         String healthId = encounterEvent.getHealthId();
         Bundle bundle = encounterEvent.getBundle();
         logger.debug(String.format("Processing Encounter feed from SHR for patient[%s] with Encounter ID[%s]", healthId, shrEncounterId));
-
-        if (!shouldProcessEvent(encounterEvent)) return;
+        EncounterIdMapping encounterIdMapping = (EncounterIdMapping) idMappingRepository.findByExternalId(encounterEvent.getEncounterId(), IdMappingType.ENCOUNTER);
+        mergeIfHealthIdsDonotMatch(encounterIdMapping, encounterEvent);
+        if (!shouldProcessEvent(encounterEvent, encounterIdMapping)) return;
         SystemProperties systemProperties = new SystemProperties(
                 propertiesReader.getFrProperties(),
                 propertiesReader.getTrProperties(),
@@ -148,10 +149,8 @@ public class EMREncounterServiceImpl implements EMREncounterService {
         return order.getOrderId() == null;
     }
 
-    private boolean shouldProcessEvent(EncounterEvent encounterEvent) {
+    private boolean shouldProcessEvent(EncounterEvent encounterEvent, EncounterIdMapping encounterIdMapping) {
         if (hasUpdatedEncounterInTheFeed(encounterEvent)) return false;
-        EncounterIdMapping encounterIdMapping = (EncounterIdMapping) idMappingRepository.findByExternalId(encounterEvent.getEncounterId(), IdMappingType.ENCOUNTER);
-        mergeIfHealthIdsDonotMatch(encounterIdMapping, encounterEvent);
         Date encounterUpdatedDate = getEncounterUpdatedDate(encounterEvent);
         if (isUpdateAlreadyProcessed(encounterIdMapping, encounterUpdatedDate)) return false;
         return getEncounterConfidentiality(encounterEvent.getBundle()).ordinal() <= Confidentiality.Normal.ordinal();
@@ -161,7 +160,6 @@ public class EMREncounterServiceImpl implements EMREncounterService {
         if (encounterIdMapping != null && !encounterIdMapping.getHealthId().equals(encounterEvent.getHealthId())) {
             try {
                 emrPatientMergeService.mergePatients(encounterEvent.getHealthId(), encounterIdMapping.getHealthId());
-
             } catch (SerializationException e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);

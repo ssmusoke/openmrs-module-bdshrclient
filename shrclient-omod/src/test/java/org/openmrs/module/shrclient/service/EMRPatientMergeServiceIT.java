@@ -279,8 +279,6 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
 
         assertEquals(2, idMappingRepository.findByHealthId(retainedHealthId, IdMappingType.ENCOUNTER).size());
         assertEquals(0, idMappingRepository.findByHealthId(retiredHealthId, IdMappingType.ENCOUNTER).size());
-
-
         assertEquals(1, idMappingRepository.findByHealthId(retiredHealthId, IdMappingType.PATIENT).size());
         assertEquals(1, idMappingRepository.findByHealthId(retainedHealthId, IdMappingType.PATIENT).size());
         assertEquals(0, idMappingRepository.findByHealthId(retiredHealthId, IdMappingType.MEDICATION_ORDER).size());

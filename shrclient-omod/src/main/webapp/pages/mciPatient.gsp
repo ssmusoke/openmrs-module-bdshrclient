@@ -19,9 +19,6 @@
                 font-size: 12px;
                 color: #333;
             }
-            ul {margin: 0; padding: 0;}
-            ul li {list-style-type: none;}
-
             .container {
                 width: 960px;
                 margin: 0 auto;
@@ -71,6 +68,13 @@
                 font-size: 14px;
                 margin-bottom: 5px;
             }
+            .health-id {
+                font-size: 12px;
+                color: #666;
+            }
+            .merge-with {
+                color:#FF3D3D
+            }
             .father-info, .address {
                 font-size: 12px;
                 color: #666;
@@ -85,7 +89,27 @@
                 font-size:14px;
                 font-weight:bold;
             }
-
+            .merge-detail {
+                padding: 10px;
+                background: #eee;
+                border-radius: 5px;
+                margin-bottom: 1px;
+                overflow: auto;
+                clear: both;
+            }
+            .mergedIdentifierList {
+                list-style-type: disc;
+                margin-left: 10px;
+                padding: 0;
+            }
+            .mciPatientInfo {
+                margin: 10px;
+                padding: 0;
+                list-style-type: none;
+            }
+            .continue-btn {
+                margin: 5px;
+            }
         </style>
 
         ${ ui.resourceLinks() }
@@ -116,22 +140,51 @@
                 </div>
                 <div id="searchResults" class="search-results">
                 </div>
+
+                <div id="mergeDetails" style="display:none" class="merge-detail"></div>
             </div>
         </div>
 
         <script id="mciPatientTmpl" type="x-tmpl-mustache">
             <ul class="mciPatientInfo">
                 {{#.}}
-                <li>
-                    <div id="resultDetails" class="result-details">
-                        <div><span class="patient-name">{{ firstName }} {{ middleName }} {{ lastName }} </span> <span class="gender">({{ gender }})</span></div>
-                        <span class="address">Address: {{address.addressLine}}, {{ address.union }}, {{ address.upazilla }}, {{ address.district }}, {{ address.division }}</span>
-                    </div>
-
-                    <button data-hid="{{ healthId }}" class="download-btn btn">Download</button>
-                </li>
+                    <li class="mciPatientInfo">
+                        {{#active}}
+                            <div id="resultDetails" class="result-details">
+                                <div><span class="patient-name">{{ firstName }} {{ middleName }} {{ lastName }} </span> <span class="gender">({{ gender }})</span></div>
+                                <div><span class="health-id">Health Id : {{ healthId }}</span></div>
+                                <div><span class="address">Address: {{address.addressLine}}, {{ address.union }}, {{ address.upazilla }}, {{ address.district }}, {{ address.division }}</span></div>
+                            </div>
+                            <button data-hid="{{ healthId }}" class="download-btn btn">Download</button>
+                        {{/active}}
+                        {{^active}}
+                            <div class="inactive-patient-block">
+                                <div><span>The patient with Health Id(<b>{{ inactiveHID }}</b>) is no longer active. It was merged with the patient with Health Id(<b>{{ healthId }}</b>)</span></div>
+                                <div><span>Please download <b>{{ healthId }}</b> instead.</span></div>
+                                <div id="resultDetails" class="result-details">
+                                    <div><span class="patient-name">{{ firstName }} {{ middleName }} {{ lastName }} </span> <span class="gender">({{ gender }})</span></div>
+                                    <div><span class="health-id">Health Id : {{ healthId }}</span></div>
+                                    <div><span class="address">Address: {{address.addressLine}}, {{ address.union }}, {{ address.upazilla }}, {{ address.district }}, {{ address.division }}</span></div>
+                                </div>
+                                <button data-hid="{{ healthId }}" inactive-hids="{{ inactiveHIDs }}" class="download-btn btn">Download</button>
+                            <div>
+                        {{/active}}
+                    </li>
                 {{/.}}
             </ul>
+        </script>
+
+        <script id="mergePatientDetail" type="x-tmpl-mustache">
+            <div><span>The valid Health Id is <b>{{ hid }} ({{#localIds}}{{ . }}{{#comma}}, {{/comma}}{{/localIds}})</b></span></div>
+            <div><span>Invalid Health Ids are : </span></div>
+            <ul class="mergedIdentifierList">
+                {{#mergedIdentifiers}}
+                <li class="mergedIdentifierList">
+                <span>{{ hid }} ({{#localIds}}{{ . }}{{#comma}}, {{/comma}}{{/localIds}})</span>
+                </li>
+                {{/mergedIdentifiers}}
+            </ul>
+            <button uuid="{{ uuid }}" class="continue-btn btn">Continue</button>
         </script>
 
         <script type="text/javascript">
@@ -170,9 +223,13 @@
 
             function downloadMciPatient(e) {
                 jq(".errorMessage").hide();
+                var url = "/openmrs/ws/mci/download?hid=" + jq(e.target).attr("data-hid");
+                if(jq(e.target).attr("inactive-hids")) {
+                    url = url.concat("&inactiveHids=" + jq(e.target).attr("inactive-hids"));
+                }
                 jq.ajax({
                    type: "GET",
-                   url: "/openmrs/ws/mci/download?hid=" + jq(e.target).attr("data-hid"),
+                   url: url,
                    dataType: "json"
                 }).done(function( responseData ) {
                     if (!responseData) {
@@ -180,7 +237,11 @@
                        jq(".errorMessage").show();
                     }
                     else {
-                       window.location = "/bahmni/registration/#/patient/" + responseData.uuid;
+                        if (responseData.mergedIdentifiers) {
+                            renderInvalidHidPage(responseData)
+                        } else {
+                            redirectToRegistrationPage(responseData.uuid);
+                        }
                     }
                 }).fail(onError);
             }
@@ -199,8 +260,36 @@
                 jq('#searchResults').show();
                 jq(".download-btn").bind("click", downloadMciPatient);
             }
-        </script>
 
+            function renderInvalidHidPage(responseData) {
+                responseData.mergedIdentifiers.forEach(function (mergedIdentifier) {
+                    mergedIdentifier.localIds = convertListToStringList(mergedIdentifier.localIds);
+                });
+                responseData.localIds = convertListToStringList(responseData.localIds);
+                jq(".continue-btn").unbind("click", redirectOnContinue);
+                jq('#searchResults').hide();
+                jq('#searchBox').hide();
+                var template = jq('#mergePatientDetail').html();
+                Mustache.parse(template);
+                var rendered = Mustache.render(template, responseData);
+                jq('#mergeDetails').html(rendered);
+                jq("#mergeDetails").show();
+                jq(".continue-btn").bind("click", redirectOnContinue);
+            }
+
+            function convertListToStringList(list) {
+                var listString = list.join(", ");
+                return listString;
+            }
+
+            function redirectOnContinue(e) {
+                redirectToRegistrationPage(jq(e.target).attr("uuid"));
+            }
+
+            function redirectToRegistrationPage(uuid) {
+                window.location = "/bahmni/registration/#/patient/" + uuid;
+            }
+        </script>
     </body>
 </html>
 

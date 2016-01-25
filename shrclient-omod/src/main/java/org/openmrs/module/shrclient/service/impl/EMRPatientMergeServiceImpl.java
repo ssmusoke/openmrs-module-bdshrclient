@@ -34,10 +34,37 @@ public class EMRPatientMergeServiceImpl implements EMRPatientMergeService {
     }
 
 
+    @Override
+    public List<String> mergePatients(String toBeRetainedHealthId, List<String> toBeRetiredHealthIds) {
+        List<String> mergedHealthIds = new ArrayList<>();
+        for (String toBeRetiredHealthId : toBeRetiredHealthIds) {
+            try {
+                Patient toBeRetainedPatient = emrPatientService.getEMRPatientByHealthId(toBeRetainedHealthId);
+                Patient toBeRetiredPatient = emrPatientService.getEMRPatientByHealthId(toBeRetiredHealthId);
+
+                if (toBeRetiredPatient == null || toBeRetiredPatient.isVoided()) continue;
+
+                merge(toBeRetainedHealthId, toBeRetiredHealthId, toBeRetainedPatient, toBeRetiredPatient);
+                mergedHealthIds.add(toBeRetiredHealthId);
+            } catch (SerializationException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }
+        return mergedHealthIds;
+    }
+
+    @Override
     public void mergePatients(String toBeRetainedHealthId, String toBeRetiredHealthId) throws SerializationException {
         Patient toBeRetainedPatient = emrPatientService.getEMRPatientByHealthId(toBeRetainedHealthId);
         Patient toBeRetiredPatient = emrPatientService.getEMRPatientByHealthId(toBeRetiredHealthId);
 
+        if(toBeRetiredPatient == null) return;
+
+        merge(toBeRetainedHealthId, toBeRetiredHealthId, toBeRetainedPatient, toBeRetiredPatient);
+    }
+
+    private void merge(String toBeRetainedHealthId, String toBeRetiredHealthId, Patient toBeRetainedPatient, Patient toBeRetiredPatient) throws SerializationException {
         retainOneActiveVisit(toBeRetiredPatient, toBeRetainedPatient);
         voidAttributes(toBeRetiredPatient);
         voidIdentifiers(toBeRetiredPatient);
@@ -113,7 +140,6 @@ public class EMRPatientMergeServiceImpl implements EMRPatientMergeService {
             for (Visit visit : activeVisitsOfRetiredPatient) {
                 visit.setStopDatetime(stopTime);
             }
-
         }
     }
 }

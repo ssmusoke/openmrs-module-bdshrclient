@@ -1,5 +1,10 @@
 package org.openmrs.module.shrclient.web.controller;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.List;
+
 public class MciPatientSearchRequest {
     private String nid;
     private String hid;
@@ -9,6 +14,8 @@ public class MciPatientSearchRequest {
     private String houseHoldCode;
 
     private String phoneNo;
+
+    private String inactiveHids;
 
     public String getNid() {
         return nid;
@@ -56,6 +63,14 @@ public class MciPatientSearchRequest {
 
     public void setPhoneNo(String phoneNo) {
         this.phoneNo = phoneNo;
+    }
+
+    public List<String> getInactiveHids() {
+        return inactiveHids != null ? Arrays.asList(StringUtils.split(inactiveHids, ",")) : null;
+    }
+
+    public void setInactiveHids(String inactiveHids) {
+        this.inactiveHids = inactiveHids;
     }
 
     @Override

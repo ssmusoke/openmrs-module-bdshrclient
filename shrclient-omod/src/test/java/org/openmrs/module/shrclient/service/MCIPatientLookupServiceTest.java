@@ -14,6 +14,7 @@ import org.openmrs.module.addresshierarchy.service.AddressHierarchyService;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.identity.IdentityStore;
 import org.openmrs.module.shrclient.identity.IdentityToken;
+import org.openmrs.module.shrclient.model.Patient;
 import org.openmrs.module.shrclient.service.impl.EMREncounterServiceImpl;
 import org.openmrs.module.shrclient.service.impl.MCIPatientLookupServiceImpl;
 import org.openmrs.module.shrclient.util.PropertiesReader;
@@ -24,12 +25,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -37,13 +40,15 @@ import static org.openmrs.module.shrclient.util.Headers.*;
 
 public class MCIPatientLookupServiceTest {
     @Mock
-    private EMRPatientService emrPatientService;
+    private EMRPatientService mockEmrPatientService;
     @Mock
-    private EMREncounterServiceImpl emrEncounterServiceImpl;
+    private EMREncounterServiceImpl mockEmrEncounterServiceImpl;
     @Mock
-    private PropertiesReader propertiesReader;
+    private EMRPatientMergeService mockEmrPatientMergeService;
     @Mock
-    private IdentityStore identityStore;
+    private PropertiesReader mockPropertiesReader;
+    @Mock
+    private IdentityStore mockIdentityStore;
     @Mock
     private AddressHierarchyService addressHierarchyService;
     @Mock
@@ -58,10 +63,12 @@ public class MCIPatientLookupServiceTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        when(propertiesReader.getMciBaseUrl()).thenReturn("http://localhost:9997");
-        when(propertiesReader.getMciPatientContext()).thenReturn("/api/default/patients");
+        when(mockPropertiesReader.getMciBaseUrl()).thenReturn("http://localhost:9997");
+        when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://localhost:9997");
+        when(mockPropertiesReader.getMciPatientContext()).thenReturn("/api/default/patients");
 
-        lookupService = new MCIPatientLookupServiceImpl(emrPatientService, propertiesReader, identityStore, emrEncounterServiceImpl);
+        lookupService = new MCIPatientLookupServiceImpl(mockEmrPatientService, mockPropertiesReader, mockIdentityStore,
+                mockEmrEncounterServiceImpl, mockEmrPatientMergeService);
         Context context = new Context();
         ServiceContext serviceContext = ServiceContext.getInstance();
         serviceContext.setService(AddressHierarchyService.class, addressHierarchyService);
@@ -80,7 +87,7 @@ public class MCIPatientLookupServiceTest {
         AddressHierarchyEntry entry = new AddressHierarchyEntry();
         entry.setName("testEntry");
 
-        String patientContext = StringUtil.ensureSuffix(propertiesReader.getMciPatientContext(), "/");
+        String patientContext = StringUtil.ensureSuffix(mockPropertiesReader.getMciPatientContext(), "/");
 
         givenThat(get(urlEqualTo(patientContext + hid))
                 .withHeader(FROM_KEY, equalTo(email))
@@ -88,10 +95,10 @@ public class MCIPatientLookupServiceTest {
                 .withHeader(AUTH_TOKEN_KEY, equalTo(token))
                 .willReturn(aResponse().withBody(asString("patients_response/by_hid.json"))));
 
-        when(identityStore.getToken()).thenReturn(new IdentityToken(token));
+        when(mockIdentityStore.getToken()).thenReturn(new IdentityToken(token));
 
         when(addressHierarchyService.getAddressHierarchyEntryByUserGenId(anyString())).thenReturn(entry);
-        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
+        when(mockPropertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
 
         Object[] patients = (Object[]) lookupService.searchPatientInRegistry(request);
         Map<String, Object> patient = (Map<String, Object>) patients[0];
@@ -110,7 +117,7 @@ public class MCIPatientLookupServiceTest {
         AddressHierarchyEntry entry = new AddressHierarchyEntry();
         entry.setName("testEntry");
 
-        String patientContext = StringUtil.removeSuffix(propertiesReader.getMciPatientContext(), "/");
+        String patientContext = StringUtil.removeSuffix(mockPropertiesReader.getMciPatientContext(), "/");
 
         givenThat(get(urlEqualTo(patientContext + "?nid=" + nid))
                 .withHeader(FROM_KEY, equalTo(email))
@@ -118,17 +125,16 @@ public class MCIPatientLookupServiceTest {
                 .withHeader(AUTH_TOKEN_KEY, equalTo(token))
                 .willReturn(aResponse().withBody(asString("patients_response/by_nid.json"))));
 
-        when(identityStore.getToken()).thenReturn(new IdentityToken(token));
+        when(mockIdentityStore.getToken()).thenReturn(new IdentityToken(token));
 
         when(addressHierarchyService.getAddressHierarchyEntryByUserGenId(anyString())).thenReturn(entry);
-        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
+        when(mockPropertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
 
         Object[] patients = (Object[]) lookupService.searchPatientInRegistry(request);
         assertEquals(3, patients.length);
         assertPatient((Map<String, Object>) patients[0], "11408769630", "brn", "F");
         assertPatient((Map<String, Object>) patients[1], "11408953847", "brn1", "T");
         assertPatient((Map<String, Object>) patients[2], "11420126616", "New", "M");
-
     }
 
     @Test
@@ -143,11 +149,11 @@ public class MCIPatientLookupServiceTest {
         AddressHierarchyEntry entry = new AddressHierarchyEntry();
         entry.setName("testEntry");
 
-        when(identityStore.getToken()).thenReturn(new IdentityToken(token));
+        when(mockIdentityStore.getToken()).thenReturn(new IdentityToken(token));
 
         when(addressHierarchyService.getAddressHierarchyEntryByUserGenId(anyString())).thenReturn(entry);
-        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
-        String patientContext = StringUtil.removeSuffix(propertiesReader.getMciPatientContext(), "/");
+        when(mockPropertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
+        String patientContext = StringUtil.removeSuffix(mockPropertiesReader.getMciPatientContext(), "/");
 
         givenThat(get(urlEqualTo(patientContext + "?household_code=" + houseHoleId))
                 .withHeader(FROM_KEY, equalTo(email))
@@ -176,11 +182,11 @@ public class MCIPatientLookupServiceTest {
         AddressHierarchyEntry entry = new AddressHierarchyEntry();
         entry.setName("testEntry");
 
-        when(identityStore.getToken()).thenReturn(new IdentityToken(token));
+        when(mockIdentityStore.getToken()).thenReturn(new IdentityToken(token));
 
         when(addressHierarchyService.getAddressHierarchyEntryByUserGenId(anyString())).thenReturn(entry);
-        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
-        String patientContext = StringUtil.removeSuffix(propertiesReader.getMciPatientContext(), "/");
+        when(mockPropertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
+        String patientContext = StringUtil.removeSuffix(mockPropertiesReader.getMciPatientContext(), "/");
 
         givenThat(get(urlEqualTo(patientContext + "?phone_no=" + phoneNumber))
                 .withHeader(FROM_KEY, equalTo(email))
@@ -198,7 +204,7 @@ public class MCIPatientLookupServiceTest {
     }
 
     @Test
-    public void shouldIgnoreInactivePatients() throws Exception {
+    public void shouldReplaceInactivePatientWithActivePatient() throws Exception {
         String xAuthToken = "xyz";
         String clientIdValue = "12345";
         String email = "email@gmail.com";
@@ -209,11 +215,11 @@ public class MCIPatientLookupServiceTest {
         AddressHierarchyEntry entry = new AddressHierarchyEntry();
         entry.setName("testEntry");
 
-        when(identityStore.getToken()).thenReturn(new IdentityToken(token));
+        when(mockIdentityStore.getToken()).thenReturn(new IdentityToken(token));
 
         when(addressHierarchyService.getAddressHierarchyEntryByUserGenId(anyString())).thenReturn(entry);
-        when(propertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
-        String patientContext = StringUtil.removeSuffix(propertiesReader.getMciPatientContext(), "/");
+        when(mockPropertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
+        String patientContext = StringUtil.removeSuffix(mockPropertiesReader.getMciPatientContext(), "/");
 
         givenThat(get(urlEqualTo(patientContext + "?phone_no=" + phoneNumber))
                 .withHeader(FROM_KEY, equalTo(email))
@@ -221,15 +227,61 @@ public class MCIPatientLookupServiceTest {
                 .withHeader(AUTH_TOKEN_KEY, equalTo(token))
                 .willReturn(aResponse().withBody(asString("patients_response/including_inactive.json"))));
 
+        givenThat(get(urlEqualTo(patientContext + "/11421467785"))
+                .withHeader(FROM_KEY, equalTo(email))
+                .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
+                .withHeader(AUTH_TOKEN_KEY, equalTo(token))
+                .willReturn(aResponse().withBody(asString("patients_response/by_hid.json"))));
 
         Object[] patients = (Object[]) lookupService.searchPatientInRegistry(request);
-        assertEquals(3, patients.length);
+        assertEquals(4, patients.length);
         assertPatient((Map<String, Object>) patients[0], "98001000317", "A89 805045", "M");
         assertPatient((Map<String, Object>) patients[1], "98001000333", "A89 47125", "F");
         assertPatient((Map<String, Object>) patients[2], "98001000341", "A89 560325", "M");
-
+        assertPatient((Map<String, Object>) patients[3], "11421467785", "HouseHold", "F", asList("98001000325"));
     }
 
+    @Test
+    public void shouldDownloadAPatient() throws Exception {
+        String xAuthToken = "xyz";
+        String clientIdValue = "12345";
+        String email = "email@gmail.com";
+        String token = UUID.randomUUID().toString();
+        MciPatientSearchRequest request = new MciPatientSearchRequest();
+        String hid = "11421467785";
+        request.setHid(hid);
+        AddressHierarchyEntry entry = new AddressHierarchyEntry();
+        entry.setName("testEntry");
+
+        when(mockIdentityStore.getToken()).thenReturn(new IdentityToken(token));
+
+        when(addressHierarchyService.getAddressHierarchyEntryByUserGenId(anyString())).thenReturn(entry);
+        when(mockPropertiesReader.getFacilityInstanceProperties()).thenReturn(getFacilityInstanceProperties(xAuthToken, clientIdValue, email, "password"));
+        org.openmrs.Patient emrPatient = new org.openmrs.Patient();
+        when(mockEmrPatientService.createOrUpdateEmrPatient(any(Patient.class))).thenReturn(emrPatient);
+        String patientContext = StringUtil.removeSuffix(mockPropertiesReader.getMciPatientContext(), "/");
+
+        givenThat(get(urlEqualTo(patientContext + "/" + hid))
+                .withHeader(FROM_KEY, equalTo(email))
+                .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
+                .withHeader(AUTH_TOKEN_KEY, equalTo(token))
+                .willReturn(aResponse().withBody(asString("patients_response/by_hid.json"))));
+
+        givenThat(get(urlEqualTo("/patients/" + hid + "/encounters"))
+                .withHeader(FROM_KEY, equalTo(email))
+                .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
+                .withHeader(AUTH_TOKEN_KEY, equalTo(token))
+                .willReturn(aResponse().withBody(asString("encounterBundles/emptyEncounterFeedResponse.xml"))));
+
+        Map downloadResponse = (Map) lookupService.downloadPatient(request);
+        assertTrue(downloadResponse.containsKey("uuid"));
+    }
+
+    private void assertPatient(Map<String, Object> patient, String hid, String firstName, String gender, List<String> inactiveHids) {
+        assertPatient(patient, hid, firstName, gender);
+        assertEquals("98001000325", ((List) patient.get("inactiveHIDs")).get(0));
+        assertFalse((Boolean) patient.get("active"));
+    }
 
     private void assertPatient(Map<String, Object> patient, String hid, String firstName, String gender) {
         assertEquals(firstName, patient.get("firstName"));
