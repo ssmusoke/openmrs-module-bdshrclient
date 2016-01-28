@@ -57,20 +57,29 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     }
 
     private void createTestOrders(Bundle bundle, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter) {
-        List<DiagnosticOrder.Item> cancelledItems = getDiagnosticOrderItemsByStatus(diagnosticOrder, DiagnosticOrderStatusEnum.CANCELLED);
+        List<DiagnosticOrder.Item> cancelledItems = getCancelledDiagnosticOrderItems(diagnosticOrder);
         for (DiagnosticOrder.Item diagnosticOrderItemComponent : cancelledItems) {
             cancelTestOrderForItem(diagnosticOrder, diagnosticOrderItemComponent, bundle, emrEncounter);
         }
-        List<DiagnosticOrder.Item> requestedItems = getDiagnosticOrderItemsByStatus(diagnosticOrder, DiagnosticOrderStatusEnum.REQUESTED);
+        List<DiagnosticOrder.Item> requestedItems = getRequestedDiagnosticOrderItems(diagnosticOrder);
         for (DiagnosticOrder.Item diagnosticOrderItemComponent : requestedItems) {
             createTestOrderForItem(diagnosticOrder, diagnosticOrderItemComponent, bundle, emrEncounter);
         }
     }
 
-    private List<DiagnosticOrder.Item> getDiagnosticOrderItemsByStatus(DiagnosticOrder diagnosticOrder, DiagnosticOrderStatusEnum orderStatus) {
+    private List<DiagnosticOrder.Item> getRequestedDiagnosticOrderItems(DiagnosticOrder diagnosticOrder) {
         ArrayList<DiagnosticOrder.Item> items = new ArrayList<>();
         for (DiagnosticOrder.Item item : diagnosticOrder.getItem()) {
-            if (orderStatus.getCode().equals(item.getStatus()))
+            if (isRequestedOrder(item))
+                items.add(item);
+        }
+        return items;
+    }
+
+    private List<DiagnosticOrder.Item> getCancelledDiagnosticOrderItems(DiagnosticOrder diagnosticOrder) {
+        ArrayList<DiagnosticOrder.Item> items = new ArrayList<>();
+        for (DiagnosticOrder.Item item : diagnosticOrder.getItem()) {
+            if (isCancelledOrder(item))
                 items.add(item);
         }
         return items;
@@ -142,11 +151,19 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     }
 
     private boolean isCancelledOrder(DiagnosticOrder.Item diagnosticOrderItemComponent) {
+        if (isItemStatusEmpty(diagnosticOrderItemComponent))
+            return false; 
         return DiagnosticOrderStatusEnum.CANCELLED.getCode().equals(diagnosticOrderItemComponent.getStatus());
     }
 
     private boolean isRequestedOrder(DiagnosticOrder.Item diagnosticOrderItemComponent) {
+        if (isItemStatusEmpty(diagnosticOrderItemComponent))
+            return true;
         return DiagnosticOrderStatusEnum.REQUESTED.getCode().equals(diagnosticOrderItemComponent.getStatus());
+    }
+
+    private boolean isItemStatusEmpty(DiagnosticOrder.Item diagnosticOrderItemComponent) {
+        return diagnosticOrderItemComponent.getStatus() == null || diagnosticOrderItemComponent.getStatus().isEmpty();
     }
 
     private Order getExistingRunningOrder(EmrEncounter emrEncounter, Concept testOrderConcept) {

@@ -115,7 +115,6 @@
                     <specimen>
                         <reference value="urn:uuid:a0848743-e6ae-40c7-a271-4117e46d43cd"/>
                     </specimen>
-                    <status value="requested"/>
                 </item>
             </DiagnosticOrder>
         </resource>
