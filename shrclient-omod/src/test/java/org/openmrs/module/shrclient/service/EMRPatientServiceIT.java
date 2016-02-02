@@ -29,7 +29,7 @@ public class EMRPatientServiceIT extends BaseModuleWebContextSensitiveTest {
     private PatientService patientService;
 
     @Autowired
-    EMRPatientService emrPatientService;
+    private EMRPatientService emrPatientService;
 
 
     @Test

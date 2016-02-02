@@ -38,22 +38,22 @@ public class DiagnosisIdMappingDao extends IdMappingDao {
 
     @Override
     public PreparedStatement getUpdateIdMappingStatement(Connection connection, IdMapping idMapping) throws SQLException {
-        return null;
+        PreparedStatement statement = connection.prepareStatement(getUpdateMappingSql());
+        statement.setString(1, idMapping.getInternalId());
+        statement.setString(2, idMapping.getExternalId());
+        return statement;
+    }
+    
+    @Override
+    public PreparedStatement getCheckMappingExistsStatement(Connection connection, IdMapping idMapping) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement(getMappingExistsQuery());
+        statement.setString(1, idMapping.getExternalId());
+        return statement;
     }
 
     @Override
     public DiagnosisIdMapping buildIdMapping(ResultSet resultSet) throws SQLException {
         return new DiagnosisIdMapping(resultSet.getString(1), resultSet.getString(2), resultSet.getString(3));
-    }
-
-    @Override
-    public String getInsertMappingSql() {
-        return String.format("insert into %s (internal_id, external_id, uri) values (?,?,?)", getMappingTable());
-    }
-
-    @Override
-    public String getUpdateMappingSql() {
-        return null;
     }
 
     @Override
@@ -64,5 +64,22 @@ public class DiagnosisIdMappingDao extends IdMappingDao {
     @Override
     public String getFetchByInternalIdSql() {
         return String.format("select distinct map.internal_id, map.external_id, map.uri from %s map where map.internal_id=?", getMappingTable());
+    }
+
+    @Override
+    public String getFetchByHealthIdSql() {
+        return String.format("select map.internal_id, map.external_id, map.uri from %s map where map.uri like ?", getMappingTable());
+    }
+
+    private String getInsertMappingSql() {
+        return String.format("insert into %s (internal_id, external_id, uri) values (?,?,?)", getMappingTable());
+    }
+
+    private String getUpdateMappingSql() {
+        return String.format("update %s set internal_id = ? where external_id = ?", getMappingTable());
+    }
+
+    private String getMappingExistsQuery() {
+        return String.format("select distinct map.internal_id from %s map where map.external_id=?", getMappingTable());
     }
 }

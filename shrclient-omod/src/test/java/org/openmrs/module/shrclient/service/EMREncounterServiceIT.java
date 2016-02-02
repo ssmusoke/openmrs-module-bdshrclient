@@ -16,6 +16,7 @@ import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.EncounterIdMapping;
 import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.util.FhirBundleContextHolder;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterEvent;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -26,7 +27,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import java.util.*;
 
 import static java.util.Arrays.asList;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
+import static org.openmrs.module.fhir.MRSProperties.MRS_CONCEPT_NAME_DIAGNOSIS_REVISED;
 import static org.openmrs.module.shrclient.model.IdMappingType.ENCOUNTER;
 import static org.openmrs.module.shrclient.web.controller.dto.EncounterEvent.ENCOUNTER_UPDATED_CATEGORY_TAG;
 
@@ -342,7 +345,6 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
 
         assertTrue(mapping1.getLastSyncDateTime().after(mapping2.getLastSyncDateTime()));
     }
-
 
     public Date getDateTimeAfterNMinutes(Date currentTime, int minutes) {
         Calendar calendar = Calendar.getInstance();

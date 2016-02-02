@@ -31,6 +31,7 @@ import java.util.UUID;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.openmrs.module.fhir.MRSProperties.RESOURCE_MAPPING_EXTERNAL_ID_FORMAT;
 import static org.openmrs.module.shrclient.util.Headers.*;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -55,20 +56,19 @@ public class EncounterPushIT extends BaseModuleWebContextSensitiveTest {
     @Autowired
     private PropertiesReader propertiesReader;
 
-    private ClientRegistry clientRegistry;
     private EncounterPush encounterPush;
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(9997);
     private final String clientIdValue = "12345";
     private final String email = "email@gmail.com";
-    private final String xAuthToken = "xyz";
     private final String accessToken = UUID.randomUUID().toString();
 
     @Before
     public void setUp() throws Exception {
 
         String response = "{\"access_token\" : \"" + accessToken + "\"}";
+        String xAuthToken = "xyz";
         givenThat(post(urlEqualTo("/signin"))
                 .withHeader(AUTH_TOKEN_KEY, equalTo(xAuthToken))
                 .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
@@ -76,7 +76,7 @@ public class EncounterPushIT extends BaseModuleWebContextSensitiveTest {
                         .withStatus(HttpStatus.OK.value())
                         .withBody(response)));
 
-        clientRegistry = new ClientRegistry(propertiesReader, identityStore);
+        ClientRegistry clientRegistry = new ClientRegistry(propertiesReader, identityStore);
         encounterPush = new EncounterPush(encounterService, propertiesReader,
                 compositionBundleCreator, idMappingRepository,
                 clientRegistry, systemUserService);
@@ -153,8 +153,8 @@ public class EncounterPushIT extends BaseModuleWebContextSensitiveTest {
         IdMapping orderMapping = idMappingRepository.findByInternalId(orderUuid, IdMappingType.MEDICATION_ORDER);
         assertNotNull(orderMapping);
         assertEquals(orderUuid, orderMapping.getInternalId());
-        assertEquals(resourceByReference.getId().getIdPart(), orderMapping.getExternalId());
-        assertNotNull(orderMapping.getLastSyncDateTime());
+        String expectedExternalId = String.format(RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterId, resourceByReference.getId().getIdPart());
+        assertEquals(expectedExternalId, orderMapping.getExternalId());
         String orderUrl = encounterIdMapping.getUri() + "#MedicationOrder/" + orderUuid;
         assertEquals(orderUrl, orderMapping.getUri());
     }
@@ -194,7 +194,8 @@ public class EncounterPushIT extends BaseModuleWebContextSensitiveTest {
         IdMapping diagnosisMapping = idMappingRepository.findByInternalId(visitDiagnosisObsUuid, IdMappingType.DIAGNOSIS);
         assertNotNull(diagnosisMapping);
         assertEquals(visitDiagnosisObsUuid, diagnosisMapping.getInternalId());
-        assertEquals(resourceByReference.getId().getIdPart(), diagnosisMapping.getExternalId());
+        String expectedExternalId = String.format(RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterId, resourceByReference.getId().getIdPart());
+        assertEquals(expectedExternalId, diagnosisMapping.getExternalId());
         String diagnosisUrl = encounterIdMapping.getUri() + "#Condition/" + visitDiagnosisObsUuid;
         assertEquals(diagnosisUrl, diagnosisMapping.getUri());
     }

@@ -12,13 +12,11 @@ import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.*;
 import org.openmrs.Patient;
 import org.openmrs.api.EncounterService;
-import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.bundler.CompositionBundleCreator;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ObservationType;
-import org.openmrs.module.fhir.utils.SHREncounterURLUtil;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.openmrs.module.shrclient.model.*;
@@ -124,7 +122,8 @@ public class EncounterPush implements EventWorker {
             conditionUrlReferenceIds.remove(EntityReference.REFERENCE_ID);
             conditionUrlReferenceIds.put(EntityReference.REFERENCE_ID, obs.getUuid());
             String diagnosisUrl = entityReference.build(BaseResource.class, systemProperties, conditionUrlReferenceIds);
-            idMappingsRepository.saveOrUpdateIdMapping(new DiagnosisIdMapping(obs.getUuid(), obs.getUuid(), diagnosisUrl));
+            String externalId = String.format(MRSProperties.RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterId, obs.getUuid());
+            idMappingsRepository.saveOrUpdateIdMapping(new DiagnosisIdMapping(obs.getUuid(), externalId, diagnosisUrl));
         }
     }
 

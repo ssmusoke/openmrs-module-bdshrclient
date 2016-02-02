@@ -23,6 +23,7 @@ public class FHIRProperties {
     public static final String FHIR_YES_INDICATOR_DISPLAY = "Yes";
     public static final String FHIR_NO_INDICATOR_CODE = "N";
     public static final String FHIR_NO_INDICATOR_DISPLAY = "No";
+    public static final String RESOURCE_MAPPING_URL_FORMAT = "%s#%s/%s";
 
     public static String FHIR_DRUG_ORDER_AFTERNOON_DOSE_KEY = "afternoonDose";
     public static String FHIR_DRUG_ORDER_MORNING_DOSE_KEY = "morningDose";

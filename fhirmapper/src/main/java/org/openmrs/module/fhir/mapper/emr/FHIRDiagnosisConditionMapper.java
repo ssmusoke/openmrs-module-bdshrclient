@@ -4,18 +4,16 @@ import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.resource.Condition;
 import ca.uhn.fhir.model.dstu2.valueset.ConditionVerificationStatusEnum;
-import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Concept;
 import org.openmrs.ConceptAnswer;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
-import org.openmrs.module.fhir.Constants;
+import org.openmrs.api.ObsService;
 import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
-import org.openmrs.module.fhir.utils.SHREncounterURLUtil;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.DiagnosisIdMapping;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -28,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.openmrs.module.fhir.FHIRProperties.RESOURCE_MAPPING_URL_FORMAT;
+import static org.openmrs.module.fhir.MRSProperties.RESOURCE_MAPPING_EXTERNAL_ID_FORMAT;
 import static org.openmrs.module.fhir.utils.SHREncounterURLUtil.getEncounterUrl;
 
 @Component
@@ -40,7 +40,8 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
     private OMRSConceptLookup omrsConceptLookup;
     @Autowired
     private IdMappingRepository idMappingsRepository;
-
+    @Autowired
+    private ObsService obsService;
 
     public FHIRDiagnosisConditionMapper() {
         diaConditionStatus.put(ConditionVerificationStatusEnum.PROVISIONAL, MRSProperties.MRS_DIAGNOSIS_STATUS_PRESUMED);
@@ -93,15 +94,15 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
         Obs codedObs = addToObsGroup(visitDiagnosisObs, codedDiagnosis);
         codedObs.setValueCoded(diagnosisConceptAnswer);
 
-        Obs bahmniInitDiagObs = addToObsGroup(visitDiagnosisObs, bahmniInitialDiagnosis);
-        bahmniInitDiagObs.setValueText(visitDiagnosisObs.getUuid());
-
         Obs bahmniDiagStatusObs = addToObsGroup(visitDiagnosisObs, bahmniDiagnosisStatus);
         bahmniDiagStatusObs.setValueBoolean(false);
 
         Obs bahmniDiagRevisedObs = addToObsGroup(visitDiagnosisObs, bahmniDiagnosisRevised);
         bahmniDiagRevisedObs.setValueBoolean(false);
-        
+
+        Obs bahmniInitDiagObs = addToObsGroup(visitDiagnosisObs, bahmniInitialDiagnosis);
+        bahmniInitDiagObs.setValueText(visitDiagnosisObs.getUuid());
+
         saveIdMappingForDiagnosis(condition, visitDiagnosisObs, shrEncounterBundle, systemProperties);
 
         visitDiagnosisObs.setComment(condition.getNotes());
@@ -111,13 +112,13 @@ public class FHIRDiagnosisConditionMapper implements FHIRResourceMapper {
 
     public void saveIdMappingForDiagnosis(Condition condition, Obs visitDiagnosisObs, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
         String encounterUrl = getEncounterUrl(shrEncounterBundle.getShrEncounterId(), shrEncounterBundle.getHealthId(), systemProperties);
-        String externalId = StringUtils.substringAfter(condition.getId().getValue(), "urn:uuid:");
-        String diagnosisUrl = String.format(Constants.RESOURCE_MAPPING_URL_FORMAT, encounterUrl,
-                new Condition().getResourceName(), externalId);
+        String diagnosisId = condition.getId().getIdPart();
+        String externalId = String.format(RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterBundle.getShrEncounterId(), diagnosisId);
+        String diagnosisUrl = String.format(RESOURCE_MAPPING_URL_FORMAT, encounterUrl,
+                new Condition().getResourceName(), diagnosisId);
         IdMapping diagnosisIdMapping = new DiagnosisIdMapping(visitDiagnosisObs.getUuid(), externalId, diagnosisUrl);
         idMappingsRepository.saveOrUpdateIdMapping(diagnosisIdMapping);
     }
-
 
     private Obs addToObsGroup(Obs visitDiagnosisObs, Concept obsConcept) {
         Obs orderObs = new Obs();

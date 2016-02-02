@@ -119,6 +119,7 @@ public class EncounterPushTest {
         DrugOrder drugOrder = new DrugOrder(10);
         OrderType drugOrderType = new OrderType();
         drugOrderType.setName(MRSProperties.MRS_DRUG_ORDER_TYPE);
+        drugOrderType.setUuid(OrderType.DRUG_ORDER_TYPE_UUID);
         drugOrder.setOrderType(drugOrderType);
         openMrsEncounter.addOrder(drugOrder);
         final Bundle bundle = new Bundle();
@@ -148,7 +149,6 @@ public class EncounterPushTest {
     @Test
     public void shouldProcessEncounterUpdateEvent() throws Exception {
         final String uuid = "123abc456";
-        String facilityId = "10000069";
 
         final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + uuid
                 + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
@@ -174,7 +174,6 @@ public class EncounterPushTest {
     @Test
     public void shouldNotProcessEncounterDownloadEvent() throws Exception {
         final String uuid = "123abc456";
-        String facilityId = "10000069";
 
         final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + uuid
                 + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");

@@ -51,7 +51,6 @@
         </property>
         <property name="serverUpdateDateTime" column="server_update_datetime" type="java.util.Date"/>
     </class>
-
     <class name="DiagnosisIdMapping" table="diagnosis_id_mapping">
         <id name="id" type="long" column="id">
             <generator class="native">

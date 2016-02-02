@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
+import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
@@ -41,6 +42,9 @@ public class FHIRDiagnosisConditionMapperIT extends BaseModuleWebContextSensitiv
     @Autowired
     private IdMappingRepository idMappingRepository;
 
+    @Autowired
+    private EncounterService encounterService;
+
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/diagnosisTestDS.xml");
@@ -67,41 +71,60 @@ public class FHIRDiagnosisConditionMapperIT extends BaseModuleWebContextSensitiv
 
     @Test
     public void shouldMapADiagnosisCondition() throws Exception {
-        EmrEncounter emrEncounter = mapDiagnosis("encounterBundles/dstu2/encounterWithDiagnosisCondition.xml");
-        Set<Obs> topLevelObs = emrEncounter.getTopLevelObs();
-        assertEquals(1, topLevelObs.size());
-        Obs visitDiagnosisObs = topLevelObs.iterator().next();
-        assertVisitDiagnosis(visitDiagnosisObs, "Updated Comment.");
-
-        Set<Obs> visitDiagnosisMembers = visitDiagnosisObs.getGroupMembers();
-        assertCodedDiagnosis(400, visitDiagnosisMembers);
-        assertDiagnosisOrder(406, visitDiagnosisMembers);
-        assertDiagnosisCertainty(407, visitDiagnosisMembers);
-        assertInitialDiagnosis(visitDiagnosisObs, visitDiagnosisMembers);
-        assertDiagnosisRevised(8, visitDiagnosisMembers);
-    }
-
-    @Test
-    public void shouldNotMapWhenTheAnswerConceptIsNotPresent() throws Exception {
-        EmrEncounter emrEncounter = mapDiagnosis("encounterBundles/dstu2/encounterWithDiagnosisConditionHavingNotSyncedConcept.xml");
-        Set<Obs> topLevelObs = emrEncounter.getTopLevelObs();
-        assertTrue(topLevelObs.isEmpty());
-    }
-
-    @Test
-    public void shouldSaveIdMappingForDiagnosis() throws Exception {
-        EmrEncounter emrEncounter = mapDiagnosis("encounterBundles/dstu2/encounterWithDiagnosisCondition.xml");
+        EmrEncounter emrEncounter = mapDiagnosis("encounterBundles/dstu2/encounterWithDiagnosisCondition.xml", "SHR_ENC_ID", "HID-123");
         String conditionUuid = "35b57256-f229-476e-b5a1-c73af110485d";
 
         Set<Obs> topLevelObs = emrEncounter.getTopLevelObs();
         assertEquals(1, topLevelObs.size());
         Obs visitDiagnosisObs = topLevelObs.iterator().next();
+        assertVisitDiagnosis(visitDiagnosisObs, "HID-123", "SHR_ENC_ID", conditionUuid, "Updated Comment.");
 
-        IdMapping diagnosisIdMapping = idMappingRepository.findByExternalId(conditionUuid, IdMappingType.DIAGNOSIS);
-        assertNotNull(diagnosisIdMapping);
-        assertEquals(visitDiagnosisObs.getUuid(), diagnosisIdMapping.getInternalId());
-        String expectedUri = "http://shr.com/patients/HID-123/encounters/SHR_ENC_ID#Condition/" + conditionUuid;
-        assertEquals(expectedUri,diagnosisIdMapping.getUri());
+        Set<Obs> visitDiagnosisMembers = visitDiagnosisObs.getGroupMembers();
+        assertCodedDiagnosis(400, visitDiagnosisMembers);
+        assertDiagnosisOrder(406, visitDiagnosisMembers);
+        assertDiagnosisCertainty(407, visitDiagnosisMembers);
+        assertInitialDiagnosis(visitDiagnosisObs.getUuid(), visitDiagnosisMembers);
+        assertDiagnosisRevised(8, visitDiagnosisMembers);
+    }
+
+    @Test
+    public void shouldNotMapWhenTheAnswerConceptIsNotPresent() throws Exception {
+        EmrEncounter emrEncounter = mapDiagnosis("encounterBundles/dstu2/encounterWithDiagnosisConditionHavingNotSyncedConcept.xml", "SHR_ENC_ID", "HID-123");
+        Set<Obs> topLevelObs = emrEncounter.getTopLevelObs();
+        assertTrue(topLevelObs.isEmpty());
+    }
+
+    @Test
+    public void shouldUpdateADiagnosis() throws Exception {
+        Encounter encounter = encounterService.getEncounter(39);
+        Set<Obs> obsAtTopLevel = encounter.getObsAtTopLevel(false);
+        assertEquals(1, obsAtTopLevel.size());
+        Obs visitDiagnosisObs = obsAtTopLevel.iterator().next();
+
+        String conditionUuid = "35b57256-f229-476e-b5a1-c73af110485d";
+        String healthId = "1234512345123";
+        String shrEncounterId = "shr_enc_id_2";
+        assertVisitDiagnosis(visitDiagnosisObs, healthId, shrEncounterId, conditionUuid, "Some Comment");
+        Set<Obs> visitDiagnosisMembers = visitDiagnosisObs.getGroupMembers();
+        assertCodedDiagnosis(400, visitDiagnosisMembers);
+        assertDiagnosisOrder(406, visitDiagnosisMembers);
+        assertDiagnosisCertainty(417, visitDiagnosisMembers);
+        assertInitialDiagnosis(visitDiagnosisObs.getUuid(), visitDiagnosisMembers);
+        assertDiagnosisRevised(8, visitDiagnosisMembers);
+
+        EmrEncounter emrEncounter = mapDiagnosis("encounterBundles/dstu2/encounterWithDiagnosisCondition.xml", encounter, healthId, shrEncounterId);
+
+        Set<Obs> topLevelObs = emrEncounter.getTopLevelObs();
+        assertEquals(1, topLevelObs.size());
+        Obs updatedVisitDiagnosisObs = topLevelObs.iterator().next();
+        assertVisitDiagnosis(updatedVisitDiagnosisObs, healthId, shrEncounterId, conditionUuid, "Updated Comment.");
+
+        Set<Obs> updatedVisitDiagnosisMembers = updatedVisitDiagnosisObs.getGroupMembers();
+        assertCodedDiagnosis(400, updatedVisitDiagnosisMembers);
+        assertDiagnosisOrder(406, updatedVisitDiagnosisMembers);
+        assertDiagnosisCertainty(407, updatedVisitDiagnosisMembers);
+        assertInitialDiagnosis(updatedVisitDiagnosisObs.getUuid(), updatedVisitDiagnosisMembers);
+        assertDiagnosisRevised(8, updatedVisitDiagnosisMembers);
     }
 
     private void assertDiagnosisRevised(int diagnosisRevisedConceptId, Set<Obs> visitDiagnosisMembers) {
@@ -109,9 +132,9 @@ public class FHIRDiagnosisConditionMapperIT extends BaseModuleWebContextSensitiv
         assertThat(diagnosisRevisedObs.getValueCoded().getId(), is(diagnosisRevisedConceptId));
     }
 
-    private void assertInitialDiagnosis(Obs visitDiagnosisObs, Set<Obs> visitDiagnosisMembers) {
+    private void assertInitialDiagnosis(String expectedInitialDiagnosisValue, Set<Obs> visitDiagnosisMembers) {
         Obs initialDiagnosisObs = getMemberObsByConceptName(visitDiagnosisMembers, MRS_CONCEPT_NAME_INITIAL_DIAGNOSIS);
-        assertEquals(visitDiagnosisObs.getUuid(), initialDiagnosisObs.getValueText());
+        assertEquals(expectedInitialDiagnosisValue, initialDiagnosisObs.getValueText());
     }
 
     private void assertDiagnosisCertainty(int certaintyConceptId, Set<Obs> visitDiagnosisMembers) {
@@ -129,18 +152,30 @@ public class FHIRDiagnosisConditionMapperIT extends BaseModuleWebContextSensitiv
         assertThat(codedDiagnosisObs.getValueCoded().getId(), is(codedDiagnosisConceptId));
     }
 
-    private void assertVisitDiagnosis(Obs visitDiagnosisObs, String comments) {
+    private void assertVisitDiagnosis(Obs visitDiagnosisObs, String healthId, String shrEncounterId, String conditionUuid, String comments) {
         assertEquals(MRS_CONCEPT_NAME_VISIT_DIAGNOSES, visitDiagnosisObs.getConcept().getName().getName());
         assertEquals(6, visitDiagnosisObs.getGroupMembers().size());
         assertEquals(comments, visitDiagnosisObs.getComment());
+
+        String externalId = String.format(RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterId, conditionUuid);
+        IdMapping diagnosisIdMapping = idMappingRepository.findByExternalId(externalId, IdMappingType.DIAGNOSIS);
+        assertNotNull(diagnosisIdMapping);
+        assertEquals(visitDiagnosisObs.getUuid(), diagnosisIdMapping.getInternalId());
+        String expectedUri = "http://shr.com/patients/" + healthId + "/encounters/" + shrEncounterId + "#Condition/" + conditionUuid;
+        assertEquals(expectedUri, diagnosisIdMapping.getUri());
+
     }
 
-    private EmrEncounter mapDiagnosis(String filePath) throws Exception {
-        Bundle bundle = loadSampleFHIREncounter(filePath);
-        Condition diagnosisCondition = getCondition(bundle);
+    private EmrEncounter mapDiagnosis(String filePath, String shrEncounterId, String healthId) throws Exception {
         Encounter encounter = new Encounter();
         encounter.setEncounterDatetime(new Date());
-        ShrEncounterBundle shrEncounterBundle = new ShrEncounterBundle(bundle, "HID-123", "SHR_ENC_ID");
+        return mapDiagnosis(filePath, encounter, healthId, shrEncounterId);
+    }
+
+    private EmrEncounter mapDiagnosis(String filePath, Encounter encounter, String healthId, String shrEncounterId) throws Exception {
+        Bundle bundle = loadSampleFHIREncounter(filePath);
+        Condition diagnosisCondition = getCondition(bundle);
+        ShrEncounterBundle shrEncounterBundle = new ShrEncounterBundle(bundle, healthId, shrEncounterId);
         EmrEncounter emrEncounter = new EmrEncounter(encounter);
         diagnosisConditionMapper.map(diagnosisCondition, emrEncounter, shrEncounterBundle, getSystemProperties("1"));
         return emrEncounter;
@@ -162,5 +197,4 @@ public class FHIRDiagnosisConditionMapperIT extends BaseModuleWebContextSensitiv
     private Bundle loadSampleFHIREncounter(String filePath) throws Exception {
         return (Bundle) new MapperTestHelper().loadSampleFHIREncounter(filePath, springContext);
     }
-
 }
