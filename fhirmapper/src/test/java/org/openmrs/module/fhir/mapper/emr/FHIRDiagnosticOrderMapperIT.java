@@ -15,6 +15,7 @@ import org.openmrs.api.ProviderService;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +62,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Test
     public void shouldMapDiagnosticOrder() throws Exception {
-        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrder.xml");
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithItemEventDate.xml");
         Set<Order> orders = emrEncounter.getOrders();
         assertFalse(orders.isEmpty());
         assertEquals(1, orders.size());
@@ -70,8 +71,8 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         assertEquals(providerService.getProvider(23), order.getOrderer());
         assertEquals(orderService.getOrderType(16), order.getOrderType());
         assertEquals(orderService.getCareSetting(1), order.getCareSetting());
-        assertNotNull(order.getDateActivated());
-        assertNotNull(order.getAutoExpireDate());
+        assertEquals(DateUtil.parseDate("2015-08-24T17:10:10.000+05:30"), order.getDateActivated());
+        assertEquals(DateUtil.parseDate("2015-08-25T17:10:10.000+05:30"), order.getAutoExpireDate());
     }
 
     @Test
@@ -116,6 +117,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         Order discontinuedOrder = emrEncounterOrders.iterator().next();
         assertEquals(DISCONTINUE, discontinuedOrder.getAction());
         assertEquals(existingOrder, discontinuedOrder.getPreviousOrder());
+        assertEquals(DateUtil.parseDate("2015-08-25T18:10:10.000+05:30"), discontinuedOrder.getDateActivated());
     }
 
     @Test
@@ -147,6 +149,33 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         assertThat(newOrder.getConcept().getId(), is(304));
     }
 
+    @Test
+    public void shouldSetOrderDateActivatedFromDiagnosticOrderEventIfNotPresentInItem() throws Exception {
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithDiagnositicOrderEventDate.xml");
+        Set<Order> orders = emrEncounter.getOrders();
+        assertFalse(orders.isEmpty());
+        assertEquals(1, orders.size());
+        Order order = orders.iterator().next();
+        assertEquals("7f7379ba-3ca8-11e3-bf2b-0800271c1b75", order.getConcept().getUuid());
+        assertEquals(DateUtil.parseDate("2015-08-24T18:10:10.000+05:30"), order.getDateActivated());
+        assertNotNull(order.getAutoExpireDate());
+    }
+
+    @Test
+    public void shouldSetOrderDateActivatedFromEncounterIfEventNotPresent() throws Exception {
+        Encounter encounter = new Encounter();
+        Date encounterDatetime = new Date();
+        encounter.setEncounterDatetime(encounterDatetime);
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithoutEventDate.xml", encounter);
+        Set<Order> orders = emrEncounter.getOrders();
+        assertFalse(orders.isEmpty());
+        assertEquals(1, orders.size());
+        Order order = orders.iterator().next();
+        assertEquals("7f7379ba-3ca8-11e3-bf2b-0800271c1b75", order.getConcept().getUuid());
+        assertEquals(encounterDatetime, order.getDateActivated());
+        assertNotNull(order.getAutoExpireDate());
+    }
+
     private Order getOrderWithAction(Set<Order> orders, Order.Action action) {
         for (Order order : orders) {
             if (order.getAction().equals(action)) return order;
@@ -172,5 +201,4 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
     private Bundle loadSampleFHIREncounter(String filePath) throws Exception {
         return (Bundle) new MapperTestHelper().loadSampleFHIREncounter(filePath, springContext);
     }
-
 }

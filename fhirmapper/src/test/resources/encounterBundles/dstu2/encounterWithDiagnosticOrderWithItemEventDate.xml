@@ -83,7 +83,7 @@
         </resource>
     </entry>
     <entry>
-        <fullUrl value="urn:uuid:453b7b24-7847-49f7-8a33-2fc339e5c4c7"/>
+        <fullUrl value="urn:uuid:"/>
         <resource>
             <DiagnosticOrder xmlns="http://hl7.org/fhir">
                 <id value="453b7b24-7847-49f7-8a33-2fc339e5c4c7"/>
@@ -107,29 +107,24 @@
                 <item>
                     <code>
                         <coding>
-                            <system value="http://localhost:9997/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0qjki2w"/>
-                            <code value="501qb827-a67c-4q1f-a705-e5efe0qjki2w"/>
-                            <display value="ESR"/>
+                            <system value="http://localhost:9997/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0q6a972"/>
+                            <code value="501qb827-a67c-4q1f-a705-e5efe0q6a972"/>
+                            <display value="Haemoglobin"/>
                         </coding>
                     </code>
                     <specimen>
                         <reference value="urn:uuid:a0848743-e6ae-40c7-a271-4117e46d43cd"/>
                     </specimen>
-                    <status value="cancelled"/>
                     <event>
                         <status value="requested"/>
-                        <dateTime value="2015-08-24T18:10:10.000+05:30"/>
-                    </event>
-                    <event>
-                        <status value="cancelled"/>
-                        <dateTime value="2015-08-25T18:10:10.000+05:30"/>
+                        <dateTime value="2015-08-24T17:10:10.000+05:30"/>
                     </event>
                 </item>
             </DiagnosticOrder>
         </resource>
     </entry>
     <entry>
-        <fullUrl value="urn:uuid:a0848743-e6ae-40c7-a271-4117e46d43cd"/>
+        <fullUrl value="urn:uuid:"/>
         <resource>
             <Specimen xmlns="http://hl7.org/fhir">
                 <id value="a0848743-e6ae-40c7-a271-4117e46d43cd"/>

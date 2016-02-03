@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -63,7 +64,12 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertTrue(CollectionUtils.isNotEmpty(mappedResources));
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) mappedResources.get(0).getResource();
         assertDiagnosticOrder(diagnosticOrder);
-        assertOrderItems(diagnosticOrder);
+        assertEquals(DiagnosticOrderStatusEnum.REQUESTED.getCode(), diagnosticOrder.getStatus());
+        assertEquals(1, diagnosticOrder.getItem().size());
+        DiagnosticOrder.Item item = diagnosticOrder.getItemFirstRep();
+        assertTrue(MapperTestHelper.containsCoding(item.getCode().getCoding(), null, null, "Urea Nitorgen"));
+        assertEquals(1, item.getEvent().size());
+        assertTrue(hasEventWithDateTime(item, DiagnosticOrderStatusEnum.REQUESTED, order.getDateActivated()));
     }
 
     @Test
@@ -199,13 +205,18 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) fhirResources.get(0).getResource();
         List<DiagnosticOrder.Item> items = diagnosticOrder.getItem();
         assertEquals(1, items.size());
-        assertEquals(DiagnosticOrderStatusEnum.CANCELLED.getCode(), items.get(0).getStatus());
+        DiagnosticOrder.Item item = items.get(0);
+        assertEquals(DiagnosticOrderStatusEnum.CANCELLED.getCode(), item.getStatus());
+        assertEquals(2, item.getEvent().size());
+        assertTrue(hasEventWithDateTime(item, DiagnosticOrderStatusEnum.CANCELLED, order.getDateActivated()));
+        assertTrue(hasEventWithDateTime(item, DiagnosticOrderStatusEnum.REQUESTED, order.getPreviousOrder().getDateActivated()));
     }
 
-    private void assertOrderItems(DiagnosticOrder diagnosticOrder) {
-        assertEquals(DiagnosticOrderStatusEnum.REQUESTED.getCode(), diagnosticOrder.getStatus());
-        assertEquals(1, diagnosticOrder.getItem().size());
-        assertTrue(MapperTestHelper.containsCoding(diagnosticOrder.getItemFirstRep().getCode().getCoding(), null, null, "Urea Nitorgen"));
+    private boolean hasEventWithDateTime(DiagnosticOrder.Item item, DiagnosticOrderStatusEnum status, Date datetime) {
+        for (DiagnosticOrder.Event event : item.getEvent()) {
+            if(event.getStatus().equals(status.getCode()) && event.getDateTime().equals(datetime)) return true;
+        }
+        return false;
     }
 
     private void assertSpecimen(Specimen specimen, String accessionNo, String specimenType) {

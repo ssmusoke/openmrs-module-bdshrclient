@@ -1,6 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
@@ -75,11 +76,22 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         CodeableConceptDt orderCode = findOrderName(order);
         if (orderCode == null) return;
         orderItem.setCode(orderCode);
-        if (order.getAction().equals(Order.Action.DISCONTINUE))
+        if (order.getAction().equals(Order.Action.DISCONTINUE)) {
             orderItem.setStatus(DiagnosticOrderStatusEnum.CANCELLED);
-        else
+            addEvent(orderItem, DiagnosticOrderStatusEnum.REQUESTED, order.getPreviousOrder().getDateActivated());
+            addEvent(orderItem, DiagnosticOrderStatusEnum.CANCELLED, order.getDateActivated());
+        }
+        else {
             orderItem.setStatus(DiagnosticOrderStatusEnum.REQUESTED);
+            addEvent(orderItem, DiagnosticOrderStatusEnum.REQUESTED, order.getDateActivated());
+        }
         addSpecimenToDiagnosticOrder(order, diagnosticOrder, orderItem, bundle, systemProperties);
+    }
+
+    private void addEvent(DiagnosticOrder.Item orderItem, DiagnosticOrderStatusEnum status, Date dateActivated) {
+        DiagnosticOrder.Event event = orderItem.addEvent();
+        event.setStatus(status);
+        event.setDateTime(dateActivated, TemporalPrecisionEnum.MILLI);
     }
 
     private void addSpecimenToDiagnosticOrder(Order order, DiagnosticOrder diagnosticOrder, DiagnosticOrder.Item orderItem, Bundle bundle, SystemProperties systemProperties) {

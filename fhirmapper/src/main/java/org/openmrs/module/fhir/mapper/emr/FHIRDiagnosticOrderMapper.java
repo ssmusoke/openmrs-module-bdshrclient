@@ -5,13 +5,13 @@ import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
 import ca.uhn.fhir.model.dstu2.valueset.DiagnosticOrderStatusEnum;
-import org.joda.time.DateTime;
 import org.openmrs.Concept;
 import org.openmrs.Order;
 import org.openmrs.api.OrderService;
+import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
-import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.fhir.utils.OrderCareSettingLookupService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
@@ -26,15 +26,9 @@ import java.util.List;
 @Component
 public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     private static final String ORDER_NAME = "Lab Order";
-    private static final String BAHMNI_ENCOUNTER_SESSION_PROPERTY_NAME = "bahmni.encountersession.duration";
-    private static final String ORDER_DISCONTINUE_REASON = "Cancelled in SHR";
-    private static final int BAHMNI_DEFAULT_ENCOUNTER_SESSION_TIME = 60;
 
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
-
-    @Autowired
-    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Autowired
     private ProviderLookupService providerLookupService;
@@ -90,7 +84,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         if (testOrderConcept != null) {
             Order existingRunningOrder = getExistingRunningOrder(emrEncounter, testOrderConcept);
             if (isRequestedOrderAlreadyPresent(diagnosticOrderItemComponent, existingRunningOrder)) return;
-            Order testOrder = createTestOrder(bundle, diagnosticOrder, emrEncounter, testOrderConcept);
+            Order testOrder = createRequestedTestOrder(diagnosticOrderItemComponent, bundle, diagnosticOrder, emrEncounter, testOrderConcept);
             emrEncounter.addOrder(testOrder);
         }
     }
@@ -100,7 +94,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         if (testOrderConcept != null) {
             Order existingRunningOrder = getExistingRunningOrder(emrEncounter, testOrderConcept);
             if (isCancelledOrderNotCreated(diagnosticOrderItemComponent, existingRunningOrder)) return;
-            Order testOrder = createTestOrder(bundle, diagnosticOrder, emrEncounter, testOrderConcept);
+            Order testOrder = createCancelledTestOrder(diagnosticOrderItemComponent, bundle, diagnosticOrder, emrEncounter, testOrderConcept);
             handleCancelledOrder(diagnosticOrderItemComponent, existingRunningOrder, testOrder);
             emrEncounter.addOrder(testOrder);
         }
@@ -121,31 +115,53 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         return isCancelledOrder(diagnosticOrderItemComponent) && existingRunningOrder == null;
     }
 
-    private Order createTestOrder(Bundle bundle, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter, Concept testOrderConcept) {
+    private Order createCancelledTestOrder(DiagnosticOrder.Item item, Bundle bundle, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter, Concept testOrderConcept) {
+        Date dateActivated = getDateActivatedFromEventWithStatus(item, diagnosticOrder, DiagnosticOrderStatusEnum.CANCELLED);
+        if (dateActivated == null)
+            dateActivated = DateUtil.aSecondAfter(emrEncounter.getEncounter().getEncounterDatetime());
+        return createTestOrder(bundle, diagnosticOrder, testOrderConcept, dateActivated);
+    }
+
+    private Order createRequestedTestOrder(DiagnosticOrder.Item item, Bundle bundle, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter, Concept testOrderConcept) {
+        Date dateActivated = getDateActivatedFromEventWithStatus(item, diagnosticOrder, DiagnosticOrderStatusEnum.REQUESTED);
+        if (dateActivated == null) dateActivated = emrEncounter.getEncounter().getEncounterDatetime();
+        return createTestOrder(bundle, diagnosticOrder, testOrderConcept, dateActivated);
+    }
+
+    private Order createTestOrder(Bundle bundle, DiagnosticOrder diagnosticOrder, Concept testOrderConcept, Date dateActivated) {
         Order testOrder = new Order();
         testOrder.setOrderType(orderService.getOrderTypeByName(ORDER_NAME));
         testOrder.setConcept(testOrderConcept);
         setOrderer(testOrder, diagnosticOrder);
-        Date encounterDatetime = emrEncounter.getEncounter().getEncounterDatetime();
-        testOrder.setDateActivated(encounterDatetime);
-        testOrder.setAutoExpireDate(getAutoExpireDate(encounterDatetime));
         testOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(bundle));
+        testOrder.setDateActivated(dateActivated);
+        testOrder.setAutoExpireDate(getAutoExpireDate(dateActivated));
         return testOrder;
     }
 
-    private Date getAutoExpireDate(Date encounterDatetime) {
-        String configuredSessionDuration = globalPropertyLookUpService.getGlobalPropertyValue(BAHMNI_ENCOUNTER_SESSION_PROPERTY_NAME);
-        int encounterSessionDuration = BAHMNI_DEFAULT_ENCOUNTER_SESSION_TIME;
-        if (configuredSessionDuration != null) {
-            encounterSessionDuration = Integer.parseInt(configuredSessionDuration);
+    private Date getDateActivatedFromEventWithStatus(DiagnosticOrder.Item item, DiagnosticOrder diagnosticOrder, DiagnosticOrderStatusEnum status) {
+        DiagnosticOrder.Event event = getEvent(item.getEvent(), status);
+        if (event != null) return event.getDateTime();
+        event = getEvent(diagnosticOrder.getEvent(), status);
+        if (event != null) return event.getDateTime();
+        return null;
+    }
+
+    private DiagnosticOrder.Event getEvent(List<DiagnosticOrder.Event> events, DiagnosticOrderStatusEnum requested) {
+        for (DiagnosticOrder.Event event : events) {
+            if (event.getStatus().equals(requested.getCode())) return event;
         }
-        return new DateTime(encounterDatetime.getTime()).plusMinutes(encounterSessionDuration).toDate();
+        return null;
+    }
+
+    private Date getAutoExpireDate(Date encounterDatetime) {
+        return DateUtil.addMinutes(encounterDatetime, MRSProperties.ORDER_AUTO_EXPIRE_DURATION_MINUTES);
     }
 
     private void handleCancelledOrder(DiagnosticOrder.Item diagnosticOrderItemComponent, Order existingRunningOrder, Order testOrder) {
         if (isCancelledOrder(diagnosticOrderItemComponent)) {
             testOrder.setAction(Order.Action.DISCONTINUE);
-            testOrder.setOrderReasonNonCoded(ORDER_DISCONTINUE_REASON);
+            testOrder.setOrderReasonNonCoded(MRSProperties.ORDER_DISCONTINUE_REASON);
             testOrder.setPreviousOrder(existingRunningOrder);
         }
     }

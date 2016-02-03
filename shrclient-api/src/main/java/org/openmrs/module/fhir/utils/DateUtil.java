@@ -126,4 +126,8 @@ public class DateUtil {
     public static Date aSecondAfter(Date date) {
         return addSeconds(date, 1);
     }
+
+    public static Date addMinutes(Date date, int minutes) {
+        return org.apache.commons.lang3.time.DateUtils.addMinutes(date, minutes);
+    }
 }
