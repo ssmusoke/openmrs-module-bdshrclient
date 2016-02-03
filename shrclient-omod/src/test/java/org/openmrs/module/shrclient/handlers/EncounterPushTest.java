@@ -39,7 +39,7 @@ import static org.openmrs.module.fhir.utils.PropertyKeyConstants.*;
 public class EncounterPushTest {
 
     private static final String HEALTH_ID = "1234567890123";
-    private static final String patientUrl = "patients/" + HEALTH_ID + "/encounters";
+    private static final String encountersUrl = "patients/" + HEALTH_ID + "/encounters";
     @Mock
     private EncounterService encounterService;
 
@@ -91,13 +91,13 @@ public class EncounterPushTest {
         when(shrClient.post(anyString(), eq(bundle))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
         when(compositionBundleCreator.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
         when(idMappingRepository.findByExternalId(facilityId, IdMappingType.FACILITY)).thenReturn(null);
-        PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, patientUrl);
+        PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, encountersUrl);
         when(idMappingRepository.findByInternalId(openMrsEncounter.getPatient().getUuid(), IdMappingType.PATIENT)).thenReturn(patientIdMapping);
 
         encounterPush.process(event);
 
         verify(encounterService).getEncounterByUuid(uuid);
-        verify(shrClient).post(patientUrl, bundle);
+        verify(shrClient).post(encountersUrl, bundle);
         ArgumentCaptor<EncounterIdMapping> encounterDdMappingArgumentCaptor = ArgumentCaptor.forClass(EncounterIdMapping.class);
         verify(idMappingRepository).saveOrUpdateIdMapping(encounterDdMappingArgumentCaptor.capture());
 
@@ -109,7 +109,7 @@ public class EncounterPushTest {
     }
 
     @Test
-    public void shouldProcessAddDrugOrdersToIdMapping() throws IOException {
+    public void shouldAddDrugOrdersToIdMapping() throws IOException {
         final String uuid = "123abc456";
         String facilityId = "10000069";
 
@@ -130,13 +130,13 @@ public class EncounterPushTest {
         when(shrClient.post(anyString(), eq(bundle))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
         when(compositionBundleCreator.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
         when(idMappingRepository.findByExternalId(facilityId, IdMappingType.FACILITY)).thenReturn(null);
-        PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, patientUrl);
+        PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, encountersUrl);
         when(idMappingRepository.findByInternalId(openMrsEncounter.getPatient().getUuid(), IdMappingType.PATIENT)).thenReturn(patientIdMapping);
 
         encounterPush.process(event);
 
         verify(encounterService).getEncounterByUuid(uuid);
-        verify(shrClient).post(patientUrl, bundle);
+        verify(shrClient).post(encountersUrl, bundle);
         ArgumentCaptor<IdMapping> idMappingArgumentCaptor = ArgumentCaptor.forClass(IdMapping.class);
         verify(idMappingRepository, times(2)).saveOrUpdateIdMapping(idMappingArgumentCaptor.capture());
 
@@ -145,6 +145,42 @@ public class EncounterPushTest {
         String externalId = String.format(MRSProperties.RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, "shr-uuid", drugOrder.getUuid());
         assertTrue(containsIdMapping(idMappings, drugOrder.getUuid(), externalId, IdMappingType.MEDICATION_ORDER, orderUrl));
     }
+
+    @Test
+    public void shouldAddProcedureOrderToOrdersIdMapping() throws Exception {
+        final String uuid = "123abc456";
+        
+        final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + uuid
+                + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
+        org.openmrs.Encounter openMrsEncounter = getOpenMrsEncounter(uuid);
+        Order procedureOrder = new Order(10);
+        OrderType procedureOrderType = new OrderType();
+        procedureOrderType.setName(MRSProperties.MRS_PROCEDURE_ORDER_TYPE);
+        procedureOrder.setOrderType(procedureOrderType);
+        openMrsEncounter.addOrder(procedureOrder);
+        final Bundle bundle = new Bundle();
+
+        PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, encountersUrl);
+
+        when(propertiesReader.getShrProperties()).thenReturn(getShrProperties());
+        when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
+        when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
+        when(shrClient.post(anyString(), eq(bundle))).thenReturn("{\"encounterId\":\"shr-uuid\"}");
+        when(compositionBundleCreator.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
+        when(idMappingRepository.findByInternalId(openMrsEncounter.getPatient().getUuid(), IdMappingType.PATIENT)).thenReturn(patientIdMapping);
+        
+        encounterPush.process(event);
+        
+        verify(shrClient).post(encountersUrl, bundle);
+        ArgumentCaptor<IdMapping> idMappingArgumentCaptor = ArgumentCaptor.forClass(IdMapping.class);
+        verify(idMappingRepository, times(2)).saveOrUpdateIdMapping(idMappingArgumentCaptor.capture());
+
+        List<IdMapping> idMappings = idMappingArgumentCaptor.getAllValues();
+        String orderUrl = "http://localhost:9997/patients/" + HEALTH_ID + "/encounters/shr-uuid" + "#ProcedureRequest/" + procedureOrder.getUuid();
+        String externalId = String.format(MRSProperties.RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, "shr-uuid", procedureOrder.getUuid());
+        assertTrue(containsIdMapping(idMappings, procedureOrder.getUuid(), externalId, IdMappingType.PROCEDURE_ORDER, orderUrl));
+    }
+
 
     @Test
     public void shouldProcessEncounterUpdateEvent() throws Exception {
@@ -162,7 +198,7 @@ public class EncounterPushTest {
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
         when(idMappingRepository.findByInternalId(uuid, IdMappingType.ENCOUNTER)).thenReturn(new EncounterIdMapping(uuid, "shr-uuid", "encounter", new Date(), null, openMrsEncounter.getDateCreated()));
         when(compositionBundleCreator.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
-        PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, patientUrl);
+        PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, encountersUrl);
         when(idMappingRepository.findByInternalId(openMrsEncounter.getPatient().getUuid(), IdMappingType.PATIENT)).thenReturn(patientIdMapping);
 
         encounterPush.process(event);
@@ -185,7 +221,7 @@ public class EncounterPushTest {
         when(idMappingRepository.findByInternalId(uuid, IdMappingType.ENCOUNTER)).thenReturn(new EncounterIdMapping(uuid, "shr-uuid", "encounter", null));
         when(compositionBundleCreator.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
         when(systemUserService.isUpdatedByOpenMRSShrSystemUser(openMrsEncounter)).thenReturn(true);
-        PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, patientUrl);
+        PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, encountersUrl);
         when(idMappingRepository.findByInternalId(openMrsEncounter.getPatient().getUuid(), IdMappingType.PATIENT)).thenReturn(patientIdMapping);
 
         encounterPush.process(event);

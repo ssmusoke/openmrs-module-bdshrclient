@@ -22,6 +22,7 @@ public class IdMappingRepository {
     MedicationOrderIdMappingDao medicationOrderIdMappingDao;
     SHRIdMappingDao shrIdMappingDao;
     private DiagnosisIdMappingDao diagnosisIdMappingDao;
+    private OrderIdMappingDao orderIdMappingDao;
     Database database;
     Logger logger = Logger.getLogger(IdMappingRepository.class);
 
@@ -34,6 +35,7 @@ public class IdMappingRepository {
         this.medicationOrderIdMappingDao = new MedicationOrderIdMappingDao(database);
         this.shrIdMappingDao = new SHRIdMappingDao(database);
         this.diagnosisIdMappingDao = new DiagnosisIdMappingDao(database);
+        this.orderIdMappingDao = new OrderIdMappingDao(database);
     }
 
     public void saveOrUpdateIdMapping(IdMapping idMapping) {
@@ -101,7 +103,6 @@ public class IdMappingRepository {
                 statement.executeBatch();
             }
         }
-
     }
 
     private IdMappingDao idMappingDao(String idMappingType) {
@@ -113,6 +114,8 @@ public class IdMappingRepository {
             return medicationOrderIdMappingDao;
         else if (IdMappingType.DIAGNOSIS.equals(idMappingType))
             return diagnosisIdMappingDao;
+        else if (IdMappingType.PROCEDURE_ORDER.equals(idMappingType))
+            return orderIdMappingDao;
         else
             return shrIdMappingDao;
     }

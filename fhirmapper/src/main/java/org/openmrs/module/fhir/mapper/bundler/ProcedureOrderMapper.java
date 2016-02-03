@@ -6,24 +6,27 @@ import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.ProcedureRequest;
-import ca.uhn.fhir.model.dstu2.valueset.ProcedureRequestStatusEnum;
+import ca.uhn.fhir.model.primitive.StringDt;
 import org.apache.commons.collections4.CollectionUtils;
 import org.openmrs.Order;
-import org.openmrs.module.fhir.mapper.bundler.EmrOrderResourceHandler;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.mapper.model.FHIRResource;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
+import static ca.uhn.fhir.model.dstu2.valueset.ProcedureRequestStatusEnum.REQUESTED;
+import static ca.uhn.fhir.model.dstu2.valueset.ProcedureRequestStatusEnum.SUSPENDED;
+import static org.openmrs.Order.Action.DISCONTINUE;
+import static org.openmrs.module.fhir.FHIRProperties.PROCEDURE_REQUEST_PREVIOUS_REQUEST_EXTENSION_NAME;
+import static org.openmrs.module.fhir.FHIRProperties.getFhirExtensionUrl;
 import static org.openmrs.module.fhir.MRSProperties.MRS_PROCEDURE_ORDER_TYPE;
 
 @Component
@@ -31,7 +34,6 @@ public class ProcedureOrderMapper implements EmrOrderResourceHandler {
     private final static String PROCEDURE_REQUEST_RESOURCE_DISPLAY = "Procedure Request";
     @Autowired
     private ProviderLookupService providerLookupService;
-
     @Autowired
     private CodeableConceptService codeableConceptService;
 
@@ -42,7 +44,6 @@ public class ProcedureOrderMapper implements EmrOrderResourceHandler {
 
     @Override
     public List<FHIRResource> map(Order order, FHIREncounter fhirEncounter, Bundle bundle, SystemProperties systemProperties) {
-        if (order.getDateStopped() != null) return Collections.EMPTY_LIST;
         List<FHIRResource> resources = new ArrayList<>();
         FHIRResource procedureRequest = createProcedureRequest(order, fhirEncounter, systemProperties);
         if (null != procedureRequest) {
@@ -56,11 +57,12 @@ public class ProcedureOrderMapper implements EmrOrderResourceHandler {
         procedureRequest.setSubject(fhirEncounter.getPatient());
         procedureRequest.setOrderer(getOrdererReference(order, fhirEncounter, systemProperties));
         procedureRequest.setOrderedOn(order.getDateActivated(), TemporalPrecisionEnum.SECOND);
-        String id = new EntityReference().build(Order.class, systemProperties, UUID.randomUUID().toString());
+        String id = new EntityReference().build(Order.class, systemProperties, order.getUuid());
         procedureRequest.addIdentifier().setValue(id);
         procedureRequest.setId(id);
         procedureRequest.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId()));
         setOrderStatus(order, procedureRequest);
+        setPreviousOrder(order, procedureRequest, systemProperties);
         addNotes(order, procedureRequest);
         CodeableConceptDt code = findCodeForOrder(order);
         if (code == null || CollectionUtils.isEmpty(code.getCoding())) {
@@ -70,14 +72,14 @@ public class ProcedureOrderMapper implements EmrOrderResourceHandler {
         return new FHIRResource(PROCEDURE_REQUEST_RESOURCE_DISPLAY, procedureRequest.getIdentifier(), procedureRequest);
     }
 
-    public void setOrderStatus(Order order, ProcedureRequest procedureRequest) {
-        if (order.getAction().equals(Order.Action.DISCONTINUE))
-            procedureRequest.setStatus(ProcedureRequestStatusEnum.SUSPENDED);
+    private void setOrderStatus(Order order, ProcedureRequest procedureRequest) {
+        if (order.getAction().equals(DISCONTINUE))
+            procedureRequest.setStatus(SUSPENDED);
         else
-            procedureRequest.setStatus(ProcedureRequestStatusEnum.REQUESTED);
+            procedureRequest.setStatus(REQUESTED);
     }
 
-    public void addNotes(Order order, ProcedureRequest procedureRequest) {
+    private void addNotes(Order order, ProcedureRequest procedureRequest) {
         AnnotationDt notes = new AnnotationDt();
         notes.setText(order.getCommentToFulfiller());
         procedureRequest.addNotes(notes);
@@ -99,5 +101,16 @@ public class ProcedureOrderMapper implements EmrOrderResourceHandler {
         }
         return codeableConceptService.addTRCoding(order.getConcept());
     }
+
+    private void setPreviousOrder(Order order, ProcedureRequest procedureRequest, SystemProperties systemProperties) {
+        if (DISCONTINUE.equals(order.getAction())) {
+            String fhirExtensionUrl = getFhirExtensionUrl(PROCEDURE_REQUEST_PREVIOUS_REQUEST_EXTENSION_NAME);
+            String previousOrderUuid = order.getPreviousOrder().getUuid();
+            String previousOrderUrl = new EntityReference().build(Order.class, systemProperties, previousOrderUuid);
+            procedureRequest.addUndeclaredExtension(false, fhirExtensionUrl, new StringDt(previousOrderUrl));
+        }
+    }
+
+
 
 }

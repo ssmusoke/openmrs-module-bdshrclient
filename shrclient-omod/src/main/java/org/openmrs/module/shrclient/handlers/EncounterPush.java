@@ -3,6 +3,7 @@ package org.openmrs.module.shrclient.handlers;
 import ca.uhn.fhir.model.dstu2.resource.BaseResource;
 import ca.uhn.fhir.model.dstu2.resource.Condition;
 import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
+import ca.uhn.fhir.model.dstu2.resource.ProcedureRequest;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
@@ -85,15 +86,16 @@ public class EncounterPush implements EventWorker {
             }
             encounterUuidsProcessed.add(openMrsEncounter.getUuid());
             saveEncounterIdMapping(openMrsEncounter.getUuid(), healthId, shrEncounterId, systemProperties);
-            saveOrderIdMapping(openMrsEncounter.getOrders(), healthId, shrEncounterId, systemProperties);
             saveIdMappingForDiagnosis(openMrsEncounter, healthId, shrEncounterId, systemProperties);
+            saveMedicationOrderIdMapping(openMrsEncounter.getOrders(), healthId, shrEncounterId, systemProperties);
+            saveProcedureOrderIdMapping(openMrsEncounter.getOrders(), healthId, shrEncounterId, systemProperties);
         } catch (Exception e) {
             log.error("Error while processing encounter sync event.", e);
             throw new RuntimeException(e);
         }
     }
 
-    private void saveOrderIdMapping(Set<Order> orders, String healthId, String shrEncounterId, SystemProperties systemProperties) {
+    private void saveMedicationOrderIdMapping(Set<Order> orders, String healthId, String shrEncounterId, SystemProperties systemProperties) {
         HashMap<String, String> orderUrlReferenceIds = new HashMap<>();
         orderUrlReferenceIds.put(EntityReference.HEALTH_ID_REFERENCE, healthId);
         orderUrlReferenceIds.put(EntityReference.ENCOUNTER_ID_REFERENCE, shrEncounterId);
@@ -126,6 +128,23 @@ public class EncounterPush implements EventWorker {
             idMappingsRepository.saveOrUpdateIdMapping(new DiagnosisIdMapping(obs.getUuid(), externalId, diagnosisUrl));
         }
     }
+    
+    private void saveProcedureOrderIdMapping(Set<Order> orders, String healthId, String shrEncounterId, SystemProperties systemProperties) {
+        HashMap<String, String> orderUrlReferenceIds = new HashMap<>();
+        orderUrlReferenceIds.put(EntityReference.HEALTH_ID_REFERENCE, healthId);
+        orderUrlReferenceIds.put(EntityReference.ENCOUNTER_ID_REFERENCE, shrEncounterId);
+        orderUrlReferenceIds.put(EntityReference.REFERENCE_RESOURCE_NAME, new ProcedureRequest().getResourceName());
+        EntityReference entityReference = new EntityReference();
+        for (Order order : orders) {
+            if (order.getOrderType().getName().equals(MRSProperties.MRS_PROCEDURE_ORDER_TYPE)) {
+                orderUrlReferenceIds.remove(EntityReference.REFERENCE_ID);
+                orderUrlReferenceIds.put(EntityReference.REFERENCE_ID, order.getUuid());
+                String orderUrl = entityReference.build(BaseResource.class, systemProperties, orderUrlReferenceIds);
+                String externalId = String.format(MRSProperties.RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterId, order.getUuid());
+                idMappingsRepository.saveOrUpdateIdMapping(new OrderIdMapping(order.getUuid(), externalId, IdMappingType.PROCEDURE_ORDER, orderUrl));
+            }
+        }
+    }
 
     private void saveEncounterIdMapping(String openMrsEncounterUuid, String healthId, String shrEncounterId, SystemProperties systemProperties) {
         String shrEncounterUrl = getShrEncounterUrl(healthId, shrEncounterId, systemProperties);
@@ -133,10 +152,9 @@ public class EncounterPush implements EventWorker {
     }
 
     private String getShrEncounterUrl(String healthId, String shrEncounterId, SystemProperties systemProperties) {
-        HashMap<String, String> encounterUrlReferenceIds1 = new HashMap<>();
-        encounterUrlReferenceIds1.put(EntityReference.HEALTH_ID_REFERENCE, healthId);
-        encounterUrlReferenceIds1.put(EntityReference.REFERENCE_ID, shrEncounterId);
-        HashMap<String, String> encounterUrlReferenceIds = encounterUrlReferenceIds1;
+        HashMap<String, String> encounterUrlReferenceIds = new HashMap<>();
+        encounterUrlReferenceIds.put(EntityReference.HEALTH_ID_REFERENCE, healthId);
+        encounterUrlReferenceIds.put(EntityReference.REFERENCE_ID, shrEncounterId);
         return new EntityReference().build(Encounter.class, systemProperties, encounterUrlReferenceIds);
     }
 

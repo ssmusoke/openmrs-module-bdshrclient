@@ -33,6 +33,7 @@ public class FHIRProperties {
     public static final String SCHEDULED_DATE_EXTENSION_NAME = "TimingScheduledDate";
     public static final String DOSAGEINSTRUCTION_CUSTOM_DOSAGE_EXTENSION_NAME = "DosageInstructionCustomDosage";
     public static final String MEDICATIONORDER_ACTION_EXTENSION_NAME = "MedicationOrderAction";
+    public static final String PROCEDURE_REQUEST_PREVIOUS_REQUEST_EXTENSION_NAME = "PreviousProcedureRequest";
     public static final String PREVIOUS_CONDITION_EXTENSION_NAME = "PreviousCondition";
 
     public static String getFhirExtensionUrl(String extensionName) {

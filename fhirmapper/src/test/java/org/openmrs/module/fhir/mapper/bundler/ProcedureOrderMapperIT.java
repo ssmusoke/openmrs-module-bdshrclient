@@ -1,16 +1,19 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import ca.uhn.fhir.model.api.ExtensionDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.ProcedureRequest;
 import ca.uhn.fhir.model.dstu2.valueset.ProcedureRequestStatusEnum;
+import ca.uhn.fhir.model.primitive.StringDt;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hl7.fhir.instance.model.api.IBaseDatatype;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Order;
 import org.openmrs.api.OrderService;
-import org.openmrs.module.fhir.mapper.bundler.ProcedureOrderMapper;
+import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.mapper.model.FHIRResource;
 import org.openmrs.module.fhir.utils.DateUtil;
@@ -78,20 +81,32 @@ public class ProcedureOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    public void shouldNotMapAStoppedProcedureOrder() throws Exception {
+    public void shouldMapAStoppedProcedureOrderAsNewOrder() throws Exception {
         Order order = orderService.getOrder(19);
         List<FHIRResource> mappedResources = procedureOrderMapper.map(order, createFhirEncounter(), new Bundle(), getSystemProperties("1"));
-        assertTrue(mappedResources.isEmpty());
+        assertEquals(1, mappedResources.size());
+        ProcedureRequest procedureRequest = (ProcedureRequest) mappedResources.get(0).getResource();
+        assertProcedureRequest(procedureRequest, "101", "http://tr.com/ws/concepts/101", "Colposcopy",
+                "2008-08-19 12:20:22", ProcedureRequestStatusEnum.REQUESTED);
     }
 
     @Test
     public void shouldMapADiscontinuedProcedureOrder() throws Exception {
         Order order = orderService.getOrder(20);
+
         List<FHIRResource> mappedResources = procedureOrderMapper.map(order, createFhirEncounter(), new Bundle(), getSystemProperties("1"));
         assertEquals(1, mappedResources.size());
         ProcedureRequest procedureRequest = (ProcedureRequest) mappedResources.get(0).getResource();
         assertProcedureRequest(procedureRequest, "101", "http://tr.com/ws/concepts/101",
                 "Colposcopy", "2008-08-19 12:22:22", ProcedureRequestStatusEnum.SUSPENDED);
+        final List<ExtensionDt> extensions = procedureRequest.getUndeclaredExtensionsByUrl(
+                FHIRProperties.getFhirExtensionUrl(FHIRProperties.PROCEDURE_REQUEST_PREVIOUS_REQUEST_EXTENSION_NAME));
+        assertEquals(1, extensions.size());
+        IBaseDatatype extension = extensions.get(0).getValue();
+        assertTrue(extension instanceof StringDt);
+        String actualPreviousOrderUri = ((StringDt) extension).getValue();
+        String expectedPreviousOrderUri = "urn:uuid:" + order.getPreviousOrder().getUuid();
+        assertEquals(expectedPreviousOrderUri, actualPreviousOrderUri);
     }
 
     private FHIREncounter createFhirEncounter() {
