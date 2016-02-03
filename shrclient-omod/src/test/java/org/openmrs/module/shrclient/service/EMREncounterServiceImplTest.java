@@ -182,7 +182,7 @@ public class EMREncounterServiceImplTest {
         Patient emrPatient = new Patient();
 
         String uri = String.format("http://shr.com/patients/%s/encounters/shr_encounter_id", healthId);
-        EncounterIdMapping mapping = new EncounterIdMapping(UUID.randomUUID().toString(), shrEncounterId, uri, twoMinutesAfter, twoMinutesAfter);
+        EncounterIdMapping mapping = new EncounterIdMapping(UUID.randomUUID().toString(), shrEncounterId, uri, new Date(), twoMinutesAfter, twoMinutesAfter);
         when(mockIdMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER)).thenReturn(mapping);
         when(mockFhirmapper.map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class))).thenReturn(new Encounter());
         when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://shr.com/");
@@ -218,7 +218,7 @@ public class EMREncounterServiceImplTest {
         Patient emrPatient = new Patient();
 
         String uri = String.format("http://shr.com/patients/%s/encounters/shr_encounter_id", healthId);
-        EncounterIdMapping mapping = new EncounterIdMapping(UUID.randomUUID().toString(), shrEncounterId, uri, currentTime, currentTime);
+        EncounterIdMapping mapping = new EncounterIdMapping(UUID.randomUUID().toString(), shrEncounterId, uri, new Date(), currentTime, currentTime);
         when(mockIdMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER)).thenReturn(mapping);
         when(mockFhirmapper.map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class))).thenReturn(new Encounter());
         when(mockPropertiesReader.getShrBaseUrl()).thenReturn("http://shr.com/");
@@ -254,7 +254,7 @@ public class EMREncounterServiceImplTest {
         Patient emrPatient = new Patient();
 
         String uri = String.format("http://shr.com/patients/%s/encounters/shr_encounter_id", healthId);
-        EncounterIdMapping mapping = new EncounterIdMapping(UUID.randomUUID().toString(), shrEncounterId, uri, currentTime, currentTime);
+        EncounterIdMapping mapping = new EncounterIdMapping(UUID.randomUUID().toString(), shrEncounterId, uri, new Date(), currentTime, currentTime);
         when(mockIdMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER)).thenReturn(mapping);
         Encounter encounter = new Encounter();
         encounter.addOrder(new Order(1));

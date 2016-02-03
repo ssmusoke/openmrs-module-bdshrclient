@@ -12,10 +12,11 @@ public class IdMapping {
     private String externalId;
     private String type;
     private String uri;
+    private Date createdAt;
     private Date lastSyncDateTime;
     private Date serverUpdateDateTime;
 
-    public IdMapping(String internalId, String externalId, String type, String uri, Date lastSyncDateTime, Date serverUpdateDateTime) {
+    public IdMapping(String internalId, String externalId, String type, String uri, Date createdAt, Date lastSyncDateTime, Date serverUpdateDateTime) {
         Validate.notNull(internalId);
         Validate.notNull(externalId);
         Validate.notNull(type);
@@ -23,12 +24,13 @@ public class IdMapping {
         this.externalId = externalId;
         this.type = type;
         this.uri = uri;
+        this.createdAt = createdAt;
         this.lastSyncDateTime = lastSyncDateTime;
         this.serverUpdateDateTime = serverUpdateDateTime;
     }
 
-    public IdMapping(String internalId, String externalId, String type, String uri) {
-        this(internalId, externalId, type, uri, null, null);
+    public IdMapping(String internalId, String externalId, String type, String uri, Date createdAt) {
+        this(internalId, externalId, type, uri, createdAt, null, null);
     }
 
     public IdMapping() {
@@ -97,6 +99,15 @@ public class IdMapping {
     public void setServerUpdateDateTime(Date serverUpdateDateTime) {
         this.serverUpdateDateTime = serverUpdateDateTime;
     }
+
+    public Timestamp getCreatedAt() {
+        return this.createdAt != null ? new Timestamp(this.createdAt.getTime()) : null;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
 
     @Override
     public boolean equals(Object o) {

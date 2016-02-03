@@ -7,6 +7,8 @@ import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
+
 import static org.junit.Assert.assertEquals;
 
 
@@ -21,10 +23,10 @@ public class IdMappingRepositoryIT extends BaseModuleWebContextSensitiveTest {
 
         assertIdMapping(idMappingRepository.findByHealthId("Health_id", IdMappingType.ENCOUNTER).get(0),
                 new IdMapping("75e04d42-3ca8-11e3-bf2b-0800271c1b75", "75e04d42-3ca8-11e3-bf2b-0800271c1b76", IdMappingType.ENCOUNTER,
-                        "/patients/Health_id/encounters"));
+                        "/patients/Health_id/encounters", new Date()));
         assertIdMapping(idMappingRepository.findByHealthId("Health_id", IdMappingType.MEDICATION_ORDER).get(0),
                 new IdMapping("juydg81f-1yz9-4xv3-bz88-8z22a1dx1zt","597d18f5-bc92-4c43-b0fa-526fe6181d0e:e30e5355-cca5-4eb5-947f-0", IdMappingType.MEDICATION_ORDER,
-                        "/patients/Health_id/encounters/597d18f5-bc92-4c43-b0fa-526fe6181d0e#MedicationOrder/e30e5355-cca5-4eb5-947f-0"));
+                        "/patients/Health_id/encounters/597d18f5-bc92-4c43-b0fa-526fe6181d0e#MedicationOrder/e30e5355-cca5-4eb5-947f-0", new Date()));
 
     }
 
@@ -35,10 +37,10 @@ public class IdMappingRepositoryIT extends BaseModuleWebContextSensitiveTest {
 
         assertIdMapping(idMappingRepository.findByHealthId("new_HID", IdMappingType.ENCOUNTER).get(0),
                 new IdMapping("75e04d42-3ca8-11e3-bf2b-0800271c1b75", "75e04d42-3ca8-11e3-bf2b-0800271c1b76", IdMappingType.ENCOUNTER,
-                        "/patients/new_HID/encounters"));
+                        "/patients/new_HID/encounters", new Date()));
         assertIdMapping(idMappingRepository.findByHealthId("new_HID", IdMappingType.MEDICATION_ORDER).get(0),
                 new IdMapping("juydg81f-1yz9-4xv3-bz88-8z22a1dx1zt", "597d18f5-bc92-4c43-b0fa-526fe6181d0e:e30e5355-cca5-4eb5-947f-0", IdMappingType.MEDICATION_ORDER,
-                        "/patients/new_HID/encounters/597d18f5-bc92-4c43-b0fa-526fe6181d0e#MedicationOrder/e30e5355-cca5-4eb5-947f-0"));
+                        "/patients/new_HID/encounters/597d18f5-bc92-4c43-b0fa-526fe6181d0e#MedicationOrder/e30e5355-cca5-4eb5-947f-0", new Date()));
 
     }
     

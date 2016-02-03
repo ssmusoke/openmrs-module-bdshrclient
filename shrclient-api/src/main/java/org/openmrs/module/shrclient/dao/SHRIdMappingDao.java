@@ -14,6 +14,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 
+import static org.openmrs.module.fhir.utils.DateUtil.getDateFromTimestamp;
+
 @Component("shrIdMappingDao")
 public class SHRIdMappingDao extends IdMappingDao {
 
@@ -35,8 +37,9 @@ public class SHRIdMappingDao extends IdMappingDao {
         statement.setString(2, idMapping.getExternalId());
         statement.setString(3, idMapping.getType());
         statement.setString(4, idMapping.getUri());
-        statement.setTimestamp(5, idMapping.getLastSyncTimestamp());
-        statement.setTimestamp(6, idMapping.getServerUpdateTimestamp());
+        statement.setTimestamp(5, idMapping.getCreatedAt());
+        statement.setTimestamp(6, idMapping.getLastSyncTimestamp());
+        statement.setTimestamp(7, idMapping.getServerUpdateTimestamp());
 
         return statement;
     }
@@ -61,28 +64,29 @@ public class SHRIdMappingDao extends IdMappingDao {
 
     @Override
     public IdMapping buildIdMapping(ResultSet resultSet) throws SQLException {
-        return new IdMapping(resultSet.getString(1), resultSet.getString(2), resultSet.getString(3),
-                resultSet.getString(4), new Date(resultSet.getTimestamp(5).getTime()), DateUtil.getDateFromTimestamp(resultSet.getTimestamp(6)));
+        return new IdMapping(resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), 
+                resultSet.getString(4), getDateFromTimestamp(resultSet.getTimestamp(5)),
+                new Date(resultSet.getTimestamp(6).getTime()), getDateFromTimestamp(resultSet.getTimestamp(7)));
     }
 
     @Override
     public String getFetchByExternalIdSql() {
-        return String.format("select distinct map.internal_id, map.external_id, map.type, map.uri, map.last_sync_datetime, map.server_update_datetime " +
+        return String.format("select distinct map.internal_id, map.external_id, map.type, map.uri, map.created_at, map.last_sync_datetime, map.server_update_datetime " +
                 "from %s map where map.external_id=?", getMappingTable());
     }
 
     @Override
     public String getFetchByInternalIdSql() {
-        return String.format("select distinct map.internal_id, map.external_id, map.type, map.uri, map.last_sync_datetime,map.server_update_datetime from %s map where map.internal_id=?", getMappingTable());
+        return String.format("select distinct map.internal_id, map.external_id, map.type, map.uri, map.created_at, map.last_sync_datetime,map.server_update_datetime from %s map where map.internal_id=?", getMappingTable());
     }
 
     @Override
     public String getFetchByHealthIdSql() {
-        return String.format("select map.internal_id, map.external_id, map.type, map.uri, map.last_sync_datetime, map.server_update_datetime from %s map where map.uri like ?", getMappingTable());
+        return String.format("select map.internal_id, map.external_id, map.type, map.uri, map.created_at, map.last_sync_datetime, map.server_update_datetime from %s map where map.uri like ?", getMappingTable());
     }
 
     private String getInsertMappingSql() {
-        return String.format("insert into %s (internal_id, external_id, type, uri, last_sync_datetime, server_update_datetime) values (?,?,?,?,?,?)", getMappingTable());
+        return String.format("insert into %s (internal_id, external_id, type, uri, created_at, last_sync_datetime, server_update_datetime) values (?,?,?,?,?,?,?)", getMappingTable());
     }
 
     private String getUpdateMappingSql() {

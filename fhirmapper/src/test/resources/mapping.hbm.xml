@@ -15,6 +15,7 @@
         <property name="externalId" column="external_id" type="java.lang.String" not-null="true" length="50"/>
         <property name="type" column="type" type="java.lang.String" not-null="true" length="50"/>
         <property name="uri" column="uri" type="java.lang.String" not-null="false" length="150" />
+        <property name="createdAt" column="created_at" type="java.util.Date"/>
         <property name="lastSyncDateTime" type="java.util.Date" >
             <column name="last_sync_datetime" default="now()" ></column>
         </property>
@@ -31,6 +32,7 @@
         <property name="internalId" column="internal_id" type="java.lang.String" not-null="true" length="100"/>
         <property name="externalId" column="external_id" type="java.lang.String" not-null="true" length="50"/>
         <property name="uri" column="uri" type="java.lang.String" not-null="false" length="150" />
+        <property name="createdAt" column="created_at" type="java.util.Date"/>
         <property name="lastSyncDateTime" type="java.util.Date" >
             <column name="last_sync_datetime" default="now()" ></column>
         </property>
@@ -46,6 +48,7 @@
         <property name="internalId" column="internal_id" type="java.lang.String" not-null="true" length="100"/>
         <property name="externalId" column="external_id" type="java.lang.String" not-null="true" length="50"/>
         <property name="uri" column="uri" type="java.lang.String" not-null="false" length="150" />
+        <property name="createdAt" column="created_at" type="java.util.Date"/>
         <property name="lastSyncDateTime" type="java.util.Date" >
             <column name="last_sync_datetime" default="now()" ></column>
         </property>
@@ -61,6 +64,7 @@
         <property name="internalId" column="internal_id" type="java.lang.String" not-null="true" length="50"/>
         <property name="externalId" column="external_id" type="java.lang.String" not-null="true" length="100"/>
         <property name="uri" column="uri" type="java.lang.String" not-null="false" length="150"/>
+        <property name="createdAt" column="created_at" type="java.util.Date"/>
     </class>
     <class name="MedicationOrderIdMapping" table="medication_order_id_mapping">
         <id name="id" type="long" column="id">
@@ -71,7 +75,8 @@
         <discriminator column="id" insert="false"/>
         <property name="internalId" column="internal_id" type="java.lang.String" not-null="true" length="50"/>
         <property name="externalId" column="external_id" type="java.lang.String" not-null="true" length="100"/>
-        <property name="uri" column="uri" type="java.lang.String" not-null="false" length="150"/>
+        <property name="uri" column="uri" type="java.lang.String" not-null="false" length="150" />
+        <property name="createdAt" column="created_at" type="java.util.Date"/>
     </class>
     <class name="FacilityCatchment" table="facility_catchment">
         <composite-id>

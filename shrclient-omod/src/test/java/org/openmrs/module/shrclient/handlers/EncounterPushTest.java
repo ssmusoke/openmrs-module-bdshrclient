@@ -160,7 +160,7 @@ public class EncounterPushTest {
         when(propertiesReader.getShrProperties()).thenReturn(getShrProperties());
         when(propertiesReader.getShrPatientEncPathPattern()).thenReturn("/patients/%s/encounters");
         when(encounterService.getEncounterByUuid(uuid)).thenReturn(openMrsEncounter);
-        when(idMappingRepository.findByInternalId(uuid, IdMappingType.ENCOUNTER)).thenReturn(new EncounterIdMapping(uuid, "shr-uuid", "encounter", null, openMrsEncounter.getDateCreated()));
+        when(idMappingRepository.findByInternalId(uuid, IdMappingType.ENCOUNTER)).thenReturn(new EncounterIdMapping(uuid, "shr-uuid", "encounter", new Date(), null, openMrsEncounter.getDateCreated()));
         when(compositionBundleCreator.create(any(Encounter.class), eq(HEALTH_ID), any(SystemProperties.class))).thenReturn(bundle);
         PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsEncounter.getPatient().getUuid(), HEALTH_ID, patientUrl);
         when(idMappingRepository.findByInternalId(openMrsEncounter.getPatient().getUuid(), IdMappingType.PATIENT)).thenReturn(patientIdMapping);

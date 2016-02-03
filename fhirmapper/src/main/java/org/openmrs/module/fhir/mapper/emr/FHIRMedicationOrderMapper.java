@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -193,7 +194,7 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         String shrOrderId = medicationOrder.getId().getIdPart();
         String orderUrl = getOrderUrl(encounterComposition, systemProperties, shrOrderId);
         String externalId = String.format(RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, encounterComposition.getShrEncounterId(), shrOrderId);
-        MedicationOrderIdMapping orderIdMapping = new MedicationOrderIdMapping(drugOrder.getUuid(), externalId, orderUrl);
+        MedicationOrderIdMapping orderIdMapping = new MedicationOrderIdMapping(drugOrder.getUuid(), externalId, orderUrl, new Date());
         idMappingRepository.saveOrUpdateIdMapping(orderIdMapping);
     }
 

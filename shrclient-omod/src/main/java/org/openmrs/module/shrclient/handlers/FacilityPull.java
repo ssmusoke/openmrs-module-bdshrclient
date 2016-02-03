@@ -162,7 +162,7 @@ public class FacilityPull {
 
             String locationUrl = StringUtil.ensureSuffix(propertiesReader.getFrBaseUrl(), "/") + frLocationEntry.getId() + ".json";
             idMappingsRepository.saveOrUpdateIdMapping(new IdMapping(location.getUuid(), frLocationEntry.getId(),
-                    IdMappingType.FACILITY, locationUrl));
+                    IdMappingType.FACILITY, locationUrl, new Date()));
 
         } catch (Exception e) {
             logger.error("Error while creating a new Location : " + e);

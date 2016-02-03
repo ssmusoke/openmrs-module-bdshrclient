@@ -121,7 +121,7 @@ public class EMREncounterServiceImpl implements EMREncounterService {
         encounterUrlReferenceIds.put(EntityReference.HEALTH_ID_REFERENCE, healthId);
         encounterUrlReferenceIds.put(EntityReference.REFERENCE_ID, shrEncounterId);
         String shrEncounterUrl = new EntityReference().build(Encounter.class, systemProperties, encounterUrlReferenceIds);
-        EncounterIdMapping encounterIdMapping = new EncounterIdMapping(internalUuid, shrEncounterId, shrEncounterUrl, new Date(), encounterUpdatedDate);
+        EncounterIdMapping encounterIdMapping = new EncounterIdMapping(internalUuid, shrEncounterId, shrEncounterUrl, new Date(), new Date(), encounterUpdatedDate);
         idMappingRepository.saveOrUpdateIdMapping(encounterIdMapping);
     }
 

@@ -29,10 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -365,7 +362,7 @@ public class FacilityPullTest {
     }
 
     private IdMapping getIdMapping(String externalId, String existingLocationUuid) {
-        return new IdMapping(existingLocationUuid, externalId, "fr_location", StringUtils.EMPTY);
+        return new IdMapping(existingLocationUuid, externalId, "fr_location", StringUtils.EMPTY, new Date());
     }
 
     private Location getFacilityLocation(String locationUuid, int locationId) {

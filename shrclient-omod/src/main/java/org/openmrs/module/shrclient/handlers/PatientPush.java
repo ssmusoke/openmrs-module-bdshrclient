@@ -201,7 +201,7 @@ public class PatientPush implements EventWorker {
     private void saveOrUpdateIdMapping(org.openmrs.Patient emrPatient, String healthId) {
         String patientUuid = emrPatient.getUuid();
         String url = new EntityReference().build(org.openmrs.Patient.class, getSystemProperties(), healthId);
-        idMappingsRepository.saveOrUpdateIdMapping(new PatientIdMapping(patientUuid, healthId, url, new Date(), null));
+        idMappingsRepository.saveOrUpdateIdMapping(new PatientIdMapping(patientUuid, healthId, url, new Date(), new Date(), null));
     }
 
     private SystemProperties getSystemProperties() {

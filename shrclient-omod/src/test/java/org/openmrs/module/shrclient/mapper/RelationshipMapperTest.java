@@ -24,10 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
@@ -88,7 +85,7 @@ public class RelationshipMapperTest {
 
         String attibuteInternalId = String.format("%s:%s", patient.getUuid(), attributeType.getUuid());
         String externalRelationId = UUID.randomUUID().toString();
-        IdMapping relationIdMapping = new IdMapping(attibuteInternalId, externalRelationId, IdMappingType.PERSON_RELATION, null);
+        IdMapping relationIdMapping = new IdMapping(attibuteInternalId, externalRelationId, IdMappingType.PERSON_RELATION, null, new Date());
         when(idMappingsRepository.findByInternalId(attibuteInternalId, IdMappingType.PERSON_RELATION)).thenReturn(relationIdMapping);
 
         List<Relation> relations = new RelationshipMapper().map(patient, idMappingsRepository);

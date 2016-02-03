@@ -1094,4 +1094,59 @@
             <column name="uuid" valueComputed="uuid()"/>
         </insert>
     </changeSet>
+    <changeSet id="bdshrclient-02022016-1756" context="setup" author="dubey">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="created_at" tableName="shr_id_mapping"/>
+            </not>
+        </preConditions>
+        <comment>Creating column created_at for shr_id_mapping table.</comment>
+        <addColumn tableName="shr_id_mapping">
+            <column name="created_at" type="datetime" defaultValueComputed="now()"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="bdshrclient-02022016-1759" context="setup" author="dubey">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="created_at" tableName="encounter_id_mapping"/>
+            </not>
+        </preConditions>
+        <comment>Creating column created_at for encounter_id_mapping table.</comment>
+        <addColumn tableName="encounter_id_mapping">
+            <column name="created_at" type="datetime" defaultValueComputed="now()"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="bdshrclient-02022016-1800" context="setup" author="dubey">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="created_at" tableName="patient_id_mapping" />
+            </not>
+        </preConditions>
+        <comment>Creating column created_at for patient_id_mapping table.</comment>
+        <addColumn tableName="patient_id_mapping">
+            <column name="created_at" type="datetime" defaultValueComputed="now()"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="bdshrclient-02022016-1801" context="setup" author="dubey">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="created_at" tableName="medication_order_id_mapping"/>
+            </not>
+        </preConditions>
+        <comment>Creating column created_at for medication_order_id_mapping table.</comment>
+        <addColumn tableName="medication_order_id_mapping">
+            <column name="created_at" type="datetime" defaultValueComputed="now()"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="bdshrclient-03022016-1201" context="setup" author="dubey,sukreet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="created_at" tableName="diagnosis_id_mapping"/>
+            </not>
+        </preConditions>
+        <comment>Creating column created_at for diagnosis_id_mapping table.</comment>
+        <addColumn tableName="diagnosis_id_mapping">
+            <column name="created_at" type="datetime" defaultValueComputed="now()"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

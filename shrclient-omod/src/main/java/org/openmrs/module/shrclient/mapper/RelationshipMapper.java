@@ -44,7 +44,7 @@ public class RelationshipMapper {
                 IdMapping idMapping = idMappingRepository.findByInternalId(getRelationInternalId(openMrsPatient, relationshipAttribute.getAttributeType().getUuid()),IdMappingType.PERSON_RELATION);
                 if (idMapping == null) {
                     relation.setId(UUID.randomUUID().toString());
-                    idMapping = new IdMapping(getRelationInternalId(openMrsPatient, relationshipAttribute.getAttributeType().getUuid()), relation.getId(), IdMappingType.PERSON_RELATION, null);
+                    idMapping = new IdMapping(getRelationInternalId(openMrsPatient, relationshipAttribute.getAttributeType().getUuid()), relation.getId(), IdMappingType.PERSON_RELATION, null, new Date());
                     idMappingRepository.saveOrUpdateIdMapping(idMapping);
                 } else {
                     relation.setId(idMapping.getExternalId());
@@ -78,7 +78,7 @@ public class RelationshipMapper {
         PersonAttribute personAttribute = personAttributeMapper.getAttribute(attributeName, name);
         if (idMapping == null) {
             String relationInternalId = getRelationInternalId(patient, personAttribute.getAttributeType().getUuid());
-            idMapping = new IdMapping(relationInternalId, relationToPersistAsAttribute.getId(), IdMappingType.PERSON_RELATION, null);
+            idMapping = new IdMapping(relationInternalId, relationToPersistAsAttribute.getId(), IdMappingType.PERSON_RELATION, null, new Date());
             idMappingsRepository.saveOrUpdateIdMapping(idMapping);
         }
         return personAttribute;

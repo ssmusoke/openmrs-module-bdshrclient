@@ -7,11 +7,11 @@ import org.mockito.Mock;
 import org.openmrs.Location;
 import org.openmrs.LocationTag;
 import org.openmrs.api.LocationService;
-import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
 
+import java.util.Date;
 import java.util.HashSet;
 
 import static java.util.Arrays.asList;
@@ -77,7 +77,7 @@ public class OMRSLocationServiceTest {
     @Test
     public void shouldReturnHIEIdentifierOfALocation() throws Exception {
         String uuid = "location uuid";
-        when(idMappingRepository.findByInternalId(uuid, IdMappingType.FACILITY)).thenReturn(new IdMapping(uuid, "hie id", "", ""));
+        when(idMappingRepository.findByInternalId(uuid, IdMappingType.FACILITY)).thenReturn(new IdMapping(uuid, "hie id", "", "", new Date()));
 
         Location hieLocation = new Location();
         hieLocation.setUuid(uuid);
