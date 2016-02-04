@@ -1080,4 +1080,18 @@
             <column name="external_id" type="varchar(50)"/>
         </createIndex>
     </changeSet>
+    <changeSet id="bdshrclient-040216-1211" author="neha" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from global_property where
+                property='shr.defaultPatientIdentifierSourceId';
+            </sqlCheck>
+        </preConditions>
+        <comment>Adding a global property which saves the default patient identifier source id</comment>
+        <insert tableName="global_property">
+            <column name="property" value="shr.defaultPatientIdentifierSourceId"/>
+            <column name="description" value="Default Patient Identifier Source Id"/>
+            <column name="uuid" valueComputed="uuid()"/>
+        </insert>
+    </changeSet>
 </databaseChangeLog>

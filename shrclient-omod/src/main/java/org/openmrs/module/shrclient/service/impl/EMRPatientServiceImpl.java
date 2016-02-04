@@ -4,14 +4,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.openmrs.*;
 import org.openmrs.api.AdministrationService;
-import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.idgen.IdentifierSource;
-import org.openmrs.module.idgen.SequentialIdentifierGenerator;
 import org.openmrs.module.idgen.service.IdentifierSourceService;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.mapper.PersonAttributeMapper;
@@ -53,6 +52,7 @@ public class EMRPatientServiceImpl implements EMRPatientService {
     private SystemUserService systemUserService;
     private PersonAttributeMapper personAttributeMapper;
     private EMRPatientDeathService patientDeathService;
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Autowired
     public EMRPatientServiceImpl(BbsCodeService bbsCodeService,
@@ -60,13 +60,16 @@ public class EMRPatientServiceImpl implements EMRPatientService {
                                  PersonService personService,
                                  IdMappingRepository idMappingRepository,
                                  PropertiesReader propertiesReader,
-                                 SystemUserService systemUserService, EMRPatientDeathService patientDeathService, EncounterService encounterService) {
+                                 SystemUserService systemUserService,
+                                 EMRPatientDeathService patientDeathService,
+                                 GlobalPropertyLookUpService globalPropertyLookUpService) {
         this.bbsCodeService = bbsCodeService;
         this.patientService = patientService;
         this.idMappingsRepository = idMappingRepository;
         this.propertiesReader = propertiesReader;
         this.systemUserService = systemUserService;
         this.patientDeathService = patientDeathService;
+        this.globalPropertyLookUpService = globalPropertyLookUpService;
         this.personAttributeMapper = new PersonAttributeMapper(personService);
     }
 
@@ -159,12 +162,22 @@ public class EMRPatientServiceImpl implements EMRPatientService {
 
     private PatientIdentifier generateIdentifier() {
         IdentifierSourceService identifierSourceService = Context.getService(IdentifierSourceService.class);
-        List<IdentifierSource> allIdentifierSources = identifierSourceService.getAllIdentifierSources(false);
-        for (IdentifierSource identifierSource : allIdentifierSources) {
-            if (((SequentialIdentifierGenerator) identifierSource).getPrefix().equals(IDENTIFIER_SOURCE_NAME)) {
-                String identifier = identifierSourceService.generateIdentifier(identifierSource, "MCI Patient");
-                PatientIdentifierType identifierType = getPatientIdentifierType();
-                return new PatientIdentifier(identifier, identifierType, null);
+        PatientIdentifierType identifierType = getPatientIdentifierType();
+        IdentifierSource idSource = getIdenfierSource(identifierSourceService, identifierType);
+        String identifier = identifierSourceService.generateIdentifier(idSource, "MCI Patient");
+        return new PatientIdentifier(identifier, identifierType, null);
+    }
+
+    private IdentifierSource getIdenfierSource(IdentifierSourceService identifierSourceService, PatientIdentifierType identifierType) {
+        String defaultPatientIdSourceId = globalPropertyLookUpService.getGlobalPropertyValue(MRSProperties.GLOBAL_PROPERTY_DEFAULT_IDENTIFIER_TYPE_ID);
+        if (defaultPatientIdSourceId != null)
+            return identifierSourceService.getIdentifierSource(Integer.parseInt(defaultPatientIdSourceId));
+        else {
+            List<IdentifierSource> allIdentifierSources = identifierSourceService.getAllIdentifierSources(false);
+            for (IdentifierSource identifierSource : allIdentifierSources) {
+                if (identifierSource.getIdentifierType().equals(identifierType)) {
+                    return identifierSource;
+                }
             }
         }
         return null;

@@ -100,7 +100,9 @@ public class MRSProperties {
     public static final String GLOBAL_PROPERTY_SHR_HIE_FACILITY_LOCATION_TAG_ID = "shr.hie.facilities.location.tag";
     public static final String GLOBAL_PROPERTY_SHR_LOGIN_LOCATION_TAG_ID = "shr.login.location.tag";
     public static final String GLOBAL_PROPERTY_SHR_SYSTEM_USER_TAG = "shr.system.user";
+
     public static final String GLOBAL_PROPERTY_EMR_PRIMARY_IDENTIFIER_TYPE = "emr.primaryIdentifierType";
+    public static final String GLOBAL_PROPERTY_DEFAULT_IDENTIFIER_TYPE_ID = "shr.defaultPatientIdentifierSourceId";
 
     public static final String BAHMNI_DRUG_ORDER_ADDITIONAL_INSTRCTIONS_KEY = "additionalInstructions";
     public static final String BAHMNI_DRUG_ORDER_INSTRCTIONS_KEY = "instructions";
