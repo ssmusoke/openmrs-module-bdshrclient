@@ -201,7 +201,7 @@ public class EncounterPushIT extends BaseModuleWebContextSensitiveTest {
     }
     
     @Test
-    public void shouldAddProcedureConditionToIdMappings() throws Exception {
+    public void shouldAddProcedureOrderToIdMappings() throws Exception {
         executeDataSet("testDataSets/procedureOrderDS.xml");
 
         String shrEncounterId = "shr_enc_id_3";
@@ -214,7 +214,7 @@ public class EncounterPushIT extends BaseModuleWebContextSensitiveTest {
                         .withBody("{\"encounterId\" : \"" + shrEncounterId + "\"}")));
 
         String encounterUuid = "6d0af6767-12se-4629-9850-f15206e63ab0";
-        String procedureOrderUuid = "6d0ae386-707a-43ed-16ws-f15206e63ab0";
+        String procedureOrderUuid = "6d0ae386-uj76-f123-16ws-f15206e63ab0";
         final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + encounterUuid
                 + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
 

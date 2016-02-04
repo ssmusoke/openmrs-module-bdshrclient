@@ -137,4 +137,21 @@
             previous_order_id="19" comment_to_fulfiller="Some Notes" uuid="6d0ae386-uj76-f123-16ws-f15206e63ab0"/>
     <!--Discontinued Procedure Order with previous order id-->
 
+    <!--procedure order download to be suspended-->
+    <encounter encounter_id="38" encounter_type="1" patient_id="1" visit_id="1" location_id="2"
+               encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
+               voided="false" uuid="6d0af6767-12se-45rd-9850-f15206e63ab0"/>
+
+    <encounter_provider encounter_provider_id="4" encounter_id="38" provider_id="22" creator="1"
+                        date_created="2008-07-01 14:09:05.0"
+                        voided="false" uuid="6g0bf6767-kj3e-4329-2ws1-f15206e63ab0"/>
+    <orders order_id="21" order_type_id="16" encounter_id="38" urgency="ROUTINE" concept_id="107"
+            date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-17" order_action="NEW"
+            care_setting="1" date_created="2008-08-08 00:00:00.0" voided="false" patient_id="1" orderer="23"
+            comment_to_fulfiller="Some Notes" uuid="6d0ae386-kj34-f123-16ws-f15206e63ab0"/>
+    
+    <order_id_mapping id="1" internal_id="6d0ae386-kj34-f123-16ws-f15206e63ab0" external_id = "shr-enc-id-1:f3703dad-7e1e-kj6t-9952-4ca5774fb365"
+                      type="ProcedureOrder" uri="http://shr.com/patients/HIDA764177/encounters/shr-enc-id-1#ProcedureRequest/f3703dad-7e1e-kj6t-9952-4ca5774fb365"/>
+    <!--procedure order download to be suspended-->
+
 </dataset>

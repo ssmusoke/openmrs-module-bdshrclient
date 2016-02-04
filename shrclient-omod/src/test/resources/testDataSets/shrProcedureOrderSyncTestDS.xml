@@ -21,7 +21,7 @@
     <patient_identifier date_created="2005-09-22 00:00:00" patient_identifier_id="1" patient_id="1"
                         identifier="GAN200000" identifier_type="2" creator="1"
                         uuid="7cb74fd1-128d-4584-842f-81d3535da3a6" preferred="1" voided="0"/>
-    <person_attribute person_attribute_id="1" person_id="1" value="1234512345123" person_attribute_type_id="100" creator="1"
+    <person_attribute person_attribute_id="1" person_id="1" value="98001175044" person_attribute_type_id="100" creator="1"
                       date_created="2005-09-22 00:00:00" uuid="399e3a7b-6482-487d-94ce-c0zbbzcazcca" />
     <care_setting care_setting_id="1" name="OutPatient" description="OutPatient" care_setting_type="OUTPATIENT" creator="1" date_created="2008-08-19 12:35:30.0" retired="false" uuid="6f0c9a92-6f24-11e3-af88-005056821db0"/>
 
@@ -51,15 +51,13 @@
 
     <concept concept_id="303" retired="false" datatype_id="1" class_id="1" is_set="false" creator="1"
              date_created="2005-01-01 00:00:00.0" uuid="7f7379ba-3ca8-11e3-bf2b-0800271c1b75"/>
-    <concept_name concept_name_id="303" concept_id="303" name="Hemoglobin" locale="en" creator="1"
+    <concept_name concept_name_id="303" concept_id="303" name="Colposcopy" locale="en" creator="1"
                   date_created="2005-01-01 00:00:00.0" voided="false" uuid="637de959-e1c4-41d4-b2d6-bc4335835ea9"
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
-    <concept_reference_term concept_reference_term_id="9" concept_source_id="1" code="20563-3" name="Carboxyhemoglobin/Hemoglobin.total:MFr:Pt:Bld:Qn"
-                            creator="1" date_created="2004-08-12 00:00:00.0" uuid="baef67ac-b24e-ab04-7028-63b994132b86"/>
-    <concept_reference_map concept_map_id="9" concept_id="303" concept_reference_term_id="9" concept_map_type_id="1" creator="1" date_created="2004-08-12 00:00:00.0"/>
-    <shr_id_mapping id="1" internal_id="baef67ac-b24e-ab04-7028-63b994132b86" external_id="501qb827-a67c-4q1f-a705-e5efe0q6a972" type="concept_reference_term" uri="http://172.18.46.53:9080/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0q6a972"/>
+    <shr_id_mapping id="1" internal_id="7f7379ba-3ca8-11e3-bf2b-0800271c1b75"
+                    external_id="101" type="concept" uri="http://tr.com/ws/concepts/101"/>
 
-    <order_type order_type_id="16" name="Lab Order" description="An order for tests" creator="1" java_class_name="org.openmrs.Order"
+
+    <order_type order_type_id="16" name="Procedure Order" description="An order for procedure" creator="1" java_class_name="org.openmrs.Order"
                 date_created="2008-08-15 13:49:47.0" retired="false" uuid="92c1bdef-72d4-49d9-8a1f-804892f66abd"/>
-
 </dataset>

@@ -63,7 +63,7 @@ public class OrderIdMappingDao extends IdMappingDao {
 
     @Override
     public String getFetchByExternalIdSql() {
-        return String.format("select distinct map.internal_id, map.external_id, map.type, map.uri, map.created_at" +
+        return String.format("select distinct map.internal_id, map.external_id, map.type, map.uri, map.created_at " +
                 "from %s map where map.external_id=?", getMappingTable());
     }
 

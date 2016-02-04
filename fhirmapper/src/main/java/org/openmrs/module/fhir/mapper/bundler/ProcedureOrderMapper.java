@@ -14,12 +14,12 @@ import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.mapper.model.FHIRResource;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
-import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static ca.uhn.fhir.model.dstu2.valueset.ProcedureRequestStatusEnum.REQUESTED;
@@ -44,6 +44,7 @@ public class ProcedureOrderMapper implements EmrOrderResourceHandler {
 
     @Override
     public List<FHIRResource> map(Order order, FHIREncounter fhirEncounter, Bundle bundle, SystemProperties systemProperties) {
+        if (order.getDateStopped() != null) return Collections.EMPTY_LIST;
         List<FHIRResource> resources = new ArrayList<>();
         FHIRResource procedureRequest = createProcedureRequest(order, fhirEncounter, systemProperties);
         if (null != procedureRequest) {
@@ -110,7 +111,6 @@ public class ProcedureOrderMapper implements EmrOrderResourceHandler {
             procedureRequest.addUndeclaredExtension(false, fhirExtensionUrl, new StringDt(previousOrderUrl));
         }
     }
-
 
 
 }

@@ -143,6 +143,59 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         assertNotNull(firstOrder.getDateStopped());
     }
 
+    @Test
+    public void shouldSaveProcedureOrders() throws Exception {
+        executeDataSet("testDataSets/shrProcedureOrderSyncTestDS.xml");
+        String shrEncounterId = "shr-enc-id";
+
+        List<EncounterEvent> bundles = getEncounterEvents(shrEncounterId, "encounterBundles/dstu2/encounterWithProcedureRequest.xml");
+        Patient emrPatient = patientService.getPatient(1);
+        emrEncounterService.createOrUpdateEncounters(emrPatient, bundles);
+
+        EncounterIdMapping encounterIdMapping = (EncounterIdMapping) idMappingRepository.findByExternalId(shrEncounterId, ENCOUNTER);
+        assertNotNull(encounterIdMapping);
+        Encounter encounter = encounterService.getEncounterByUuid(encounterIdMapping.getInternalId());
+        Set<Order> orders = encounter.getOrders();
+        assertFalse(orders.isEmpty());
+        assertEquals(1, orders.size());
+    }
+
+    @Test
+    public void shouldDiscontinueAProcedureOrderIfUpdated() throws Exception {
+        executeDataSet("testDataSets/shrProcedureOrderSyncTestDS.xml");
+        String shrEncounterId = "shr-enc-id";
+
+        List<EncounterEvent> bundleWithNewProcedureOrder = getEncounterEvents(shrEncounterId, "encounterBundles/dstu2/encounterWithProcedureRequest.xml");
+        Patient emrPatient = patientService.getPatient(1);
+        emrEncounterService.createOrUpdateEncounters(emrPatient, bundleWithNewProcedureOrder);
+
+        IdMapping idMapping = idMappingRepository.findByExternalId(shrEncounterId, ENCOUNTER);
+        assertNotNull(idMapping);
+        Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
+        Set<Order> orders = encounter.getOrders();
+        assertFalse(orders.isEmpty());
+        assertEquals(1, orders.size());
+        Order firstOrder = orders.iterator().next();
+        assertNull(firstOrder.getDateStopped());
+        assertEquals(Order.Action.NEW, firstOrder.getAction());
+        List<EncounterEvent> bundleWithCancelledTestOrder = getEncounterEvents(shrEncounterId, "encounterBundles/dstu2/encounterWithSuspendedProcedureRequest.xml");
+
+        emrEncounterService.createOrUpdateEncounters(emrPatient, bundleWithCancelledTestOrder);
+
+        IdMapping updatedIdMapping = idMappingRepository.findByExternalId(shrEncounterId, ENCOUNTER);
+        assertNotNull(updatedIdMapping);
+        assertTrue(updatedIdMapping.getLastSyncDateTime().after(idMapping.getLastSyncDateTime()));
+        Encounter updatedEncounter = encounterService.getEncounterByUuid(updatedIdMapping.getInternalId());
+        Set<Order> updatedEncounterOrders = updatedEncounter.getOrders();
+        assertFalse(updatedEncounterOrders.isEmpty());
+        assertEquals(2, updatedEncounterOrders.size());
+        Order discontinuedOrder = getDiscontinuedOrder(updatedEncounterOrders);
+        assertNotNull(discontinuedOrder);
+        assertEquals(firstOrder, discontinuedOrder.getPreviousOrder());
+        assertNotNull(firstOrder.getDateStopped());
+    }
+
+
     private Order getDiscontinuedOrder(Set<Order> updatedEncounterOrders) {
         for (Order order : updatedEncounterOrders) {
             if (Order.Action.DISCONTINUE.equals(order.getAction())) return order;
