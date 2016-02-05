@@ -64,7 +64,6 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertTrue(CollectionUtils.isNotEmpty(mappedResources));
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) mappedResources.get(0).getResource();
         assertDiagnosticOrder(diagnosticOrder);
-        assertEquals(DiagnosticOrderStatusEnum.REQUESTED.getCode(), diagnosticOrder.getStatus());
         assertEquals(1, diagnosticOrder.getItem().size());
         DiagnosticOrder.Item item = diagnosticOrder.getItemFirstRep();
         assertTrue(MapperTestHelper.containsCoding(item.getCode().getCoding(), null, null, "Urea Nitorgen"));
@@ -235,7 +234,6 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertTrue(CollectionUtils.isNotEmpty(diagnosticOrder.getIdentifier()));
         assertFalse(diagnosticOrder.getIdentifier().get(0).isEmpty());
         assertEquals(fhirEncounterId, diagnosticOrder.getEncounter().getReference().getValue());
-        assertEquals(DiagnosticOrderStatusEnum.REQUESTED.getCode(), diagnosticOrder.getStatus());
     }
 
     private FHIREncounter createFhirEncounter() {

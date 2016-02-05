@@ -199,7 +199,6 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         diagnosticOrder.addIdentifier().setValue(id);
         diagnosticOrder.setId(id);
         diagnosticOrder.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId()));
-        diagnosticOrder.setStatus(DiagnosticOrderStatusEnum.REQUESTED);
         return diagnosticOrder;
     }
 
