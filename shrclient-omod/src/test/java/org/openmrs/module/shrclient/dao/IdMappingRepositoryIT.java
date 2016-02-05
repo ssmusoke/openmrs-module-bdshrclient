@@ -27,6 +27,13 @@ public class IdMappingRepositoryIT extends BaseModuleWebContextSensitiveTest {
         assertIdMapping(idMappingRepository.findByHealthId("Health_id", IdMappingType.MEDICATION_ORDER).get(0),
                 new IdMapping("juydg81f-1yz9-4xv3-bz88-8z22a1dx1zt","597d18f5-bc92-4c43-b0fa-526fe6181d0e:e30e5355-cca5-4eb5-947f-0", IdMappingType.MEDICATION_ORDER,
                         "/patients/Health_id/encounters/597d18f5-bc92-4c43-b0fa-526fe6181d0e#MedicationOrder/e30e5355-cca5-4eb5-947f-0", new Date()));
+        assertIdMapping(idMappingRepository.findByHealthId("Health_id", IdMappingType.PROCEDURE_ORDER).get(0),
+                new IdMapping("76e04d42-3ca8-11e3-bf2b-0800271c1b75", "76e04d42-3ca8-11e3-bf2b-0800271c1b76", IdMappingType.PROCEDURE_ORDER,
+                        "/patients/Health_id/encounters/enc_id#ProcedureOrder/76e04d42-3ca8-11e3-bf2b-0800271c1b75", new Date()));
+        assertIdMapping(idMappingRepository.findByHealthId("Health_id", IdMappingType.DIAGNOSIS).get(0),
+                new IdMapping("76e04d42-123s-11e3-bf2b-0800271c1b75", "76e04d42-3ca8-lk87-bf2b-0800271c1b76", IdMappingType.DIAGNOSIS,
+                        "/patients/Health_id/encounters/enc_id#Condition/76e04d42-123s-11e3-bf2b-0800271c1b75", new Date()));
+
 
     }
 
@@ -41,6 +48,13 @@ public class IdMappingRepositoryIT extends BaseModuleWebContextSensitiveTest {
         assertIdMapping(idMappingRepository.findByHealthId("new_HID", IdMappingType.MEDICATION_ORDER).get(0),
                 new IdMapping("juydg81f-1yz9-4xv3-bz88-8z22a1dx1zt", "597d18f5-bc92-4c43-b0fa-526fe6181d0e:e30e5355-cca5-4eb5-947f-0", IdMappingType.MEDICATION_ORDER,
                         "/patients/new_HID/encounters/597d18f5-bc92-4c43-b0fa-526fe6181d0e#MedicationOrder/e30e5355-cca5-4eb5-947f-0", new Date()));
+        assertIdMapping(idMappingRepository.findByHealthId("new_HID", IdMappingType.PROCEDURE_ORDER).get(0),
+                new IdMapping("76e04d42-3ca8-11e3-bf2b-0800271c1b75", "76e04d42-3ca8-11e3-bf2b-0800271c1b76", IdMappingType.PROCEDURE_ORDER,
+                        "/patients/new_HID/encounters/enc_id#ProcedureOrder/76e04d42-3ca8-11e3-bf2b-0800271c1b75", new Date()));
+        assertIdMapping(idMappingRepository.findByHealthId("new_HID", IdMappingType.DIAGNOSIS).get(0),
+                new IdMapping("76e04d42-123s-11e3-bf2b-0800271c1b75", "76e04d42-3ca8-lk87-bf2b-0800271c1b76", IdMappingType.DIAGNOSIS,
+                        "/patients/new_HID/encounters/enc_id#Condition/76e04d42-123s-11e3-bf2b-0800271c1b75", new Date()));
+
 
     }
     

@@ -57,15 +57,21 @@ public class IdMappingRepository {
     public void replaceHealthId(final String toBeReplaced, final String toReplaceWith) {
         final List<IdMapping> reassignedEncounterIdMappings = updateHealthIds(findByHealthId(toBeReplaced, IdMappingType.ENCOUNTER), toBeReplaced, toReplaceWith);
         final List<IdMapping> reassignedMedicationOrderIdMappings = updateHealthIds(findByHealthId(toBeReplaced, IdMappingType.MEDICATION_ORDER), toBeReplaced, toReplaceWith);
+        final List<IdMapping> reassignedProcedureOrderIdMappings = updateHealthIds(findByHealthId(toBeReplaced, IdMappingType.PROCEDURE_ORDER), toBeReplaced, toReplaceWith);
+        final List<IdMapping> reassignedDiagnosisIdMappings = updateHealthIds(findByHealthId(toBeReplaced, IdMappingType.DIAGNOSIS), toBeReplaced, toReplaceWith);
         database.executeInTransaction(new Database.TxWork<Object>() {
             @Override
             public Object execute(Connection connection) {
                 PreparedStatement updateEncounterIdMappingBatch = null;
                 PreparedStatement updateMedicationOrderMappingBatch = null;
+                PreparedStatement updateProcedureOrderIdMappingBatch = null;
+                PreparedStatement updateDiagnosisIdMappingBatch = null;
                 try {
                     updateEncounterIdMappingBatch = idMappingDao(IdMappingType.ENCOUNTER).getBatchStatement(connection, reassignedEncounterIdMappings);
                     updateMedicationOrderMappingBatch = idMappingDao(IdMappingType.MEDICATION_ORDER).getBatchStatement(connection, reassignedMedicationOrderIdMappings);
-                    executeBatch(updateEncounterIdMappingBatch, updateMedicationOrderMappingBatch);
+                    updateProcedureOrderIdMappingBatch = idMappingDao(IdMappingType.PROCEDURE_ORDER).getBatchStatement(connection, reassignedProcedureOrderIdMappings);
+                    updateDiagnosisIdMappingBatch = idMappingDao(IdMappingType.DIAGNOSIS).getBatchStatement(connection, reassignedDiagnosisIdMappings);
+                    executeBatch(updateEncounterIdMappingBatch, updateMedicationOrderMappingBatch, updateDiagnosisIdMappingBatch, updateProcedureOrderIdMappingBatch);
                 } catch (Exception e) {
                     throw new RuntimeException("Error occurred while replacing healthids of id mapping", e);
                 } finally {

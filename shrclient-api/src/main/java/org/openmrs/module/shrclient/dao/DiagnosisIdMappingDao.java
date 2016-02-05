@@ -14,6 +14,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.List;
 
 import static org.openmrs.module.fhir.utils.DateUtil.getDateFromTimestamp;
 
@@ -39,6 +40,20 @@ public class DiagnosisIdMappingDao extends IdMappingDao {
         statement.setTimestamp(4, diagnosisIdMapping.getCreatedAt());
 
         return statement;
+    }
+    @Override
+    protected PreparedStatement getBatchStatement(Connection connection, List<IdMapping> idMappings) throws SQLException {
+        if (idMappings.size() == 0) {
+            return null;
+        }
+        String updateURIByInternalIdSql = String.format("update %s set uri=? where internal_id=?", getMappingTable());
+        PreparedStatement preparedStatement = connection.prepareStatement(updateURIByInternalIdSql);
+        for (IdMapping idMapping : idMappings) {
+            preparedStatement.setString(1, idMapping.getUri());
+            preparedStatement.setString(2, idMapping.getInternalId());
+            preparedStatement.addBatch();
+        }
+        return preparedStatement;
     }
 
     @Override
