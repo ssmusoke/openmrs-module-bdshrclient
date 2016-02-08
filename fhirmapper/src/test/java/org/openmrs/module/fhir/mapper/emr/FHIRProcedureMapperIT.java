@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.TimeZone;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.openmrs.module.fhir.MRSProperties.*;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
@@ -60,10 +61,9 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         deleteAllData();
     }
 
-
     @Test
     public void shouldHandleResourceTypeOfProcedure() {
-        fhirProcedureMapper.canHandle(resource);
+        assertTrue(fhirProcedureMapper.canHandle(resource));
     }
 
     @Test

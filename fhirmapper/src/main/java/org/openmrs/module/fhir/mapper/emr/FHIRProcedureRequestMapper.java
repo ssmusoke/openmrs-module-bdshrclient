@@ -90,7 +90,7 @@ public class FHIRProcedureRequestMapper implements FHIRResourceMapper {
         order.setDateActivated(dateActivate);
         order.setAutoExpireDate(DateUtil.addMinutes(dateActivate, ORDER_AUTO_EXPIRE_DURATION_MINUTES));
         order.setCommentToFulfiller(procedureRequest.getNotesFirstRep().getText());
-        addDrugOrderToIdMapping(order, procedureRequest, shrEncounterBundle, systemProperties);
+        addProcedureOrderToIdMapping(order, procedureRequest, shrEncounterBundle, systemProperties);
         return order;
     }
 
@@ -108,7 +108,7 @@ public class FHIRProcedureRequestMapper implements FHIRResourceMapper {
         return null;
     }
 
-    private void addDrugOrderToIdMapping(Order order, ProcedureRequest procedureRequest, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
+    private void addProcedureOrderToIdMapping(Order order, ProcedureRequest procedureRequest, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
         String shrOrderId = procedureRequest.getId().getIdPart();
         String orderUrl = getOrderUrl(shrEncounterBundle, systemProperties, shrOrderId);
         String externalId = String.format(RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterBundle.getShrEncounterId(), shrOrderId);

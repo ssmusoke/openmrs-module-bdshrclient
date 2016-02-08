@@ -40,6 +40,7 @@ public class MRSProperties {
     public static final String MRS_CONCEPT_VACCINATION_REPORTED = "Immunization Incident Vaccination Reported";
     public static final String MRS_CONCEPT_DOSAGE = "Immunization Incident Vaccination Dosage";
 
+    public static final String MRS_CONCEPT_PROCEDURE_ORDER_FULFILLMENT_FORM = "Procedure Order Fulfillment Form";
     public static final String MRS_CONCEPT_PROCEDURES_TEMPLATE = "Procedure Template";
     public static final String MRS_CONCEPT_PROCEDURE_TYPE = "Procedure Type";
     public static final String MRS_CONCEPT_PROCEDURE_START_DATE = "Procedure Start Date";
