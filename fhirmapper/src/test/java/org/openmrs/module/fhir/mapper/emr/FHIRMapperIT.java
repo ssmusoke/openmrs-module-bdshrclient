@@ -1,6 +1,7 @@
 package org.openmrs.module.fhir.mapper.emr;
 
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import org.hamcrest.core.Is;
 import org.junit.After;
 import org.junit.Test;
 import org.openmrs.*;
@@ -252,6 +253,32 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
         Obs mappedDiastolicObs = identifyObsByConcept(mappedBpObs.getGroupMembers(), conceptService.getConcept(305));
         assertNotEquals(diastolicObs, mappedDiastolicObs);
         assertThat(mappedDiastolicObs.getValueNumeric(), is(70.0));
+    }
+
+    @Test
+    public void shouldSetShrClientSystemAsProviderIfNoParticipantsArePresent() throws Exception {
+        executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
+        Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithoutParticipants.xml", springContext);
+        org.openmrs.Patient emrPatient = patientService.getPatient(1);
+        int shrClientSystemProviderId = 22;
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(encounterBundle, "HIDA764177", "shr-enc-id-1");
+        org.openmrs.Encounter emrEncounter = fhirMapper.map(emrPatient, encounterComposition, getSystemProperties("1"));
+
+        assertNotNull(emrEncounter);
+        assertEquals(1, emrEncounter.getEncounterProviders().size());
+        assertThat(emrEncounter.getEncounterProviders().iterator().next().getProvider().getId(), Is.is(shrClientSystemProviderId));
+    }
+
+    @Test
+    public void shouldSetLocationFromParticipantIfServiceProviderIsNotPresent() throws Exception {
+        executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
+        Bundle encounterBundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithoutServiceProvider.xml", springContext);
+        org.openmrs.Patient emrPatient = patientService.getPatient(1);
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(encounterBundle, "HIDA764177", "shr-enc-id-1");
+        org.openmrs.Encounter emrEncounter = fhirMapper.map(emrPatient, encounterComposition, getSystemProperties("1"));
+
+        assertNotNull(emrEncounter);
+        assertTrue(3 == emrEncounter.getLocation().getId());
     }
 
     private void assertCreatedConcept(Concept concept, String expectedShortName) {

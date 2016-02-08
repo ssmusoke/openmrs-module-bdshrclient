@@ -5,9 +5,7 @@ import ca.uhn.fhir.model.dstu2.resource.Composition;
 import com.sun.syndication.feed.atom.Category;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.openmrs.Encounter;
-import org.openmrs.Order;
-import org.openmrs.Patient;
+import org.openmrs.*;
 import org.openmrs.api.OrderService;
 import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
@@ -18,10 +16,7 @@ import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.EncounterIdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
-import org.openmrs.module.shrclient.service.EMREncounterService;
-import org.openmrs.module.shrclient.service.EMRPatientDeathService;
-import org.openmrs.module.shrclient.service.EMRPatientMergeService;
-import org.openmrs.module.shrclient.service.EMRPatientService;
+import org.openmrs.module.shrclient.service.*;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
@@ -49,12 +44,14 @@ public class EMREncounterServiceImpl implements EMREncounterService {
     private OrderService orderService;
     private EMRPatientDeathService patientDeathService;
     private EMRPatientMergeService emrPatientMergeService;
+    private VisitLookupService visitLookupService;
 
     @Autowired
     public EMREncounterServiceImpl(@Qualifier("hieEmrPatientService") EMRPatientService emrPatientService, IdMappingRepository idMappingRepository,
                                    PropertiesReader propertiesReader, SystemUserService systemUserService,
                                    VisitService visitService, FHIRMapper fhirMapper, OrderService orderService,
-                                   EMRPatientDeathService patientDeathService, EMRPatientMergeService emrPatientMergeService) {
+                                   EMRPatientDeathService patientDeathService, EMRPatientMergeService emrPatientMergeService,
+                                   VisitLookupService visitLookupService) {
         this.emrPatientService = emrPatientService;
         this.idMappingRepository = idMappingRepository;
         this.propertiesReader = propertiesReader;
@@ -64,6 +61,7 @@ public class EMREncounterServiceImpl implements EMREncounterService {
         this.orderService = orderService;
         this.patientDeathService = patientDeathService;
         this.emrPatientMergeService = emrPatientMergeService;
+        this.visitLookupService = visitLookupService;
     }
 
     @Override
@@ -106,6 +104,12 @@ public class EMREncounterServiceImpl implements EMREncounterService {
 
         ShrEncounterBundle shrEncounterBundle = new ShrEncounterBundle(bundle, healthId, shrEncounterId);
         org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, shrEncounterBundle, systemProperties);
+
+        VisitType visitType = fhirMapper.getVisitType(shrEncounterBundle);
+        Visit visit = visitLookupService.findOrInitializeVisit(emrPatient, newEmrEncounter.getEncounterDatetime(), visitType);
+        visit.addEncounter(newEmrEncounter);
+
+        //identify location, provider(s), visit 
         visitService.saveVisit(newEmrEncounter.getVisit());
         saveOrders(newEmrEncounter);
         Date encounterUpdatedDate = getEncounterUpdatedDate(encounterEvent);

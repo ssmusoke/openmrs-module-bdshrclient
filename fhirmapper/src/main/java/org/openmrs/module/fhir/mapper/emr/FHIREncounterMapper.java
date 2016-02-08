@@ -12,7 +12,6 @@ import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.fhir.utils.ProviderLookupService;
-import org.openmrs.module.fhir.utils.VisitLookupService;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
@@ -21,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -39,13 +39,7 @@ public class FHIREncounterMapper {
     private LocationService locationService;
 
     @Autowired
-    public VisitLookupService visitLookupService;
-
-    @Autowired
     private ProviderLookupService providerLookupService;
-
-    @Autowired
-    private FHIRSubResourceMapper fhirSubResourceMapper;
 
     public org.openmrs.Encounter map(Patient emrPatient, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) throws ParseException {
         final ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = FHIRBundleHelper.getEncounter(shrEncounterBundle.getBundle());
@@ -55,25 +49,21 @@ public class FHIREncounterMapper {
         openmrsEncounter.setEncounterDatetime(encounterDate);
 
         openmrsEncounter.setPatient(emrPatient);
+        return openmrsEncounter;
+    }
 
-        fhirSubResourceMapper.map(openmrsEncounter, shrEncounterBundle, systemProperties);
-
-        final String encounterTypeName = fhirEncounter.getType().get(0).getText();
-        final EncounterType encounterType = encounterService.getEncounterType(encounterTypeName);
-        openmrsEncounter.setEncounterType(encounterType);
-
+    public Location getEncounterLocation(Encounter fhirEncounter) {
         ResourceReferenceDt serviceProvider = fhirEncounter.getServiceProvider();
         if (serviceProvider != null && !serviceProvider.isEmpty()) {
-            setInternalFacilityId(openmrsEncounter, new EntityReference().parse(Location.class, serviceProvider.getReference().getValue()));
+            return getFacilityLocation(new EntityReference().parse(Location.class, serviceProvider.getReference().getValue()));
         } else {
-            setFacilityIdFromProvider(fhirEncounter, openmrsEncounter);
+            return getFacilityFromProvider(fhirEncounter);
         }
-        Visit visit = visitLookupService.findOrInitializeVisit(emrPatient, encounterDate, fhirEncounter.getClassElement());
-        openmrsEncounter.setVisit(visit);
-        visit.addEncounter(openmrsEncounter);
+    }
 
-        setEncounterProvider(openmrsEncounter, fhirEncounter);
-        return openmrsEncounter;
+    public EncounterType getEncounterType(Encounter fhirEncounter) {
+        String encounterTypeName = fhirEncounter.getType().get(0).getText();
+        return encounterService.getEncounterType(encounterTypeName);
     }
 
     public org.openmrs.Encounter getOrCreateEmrEncounter(String fhirEncounterId) {
@@ -88,27 +78,23 @@ public class FHIREncounterMapper {
         return openmrsEncounter;
     }
 
-    public void setEncounterProvider(org.openmrs.Encounter newEmrEncounter, ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter) {
+    public ArrayList<Provider> getEncounterProviders(Encounter fhirEncounter) {
         List<ca.uhn.fhir.model.dstu2.resource.Encounter.Participant> participants = fhirEncounter.getParticipant();
+        ArrayList<Provider> encounterProviders = new ArrayList<>();
         if (!org.apache.commons.collections.CollectionUtils.isEmpty(participants)) {
             for (Encounter.Participant participant : participants) {
                 String providerUrl = participant.getIndividual().getReference().getValue();
                 Provider provider = providerLookupService.getProviderByReferenceUrl(providerUrl);
                 if (provider != null)
-                    newEmrEncounter.addProvider(encounterService.getEncounterRoleByUuid(EncounterRole.UNKNOWN_ENCOUNTER_ROLE_UUID),
-                            provider);
+                    encounterProviders.add(provider);
             }
         }
-        if (CollectionUtils.isEmpty(newEmrEncounter.getEncounterProviders())) {
-            Provider provider = providerLookupService.getShrClientSystemProvider();
-            newEmrEncounter.addProvider(encounterService.getEncounterRoleByUuid(EncounterRole.UNKNOWN_ENCOUNTER_ROLE_UUID),
-                    provider);
-        }
+        return encounterProviders;
     }
 
-    private void setFacilityIdFromProvider(Encounter fhirEncounter, org.openmrs.Encounter emrEncounter) {
+    private Location getFacilityFromProvider(Encounter fhirEncounter) {
         List<Encounter.Participant> participant = fhirEncounter.getParticipant();
-        if (CollectionUtils.isEmpty(participant)) return;
+        if (CollectionUtils.isEmpty(participant)) return null;
 
         String providerUrl = participant.get(0).getIndividual().getReference().getValue();
         Provider provider = providerLookupService.getProviderByReferenceUrl(providerUrl);
@@ -116,15 +102,15 @@ public class FHIREncounterMapper {
         for (ProviderAttribute attribute : attributes) {
             if (attribute.getAttributeType().getName().equals(ORGANIZATION_ATTRIBUTE_TYPE_NAME)) {
                 String facilityId = attribute.getValueReference();
-                setInternalFacilityId(emrEncounter, facilityId);
+                return getFacilityLocation(facilityId);
             }
         }
+        return null;
     }
 
-    private void setInternalFacilityId(org.openmrs.Encounter emrEncounter, String facilityId) {
+    private Location getFacilityLocation(String facilityId) {
         IdMapping idMapping = idMappingRepository.findByExternalId(facilityId, IdMappingType.FACILITY);
-        if (idMapping == null) return;
-        Location location = locationService.getLocationByUuid(idMapping.getInternalId());
-        emrEncounter.setLocation(location);
+        if (idMapping == null) return null;
+        return locationService.getLocationByUuid(idMapping.getInternalId());
     }
 }

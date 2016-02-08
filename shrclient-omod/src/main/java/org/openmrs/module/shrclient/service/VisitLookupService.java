@@ -1,6 +1,5 @@
-package org.openmrs.module.fhir.utils;
+package org.openmrs.module.shrclient.service;
 
-import ca.uhn.fhir.model.dstu2.valueset.EncounterClassEnum;
 import org.apache.commons.lang.time.DateUtils;
 import org.joda.time.DateTime;
 import org.openmrs.Encounter;
@@ -11,16 +10,7 @@ import org.openmrs.api.VisitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.UUID;
-
-import static org.openmrs.module.fhir.MRSProperties.MRS_IN_PATIENT_VISIT_TYPE;
-import static org.openmrs.module.fhir.MRSProperties.MRS_OUT_PATIENT_VISIT_TYPE;
+import java.util.*;
 
 @Component
 public class VisitLookupService {
@@ -32,14 +22,14 @@ public class VisitLookupService {
         this.visitService = visitService;
     }
 
-    public Visit findOrInitializeVisit(Patient patient, Date visitDate, String fhirEncounterClass) {
+    public Visit findOrInitializeVisit(Patient patient, Date visitDate, VisitType visitType) {
         Visit applicableVisit = getVisitForPatientWithinDates(patient, visitDate);
         if (applicableVisit != null) {
             return applicableVisit;
         }
         Visit visit = new Visit();
         visit.setPatient(patient);
-        visit.setVisitType(getVisitType(fhirEncounterClass));
+        visit.setVisitType(visitType);
         visit.setStartDatetime(visitDate);
         visit.setEncounters(new HashSet<Encounter>());
         visit.setUuid(UUID.randomUUID().toString());
@@ -63,17 +53,6 @@ public class VisitLookupService {
         return visit;
     }
 
-    private VisitType identifyVisitTypeByName(List<VisitType> allVisitTypes, String visitTypeName) {
-        VisitType encVisitType = null;
-        for (VisitType visitType : allVisitTypes) {
-            if (visitType.getName().equalsIgnoreCase(visitTypeName)) {
-                encVisitType = visitType;
-                break;
-            }
-        }
-        return encVisitType;
-    }
-
     private Visit getVisitForPatientForNearestStartDate(Patient patient, Date startTime) {
         List<Visit> visits = visitService.getVisits(null, Arrays.asList(patient), null, null, startTime, null, null, null, null, true, false);
         if (visits.isEmpty()) {
@@ -86,20 +65,6 @@ public class VisitLookupService {
             }
         });
         return visits.get(0);
-    }
-
-    public VisitType getVisitType(String encounterClass) {
-        List<VisitType> allVisitTypes = visitService.getAllVisitTypes();
-        VisitType encVisitType = identifyVisitTypeByName(allVisitTypes, encounterClass);
-        if (encVisitType != null) {
-            return encVisitType;
-        }
-
-        if (encounterClass.equals(EncounterClassEnum.INPATIENT.getCode())) {
-            return identifyVisitTypeByName(allVisitTypes, MRS_IN_PATIENT_VISIT_TYPE);
-        } else {
-            return identifyVisitTypeByName(allVisitTypes, MRS_OUT_PATIENT_VISIT_TYPE);
-        }
     }
 
     private Visit getVisitForPatientWithinDates(Patient patient, Date startTime) {

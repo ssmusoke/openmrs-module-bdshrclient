@@ -65,9 +65,6 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
             return;
         }
         Order order = getOrder(diagnosticReport, concept);
-        if (order == null) {
-            return;
-        }
         Obs topLevelResultObsGroup = buildObs(concept, order);
 
         Set<Obs> resultObsGroups = buildResultObsGroup(shrEncounterBundle, emrEncounter, diagnosticReport, order, concept);

@@ -2,17 +2,18 @@ package org.openmrs.module.shrclient.service;
 
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
+import ca.uhn.fhir.model.dstu2.resource.Condition;
 import com.sun.syndication.feed.atom.Category;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openmrs.*;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.fhir.utils.DateUtil;
+import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.EncounterIdMapping;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -27,9 +28,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import java.util.*;
 
 import static java.util.Arrays.asList;
-import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
-import static org.openmrs.module.fhir.MRSProperties.MRS_CONCEPT_NAME_DIAGNOSIS_REVISED;
 import static org.openmrs.module.shrclient.model.IdMappingType.ENCOUNTER;
 import static org.openmrs.module.shrclient.web.controller.dto.EncounterEvent.ENCOUNTER_UPDATED_CATEGORY_TAG;
 
@@ -65,14 +64,25 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
         org.openmrs.Patient emrPatient = patientService.getPatient(1);
         String shrEncounterId = "shr-enc-id";
-        List<EncounterEvent> bundles = getEncounterEvents(shrEncounterId, "encounterBundles/dstu2/testFHIREncounter.xml");
-        emrEncounterService.createOrUpdateEncounters(emrPatient, bundles);
+        List<EncounterEvent> encounterEvents = getEncounterEvents(shrEncounterId, "encounterBundles/dstu2/diagnosisConditions.xml");
+        assertEquals(1, encounterEvents.size());
+        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = (ca.uhn.fhir.model.dstu2.resource.Encounter) FHIRBundleHelper.identifyResourcesByName(encounterEvents.get(0).getBundle(),
+                new ca.uhn.fhir.model.dstu2.resource.Encounter().getResourceName()).get(0);
+        emrEncounterService.createOrUpdateEncounters(emrPatient, encounterEvents);
 
         EncounterIdMapping idMapping = (EncounterIdMapping) idMappingRepository.findByExternalId(shrEncounterId, ENCOUNTER);
         assertNotNull(idMapping);
         Encounter encounter = encounterService.getEncounterByUuid(idMapping.getInternalId());
         assertEquals(1, encounter.getEncounterProviders().size());
         assertEquals(providerService.getProvider(22), encounter.getEncounterProviders().iterator().next().getProvider());
+
+        assertEquals(fhirEncounter.getType().get(0).getText(), encounter.getEncounterType().getName());
+        assertNotNull(encounter.getEncounterProviders());
+        assertEquals("Bahmni", encounter.getLocation().getName());
+
+        assertNotNull(encounter.getVisit());
+        assertEquals("ad41fb41-a41a-4ad6-8835-2f59099acf5a", encounter.getVisit().getUuid());
+        assertEquals("50ab30be-98af-4dfd-bd04-5455937c443f", encounter.getLocation().getUuid());
     }
 
     @Test
@@ -196,13 +206,6 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
     }
 
 
-    private Order getDiscontinuedOrder(Set<Order> updatedEncounterOrders) {
-        for (Order order : updatedEncounterOrders) {
-            if (Order.Action.DISCONTINUE.equals(order.getAction())) return order;
-        }
-        return null;
-    }
-
     @Test
     public void shouldSaveDrugOrders() throws Exception {
         executeDataSet("testDataSets/drugOrderDS.xml");
@@ -322,7 +325,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
         Patient patient = patientService.getPatient(1);
         String shrEncounterId = "shr-enc-id";
-        List<EncounterEvent> events = getEncounterEvents(shrEncounterId, "encounterBundles/dstu2/testFHIREncounter.xml");
+        List<EncounterEvent> events = getEncounterEvents(shrEncounterId, "encounterBundles/dstu2/diagnosisConditions.xml");
 
         Date currentTime = new Date();
         Date tenMinutesAfter = getDateTimeAfterNMinutes(currentTime, 10);
@@ -396,6 +399,38 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         IdMapping mapping2 = idMappingRepository.findByExternalId(shrEncounterId2, ENCOUNTER);
 
         assertTrue(mapping1.getLastSyncDateTime().after(mapping2.getLastSyncDateTime()));
+    }
+
+    @Test
+    public void shouldMapFhirConditions() throws Exception {
+        executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
+        Patient patient = patientService.getPatient(1);
+        String shrEncounterId = "shr-enc-id1";
+
+        EncounterEvent encounterEvent = getEncounterEvents(shrEncounterId, "encounterBundles/dstu2/diagnosisConditions.xml").get(0);
+
+        List<IResource> conditions = FHIRBundleHelper.identifyResourcesByName(encounterEvent.getBundle(), new Condition().getResourceName());
+        assertEquals(2, conditions.size());
+
+        emrEncounterService.createOrUpdateEncounter(patient, encounterEvent);
+
+        IdMapping encounterMapping = idMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER);
+        assertNotNull(encounterMapping);
+        Encounter emrEncounter = encounterService.getEncounterByUuid(encounterMapping.getInternalId());
+
+        Set<Obs> visitObs = emrEncounter.getObsAtTopLevel(false);
+        assertEquals(2, visitObs.size());
+        Obs firstObs = visitObs.iterator().next();
+        assertNotNull(firstObs.getGroupMembers());
+        assertNotNull(firstObs.getPerson());
+        assertNotNull(firstObs.getEncounter());
+    }
+
+    private Order getDiscontinuedOrder(Set<Order> updatedEncounterOrders) {
+        for (Order order : updatedEncounterOrders) {
+            if (Order.Action.DISCONTINUE.equals(order.getAction())) return order;
+        }
+        return null;
     }
 
     public Date getDateTimeAfterNMinutes(Date currentTime, int minutes) {

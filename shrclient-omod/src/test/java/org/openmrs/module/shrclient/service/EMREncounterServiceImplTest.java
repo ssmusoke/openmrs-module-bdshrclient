@@ -10,9 +10,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
-import org.openmrs.Encounter;
-import org.openmrs.Order;
-import org.openmrs.Patient;
+import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.OrderContext;
 import org.openmrs.api.OrderService;
@@ -38,7 +36,10 @@ import java.util.UUID;
 import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.isNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.openmrs.module.fhir.utils.PropertyKeyConstants.SHR_PATIENT_ENC_PATH_PATTERN;
 import static org.openmrs.module.fhir.utils.PropertyKeyConstants.SHR_REFERENCE_PATH;
@@ -68,6 +69,8 @@ public class EMREncounterServiceImplTest {
     private OrderService mockOrderService;
     @Mock
     private EMRPatientService mockEMRPatientService;
+    @Mock
+    private VisitLookupService mockVisitLookupService;
 
     private EMREncounterService emrEncounterService;
 
@@ -78,7 +81,7 @@ public class EMREncounterServiceImplTest {
     public void setUp() throws Exception {
         initMocks(this);
         emrEncounterService = new EMREncounterServiceImpl(mockEMRPatientService, mockIdMappingRepository, mockPropertiesReader,
-                mockSystemUserService, mockVisitService, mockFhirmapper, mockOrderService, patientDeathService, emrPatientMergeService);
+                mockSystemUserService, mockVisitService, mockFhirmapper, mockOrderService, patientDeathService, emrPatientMergeService, mockVisitLookupService);
     }
 
     @Test
@@ -132,6 +135,7 @@ public class EMREncounterServiceImplTest {
         shrProperties.put(SHR_REFERENCE_PATH, "http://shr.com/");
         shrProperties.put(SHR_PATIENT_ENC_PATH_PATTERN, "/patients/%s/encounters");
         when(mockPropertiesReader.getShrProperties()).thenReturn(shrProperties);
+        when(mockVisitLookupService.findOrInitializeVisit(eq(emrPatient), any(Date.class), any(VisitType.class))).thenReturn(new Visit());
 
         emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
 
@@ -226,6 +230,7 @@ public class EMREncounterServiceImplTest {
         shrProperties.put(SHR_REFERENCE_PATH, "http://shr.com/");
         shrProperties.put(SHR_PATIENT_ENC_PATH_PATTERN, "/patients/%s/encounters");
         when(mockPropertiesReader.getShrProperties()).thenReturn(shrProperties);
+        when(mockVisitLookupService.findOrInitializeVisit(eq(emrPatient), any(Date.class), any(VisitType.class))).thenReturn(new Visit());
 
         emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
         verify(mockFhirmapper, times(1)).map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class));
@@ -264,6 +269,7 @@ public class EMREncounterServiceImplTest {
         shrProperties.put(SHR_REFERENCE_PATH, "http://shr.com/");
         shrProperties.put(SHR_PATIENT_ENC_PATH_PATTERN, "/patients/%s/encounters");
         when(mockPropertiesReader.getShrProperties()).thenReturn(shrProperties);
+        when(mockVisitLookupService.findOrInitializeVisit(eq(emrPatient), any(Date.class), any(VisitType.class))).thenReturn(new Visit());
 
         emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
         verify(mockFhirmapper, times(1)).map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class));

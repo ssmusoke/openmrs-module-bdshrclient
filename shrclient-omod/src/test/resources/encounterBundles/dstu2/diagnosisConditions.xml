@@ -75,7 +75,7 @@
                     </individual>
                 </participant>
                 <serviceProvider>
-                    <reference value="http://www.fr.com/10000069.json"/>
+                    <reference value="http://www.fr.com/facilities/10000069.json"/>
                 </serviceProvider>
             </Encounter>
         </resource>
@@ -101,9 +101,9 @@
                 <dateRecorded value="2015-08-24"/>
                 <code>
                     <coding>
-                        <system value="http://192.168.33.18/openmrs/ws/rest/v1/concept/f34f6020-9e33-4332-b7a5-bc9d464cb438"/>
+                        <system value="http://localhost:9997/openmrs/ws/rest/v1/tr/concepts/f34f6020-9e33-4332-b7a5-bc9d464cb438"/>
                         <code value="f34f6020-9e33-4332-b7a5-bc9d464cb438"/>
-                        <display value="TestWithoutRefTerm"/>
+                        <display value="Malaria"/>
                     </coding>
                 </code>
                 <category>
@@ -138,7 +138,7 @@
                 <dateRecorded value="2015-08-24"/>
                 <code>
                     <coding>
-                        <system value="http://192.168.33.18/openmrs/ws/rest/v1/concept/96f64eb2-4d94-40ab-a386-a62ba03ff6b2"/>
+                        <system value="http://localhost:9997/openmrs/ws/rest/v1/tr/referenceterms/96f64eb2-4d94-40ab-a386-a62ba03ff6b2"/>
                         <code value="A00.0"/>
                         <display value="Cholera Vibrio"/>
                     </coding>

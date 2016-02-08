@@ -59,6 +59,12 @@
     <concept_reference_map concept_map_id="9" concept_id="303" concept_reference_term_id="9" concept_map_type_id="1" creator="1" date_created="2004-08-12 00:00:00.0"/>
     <shr_id_mapping id="1" internal_id="baef67ac-b24e-ab04-7028-63b994132b86" external_id="501qb827-a67c-4q1f-a705-e5efe0q6a972" type="concept_reference_term" uri="http://172.18.46.53:9080/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0q6a972"/>
 
+    <concept concept_id="103" retired="false" datatype_id="3" class_id="8" is_set="false" creator="1"
+             date_created="2005-01-01 00:00:00.0" uuid="5923d0e0-8734-11e3-30d2-0800200c9a66"/>
+    <concept_name concept_name_id="5" concept_id="103" name="LAB_NOTES" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" concept_name_type="FULLY_SPECIFIED"
+                  uuid="e52b58c0-20fi-11e3-baa7-0800200c9a66" locale_preferred="0"/>
+
     <order_type order_type_id="16" name="Lab Order" description="An order for tests" creator="1" java_class_name="org.openmrs.Order"
                 date_created="2008-08-15 13:49:47.0" retired="false" uuid="92c1bdef-72d4-49d9-8a1f-804892f66abd"/>
 
