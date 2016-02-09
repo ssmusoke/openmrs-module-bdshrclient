@@ -74,10 +74,13 @@ public class ProcedureOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    public void shouldNotMapAProcedureOrderWithLocalConcept() throws Exception {
+    public void shouldMapAProcedureOrderWithLocalConcept() throws Exception {
         Order order = orderService.getOrder(18);
         List<FHIRResource> mappedResources = procedureOrderMapper.map(order, createFhirEncounter(), new Bundle(), getSystemProperties("1"));
-        assertTrue(mappedResources.isEmpty());
+        assertEquals(1, mappedResources.size());
+        ProcedureRequest procedureRequest = (ProcedureRequest) mappedResources.get(0).getResource();
+        assertProcedureRequest(procedureRequest, null, null, "Division of Brain",
+                "2008-08-08 00:00:00", ProcedureRequestStatusEnum.REQUESTED);
     }
 
     @Test

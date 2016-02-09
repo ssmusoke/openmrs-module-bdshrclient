@@ -325,19 +325,77 @@
          uuid="dia574-22yy-691a-giz7-345055diagnosis" creator="1" concept_id="310" voided="0" value_coded="603"/>
     <!--Procedure fulfillment form with diagnostic study-->
 
-    <!-- Obs without procedure type-->
+    <!-- Procedure fulfillment form without procedure type-->
     <obs obs_id="1499" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150"
          date_created="2010-08-18 15:09:05.0"
          uuid="ef4778cb-22gg-fdc5-lld7-1434552c337c1" creator="1" concept_id="300" voided="0"/>
     <obs obs_id="1500" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150" obs_group_id="1499"
          date_created="2010-08-18 15:09:05.0"
          uuid="ef4778cb-22gg-471a-lld7-1434552c337c1" creator="1" concept_id="301" voided="0"/>
+    <!-- Procedure fulfillment form without procedure type-->
 
-    <!-- Obs with procedure type without diagnosis test and status-->
+    <!-- Procedure fulfillment form with just procedure type-->
     <obs obs_id="1501" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150"
          date_created="2010-08-18 15:09:05.0"
-         uuid="ef4778cb-22gg-466a-lld7-1434552c337c1" creator="1" concept_id="301" voided="0"/>
+         uuid="ef4778cb-22gg-466a-jn34-1434552c337c1" creator="1" concept_id="300" voided="0"/>
     <obs obs_id="1502" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150" obs_group_id="1501"
          date_created="2010-08-18 15:09:05.0"
+         uuid="ef4778cb-22gg-466a-lld7-1434552c337c1" creator="1" concept_id="301" voided="0"/>
+    <obs obs_id="1503" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150" obs_group_id="1502"
+         date_created="2010-08-18 15:09:05.0"
          uuid="ef4998cb-22gg-471a-lld7-1434552c337c1" creator="1" concept_id="304" voided="0" value_coded="601"/>
+    <!-- Procedure fulfillment form with just procedure type-->
+    
+    <!--Procedure fulfillment updated later-->
+    <!--original procedure fulfillment-->
+    <obs obs_id="1600" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="ee52e333-9e92-43ec-a4b2-dd0072a9c98c" creator="1" concept_id="300" voided="0"/>
+    <obs obs_id="1601" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150" obs_group_id="1600"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="ee52e333-kj87-43ec-a4b2-dd0072a9c98c" creator="1" concept_id="301" voided="0"/>
+    <obs obs_id="1603" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150" obs_group_id="1601"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="ee52e333-kj87-kj76-a4b2-dd0072a9c98c" creator="1" concept_id="303" voided="0" value_coded="607"/>
+    <obs obs_id="1604" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150" obs_group_id="1601"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="eei9e333-kj87-43ec-a4b2-dd0072a9c98c" creator="1" concept_id="304" voided="0" value_coded="601"/>
+    <obs obs_id="1605" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150" obs_group_id="1601"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="ee52e333-kj87-43ec-kjm8-dd0072a9c98c" creator="1" concept_id="305" voided="0" value_datetime="2015-01-10 00:00:00.0"/>
+    <obs obs_id="1606" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150" obs_group_id="1601"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="ee52e333-kj87-987g-a4b2-dd0072a9c98c" creator="1" concept_id="306" voided="0" value_datetime="2015-01-15 00:00:00.0"/>
+    <obs obs_id="1607" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150" obs_group_id="1601"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="ee52e333-kj87-43ec-a4b2-dd0k87src98c" creator="1" concept_id="311" voided="0" value_text="Procedure not completed"/>
+    <obs obs_id="1608" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150" obs_group_id="1601"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="ee52e333-kj87-43ec-123g-dd0072a9c98c" creator="1" concept_id="312" voided="0" value_coded="604"/>
+    <!--original procedure fulfillment-->
+    
+    <!--update to procedure fulfillment-->
+    <obs obs_id="1700" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="ee52e333-9e92-43ec-a4b2-dd00778uc98c" creator="1" concept_id="300" voided="0"/>
+    <obs obs_id="1701" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150" obs_group_id="1700"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="ee52e333-kj87-43ec-a4b2-dd00778uc98c" creator="1" concept_id="301" voided="0"/>
+    <obs obs_id="1702" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150" obs_group_id="1701"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="ee52e333-kj87-lkm8-a4b2-dd00778uc98c" creator="1" concept_id="302" voided="0" value_coded="606"/>
+    <obs obs_id="1704" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150" obs_group_id="1701"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="eei9e333-kj87-43ec-a4b2-dd00778uc98c" creator="1" concept_id="304" voided="0" value_coded="601"/>
+    <obs obs_id="1705" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150" obs_group_id="1701"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="ee52e333-kj87-43ec-kjm8-dd00778uc98c" creator="1" concept_id="305" voided="0" value_datetime="2015-01-10 00:00:00.0"/>
+    <obs obs_id="1706" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150" obs_group_id="1701"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="ee52e333-kj87-987g-a4b2-dd00778uc98c" creator="1" concept_id="306" voided="0" value_datetime="2015-01-15 00:00:00.0"/>
+    <obs obs_id="1707" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" order_id = "150" obs_group_id="1701"
+         date_created="2010-08-18 15:09:05.0"
+         uuid="ee52e333-kj87-43ec-a4b2-dd0k87a9c98c" creator="1" concept_id="311" voided="0" value_text="Procedure Finished"/>
+    <!--original procedure fulfillment-->
+    <!--Procedure fulfillment updated later-->
 </dataset>

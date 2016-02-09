@@ -66,7 +66,7 @@ public class ProcedureOrderMapper implements EmrOrderResourceHandler {
         setPreviousOrder(order, procedureRequest, systemProperties);
         addNotes(order, procedureRequest);
         CodeableConceptDt code = findCodeForOrder(order);
-        if (code == null || CollectionUtils.isEmpty(code.getCoding())) {
+        if (code == null) {
             return null;
         }
         procedureRequest.setCode(code);
@@ -100,7 +100,7 @@ public class ProcedureOrderMapper implements EmrOrderResourceHandler {
         if (null == order.getConcept()) {
             return null;
         }
-        return codeableConceptService.addTRCoding(order.getConcept());
+        return codeableConceptService.addTRCodingOrDisplay(order.getConcept());
     }
 
     private void setPreviousOrder(Order order, ProcedureRequest procedureRequest, SystemProperties systemProperties) {

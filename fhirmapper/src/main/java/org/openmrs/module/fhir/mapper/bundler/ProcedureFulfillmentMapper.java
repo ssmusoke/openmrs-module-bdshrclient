@@ -1,6 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.IdentifierDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Procedure;
 import org.openmrs.Obs;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static org.openmrs.module.fhir.MRSProperties.MRS_CONCEPT_PROCEDURES_TEMPLATE;
 
 @Component
@@ -57,15 +59,16 @@ public class ProcedureFulfillmentMapper implements EmrObsResourceHandler {
     public void setRequest(Obs obs, Procedure procedure) {
         Order order = obs.getOrder();
         IdMapping idMapping = idMappingRepository.findByInternalId(order.getUuid(), IdMappingType.PROCEDURE_ORDER);
-        if (idMapping == null) {
-            throw new RuntimeException(String.format("The ProcedureOrder [%s] is not yet synced", order.getUuid()));
+        if (idMapping != null) {
+            procedure.setRequest(new ResourceReferenceDt(idMapping.getUri()));
         }
-        procedure.setRequest(new ResourceReferenceDt(idMapping.getUri()));
     }
 
     public void setIdentifier(Obs obs, SystemProperties systemProperties, Procedure procedure) {
         String id = new EntityReference().build(Obs.class, systemProperties, obs.getUuid());
-        procedure.addIdentifier().setValue(id);
+        IdentifierDt identifierDt = procedure.addIdentifier();
+        identifierDt.setValue(id);
         procedure.setId(id);
+        procedure.setIdentifier(asList(identifierDt));
     }
 }

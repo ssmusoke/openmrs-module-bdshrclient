@@ -8,6 +8,7 @@ import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 import ca.uhn.fhir.model.dstu2.resource.Procedure;
 import ca.uhn.fhir.model.dstu2.valueset.DiagnosticReportStatusEnum;
+import ca.uhn.fhir.model.dstu2.valueset.ProcedureStatusEnum;
 import ca.uhn.fhir.model.primitive.StringDt;
 import org.junit.After;
 import org.junit.Before;
@@ -23,6 +24,8 @@ import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.List;
 
+import static ca.uhn.fhir.model.dstu2.valueset.ProcedureStatusEnum.COMPLETED;
+import static ca.uhn.fhir.model.dstu2.valueset.ProcedureStatusEnum.IN_PROGRESS;
 import static org.junit.Assert.*;
 import static org.openmrs.module.fhir.MapperTestHelper.containsCoding;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
@@ -74,7 +77,10 @@ public class ProcedureFulfillmentMapperIT extends BaseModuleWebContextSensitiveT
         assertTrue(resource instanceof Procedure);
         Procedure procedure = (Procedure) resource;
 
-        assertProcedure(obs, procedure);
+        assertProcedure(procedure, obs, IN_PROGRESS, "Procedure went well");
+        assertProcedureOutcome(procedure);
+        assertProcedureFollowup(procedure);
+        assertProcedurePerformed(procedure);
     }
 
     @Test
@@ -86,13 +92,16 @@ public class ProcedureFulfillmentMapperIT extends BaseModuleWebContextSensitiveT
     }
 
     @Test
-    public void shouldMapDiagnosisStudy() throws Exception {
+    public void shouldMapProcedureOrderFulfillmentWithDiagnosisStudy() throws Exception {
         Obs fulfillmentObs = obsService.getObs(1099);
         List<FHIRResource> resources = procedureFulfillmentMapper.map(fulfillmentObs, createFhirEncounter(), getSystemProperties("1"));
 
         assertEquals(3, resources.size());
         Procedure procedure = (Procedure) getFirstResourceByType(new Procedure().getResourceName(), resources).getResource();
-        assertProcedure(fulfillmentObs, procedure);
+        assertProcedure(procedure, fulfillmentObs, IN_PROGRESS, "Procedure went well");
+        assertProcedureOutcome(procedure);
+        assertProcedureFollowup(procedure);
+        assertProcedurePerformed(procedure);
 
         List<ResourceReferenceDt> reports = procedure.getReport();
         assertEquals(1, reports.size());
@@ -109,13 +118,83 @@ public class ProcedureFulfillmentMapperIT extends BaseModuleWebContextSensitiveT
         assertProcedureResult(result);
     }
 
-    public void assertProcedureResult(Observation result) {
-        assertEquals("dia574cb-22yy-671a-giz7-3450552cresult", result.getId().getIdPart());
-        assertTrue(containsCoding(result.getCode().getCoding(), "Test A-LOINC", "http://tr.com/Test-A-LOINC", "Test A"));
-        assertEquals("Blood Pressure is very high", ((StringDt) result.getValue()).getValue());
+    @Test
+    public void shouldMapProcedureOrderFulfillmentHavingJustProcedureType() throws Exception {
+        Obs fulfillmentObs = obsService.getObs(1501);
+        List<FHIRResource> resources = procedureFulfillmentMapper.map(fulfillmentObs, createFhirEncounter(), getSystemProperties("1"));
+
+        assertEquals(1, resources.size());
+        Procedure procedure = (Procedure) resources.get(0).getResource();
+        assertProcedure(procedure, fulfillmentObs, COMPLETED, null);
+        assertTrue(procedure.getOutcome().isEmpty());
+        assertTrue(procedure.getFollowUp().isEmpty());
+        PeriodDt performed = (PeriodDt) procedure.getPerformed();
+        assertNull(performed.getStart());
+        assertNull(performed.getEnd());
     }
 
-    public void assertDiagnosticReport(DiagnosticReport report) {
+    @Test
+    public void shouldMapAUpdateToFulfillmentAsNewProcedure() throws Exception {
+        Obs fulfillmentObs = obsService.getObs(1600);
+        List<FHIRResource> resources = procedureFulfillmentMapper.map(fulfillmentObs, createFhirEncounter(), getSystemProperties("1"));
+
+        assertFalse(resources.isEmpty());
+        assertEquals(1, resources.size());
+        IResource resource = resources.get(0).getResource();
+        assertTrue(resource instanceof Procedure);
+        Procedure procedure = (Procedure) resource;
+
+        assertProcedure(procedure, fulfillmentObs, IN_PROGRESS, "Procedure not completed");
+        assertTrue(procedure.getOutcome().isEmpty());
+        assertProcedureFollowup(procedure);
+        assertProcedurePerformed(procedure);
+
+        Obs updatedFulfillmentObs = obsService.getObs(1700);
+        List<FHIRResource> updatedResources = procedureFulfillmentMapper.map(updatedFulfillmentObs, createFhirEncounter(), getSystemProperties("1"));
+
+        assertFalse(updatedResources.isEmpty());
+        assertEquals(1, updatedResources.size());
+        IResource newResource = updatedResources.get(0).getResource();
+        assertTrue(newResource instanceof Procedure);
+        Procedure newProcedure = (Procedure) newResource;
+
+        assertProcedure(newProcedure, updatedFulfillmentObs, COMPLETED, "Procedure Finished");
+        assertProcedureOutcome(newProcedure);
+        assertTrue(newProcedure.getFollowUp().isEmpty());
+        assertProcedurePerformed(newProcedure);
+    }
+
+    private void assertProcedure(Procedure procedure, Obs obs, ProcedureStatusEnum procedureStatus, String procedureNotes) {
+        assertNotNull(procedure.getIdentifier());
+        assertNotNull(procedure.getId());
+        assertEquals(1, procedure.getIdentifier().size());
+        assertEquals(obs.getUuid(), procedure.getId().getIdPart());
+        assertEquals(patientRef, procedure.getSubject().getReference().getValue());
+        assertEquals(fhirEncounterId, procedure.getEncounter().getReference().getValue());
+        List<CodingDt> procedureType = procedure.getCode().getCoding();
+        assertTrue(containsCoding(procedureType, "Osteopathic-Treatment-of-Abdomen", "http://tr.com/Osteopathic-Treatment-of-Abdomen", "ProcedureAnswer1"));
+        assertEquals(procedureStatus.getCode(), procedure.getStatus());
+        assertEquals(procedureNotes, procedure.getNotesFirstRep().getText());
+        assertEquals("http://shr.com/patients/HID/encounters/shr-enc-1#ProcedureRequest/procedure_req_id", procedure.getRequest().getReference().getValue());
+    }
+
+    private void assertProcedurePerformed(Procedure procedure) {
+        PeriodDt performed = (PeriodDt) procedure.getPerformed();
+        assertEquals(parseDate("2015-01-10 00:00:00"), performed.getStart());
+        assertEquals(parseDate("2015-01-15 00:00:00"), performed.getEnd());
+    }
+
+    private void assertProcedureFollowup(Procedure procedure) {
+        List<CodingDt> procedureFollowup = procedure.getFollowUpFirstRep().getCoding();
+        assertTrue(containsCoding(procedureFollowup, "6831", "http://tr.com/6831", "Change of dressing"));
+    }
+
+    private void assertProcedureOutcome(Procedure procedure) {
+        List<CodingDt> procedureOutcome = procedure.getOutcome().getCoding();
+        assertTrue(containsCoding(procedureOutcome, "385669000", "http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Procedure-Outcome", "Successful"));
+    }
+
+    private void assertDiagnosticReport(DiagnosticReport report) {
         assertEquals(fhirEncounterId, report.getEncounter().getReference().getValue());
         assertEquals(patientRef, report.getSubject().getReference().getValue());
         assertEquals(DiagnosticReportStatusEnum.FINAL.getCode(), report.getStatus());
@@ -127,26 +206,10 @@ public class ProcedureFulfillmentMapperIT extends BaseModuleWebContextSensitiveT
         assertTrue(containsCoding(procedureDiagnosisCoding, "J19.406475", "http://tr.com/Viral-Pneumonia-LOINC", "Viral pneumonia 406475"));
     }
 
-    private void assertProcedure(Obs obs, Procedure procedure) {
-        assertNotNull(procedure.getIdentifier());
-        assertNotNull(procedure.getId());
-        assertEquals(obs.getUuid(), procedure.getId().getIdPart());
-        assertEquals(patientRef, procedure.getSubject().getReference().getValue());
-        assertEquals(fhirEncounterId, procedure.getEncounter().getReference().getValue());
-        List<CodingDt> procedureCode = procedure.getCode().getCoding();
-        String procedureTypeCode = "Osteopathic-Treatment-of-Abdomen";
-        String procedureTypeSystem = "http://tr.com/Osteopathic-Treatment-of-Abdomen";
-        assertTrue(containsCoding(procedureCode, procedureTypeCode, procedureTypeSystem, "ProcedureAnswer1"));
-        List<CodingDt> procedureOutcome = procedure.getOutcome().getCoding();
-        assertTrue(containsCoding(procedureOutcome, "385669000", "http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Procedure-Outcome", "Successful"));
-        List<CodingDt> procedureFollowup = procedure.getFollowUpFirstRep().getCoding();
-        assertTrue(containsCoding(procedureFollowup, "6831", "http://tr.com/6831", "Change of dressing"));
-        assertEquals("in-progress", procedure.getStatus());
-        assertEquals("Procedure went well", procedure.getNotesFirstRep().getText());
-        PeriodDt performed = (PeriodDt) procedure.getPerformed();
-        assertEquals(parseDate("2015-01-10 00:00:00"), performed.getStart());
-        assertEquals(parseDate("2015-01-15 00:00:00"), performed.getEnd());
-        assertEquals("http://shr.com/patients/HID/encounters/shr-enc-1#ProcedureRequest/procedure_req_id", procedure.getRequest().getReference().getValue());
+    private void assertProcedureResult(Observation result) {
+        assertEquals("dia574cb-22yy-671a-giz7-3450552cresult", result.getId().getIdPart());
+        assertTrue(containsCoding(result.getCode().getCoding(), "Test A-LOINC", "http://tr.com/Test-A-LOINC", "Test A"));
+        assertEquals("Blood Pressure is very high", ((StringDt) result.getValue()).getValue());
     }
 
     private FHIREncounter createFhirEncounter() {

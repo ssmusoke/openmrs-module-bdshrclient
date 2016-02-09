@@ -243,8 +243,7 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
     private List<FHIRResource> mapProcedure(int observationId, Encounter fhirEncounter) {
         Obs obs = obsService.getObs(observationId);
-        List<FHIRResource> fhirResources = procedureMapper.map(obs, new FHIREncounter(fhirEncounter), getSystemProperties("1"));
-        return fhirResources;
+        return procedureMapper.map(obs, new FHIREncounter(fhirEncounter), getSystemProperties("1"));
     }
 
     private Encounter buildEncounter() {
