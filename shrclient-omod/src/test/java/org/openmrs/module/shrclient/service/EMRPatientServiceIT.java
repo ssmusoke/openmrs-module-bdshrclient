@@ -5,7 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Test;
-import org.openmrs.*;
+import org.openmrs.Patient;
+import org.openmrs.PersonAttribute;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.Constants;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -18,8 +19,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
 
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -30,7 +31,6 @@ public class EMRPatientServiceIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     private EMRPatientService emrPatientService;
-
 
     @Test
     public void shouldMapRelationsToPatientAttributesWhenPresent() throws Exception {

@@ -16,7 +16,9 @@ import java.util.*;
 
 import static org.apache.commons.collections4.CollectionUtils.exists;
 import static org.apache.commons.collections4.CollectionUtils.select;
-import static org.openmrs.module.fhir.MRSProperties.*;
+import static org.openmrs.module.fhir.MRSProperties.CONCEPT_MAP_TYPE_MAY_BE_A;
+import static org.openmrs.module.fhir.MRSProperties.LOCAL_CONCEPT_VERSION_PREFIX;
+import static org.openmrs.module.fhir.MRSProperties.UNVERIFIED_BY_TR;
 
 @Component
 public class OMRSConceptLookup {
@@ -225,6 +227,7 @@ public class OMRSConceptLookup {
                     }
                 }
             }
+
         }
         return null;
     }

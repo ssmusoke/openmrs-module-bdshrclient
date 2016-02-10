@@ -64,10 +64,15 @@ public class MapperTestHelper {
         return exists(coding, new Predicate<CodingDt>() {
             @Override
             public boolean evaluate(CodingDt codingDt) {
-                return ((code == codingDt.getCode()) || codingDt.getCode().equals(code))
-                        && ((system == codingDt.getSystem()) || codingDt.getSystem().equals(system))
-                        && ((display == codingDt.getDisplay()) || codingDt.getDisplay().equals(display));
+                return (nullSafeEquals(code, codingDt.getCode()))
+                        && (nullSafeEquals(system, codingDt.getSystem()))
+                        && (nullSafeEquals(display, codingDt.getDisplay()));
             }
         });
+    }
+
+    private static boolean nullSafeEquals(String s1, String s2) {
+        if (s1 != null && s2 != null) return s1.equals(s2);
+        return s1 == null && s2 == null;
     }
 }

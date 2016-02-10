@@ -107,8 +107,8 @@
                 <item>
                     <code>
                         <coding>
-                            <system value="http://localhost:9997/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0qjki2w"/>
-                            <code value="501qb827-a67c-4q1f-a705-e5efe0qjki2w"/>
+                            <system value="http://localhost:9997/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a714-e5efe0qjki2w"/>
+                            <code value="20563-4"/>
                             <display value="ESR"/>
                         </coding>
                     </code>
@@ -121,8 +121,8 @@
                 <item>
                     <code>
                         <coding>
-                            <system value="http://localhost:9997/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0qjki2w"/>
-                            <code value="501qb827-a67c-4q1f-a705-e5efe0qjki2w"/>
+                            <system value="http://localhost:9997/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a714-e5efe0qjki2w"/>
+                            <code value="20563-4"/>
                             <display value="ESR"/>
                         </coding>
                     </code>

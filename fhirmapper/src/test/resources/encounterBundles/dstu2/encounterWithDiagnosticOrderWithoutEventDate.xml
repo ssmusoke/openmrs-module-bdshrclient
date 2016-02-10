@@ -108,7 +108,7 @@
                     <code>
                         <coding>
                             <system value="http://localhost:9997/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0q6a972"/>
-                            <code value="501qb827-a67c-4q1f-a705-e5efe0q6a972"/>
+                            <code value="20563-3"/>
                             <display value="Haemoglobin"/>
                         </coding>
                     </code>

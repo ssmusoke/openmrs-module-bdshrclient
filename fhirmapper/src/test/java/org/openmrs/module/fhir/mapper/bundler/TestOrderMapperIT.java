@@ -1,10 +1,8 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
-import ca.uhn.fhir.model.dstu2.resource.Specimen;
 import ca.uhn.fhir.model.dstu2.valueset.DiagnosticOrderStatusEnum;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.After;
@@ -18,17 +16,17 @@ import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
 import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.mapper.model.FHIRResource;
-import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -58,7 +56,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    public void shouldMapATestOrder() throws Exception {
+    public void shouldMapALocalTestOrder() throws Exception {
         Order order = orderService.getOrder(17);
         List<FHIRResource> mappedResources = testOrderMapper.map(order, createFhirEncounter(), new Bundle(), getSystemProperties("1"));
         assertTrue(CollectionUtils.isNotEmpty(mappedResources));
@@ -72,7 +70,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    public void shouldMapTestOrderForAPanelOrTest() throws Exception {
+    public void shouldMapTestOrderWithTRRefterm() throws Exception {
         Encounter encounter = encounterService.getEncounter(36);
         FHIREncounter fhirEncounter = createFhirEncounter();
         assertEquals(1, encounter.getOrders().size());
@@ -80,111 +78,48 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         Order order = encounter.getOrders().iterator().next();
         List<FHIRResource> mappedResources = testOrderMapper.map(order, fhirEncounter, bundle, getSystemProperties("1"));
         assertNotNull(mappedResources);
-        assertEquals(2, mappedResources.size());
+        assertEquals(1, mappedResources.size());
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) TestFhirFeedHelper.getFirstResourceByType(new DiagnosticOrder().getResourceName(), mappedResources).getResource();
         assertNotNull(diagnosticOrder);
-        assertNotNull(TestFhirFeedHelper.getFirstResourceByType(new Specimen().getResourceName(), mappedResources));
         assertTrue(diagnosticOrder.getOrderer().getReference().getValue().endsWith("812.json"));
+        assertEquals(1, diagnosticOrder.getItem().size());
+        assertTrue(MapperTestHelper.containsCoding(diagnosticOrder.getItemFirstRep().getCode().getCoding(), "20563-3",
+                "http://localhost:9997/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0q6a972", "Haemoglobin"));
     }
 
-
     @Test
-    public void shouldMapTestOrderWithoutLoincName() throws Exception {
-        Encounter encounter = encounterService.getEncounter(38);
+    public void shouldMapPanelOrderWithTRConcept() throws Exception {
+        Encounter encounter = encounterService.getEncounter(39);
         FHIREncounter fhirEncounter = createFhirEncounter();
-        assertEquals(2, encounter.getOrders().size());
+        assertEquals(1, encounter.getOrders().size());
         Bundle bundle = new Bundle();
         Order order = encounter.getOrders().iterator().next();
         List<FHIRResource> mappedResources = testOrderMapper.map(order, fhirEncounter, bundle, getSystemProperties("1"));
-        assertNotNull(mappedResources);
         assertEquals(1, mappedResources.size());
-    }
-
-    @Test
-    public void shouldMapTestOrdersToSameDiagnosticOrder() throws Exception {
-        Encounter encounter = encounterService.getEncounter(38);
-        FHIREncounter fhirEncounter = createFhirEncounter();
-        assertEquals(2, encounter.getOrders().size());
-        Bundle bundle = new Bundle();
-        Iterator<Order> orderIterator = encounter.getOrders().iterator();
-        Order firstOrder = orderIterator.next();
-        SystemProperties systemProperties = getSystemProperties("1");
-
-        List<FHIRResource> mappedResources = testOrderMapper.map(firstOrder, fhirEncounter, bundle, systemProperties);
-        assertEquals(1, mappedResources.size());
-        IResource diagnosticOrderResource = mappedResources.get(0).getResource();
-        assertTrue(diagnosticOrderResource instanceof DiagnosticOrder);
-        addToAtomFeed(bundle, mappedResources);
-        assertEquals(1, ((DiagnosticOrder) diagnosticOrderResource).getItem().size());
-
-        mappedResources.addAll(testOrderMapper.map(orderIterator.next(), fhirEncounter, bundle, systemProperties));
-        assertEquals(1, mappedResources.size());
-        assertEquals(2, ((DiagnosticOrder) diagnosticOrderResource).getItem().size());
-    }
-
-    @Test
-    public void shouldAddASpecimen() throws Exception {
-        FHIREncounter fhirEncounter = createFhirEncounter();
-        Order order = orderService.getOrder(20);
-        List<FHIRResource> mappedResources = testOrderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
-        assertEquals(2, mappedResources.size());
-
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) TestFhirFeedHelper.getFirstResourceByType(new DiagnosticOrder().getResourceName(), mappedResources).getResource();
-        assertEquals(1, diagnosticOrder.getSpecimen().size());
-        List<DiagnosticOrder.Item> items = diagnosticOrder.getItem();
-        assertEquals(1, items.size());
-
-        FHIRResource resourceByType = TestFhirFeedHelper.getFirstResourceByType(new Specimen().getResourceName(), mappedResources);
-        DiagnosticOrder.Item item = items.get(0);
-        Specimen specimen = (Specimen) resourceByType.getResource();
-        assertSpecimen(specimen, "urn:uuid:accession-number", "Bld");
-        assertEquals(diagnosticOrder.getSpecimen().get(0).getReference().getValue(), specimen.getIdentifier().get(0).getValue());
-        assertEquals(item.getSpecimen().get(0).getReference().getValue(), specimen.getIdentifier().get(0).getValue());
+        assertDiagnosticOrder(diagnosticOrder);
+        assertEquals(1, diagnosticOrder.getItem().size());
+        assertTrue(MapperTestHelper.containsCoding(diagnosticOrder.getItemFirstRep().getCode().getCoding(), "30xlb827-s02l-4q1f-a705-e5efe0qjki2w",
+                "http://localhost:9997/openmrs/ws/rest/v1/tr/concepts/30xlb827-s02l-4q1f-a705-e5efe0qjki2w", "Complete Blood Count"));
     }
 
     @Test
-    public void shouldNotAddSpecimenIfAlreadyPresentForSameAccession() throws Exception {
-        Encounter encounter = encounterService.getEncounter(39);
-        FHIREncounter fhirEncounter = createFhirEncounter();
-        assertEquals(2, encounter.getOrders().size());
-        Bundle bundle = new Bundle();
-        Iterator<Order> orderIterator = encounter.getOrders().iterator();
-
-        List<FHIRResource> mappedResources = testOrderMapper.map(orderIterator.next(), fhirEncounter, bundle, getSystemProperties("1"));
-        assertEquals(2, mappedResources.size());
-        ArrayList<FHIRResource> diagnosticOrderResource = TestFhirFeedHelper.getResourceByType(new DiagnosticOrder().getResourceName(), mappedResources);
-        assertEquals(1, diagnosticOrderResource.size());
-        List<FHIRResource> specimenResources = TestFhirFeedHelper.getResourceByType(new Specimen().getResourceName(), mappedResources);
-        assertEquals(1, specimenResources.size());
-        assertSpecimen((Specimen) specimenResources.get(0).getResource(), "urn:uuid:accession-number", "Bld");
-        addToAtomFeed(bundle, mappedResources);
-
-        List<FHIRResource> newMappedResources = testOrderMapper.map(orderIterator.next(), fhirEncounter, bundle, getSystemProperties("1"));
-        assertEquals(0, newMappedResources.size());
-    }
-
-    @Test
-    public void shouldAddSpecimenForDifferentAccession() throws Exception {
+    public void shouldMapLocalPanelOrder() throws Exception {
         Encounter encounter = encounterService.getEncounter(40);
         FHIREncounter fhirEncounter = createFhirEncounter();
-        assertEquals(2, encounter.getOrders().size());
+        assertEquals(1, encounter.getOrders().size());
         Bundle bundle = new Bundle();
-        Iterator<Order> orderIterator = encounter.getOrders().iterator();
-
-        List<FHIRResource> mappedResources = testOrderMapper.map(orderIterator.next(), fhirEncounter, bundle, getSystemProperties("1"));
-        assertEquals(2, mappedResources.size());
-        ArrayList<FHIRResource> diagnosticOrderResource = TestFhirFeedHelper.getResourceByType(new DiagnosticOrder().getResourceName(), mappedResources);
-        assertEquals(1, diagnosticOrderResource.size());
-        List<FHIRResource> specimenResources = TestFhirFeedHelper.getResourceByType(new Specimen().getResourceName(), mappedResources);
-        assertEquals(1, specimenResources.size());
-        assertSpecimen((Specimen) specimenResources.get(0).getResource(), "urn:uuid:accession-number1", "Bld");
-        addToAtomFeed(bundle, mappedResources);
-
-        List<FHIRResource> newMappedResources = testOrderMapper.map(orderIterator.next(), fhirEncounter, bundle, getSystemProperties("1"));
-        assertEquals(1, newMappedResources.size());
-        ArrayList<FHIRResource> newSpecimenResources = TestFhirFeedHelper.getResourceByType(new Specimen().getResourceName(), newMappedResources);
-        assertEquals(1, newSpecimenResources.size());
-        assertSpecimen((Specimen) newSpecimenResources.get(0).getResource(), "urn:uuid:accession-number2", "Bld");
+        Order order = encounter.getOrders().iterator().next();
+        List<FHIRResource> mappedResources = testOrderMapper.map(order, fhirEncounter, bundle, getSystemProperties("1"));
+        assertEquals(1, mappedResources.size());
+        DiagnosticOrder diagnosticOrder = (DiagnosticOrder) TestFhirFeedHelper.getFirstResourceByType(new DiagnosticOrder().getResourceName(), mappedResources).getResource();
+        assertDiagnosticOrder(diagnosticOrder);
+        assertEquals(3, diagnosticOrder.getItem().size());
+        assertTrue(containsItem(diagnosticOrder.getItem(), DiagnosticOrderStatusEnum.REQUESTED, order.getDateActivated(), "Haemoglobin", "20563-3",
+                "http://localhost:9997/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0q6a972"));
+        assertTrue(containsItem(diagnosticOrder.getItem(), DiagnosticOrderStatusEnum.REQUESTED, order.getDateActivated(), "ESR", "20563-4",
+                "http://localhost:9997/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a714-e5efe0qjki2w"));
+        assertTrue(containsItem(diagnosticOrder.getItem(), DiagnosticOrderStatusEnum.REQUESTED, order.getDateActivated(), "Hb Electrophoresis", null, null));
     }
 
     @Test
@@ -202,6 +137,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         List<FHIRResource> fhirResources = testOrderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         assertEquals(1, fhirResources.size());
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) fhirResources.get(0).getResource();
+        assertDiagnosticOrder(diagnosticOrder);
         List<DiagnosticOrder.Item> items = diagnosticOrder.getItem();
         assertEquals(1, items.size());
         DiagnosticOrder.Item item = items.get(0);
@@ -218,13 +154,12 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         return false;
     }
 
-    private void assertSpecimen(Specimen specimen, String accessionNo, String specimenType) {
-        assertEquals(patientRef, specimen.getSubject().getReference().getValue());
-        assertEquals(accessionNo, specimen.getAccessionIdentifier().getValue());
-        assertFalse(specimen.getId().isEmpty());
-        assertTrue(CollectionUtils.isNotEmpty(specimen.getIdentifier()));
-        assertFalse(specimen.getIdentifier().get(0).isEmpty());
-        assertTrue(MapperTestHelper.containsCoding(specimen.getType().getCoding(), null, null, specimenType));
+    private boolean containsItem(List<DiagnosticOrder.Item> items, DiagnosticOrderStatusEnum orderStatus, Date dateTime, String display, String code, String system) {
+        for (DiagnosticOrder.Item item : items) {
+            if (item.getStatus().equals(orderStatus.getCode()) && hasEventWithDateTime(item, orderStatus, dateTime)
+                    && MapperTestHelper.containsCoding(item.getCode().getCoding(), code, system, display)) return true;
+        }
+        return false;
     }
 
     private void assertDiagnosticOrder(DiagnosticOrder diagnosticOrder) {
@@ -241,14 +176,5 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         encounter.setPatient(new ResourceReferenceDt(patientRef));
         encounter.setId(fhirEncounterId);
         return new FHIREncounter(encounter);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void addToAtomFeed(Bundle bundle, List<FHIRResource> mappedResources) {
-        for (FHIRResource resource : mappedResources) {
-            Bundle.Entry resourceEntry = new Bundle.Entry();
-            resourceEntry.setResource(resource.getResource());
-            bundle.addEntry(resourceEntry);
-        }
     }
 }
