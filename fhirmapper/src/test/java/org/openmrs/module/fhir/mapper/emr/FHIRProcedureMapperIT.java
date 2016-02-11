@@ -3,6 +3,7 @@ package org.openmrs.module.fhir.mapper.emr;
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Procedure;
+import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
@@ -142,6 +143,38 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         Concept diagnosisConcept = diagnosis.getValueCoded();
         int diagnosisConceptId = 603;
         assertEquals(diagnosisConcept, conceptService.getConcept(diagnosisConceptId));
+    }
+
+    @Test
+    public void shouldMapAProcedureWithRequestAsProcedureFulfillment() throws Exception {
+        Integer orderId = 150;
+        bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithProcedureFulfillment.xml", springContext);
+        resource = FHIRBundleHelper.identifyFirstResourceWithName(bundle, new Procedure().getResourceName());
+
+        EmrEncounter emrEncounter = new EmrEncounter(new Encounter());
+        fhirProcedureMapper.map(resource, emrEncounter, new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-2"), getSystemProperties("1"));
+
+        Set<Obs> topLevelObs = emrEncounter.getObs();
+        assertEquals(1, topLevelObs.size());
+        Obs fulfillmentObs = topLevelObs.iterator().next();
+
+        assertEquals(MRS_CONCEPT_PROCEDURE_ORDER_FULFILLMENT_FORM, fulfillmentObs.getConcept().getName().getName());
+        Obs procedureTemplateObs = fulfillmentObs.getGroupMembers().iterator().next();
+        assertEquals(MRS_CONCEPT_PROCEDURES_TEMPLATE, procedureTemplateObs.getConcept().getName().getName());
+        assertEquals(orderId, fulfillmentObs.getOrder().getId());
+        assertEquals(orderId, procedureTemplateObs.getOrder().getId());
+        Set<Obs> members = procedureTemplateObs.getGroupMembers();
+        assertMemberOrders(members, orderId);
+    }
+
+    private void assertMemberOrders(Set<Obs> members, Integer orderId) {
+        for (Obs member : members) {
+            Set<Obs> groupMembers = member.getGroupMembers();
+            if (CollectionUtils.isEmpty(groupMembers))
+                assertEquals(orderId, member.getOrder().getId());
+            else
+                assertMemberOrders(groupMembers, orderId);
+        }
     }
 
     private Obs mapProceduresObs() {

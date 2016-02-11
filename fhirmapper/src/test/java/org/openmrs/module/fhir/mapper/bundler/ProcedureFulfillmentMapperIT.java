@@ -85,8 +85,8 @@ public class ProcedureFulfillmentMapperIT extends BaseModuleWebContextSensitiveT
 
     @Test
     public void shouldNotMapIfProcedureTypeIsNotPresent() throws Exception {
-        Obs fullfilmentObs = obsService.getObs(1499);
-        List<FHIRResource> resources = procedureFulfillmentMapper.map(fullfilmentObs, createFhirEncounter(), getSystemProperties("1"));
+        Obs fulfillmentObs = obsService.getObs(1499);
+        List<FHIRResource> resources = procedureFulfillmentMapper.map(fulfillmentObs, createFhirEncounter(), getSystemProperties("1"));
 
         assertTrue(resources.isEmpty());
     }

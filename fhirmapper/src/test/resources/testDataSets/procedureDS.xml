@@ -24,6 +24,14 @@
                       date_created="2005-09-22 00:00:00" uuid="399e3a7b-6482-487d-94ce-c0zbbzcazcca"></person_attribute>
 
     <!--Procedure concepts -->
+    <concept concept_id="300" retired="false" datatype_id="4" class_id="10" is_set="true" creator="1"
+             date_created="2004-08-12 00:00:00.0"
+             version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-lk87-4da3-bb88-8122ctdiast"/>
+    <concept_name concept_name_id="300" concept_id="300" name="Procedure Order Fulfillment Form" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="a3zazzv9-e1v4-98ij-b2d6-bc4335835eaa"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+
+
     <concept concept_id="301" retired="false" datatype_id="4" class_id="10" is_set="true" creator="1"
              date_created="2004-08-12 00:00:00.0"
              version="" changed_by="1" date_changed="2005-02-25 11:43:43.0" uuid="juydg80f-1yz9-4da3-bb88-8122ctdiast"/>
@@ -263,4 +271,28 @@
     <obs obs_id="1502" encounter_id="36" person_id="1" obs_datetime="2010-08-01 15:09:05.0" obs_group_id="1501"
          date_created="2010-08-18 15:09:05.0"
          uuid="ef4998cb-22gg-471a-lld7-1434552c337c1" creator="1" concept_id="304" voided="0" value_coded="601"/>
+
+    <!--data for fulfillment download-->
+    <!--Create Procedure Order Type-->
+    <encounter encounter_id="35" encounter_type="1" patient_id="1" visit_id="1" location_id="2"
+               encounter_datetime="2010-08-01 00:00:00.0" creator="1" date_created="2010-08-18 14:09:05.0"
+               voided="false" uuid="6d0af6767-jh7l-4629-9850-f15206e63ab0"/>
+
+    <concept concept_id="107" retired="false" datatype_id="1" class_id="2" is_set="false" creator="1"
+             date_created="2005-01-01 00:00:00.0" uuid="7923d0e0-8734-11e3-baa7-0800200c9a66"/>
+
+    <order_type order_type_id="16" name="Procedure Order" description="An order for procedures" creator="1"
+                java_class_name="org.openmrs.Order"
+                date_created="2008-08-15 13:49:47.0" retired="false" uuid="92c1bdef-72d4-49d9-8a1f-804892f66abd"/>
+
+    <orders order_id="150" order_type_id="16" encounter_id="35" urgency="ROUTINE" concept_id="107"
+            date_activated="2008-08-08 00:00:00.0" creator="1" order_number="ORD-17" order_action="NEW"
+            care_setting="1" date_created="2008-08-08 00:00:00.0" voided="false" patient_id="1" orderer="1"
+            comment_to_fulfiller="Some Notes" uuid="6d0ae386-707a-f123-16ws-f15206e63ab0"/>
+
+
+    <order_id_mapping id="1" internal_id="6d0ae386-707a-f123-16ws-f15206e63ab0" external_id="shr-enc-id-1:procedure-req-id"
+                      type="ProcedureOrder" uri="http://shr.com/patients/HID123/encounters/shr-enc-1#ProcedureRequest/procedure_req_id"/>
+    <!--Create Procedure Order Type-->
+    <!--data for fulfillment download-->
 </dataset>
