@@ -284,8 +284,8 @@
     <drug_order order_id="15" drug_inventory_id="301" as_needed="false" quantity="192" duration="2"
                 duration_units="803" dosing_instructions="{&quot;instructions&quot;:&quot;As directed&quot;,&quot;eveningDose&quot;:30.0}"
                 quantity_units="50" dispense_as_written="true" dose_units="807"/>
-    <medication_order_id_mapping id="15" internal_id="amkb3idk-cie3-g1f3-9qw0-ccc2c6c63ab0" external_id="shr_enc_id_3:amkb3idk-cie3-g1f3-9qw0-ccc2c6c63ab0"
-                    uri="encounters/shr_enc_id_3#MedicationOrder/amkb3idk-cie3-g1f3-9qw0-ccc2c6c63ab0"/>
+    <order_id_mapping id="15" internal_id="amkb3idk-cie3-g1f3-9qw0-ccc2c6c63ab0" external_id="shr_enc_id_3:amkb3idk-cie3-g1f3-9qw0-ccc2c6c63ab0"
+                   type="MedicationOrder" uri="encounters/shr_enc_id_3#MedicationOrder/amkb3idk-cie3-g1f3-9qw0-ccc2c6c63ab0"/>
     <!--Previous encounter with order-->
 
     <!--Encounter with Drug Orders for upload-->
@@ -378,8 +378,8 @@
     <drug_order order_id="24" drug_inventory_id="301" as_needed="false" quantity="192" duration="2"
                 duration_units="803" dosing_instructions="{&quot;instructions&quot;:&quot;As directed&quot;,&quot;eveningDose&quot;:30.0}"
                 quantity_units="50" dispense_as_written="true" dose_units="807"/>
-    <medication_order_id_mapping id="24" internal_id="amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0" external_id="amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0"
-                    uri="encounters/shr_enc_id_1#MedicationOrder/amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0"/>
+    <order_id_mapping id="24" internal_id="amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0" external_id="amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0"
+                      type="MedicationOrder" uri="encounters/shr_enc_id_1#MedicationOrder/amkbja86-awaa-g1f3-9qw0-ccc2c6c63ab0"/>
 
 
     <!--stopped drug order-->
@@ -390,8 +390,8 @@
     <drug_order order_id="25" drug_inventory_id="301" dose="4" as_needed="false" quantity="192" duration="2"
                 duration_units="803" route="701" frequency="4"
                 quantity_units="807" dispense_as_written="true" dose_units="807"/>
-    <medication_order_id_mapping id="25" internal_id="amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc" external_id="amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc"
-                    uri="encounters/shr_enc_id_1#MedicationOrder/amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc"/>
+    <order_id_mapping id="25" internal_id="amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc" external_id="amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc"
+                      type="MedicationOrder" uri="encounters/shr_enc_id_1#MedicationOrder/amkbja86-awaa-g1f3-9qw0-ccc26cc6cabc"/>
 
     <!--edited drug order, previous order 24-->
     <orders order_id="26" order_type_id="1" encounter_id="36" urgency="ROUTINE" concept_id="301"
@@ -478,8 +478,8 @@
     <drug_order order_id="65" drug_inventory_id="301" dose="10" as_needed="false" quantity="192" duration="10"
                 duration_units="804" route="701" frequency="2"
                 quantity_units="50" dispense_as_written="true" dose_units="50"/>
-    <medication_order_id_mapping id="16" internal_id="amkb3idk-ciek-ciek-c83k-ccc2c6c63ab0" external_id="shr-enc-id-4:7af48133-4c47-47d7-8d94-6a07abc18bf9"
-                                 uri="http://shr.com/patients/98104750156/encounters/shr_enc_id_4#MedicationOrder/7af48133-4c47-47d7-8d94-6a07abc18bf9"/>
+    <order_id_mapping id="16" internal_id="amkb3idk-ciek-ciek-c83k-ccc2c6c63ab0" external_id="shr-enc-id-4:7af48133-4c47-47d7-8d94-6a07abc18bf9"
+                      type="MedicationOrder" uri="http://shr.com/patients/98104750156/encounters/shr_enc_id_4#MedicationOrder/7af48133-4c47-47d7-8d94-6a07abc18bf9"/>
     <!--Encounter with drug order already downloaded. For download same encounter twice-->
 
     <!--Encounter with drug order. previous order in same encounter already downloaded-->
@@ -499,7 +499,7 @@
     <drug_order order_id="66" drug_inventory_id="301" dose="10" as_needed="false" quantity="192" duration="10"
                 duration_units="804" route="701" frequency="2"
                 quantity_units="50" dispense_as_written="true" dose_units="50"/>
-    <medication_order_id_mapping id="17" internal_id="amkb3idk-ciek-cp2f-c83k-d92sc6c63ab0" external_id="shr-enc-id-5:vmkbja86-awaa-g1f3-9qv0-cccvc6c63ab0"
-                                 uri="http://shr.com/patients/98104750156/encounters/shr_enc_id_5#MedicationOrder/vmkbja86-awaa-g1f3-9qv0-cccvc6c63ab0"/>
+    <order_id_mapping id="17" internal_id="amkb3idk-ciek-cp2f-c83k-d92sc6c63ab0" external_id="shr-enc-id-5:vmkbja86-awaa-g1f3-9qv0-cccvc6c63ab0"
+                      type="MedicationOrder" uri="http://shr.com/patients/98104750156/encounters/shr_enc_id_5#MedicationOrder/vmkbja86-awaa-g1f3-9qv0-cccvc6c63ab0"/>
     <!--Encounter with drug order. previous order in same encounter already downloaded-->
 </dataset>

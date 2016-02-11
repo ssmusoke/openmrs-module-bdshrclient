@@ -19,7 +19,6 @@ public class IdMappingRepository {
 
     EncounterIdMappingDao encounterIdMappingDao;
     PatientIdMappingDao patientIdMappingDao;
-    MedicationOrderIdMappingDao medicationOrderIdMappingDao;
     SHRIdMappingDao shrIdMappingDao;
     private DiagnosisIdMappingDao diagnosisIdMappingDao;
     private OrderIdMappingDao orderIdMappingDao;
@@ -32,7 +31,6 @@ public class IdMappingRepository {
         this.database = database;
         this.encounterIdMappingDao = new EncounterIdMappingDao(database);
         this.patientIdMappingDao = new PatientIdMappingDao(database);
-        this.medicationOrderIdMappingDao = new MedicationOrderIdMappingDao(database);
         this.shrIdMappingDao = new SHRIdMappingDao(database);
         this.diagnosisIdMappingDao = new DiagnosisIdMappingDao(database);
         this.orderIdMappingDao = new OrderIdMappingDao(database);
@@ -57,7 +55,8 @@ public class IdMappingRepository {
     public void replaceHealthId(final String toBeReplaced, final String toReplaceWith) {
         final List<IdMapping> reassignedEncounterIdMappings = updateHealthIds(findByHealthId(toBeReplaced, IdMappingType.ENCOUNTER), toBeReplaced, toReplaceWith);
         final List<IdMapping> reassignedMedicationOrderIdMappings = updateHealthIds(findByHealthId(toBeReplaced, IdMappingType.MEDICATION_ORDER), toBeReplaced, toReplaceWith);
-        final List<IdMapping> reassignedProcedureOrderIdMappings = updateHealthIds(findByHealthId(toBeReplaced, IdMappingType.PROCEDURE_ORDER), toBeReplaced, toReplaceWith);
+//        not required now with type procedureOrder as medication order will take care of all orders.
+//        final List<IdMapping> reassignedProcedureOrderIdMappings = updateHealthIds(findByHealthId(toBeReplaced, IdMappingType.PROCEDURE_ORDER), toBeReplaced, toReplaceWith);
         final List<IdMapping> reassignedDiagnosisIdMappings = updateHealthIds(findByHealthId(toBeReplaced, IdMappingType.DIAGNOSIS), toBeReplaced, toReplaceWith);
         database.executeInTransaction(new Database.TxWork<Object>() {
             @Override
@@ -69,7 +68,7 @@ public class IdMappingRepository {
                 try {
                     updateEncounterIdMappingBatch = idMappingDao(IdMappingType.ENCOUNTER).getBatchStatement(connection, reassignedEncounterIdMappings);
                     updateMedicationOrderMappingBatch = idMappingDao(IdMappingType.MEDICATION_ORDER).getBatchStatement(connection, reassignedMedicationOrderIdMappings);
-                    updateProcedureOrderIdMappingBatch = idMappingDao(IdMappingType.PROCEDURE_ORDER).getBatchStatement(connection, reassignedProcedureOrderIdMappings);
+//                    updateProcedureOrderIdMappingBatch = idMappingDao(IdMappingType.PROCEDURE_ORDER).getBatchStatement(connection, reassignedProcedureOrderIdMappings);
                     updateDiagnosisIdMappingBatch = idMappingDao(IdMappingType.DIAGNOSIS).getBatchStatement(connection, reassignedDiagnosisIdMappings);
                     executeBatch(updateEncounterIdMappingBatch, updateMedicationOrderMappingBatch, updateDiagnosisIdMappingBatch, updateProcedureOrderIdMappingBatch);
                 } catch (Exception e) {
@@ -117,7 +116,7 @@ public class IdMappingRepository {
         else if (IdMappingType.PATIENT.equals(idMappingType))
             return patientIdMappingDao;
         else if (IdMappingType.MEDICATION_ORDER.equals(idMappingType))
-            return medicationOrderIdMappingDao;
+            return orderIdMappingDao;
         else if (IdMappingType.DIAGNOSIS.equals(idMappingType))
             return diagnosisIdMappingDao;
         else if (IdMappingType.PROCEDURE_ORDER.equals(idMappingType))

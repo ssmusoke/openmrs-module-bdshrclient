@@ -24,7 +24,7 @@ import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
-import org.openmrs.module.shrclient.model.MedicationOrderIdMapping;
+import org.openmrs.module.shrclient.model.OrderIdMapping;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -95,7 +95,7 @@ public class FHIRMedicationOrderMapperIT extends BaseModuleWebContextSensitiveTe
         Order order = getOrder(medicationOrderBundle, medicationOrder);
         assertThat(order.getOrderer().getProviderId(), is(23));
 
-        MedicationOrderIdMapping idMapping = (MedicationOrderIdMapping) idMappingRepository.findByInternalId(order.getUuid(), IdMappingType.MEDICATION_ORDER);
+        OrderIdMapping idMapping = (OrderIdMapping) idMappingRepository.findByInternalId(order.getUuid(), IdMappingType.MEDICATION_ORDER);
         assertNotNull(idMapping);
         assertEquals("shr-enc-id-1:7af48133-4c47-47d7-8d94-6a07abc18bf9", idMapping.getExternalId());
         assertEquals("http://shr.com/patients/98104750156/encounters/shr-enc-id-1#MedicationOrder/7af48133-4c47-47d7-8d94-6a07abc18bf9", idMapping.getUri());

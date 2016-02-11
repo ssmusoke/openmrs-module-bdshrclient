@@ -25,7 +25,7 @@ import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.*;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMappingType;
-import org.openmrs.module.shrclient.model.MedicationOrderIdMapping;
+import org.openmrs.module.shrclient.model.OrderIdMapping;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.util.OpenmrsConstants;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -130,9 +130,9 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         return fetchOrderByExternalId(encounterComposition.getShrEncounterId(), medicationOrder.getId().getIdPart()) == null;
     }
 
-    private MedicationOrderIdMapping fetchOrderByExternalId(String shrEncounterId, String medicationOrderId) {
+    private OrderIdMapping fetchOrderByExternalId(String shrEncounterId, String medicationOrderId) {
         String externalId = String.format(RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterId, medicationOrderId);
-        return (MedicationOrderIdMapping) idMappingRepository.findByExternalId(externalId, IdMappingType.MEDICATION_ORDER);
+        return (OrderIdMapping) idMappingRepository.findByExternalId(externalId, IdMappingType.MEDICATION_ORDER);
     }
 
     private void setOrderAction(DrugOrder drugOrder, MedicationOrder medicationOrder) {
@@ -162,7 +162,7 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
                 String prevOrderEncounterId = new EntityReference().parse(Encounter.class, previousOrderUrl);
                 String previousOrderRefId = StringUtils.substringAfterLast(previousOrderUrl, "/");
                 String externalId = String.format(RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, prevOrderEncounterId, previousOrderRefId);
-                MedicationOrderIdMapping previousOrderMapping = (MedicationOrderIdMapping) idMappingRepository.findByExternalId(externalId, IdMappingType.MEDICATION_ORDER);
+                OrderIdMapping previousOrderMapping = (OrderIdMapping) idMappingRepository.findByExternalId(externalId, IdMappingType.MEDICATION_ORDER);
                 if (previousOrderMapping == null) {
                     throw new RuntimeException(String.format("The previous order with SHR reference [%s] is not yet synced to SHR", previousOrderUrl));
                 }
@@ -174,9 +174,9 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
 
     private DrugOrder fetchPreviousOrderFromSameEncounter(ShrEncounterBundle encounterComposition, MedicationOrder medicationOrder, EmrEncounter emrEncounter, SystemProperties systemProperties) {
         DrugOrder previousDrugOrder;
-        MedicationOrderIdMapping medicationOrderIdMapping = fetchOrderByExternalId(encounterComposition.getShrEncounterId(), medicationOrder.getPriorPrescription().getReference().getIdPart());
-        if (medicationOrderIdMapping != null) {
-            previousDrugOrder = (DrugOrder) orderService.getOrderByUuid(medicationOrderIdMapping.getInternalId());
+        OrderIdMapping orderIdMapping = fetchOrderByExternalId(encounterComposition.getShrEncounterId(), medicationOrder.getPriorPrescription().getReference().getIdPart());
+        if (orderIdMapping != null) {
+            previousDrugOrder = (DrugOrder) orderService.getOrderByUuid(orderIdMapping.getInternalId());
         } else {
             previousDrugOrder = createPreviousOrder(encounterComposition, medicationOrder, emrEncounter, systemProperties);
         }
@@ -194,7 +194,7 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         String shrOrderId = medicationOrder.getId().getIdPart();
         String orderUrl = getOrderUrl(encounterComposition, systemProperties, shrOrderId);
         String externalId = String.format(RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, encounterComposition.getShrEncounterId(), shrOrderId);
-        MedicationOrderIdMapping orderIdMapping = new MedicationOrderIdMapping(drugOrder.getUuid(), externalId, orderUrl, new Date());
+        OrderIdMapping orderIdMapping = new OrderIdMapping(drugOrder.getUuid(), externalId, IdMappingType.MEDICATION_ORDER, orderUrl, new Date());
         idMappingRepository.saveOrUpdateIdMapping(orderIdMapping);
     }
 

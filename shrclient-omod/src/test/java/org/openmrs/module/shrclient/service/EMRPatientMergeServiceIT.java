@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.*;
 import org.openmrs.api.EncounterService;
@@ -40,10 +41,15 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
     @Autowired
     IdMappingRepository idMappingRepository;
 
-    @Test
-    public void shouldMergePatientAttributesAndVoidToBeRetiredPatient() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         executeDataSet("testDataSets/attributeTypesDS.xml");
         executeDataSet("testDataSets/dhakaAddressHierarchy.xml");
+    }
+
+
+    @Test
+    public void shouldMergePatientAttributesAndVoidToBeRetiredPatient() throws Exception {
         executeDataSet("testDataSets/mergeDS/patientMergeDS.xml");
         org.openmrs.module.shrclient.model.Patient patientToBeRetired = getPatientFromJson("patients_response/patientWithRelations.json");
         org.openmrs.module.shrclient.model.Patient patientToBeRetained = getPatientFromJson("patients_response/p12341467785.json");
@@ -116,8 +122,6 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
 
     @Test
     public void shouldMergeEncountersWhenPatientsAreMerged() throws Exception {
-        executeDataSet("testDataSets/attributeTypesDS.xml");
-        executeDataSet("testDataSets/dhakaAddressHierarchy.xml");
         executeDataSet("testDataSets/mergeDS/patientMergeDS.xml");
         org.openmrs.module.shrclient.model.Patient patientToBeRetired = getPatientFromJson("patients_response/patientWithRelations.json");
         org.openmrs.module.shrclient.model.Patient patientToBeRetained = getPatientFromJson("patients_response/p12341467785.json");
@@ -168,8 +172,6 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
 
     @Test
     public void shouldCloseActiveVisitOfRetiredPatientIfRetainedPatientHasActiveVisit() throws Exception {
-        executeDataSet("testDataSets/attributeTypesDS.xml");
-        executeDataSet("testDataSets/dhakaAddressHierarchy.xml");
         executeDataSet("testDataSets/mergeDS/retainedPatientWithActiveVisitDS.xml");
         org.openmrs.module.shrclient.model.Patient patientToBeRetired = getPatientFromJson("patients_response/patientWithRelations.json");
         org.openmrs.module.shrclient.model.Patient patientToBeRetained = getPatientFromJson("patients_response/p12341467785.json");
@@ -213,8 +215,6 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
 
     @Test
     public void shouldRetainActiveVisitOfRetiredPatientIfRetainedPatientHasNoActiveVisit() throws Exception {
-        executeDataSet("testDataSets/attributeTypesDS.xml");
-        executeDataSet("testDataSets/dhakaAddressHierarchy.xml");
         executeDataSet("testDataSets/mergeDS/retainedPatientWithNoActiveVisitDS.xml");
         org.openmrs.module.shrclient.model.Patient patientToBeRetired = getPatientFromJson("patients_response/patientWithRelations.json");
         org.openmrs.module.shrclient.model.Patient patientToBeRetained = getPatientFromJson("patients_response/p12341467785.json");
@@ -259,8 +259,6 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
 
     @Test
     public void shouldUpdateIDmappingsAfterMerge() throws Exception {
-        executeDataSet("testDataSets/attributeTypesDS.xml");
-        executeDataSet("testDataSets/dhakaAddressHierarchy.xml");
         executeDataSet("testDataSets/mergeDS/patientMergeDS.xml");
         org.openmrs.module.shrclient.model.Patient patientToBeRetired = getPatientFromJson("patients_response/patientWithRelations.json");
         org.openmrs.module.shrclient.model.Patient patientToBeRetained = getPatientFromJson("patients_response/p12341467785.json");

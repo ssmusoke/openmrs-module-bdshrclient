@@ -9,6 +9,7 @@ public class IdMappingType {
     public static final String FACILITY = "fr_location";
     public static final String PERSON_RELATION = "PERSON_RELATION";
     public static final String MEDICATION_ORDER = "MedicationOrder";
+    public static final String ORDER = "Order";
     public static final String DIAGNOSIS = "Diagnosis";
     public static final String PROCEDURE_ORDER = "ProcedureOrder";
 }

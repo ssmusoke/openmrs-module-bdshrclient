@@ -28,7 +28,7 @@ import org.openmrs.module.fhir.utils.*;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
-import org.openmrs.module.shrclient.model.MedicationOrderIdMapping;
+import org.openmrs.module.shrclient.model.OrderIdMapping;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -133,7 +133,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
 
     private String setPriorPrescriptionReference(DrugOrder drugOrder, SystemProperties systemProperties) {
         if (isEditedInDifferentEncounter(drugOrder)) {
-            MedicationOrderIdMapping orderIdMapping = (MedicationOrderIdMapping) idMappingsRepository.findByInternalId(drugOrder.getPreviousOrder().getUuid(), IdMappingType.MEDICATION_ORDER);
+            OrderIdMapping orderIdMapping = (OrderIdMapping) idMappingsRepository.findByInternalId(drugOrder.getPreviousOrder().getUuid(), IdMappingType.MEDICATION_ORDER);
             if (orderIdMapping == null) {
                 throw new RuntimeException("Previous order encounter with id [" + drugOrder.getPreviousOrder().getEncounter().getUuid() + "] is not synced to SHR yet.");
             }

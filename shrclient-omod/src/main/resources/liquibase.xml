@@ -430,7 +430,7 @@
             <where>feed_uri IN ('fr.facilities', 'lr.divisions', 'lr.districts', 'lr.upazilas', 'lr.paurasavas', 'lr.unions', 'lr.wards')</where>
         </delete>
     </changeSet>
-    
+
     <changeSet id="bdshrclient-291214-1805" author="tw">
 
         <insert tableName="markers">
@@ -1149,44 +1149,25 @@
             <column name="created_at" type="datetime" defaultValueComputed="now()"/>
         </addColumn>
     </changeSet>
-    <changeSet id="bdshrclient-03022016-1502" author="dubey,sukreet" context="setup">
+    <changeSet id="bdshrclient-10022016-1536" context="setup" author="sukreet,dubey">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="order_id_mapping"/>
+                <columnExists columnName="type" tableName="medication_order_id_mapping"/>
             </not>
         </preConditions>
-        <comment>Create a mapping table for generic orders</comment>
-        <createTable tableName="order_id_mapping">
-            <column name="id" type="int" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="internal_id" type="varchar(50)"/>
-            <column name="external_id" type="varchar(100)"/>
+        <comment>Creating column type for medication_order_id_mapping table.</comment>
+        <addColumn tableName="medication_order_id_mapping">
             <column name="type" type="varchar(50)"/>
-            <column name="uri" type="varchar(150)"/>
-            <column name="created_at" type="datetime" defaultValueComputed="now()"/>
-        </createTable>
+        </addColumn>
     </changeSet>
-    <changeSet id="bdshrclient-03022016-1505" author="dubey,sukreet" context="setup">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <indexExists indexName="idx_order_id_mapping_internal_id"/>
-            </not>
+    <changeSet id="bdshrclient-10022016-1546" context="setup" author="sukreet,dubey">
+        <preConditions>
+                <tableExists tableName="medication_order_id_mapping"/>
         </preConditions>
-        <comment>Creating index order_id_mapping.internal_id</comment>
-        <createIndex indexName="idx_order_id_mapping_internal_id" tableName="order_id_mapping">
-            <column name="internal_id" type="varchar(50)"/>
-        </createIndex>
-    </changeSet>
-    <changeSet id="bdshrclient-03022016-1506" author="dubey,sukreet" context="setup">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <indexExists indexName="idx_order_id_mapping_external_id"/>
-            </not>
-        </preConditions>
-        <comment>Creating index order_id_mapping.external_id</comment>
-        <createIndex indexName="idx_order_id_mapping_external_id" tableName="order_id_mapping">
-            <column name="external_id" type="varchar(100)"/>
-        </createIndex>
+        <comment>Renaming medication_order_id_mapping table to order_id_mapping.</comment>
+        <renameTable oldTableName="medication_order_id_mapping" newTableName="order_id_mapping"/>
+        <sql>
+            update order_id_mapping set type="MedicationOrder" where type is null;
+        </sql>
     </changeSet>
 </databaseChangeLog>

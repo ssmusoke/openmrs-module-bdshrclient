@@ -107,7 +107,7 @@ public class EncounterPush implements EventWorker {
                 orderUrlReferenceIds.put(EntityReference.REFERENCE_ID, order.getUuid());
                 String orderUrl = entityReference.build(BaseResource.class, systemProperties, orderUrlReferenceIds);
                 String externalId = String.format(MRSProperties.RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterId, order.getUuid());
-                idMappingsRepository.saveOrUpdateIdMapping(new MedicationOrderIdMapping(order.getUuid(), externalId, orderUrl, new Date()));
+                idMappingsRepository.saveOrUpdateIdMapping(new OrderIdMapping(order.getUuid(), externalId, IdMappingType.MEDICATION_ORDER, orderUrl, new Date()));
             }
         }
     }
