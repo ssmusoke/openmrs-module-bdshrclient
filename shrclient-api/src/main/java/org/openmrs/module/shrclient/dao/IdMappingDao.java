@@ -106,6 +106,10 @@ public abstract class IdMappingDao {
         return idMappings.size() > 0 ? idMappings.get(0) : null;
     }
 
+    protected List<IdMapping> findMappingsByExternalId(final String externalId) {
+        return getIdMappings(externalId, getFetchByExternalIdSql());
+    }
+
     protected IdMapping findByInternalId(final String internalId) {
         List<IdMapping> idMappings = getIdMappings(internalId, getFetchByInternalIdSql());
         return idMappings.size() > 0 ? idMappings.get(0) : null;

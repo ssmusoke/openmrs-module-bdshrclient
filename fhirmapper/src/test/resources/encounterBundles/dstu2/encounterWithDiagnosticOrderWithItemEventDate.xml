@@ -83,7 +83,7 @@
         </resource>
     </entry>
     <entry>
-        <fullUrl value="urn:uuid:"/>
+        <fullUrl value="urn:uuid:453b7b24-7847-49f7-8a33-2fc339e5c4c7"/>
         <resource>
             <DiagnosticOrder xmlns="http://hl7.org/fhir">
                 <id value="453b7b24-7847-49f7-8a33-2fc339e5c4c7"/>

@@ -17,6 +17,9 @@ import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
+import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -50,6 +53,9 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
     @Autowired
     private EncounterService encounterService;
     
+    @Autowired
+    private IdMappingRepository idMappingRepository;
+    
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/labOrderDS.xml");
@@ -62,7 +68,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Test
     public void shouldMapDiagnosticOrder() throws Exception {
-        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithItemEventDate.xml");
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithItemEventDate.xml", "HIDA764177", "shr-enc-id");
         Set<Order> orders = emrEncounter.getOrders();
         assertFalse(orders.isEmpty());
         assertEquals(1, orders.size());
@@ -73,12 +79,17 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         assertEquals(orderService.getCareSetting(1), order.getCareSetting());
         assertEquals(DateUtil.parseDate("2015-08-24T17:10:10.000+05:30"), order.getDateActivated());
         assertEquals(DateUtil.parseDate("2015-08-25T17:10:10.000+05:30"), order.getAutoExpireDate());
+        IdMapping idMapping = idMappingRepository.findByExternalId("shr-enc-id:453b7b24-7847-49f7-8a33-2fc339e5c4c7", IdMappingType.DIAGNOSTIC_ORDER);
+        assertEquals(order.getUuid(), idMapping.getInternalId());
+        assertEquals(IdMappingType.DIAGNOSTIC_ORDER, idMapping.getType());
+        assertEquals("http://shr.com/patients/HIDA764177/encounters/shr-enc-id#DiagnosticOrder/453b7b24-7847-49f7-8a33-2fc339e5c4c7",
+                idMapping.getUri());
     }
 
     @Test
     public void shouldMapDiagnosticOrderWithoutOrderer() throws Exception {
         int shrClientSystemProviderId = 22;
-        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithoutOrderer.xml");
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithoutOrderer.xml", "HIDA764177", "shr-enc-id-1");
         Set<Order> orders = emrEncounter.getOrders();
         assertEquals(1, orders.size());
         Order order = orders.iterator().next();
@@ -93,7 +104,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         Order existingOrder = orders.iterator().next();
         assertNull(existingOrder.getDateStopped());
 
-        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithUpdatedDiagnosticOrder.xml", existingEncounter);
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithUpdatedDiagnosticOrder.xml", existingEncounter, "HIDA764177", "shr-enc-id-1");
 
         Set<Order> emrEncounterOrders = emrEncounter.getOrders();
         assertEquals(1, emrEncounterOrders.size());
@@ -110,7 +121,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         Order existingOrder = orders.iterator().next();
         assertNull(existingOrder.getDateStopped());
 
-        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithCanceledDiagnosticOrder.xml", existingEncounter);
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithCanceledDiagnosticOrder.xml", existingEncounter, "HIDA764177", "shr-enc-id-1");
 
         Set<Order> emrEncounterOrders = emrEncounter.getOrders();
         assertEquals(1, emrEncounterOrders.size());
@@ -122,7 +133,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Test
     public void shouldNotDoAnyThingIfOrderWasNotDownloadedAndUpdatedAsCancelled() throws Exception {
-        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithCanceledDiagnosticOrder.xml");
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithCanceledDiagnosticOrder.xml", "HIDA764177", "shr-enc-id-2");
         Set<Order> emrEncounterOrders = emrEncounter.getOrders();
         assertTrue(CollectionUtils.isEmpty(emrEncounterOrders));
     }
@@ -135,7 +146,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         Order existingOrder = orders.iterator().next();
         assertNull(existingOrder.getDateStopped());
 
-        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderCancelledAndRequested.xml", existingEncounter);
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderCancelledAndRequested.xml", existingEncounter, "HIDA764177", "shr-enc-id-1");
 
         Set<Order> emrEncounterOrders = emrEncounter.getOrders();
         assertEquals(2, emrEncounterOrders.size());
@@ -151,7 +162,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Test
     public void shouldSetOrderDateActivatedFromDiagnosticOrderEventIfNotPresentInItem() throws Exception {
-        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithDiagnositicOrderEventDate.xml");
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithDiagnositicOrderEventDate.xml", "HIDA764177", "shr-enc-id-1");
         Set<Order> orders = emrEncounter.getOrders();
         assertFalse(orders.isEmpty());
         assertEquals(1, orders.size());
@@ -166,7 +177,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         Encounter encounter = new Encounter();
         Date encounterDatetime = new Date();
         encounter.setEncounterDatetime(encounterDatetime);
-        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithoutEventDate.xml", encounter);
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithoutEventDate.xml", encounter, "HIDA764177", "shr-enc-id-1");
         Set<Order> orders = emrEncounter.getOrders();
         assertFalse(orders.isEmpty());
         assertEquals(1, orders.size());
@@ -183,16 +194,16 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         return null;
     }
 
-    private EmrEncounter mapOrder(String filePath) throws Exception {
+    private EmrEncounter mapOrder(String filePath, String healthId, String shrEncounterId) throws Exception {
         Encounter encounter = new Encounter();
         encounter.setEncounterDatetime(new Date());
-        return mapOrder(filePath, encounter);
+        return mapOrder(filePath, encounter, healthId, shrEncounterId);
     }
 
-    private EmrEncounter mapOrder(String filePath, Encounter encounter) throws Exception {
+    private EmrEncounter mapOrder(String filePath, Encounter encounter, String healthId, String shrEncounterId) throws Exception {
         Bundle bundle = loadSampleFHIREncounter(filePath);
         IResource resource = FHIRBundleHelper.identifyFirstResourceWithName(bundle, new DiagnosticOrder().getResourceName());
-        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(bundle, "HIDA764177", "shr-enc-id-1");
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(bundle, healthId, shrEncounterId);
         EmrEncounter emrEncounter = new EmrEncounter(encounter);
         diagnosticOrderMapper.map(resource, emrEncounter, encounterComposition, getSystemProperties("1"));
         return emrEncounter;

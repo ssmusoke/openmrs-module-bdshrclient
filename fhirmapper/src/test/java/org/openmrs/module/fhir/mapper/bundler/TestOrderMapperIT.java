@@ -61,7 +61,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         List<FHIRResource> mappedResources = testOrderMapper.map(order, createFhirEncounter(), new Bundle(), getSystemProperties("1"));
         assertTrue(CollectionUtils.isNotEmpty(mappedResources));
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) mappedResources.get(0).getResource();
-        assertDiagnosticOrder(diagnosticOrder);
+        assertDiagnosticOrder(diagnosticOrder, order.getUuid());
         assertEquals(1, diagnosticOrder.getItem().size());
         DiagnosticOrder.Item item = diagnosticOrder.getItemFirstRep();
         assertTrue(MapperTestHelper.containsCoding(item.getCode().getCoding(), null, null, "Urea Nitorgen"));
@@ -97,7 +97,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         List<FHIRResource> mappedResources = testOrderMapper.map(order, fhirEncounter, bundle, getSystemProperties("1"));
         assertEquals(1, mappedResources.size());
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) TestFhirFeedHelper.getFirstResourceByType(new DiagnosticOrder().getResourceName(), mappedResources).getResource();
-        assertDiagnosticOrder(diagnosticOrder);
+        assertDiagnosticOrder(diagnosticOrder, order.getUuid());
         assertEquals(1, diagnosticOrder.getItem().size());
         assertTrue(MapperTestHelper.containsCoding(diagnosticOrder.getItemFirstRep().getCode().getCoding(), "30xlb827-s02l-4q1f-a705-e5efe0qjki2w",
                 "http://localhost:9997/openmrs/ws/rest/v1/tr/concepts/30xlb827-s02l-4q1f-a705-e5efe0qjki2w", "Complete Blood Count"));
@@ -113,7 +113,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         List<FHIRResource> mappedResources = testOrderMapper.map(order, fhirEncounter, bundle, getSystemProperties("1"));
         assertEquals(1, mappedResources.size());
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) TestFhirFeedHelper.getFirstResourceByType(new DiagnosticOrder().getResourceName(), mappedResources).getResource();
-        assertDiagnosticOrder(diagnosticOrder);
+        assertDiagnosticOrder(diagnosticOrder, order.getUuid());
         assertEquals(3, diagnosticOrder.getItem().size());
         assertTrue(containsItem(diagnosticOrder.getItem(), DiagnosticOrderStatusEnum.REQUESTED, order.getDateActivated(), "Haemoglobin", "20563-3",
                 "http://localhost:9997/openmrs/ws/rest/v1/tr/referenceterms/501qb827-a67c-4q1f-a705-e5efe0q6a972"));
@@ -137,7 +137,7 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         List<FHIRResource> fhirResources = testOrderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         assertEquals(1, fhirResources.size());
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) fhirResources.get(0).getResource();
-        assertDiagnosticOrder(diagnosticOrder);
+        assertDiagnosticOrder(diagnosticOrder, order.getPreviousOrder().getUuid());
         List<DiagnosticOrder.Item> items = diagnosticOrder.getItem();
         assertEquals(1, items.size());
         DiagnosticOrder.Item item = items.get(0);
@@ -162,11 +162,13 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         return false;
     }
 
-    private void assertDiagnosticOrder(DiagnosticOrder diagnosticOrder) {
+    private void assertDiagnosticOrder(DiagnosticOrder diagnosticOrder, String orderId) {
         assertEquals(patientRef, diagnosticOrder.getSubject().getReference().getValue());
         assertTrue(diagnosticOrder.getOrderer().getReference().getValue().endsWith("812.json"));
-        assertFalse(diagnosticOrder.getId().isEmpty());
-        assertTrue(CollectionUtils.isNotEmpty(diagnosticOrder.getIdentifier()));
+        orderId = "urn:uuid:" + orderId;
+        assertEquals(orderId, diagnosticOrder.getId().getValue());
+        assertEquals(1, diagnosticOrder.getIdentifier().size());
+        assertEquals(orderId, diagnosticOrder.getIdentifierFirstRep().getValue());
         assertFalse(diagnosticOrder.getIdentifier().get(0).isEmpty());
         assertEquals(fhirEncounterId, diagnosticOrder.getEncounter().getReference().getValue());
     }

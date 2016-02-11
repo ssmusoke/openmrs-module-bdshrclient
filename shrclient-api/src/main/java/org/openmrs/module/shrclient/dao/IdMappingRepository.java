@@ -44,6 +44,10 @@ public class IdMappingRepository {
         return idMappingDao(idMappingType).findByExternalId(externalId);
     }
 
+    public List<IdMapping> findMappingsByExternalId(String externalId, String idMappingType) {
+        return idMappingDao(idMappingType).findMappingsByExternalId(externalId);
+    }
+
     public IdMapping findByInternalId(String internalId, String idMappingType) {
         return idMappingDao(idMappingType).findByInternalId(internalId);
     }

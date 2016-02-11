@@ -80,7 +80,7 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
     private void createOrderItem(Order order, DiagnosticOrder diagnosticOrder, CodeableConceptDt orderCode) {
         DiagnosticOrder.Item orderItem = diagnosticOrder.addItem();
         orderItem.setCode(orderCode);
-        if (order.getAction().equals(Order.Action.DISCONTINUE)) {
+        if (isDiscontinuedOrder(order)) {
             orderItem.setStatus(DiagnosticOrderStatusEnum.CANCELLED);
             addEvent(orderItem, DiagnosticOrderStatusEnum.REQUESTED, order.getPreviousOrder().getDateActivated());
             addEvent(orderItem, DiagnosticOrderStatusEnum.CANCELLED, order.getDateActivated());
@@ -89,6 +89,10 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
             orderItem.setStatus(DiagnosticOrderStatusEnum.REQUESTED);
             addEvent(orderItem, DiagnosticOrderStatusEnum.REQUESTED, order.getDateActivated());
         }
+    }
+
+    private boolean isDiscontinuedOrder(Order order) {
+        return order.getAction().equals(Order.Action.DISCONTINUE);
     }
 
     private void addEvent(DiagnosticOrder.Item orderItem, DiagnosticOrderStatusEnum status, Date dateActivated) {
@@ -102,11 +106,18 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
         diagnosticOrder = new DiagnosticOrder();
         diagnosticOrder.setSubject(fhirEncounter.getPatient());
         diagnosticOrder.setOrderer(getOrdererReference(order, fhirEncounter, systemProperties));
-        String id = new EntityReference().build(Order.class, systemProperties, order.getUuid());
-        diagnosticOrder.addIdentifier().setValue(id);
-        diagnosticOrder.setId(id);
+        String orderUuid = order.getUuid();
+        if (isDiscontinuedOrder(order)) 
+            orderUuid = order.getPreviousOrder().getUuid();
+        setDiagnosticOrderId(systemProperties, diagnosticOrder, orderUuid);
         diagnosticOrder.setEncounter(new ResourceReferenceDt().setReference(fhirEncounter.getId()));
         return diagnosticOrder;
+    }
+
+    private void setDiagnosticOrderId(SystemProperties systemProperties, DiagnosticOrder diagnosticOrder, String orderUuid) {
+        String id = new EntityReference().build(Order.class, systemProperties, orderUuid);
+        diagnosticOrder.addIdentifier().setValue(id);
+        diagnosticOrder.setId(id);
     }
 
     private ResourceReferenceDt getOrdererReference(Order order, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
