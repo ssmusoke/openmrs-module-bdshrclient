@@ -1,9 +1,6 @@
 package org.openmrs.module.shrclient.handlers;
 
-import ca.uhn.fhir.model.dstu2.resource.BaseResource;
-import ca.uhn.fhir.model.dstu2.resource.Condition;
-import ca.uhn.fhir.model.dstu2.resource.MedicationOrder;
-import ca.uhn.fhir.model.dstu2.resource.ProcedureRequest;
+import ca.uhn.fhir.model.dstu2.resource.*;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
@@ -11,6 +8,8 @@ import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.exceptions.AtomFeedClientException;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.openmrs.*;
+import org.openmrs.Encounter;
+import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir.MRSProperties;
@@ -87,32 +86,39 @@ public class EncounterPush implements EventWorker {
             encounterUuidsProcessed.add(openMrsEncounter.getUuid());
             saveEncounterIdMapping(openMrsEncounter.getUuid(), healthId, shrEncounterId, systemProperties);
             saveIdMappingForDiagnosis(openMrsEncounter, healthId, shrEncounterId, systemProperties);
-            saveMedicationOrderIdMapping(openMrsEncounter.getOrders(), healthId, shrEncounterId, systemProperties);
-            saveProcedureOrderIdMapping(openMrsEncounter.getOrders(), healthId, shrEncounterId, systemProperties);
+            saveIdMappingsForOrders(openMrsEncounter.getOrders(), healthId, shrEncounterId, systemProperties);
         } catch (Exception e) {
             log.error("Error while processing encounter sync event.", e);
             throw new RuntimeException(e);
         }
     }
 
-    private void saveMedicationOrderIdMapping(Set<Order> orders, String healthId, String shrEncounterId, SystemProperties systemProperties) {
+    private void saveIdMappingsForOrders(Set<Order> orders, String healthId, String shrEncounterId, SystemProperties systemProperties) {
         HashMap<String, String> orderUrlReferenceIds = new HashMap<>();
         orderUrlReferenceIds.put(EntityReference.HEALTH_ID_REFERENCE, healthId);
         orderUrlReferenceIds.put(EntityReference.ENCOUNTER_ID_REFERENCE, shrEncounterId);
-        orderUrlReferenceIds.put(EntityReference.REFERENCE_RESOURCE_NAME, new MedicationOrder().getResourceName());
-        EntityReference entityReference = new EntityReference();
         for (Order order : orders) {
             if (order.getOrderType().getUuid().equals(OrderType.DRUG_ORDER_TYPE_UUID)) {
-                orderUrlReferenceIds.remove(EntityReference.REFERENCE_ID);
-                orderUrlReferenceIds.put(EntityReference.REFERENCE_ID, order.getUuid());
-                String orderUrl = entityReference.build(BaseResource.class, systemProperties, orderUrlReferenceIds);
-                String externalId = String.format(MRSProperties.RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterId, order.getUuid());
-                idMappingsRepository.saveOrUpdateIdMapping(new OrderIdMapping(order.getUuid(), externalId, IdMappingType.MEDICATION_ORDER, orderUrl, new Date()));
+                orderUrlReferenceIds.put(EntityReference.REFERENCE_RESOURCE_NAME, new MedicationOrder().getResourceName());
+                saveOrderIdMapping(shrEncounterId, order.getUuid(), IdMappingType.MEDICATION_ORDER, orderUrlReferenceIds, systemProperties);
+            } else if (order.getOrderType().getName().equals(MRSProperties.MRS_PROCEDURE_ORDER_TYPE)) {
+                orderUrlReferenceIds.put(EntityReference.REFERENCE_RESOURCE_NAME, new ProcedureRequest().getResourceName());
+                saveOrderIdMapping(shrEncounterId, order.getUuid(), IdMappingType.PROCEDURE_ORDER, orderUrlReferenceIds, systemProperties);
+            } else if (order.getOrderType().getName().equals(MRSProperties.MRS_LAB_ORDER_TYPE)) {
+                orderUrlReferenceIds.put(EntityReference.REFERENCE_RESOURCE_NAME, new DiagnosticOrder().getResourceName());
+                saveOrderIdMapping(shrEncounterId, order.getUuid(), IdMappingType.DIAGNOSTIC_ORDER, orderUrlReferenceIds, systemProperties);
             }
         }
     }
 
-    public void saveIdMappingForDiagnosis(Encounter openMrsEncounter, String healthId, String shrEncounterId, SystemProperties systemProperties) {
+    private void saveOrderIdMapping(String shrEncounterId, String orderUuid, String idMappingType, HashMap<String, String> orderUrlReferenceIds, SystemProperties systemProperties) {
+        orderUrlReferenceIds.put(EntityReference.REFERENCE_ID, orderUuid);
+        String orderUrl = new EntityReference().build(BaseResource.class, systemProperties, orderUrlReferenceIds);
+        String externalId = String.format(MRSProperties.RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterId, orderUuid);
+        idMappingsRepository.saveOrUpdateIdMapping(new OrderIdMapping(orderUuid, externalId, idMappingType, orderUrl, new Date()));
+    }
+
+    private void saveIdMappingForDiagnosis(Encounter openMrsEncounter, String healthId, String shrEncounterId, SystemProperties systemProperties) {
         HashMap<String, String> conditionUrlReferenceIds = new HashMap<>();
         conditionUrlReferenceIds.put(EntityReference.HEALTH_ID_REFERENCE, healthId);
         conditionUrlReferenceIds.put(EntityReference.ENCOUNTER_ID_REFERENCE, shrEncounterId);
@@ -129,23 +135,6 @@ public class EncounterPush implements EventWorker {
         }
     }
     
-    private void saveProcedureOrderIdMapping(Set<Order> orders, String healthId, String shrEncounterId, SystemProperties systemProperties) {
-        HashMap<String, String> orderUrlReferenceIds = new HashMap<>();
-        orderUrlReferenceIds.put(EntityReference.HEALTH_ID_REFERENCE, healthId);
-        orderUrlReferenceIds.put(EntityReference.ENCOUNTER_ID_REFERENCE, shrEncounterId);
-        orderUrlReferenceIds.put(EntityReference.REFERENCE_RESOURCE_NAME, new ProcedureRequest().getResourceName());
-        EntityReference entityReference = new EntityReference();
-        for (Order order : orders) {
-            if (order.getOrderType().getName().equals(MRSProperties.MRS_PROCEDURE_ORDER_TYPE)) {
-                orderUrlReferenceIds.remove(EntityReference.REFERENCE_ID);
-                orderUrlReferenceIds.put(EntityReference.REFERENCE_ID, order.getUuid());
-                String orderUrl = entityReference.build(BaseResource.class, systemProperties, orderUrlReferenceIds);
-                String externalId = String.format(MRSProperties.RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterId, order.getUuid());
-                idMappingsRepository.saveOrUpdateIdMapping(new OrderIdMapping(order.getUuid(), externalId, IdMappingType.PROCEDURE_ORDER, orderUrl));
-            }
-        }
-    }
-
     private void saveEncounterIdMapping(String openMrsEncounterUuid, String healthId, String shrEncounterId, SystemProperties systemProperties) {
         String shrEncounterUrl = getShrEncounterUrl(healthId, shrEncounterId, systemProperties);
         idMappingsRepository.saveOrUpdateIdMapping(new EncounterIdMapping(openMrsEncounterUuid, shrEncounterId, shrEncounterUrl, new Date()));

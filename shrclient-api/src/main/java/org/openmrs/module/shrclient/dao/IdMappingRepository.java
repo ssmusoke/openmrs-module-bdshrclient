@@ -121,6 +121,8 @@ public class IdMappingRepository {
             return diagnosisIdMappingDao;
         else if (IdMappingType.PROCEDURE_ORDER.equals(idMappingType))
             return orderIdMappingDao;
+        else if (IdMappingType.DIAGNOSTIC_ORDER.equals(idMappingType))
+            return orderIdMappingDao;
         else
             return shrIdMappingDao;
     }

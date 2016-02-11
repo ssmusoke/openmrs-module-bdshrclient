@@ -240,4 +240,45 @@ public class EncounterPushIT extends BaseModuleWebContextSensitiveTest {
         String procedureUrl = encounterIdMapping.getUri() + "#ProcedureRequest/" + procedureOrderUuid;
         assertEquals(procedureUrl, procedureOrderMapping.getUri());
     }
+
+    @Test
+    public void shouldAddDiagnosticOrderToIdMappings() throws Exception {
+        executeDataSet("testDataSets/labOrderDS.xml");
+
+        String shrEncounterId = "shr_enc_id_4";
+        givenThat(post(urlEqualTo("/patients/98104750156/encounters"))
+                .withHeader(AUTH_TOKEN_KEY, equalTo(accessToken))
+                .withHeader(CLIENT_ID_KEY, equalTo(clientIdValue))
+                .withHeader(FROM_KEY, equalTo(email))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody("{\"encounterId\" : \"" + shrEncounterId + "\"}")));
+
+        String encounterUuid = "6d0af6767-707a-4629-9850-f15206e63ab0";
+        String diagnosticOrderId = "6d0ae386-707a-f123-9850-f15206e63ab0";
+        final Event event = new Event("id100", "/openmrs/ws/rest/v1/encounter/" + encounterUuid
+                + "?v=custom:(uuid,encounterType,patient,visit,orders:(uuid,orderType,concept,voided))");
+
+        encounterPush.process(event);
+
+        final List<LoggedRequest> loggedRequests = findAll(postRequestedFor(urlEqualTo("/patients/98104750156/encounters")));
+        assertEquals(1, loggedRequests.size());
+        String bundleXML = loggedRequests.get(0).getBodyAsString();
+        Bundle bundle = (Bundle) FhirBundleContextHolder.getFhirContext().newXmlParser().parseResource(bundleXML);
+        final IResource resourceByReference = FHIRBundleHelper.findResourceByReference(bundle, new ResourceReferenceDt("urn:uuid:" + diagnosticOrderId));
+        assertNotNull(resourceByReference);
+
+        IdMapping encounterIdMapping = idMappingRepository.findByExternalId(shrEncounterId, IdMappingType.ENCOUNTER);
+        assertNotNull(encounterIdMapping);
+        assertEquals(encounterUuid, encounterIdMapping.getInternalId());
+        assertNotNull(encounterIdMapping.getLastSyncDateTime());
+
+        IdMapping diagnosticOrderMapping = idMappingRepository.findByInternalId(diagnosticOrderId, IdMappingType.PROCEDURE_ORDER);
+        assertNotNull(diagnosticOrderMapping);
+        assertEquals(diagnosticOrderId, diagnosticOrderMapping.getInternalId());
+        String expectedExternalId = String.format(RESOURCE_MAPPING_EXTERNAL_ID_FORMAT, shrEncounterId, resourceByReference.getId().getIdPart());
+        assertEquals(expectedExternalId, diagnosticOrderMapping.getExternalId());
+        String diagnosticOrderUrl = encounterIdMapping.getUri() + "#DiagnosticOrder/" + diagnosticOrderId;
+        assertEquals(diagnosticOrderUrl, diagnosticOrderMapping.getUri());
+    }
 }
