@@ -8,7 +8,9 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
@@ -44,6 +46,9 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     private ConceptService conceptService;
     @Autowired
     private ApplicationContext springContext;
+
+    @Rule
+    public ExpectedException expectedEx = ExpectedException.none();
 
     private IResource resource;
     private Bundle bundle;
@@ -146,6 +151,17 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
+    public void shouldNotMapIfProcedureTypeConceptIsNotPresentLocally() throws Exception {
+        bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithProcedureTypeNotPresentLocally.xml", springContext);
+        resource = FHIRBundleHelper.identifyFirstResourceWithName(bundle, new Procedure().getResourceName());
+
+        EmrEncounter emrEncounter = new EmrEncounter(new Encounter());
+        fhirProcedureMapper.map(resource, emrEncounter, new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-2"), getSystemProperties("1"));
+
+        assertTrue(emrEncounter.getObs().isEmpty());
+    }
+
+    @Test
     public void shouldMapAProcedureWithRequestAsProcedureFulfillment() throws Exception {
         Integer orderId = 150;
         bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithProcedureFulfillment.xml", springContext);
@@ -165,6 +181,18 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(orderId, procedureTemplateObs.getOrder().getId());
         Set<Obs> members = procedureTemplateObs.getGroupMembers();
         assertMemberOrders(members, orderId);
+    }
+
+    @Test
+    public void shouldFailIfProcedureConceptIsPresentButProcedureOrderIsNotPresent() throws Exception {
+        expectedEx.expect(RuntimeException.class);
+        expectedEx.expectMessage("The procedure order with SHR reference [http://172.18.46.156:8081/patients/HID123/encounters/shr-enc-id-1#ProcedureRequest/invalid-procedure-req-id] is not yet synced");
+
+        bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithProcedureReferringToNotPresentProcedureOrder.xml", springContext);
+        resource = FHIRBundleHelper.identifyFirstResourceWithName(bundle, new Procedure().getResourceName());
+
+        EmrEncounter emrEncounter = new EmrEncounter(new Encounter());
+        fhirProcedureMapper.map(resource, emrEncounter, new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-2"), getSystemProperties("1"));
     }
 
     private void assertMemberOrders(Set<Obs> members, Integer orderId) {

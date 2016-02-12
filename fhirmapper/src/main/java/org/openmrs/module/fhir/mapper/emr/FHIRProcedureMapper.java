@@ -58,17 +58,23 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
     @Override
     public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
         Procedure procedure = (Procedure) resource;
-        Order procedureOrder = getProcedureRequest(procedure);
 
         Obs proceduresObs = new Obs();
         proceduresObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_PROCEDURES_TEMPLATE));
-        proceduresObs.setOrder(procedureOrder);
 
+        Order procedureOrder = getProcedureOrder(procedure);
+        Obs procedureType = getProcedureType(procedure, procedureOrder);
+        if(procedureType == null) return;
+        if(shouldFailDownload(procedure, procedureOrder)){
+            String requestReference = procedure.getRequest().getReference().getValue();
+            throw new RuntimeException(String.format("The procedure order with SHR reference [%s] is not yet synced", requestReference));
+        }
+        proceduresObs.setOrder(procedureOrder);
+        proceduresObs.addGroupMember(procedureType);
         proceduresObs.addGroupMember(getStartDate(procedure, procedureOrder));
         proceduresObs.addGroupMember(getEndDate(procedure, procedureOrder));
         proceduresObs.addGroupMember(getOutCome(procedure, procedureOrder));
         setFollowUpObses(procedure, proceduresObs, procedureOrder);
-        proceduresObs.addGroupMember(getProcedureType(procedure, procedureOrder));
         getProcedureNotesObs(procedure, proceduresObs, procedureOrder);
         proceduresObs.addGroupMember(getProcedureStatusObs(procedure, procedureOrder));
 
@@ -89,7 +95,11 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
         emrEncounter.addObs(fulfillmentObs);
     }
 
-    private Order getProcedureRequest(Procedure procedure) {
+    private boolean shouldFailDownload(Procedure procedure, Order procedureOrder) {
+        return (!procedure.getRequest().isEmpty()) && procedureOrder == null;
+    }
+
+    private Order getProcedureOrder(Procedure procedure) {
         if (procedure.getRequest().isEmpty()) return null;
         String procedureRequestUrl = procedure.getRequest().getReference().getValue();
         String requestEncounterId = new EntityReference().parse(Encounter.class, procedureRequestUrl);

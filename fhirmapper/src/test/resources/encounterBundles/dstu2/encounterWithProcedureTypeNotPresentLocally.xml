@@ -40,18 +40,6 @@
                 </section>
                 <section>
                     <entry>
-                        <reference value="urn:uuid:ffdb67f5-eff8-4f18-a99f-c8560740166c"/>
-                        <display value="Erythrocyte sedimentation rate"/>
-                    </entry>
-                </section>
-                <section>
-                    <entry>
-                        <reference value="urn:uuid:d18bd9a9-5636-47e6-ba18-e19920898204"/>
-                        <display value="Diagnostic Report"/>
-                    </entry>
-                </section>
-                <section>
-                    <entry>
                         <reference value="urn:uuid:7479b0ae-9c95-4ce6-ba3c-6637bd0e72f1"/>
                         <display value="Procedure"/>
                     </entry>
@@ -87,67 +75,6 @@
         </resource>
     </entry>
     <entry>
-        <fullUrl value="urn:uuid:ffdb67f5-eff8-4f18-a99f-c8560740166c"/>
-        <resource>
-            <Observation xmlns="http://hl7.org/fhir">
-                <identifier>
-                    <value value="urn:uuid:ffdb67f5-eff8-4f18-a99f-c8560740166c"/>
-                </identifier>
-                <status value="final"/>
-                <code>
-                    <coding>
-                        <display value="Test A"/>
-                    </coding>
-                </code>
-                <subject>
-                    <reference value="http://172.18.46.199:8081/api/default/patients/98001084634"/>
-                    <display value="98001084634"/>
-                </subject>
-                <encounter>
-                    <reference value="urn:uuid:08435da7-d37e-4b63-87be-15f353eff110"/>
-                </encounter>
-                <valueString value="result is ok"/>
-            </Observation>
-        </resource>
-    </entry>
-    <entry>
-        <fullUrl value="urn:uuid:d18bd9a9-5636-47e6-ba18-e19920898204"/>
-        <resource>
-            <DiagnosticReport xmlns="http://hl7.org/fhir">
-                <identifier>
-                    <value value="urn:uuid:d18bd9a9-5636-47e6-ba18-e19920898204"/>
-                </identifier>
-                <status value="final"/>
-                <code>
-                    <coding>
-                        <display value="Test A"/>
-                    </coding>
-                </code>
-                <subject>
-                    <reference value="http://172.18.46.199:8081/api/default/patients/98001084634"/>
-                    <display value="98001084634"/>
-                </subject>
-                <encounter>
-                    <reference value="urn:uuid:08435da7-d37e-4b63-87be-15f353eff110"/>
-                </encounter>
-                <effectiveDateTime value="2016-02-11T16:34:26.000+05:30"/>
-                <issued value="2016-02-11T16:34:26.000+05:30"/>
-                <performer>
-                    <reference value="http://172.18.46.199:8084/api/1.0/providers/24.json"/>
-                </performer>
-                <result>
-                    <reference value="urn:uuid:ffdb67f5-eff8-4f18-a99f-c8560740166c"/>
-                    <display value="Erythrocyte sedimentation rate"/>
-                </result>
-                <codedDiagnosis>
-                    <coding>
-                        <display value="Viral pneumonia 406475"/>
-                    </coding>
-                </codedDiagnosis>
-            </DiagnosticReport>
-        </resource>
-    </entry>
-    <entry>
         <fullUrl value="urn:uuid:7479b0ae-9c95-4ce6-ba3c-6637bd0e72f1"/>
         <resource>
             <Procedure xmlns="http://hl7.org/fhir">
@@ -159,18 +86,13 @@
                     <display value="98001084634"/>
                 </subject>
                 <status value="in-progress"/>
-                <code>
-                    <coding>
-                        <system value="http://192.168.33.17:9080/openmrs/ws/rest/v1/tr/referenceterms/838b3372-0fe8-4c09-acce-30248abe71ef"/>
-                        <code value="7W09X0Z"/>
-                        <display value="ProcedureAnswer1"/>
-                    </coding>
-                    <coding>
-                        <system value="http://192.168.33.17:9080/openmrs/ws/rest/v1/tr/concepts/bfbcf165-2414-4f33-92fd-80d61bc191ba"/>
-                        <code value="bfbcf165-2414-4f33-92fd-80d61bc191ba"/>
-                        <display value="ProcedureAnswer1"/>
-                    </coding>
-                </code>
+                    <code>
+                        <coding>
+                            <system value="http://192.168.33.17:9080/openmrs/ws/rest/v1/tr/concepts/invalid"/>
+                            <code value="invalid"/>
+                            <display value="ProcedureAnswer1-invalid"/>
+                        </coding>
+                    </code>
                 <performedPeriod>
                     <start value="2016-02-04T00:00:00.000+05:30"/>
                     <end value="2016-02-11T00:00:00.000+05:30"/>
@@ -178,13 +100,6 @@
                 <encounter>
                     <reference value="urn:uuid:08435da7-d37e-4b63-87be-15f353eff110"/>
                 </encounter>
-                <followup>
-                    <coding>
-                        <system value="http://localhost:9080/openmrs/ws/rest/v1/tr/vs/Procedure-Followup"/>
-                        <code value="385669000"/>
-                        <display value="Change of dressing"/>
-                    </coding>
-                </followup>
                 <outcome>
                     <coding>
                         <system value="http://172.18.46.199:9080/openmrs/ws/rest/v1/tr/vs/Procedure-Outcome"/>
@@ -192,13 +107,6 @@
                         <display value="Procedure Outcome Successful"/>
                     </coding>
                 </outcome>
-                <report>
-                    <reference value="urn:uuid:d18bd9a9-5636-47e6-ba18-e19920898204"/>
-                    <display value="Diagnostic Report"/>
-                </report>
-                <request>
-                    <reference value="http://172.18.46.156:8081/patients/HID123/encounters/shr-enc-id-1#ProcedureRequest/procedure-req-id"/>
-                </request>
                 <notes>
                     <text value="procedure notes"/>
                 </notes>
