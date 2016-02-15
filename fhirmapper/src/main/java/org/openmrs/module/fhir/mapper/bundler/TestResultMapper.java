@@ -9,6 +9,7 @@ import ca.uhn.fhir.model.dstu2.resource.Observation;
 import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
 import org.openmrs.Obs;
+import org.openmrs.Order;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.mapper.model.FHIRResource;
@@ -24,7 +25,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.openmrs.module.fhir.MRSProperties.*;
+import static org.openmrs.module.fhir.MRSProperties.MRS_CONCEPT_CLASS_LAB_SET;
+import static org.openmrs.module.fhir.MRSProperties.MRS_CONCEPT_NAME_LAB_NOTES;
+import static org.openmrs.module.fhir.MRSProperties.MRS_ENC_TYPE_LAB_RESULT;
 
 @Component("testResultMapper")
 public class TestResultMapper implements EmrObsResourceHandler {
@@ -134,15 +137,21 @@ public class TestResultMapper implements EmrObsResourceHandler {
         org.openmrs.Order obsOrder = obs.getOrder();
         report.setEffective(getOrderTime(obsOrder));
 
-        String uuid = obsOrder.getEncounter().getUuid();
-        IdMapping encounterIdMapping = idMappingRepository.findByInternalId(uuid, IdMappingType.ENCOUNTER);
-        if (encounterIdMapping == null) {
-            throw new RuntimeException("Encounter id [" + uuid + "] doesn't have id mapping.");
-        }
-
-        report.addRequest().setReference(encounterIdMapping.getUri());
+        String uri = getRequestUrl(obsOrder);
+        report.addRequest().setReference(uri);
 
         return report;
+    }
+
+    private String getRequestUrl(Order order) {
+        IdMapping orderIdMapping = idMappingRepository.findByInternalId(order.getUuid(), IdMappingType.DIAGNOSTIC_ORDER);
+        if (orderIdMapping != null) {
+            return orderIdMapping.getUri();
+        }
+        IdMapping encounterIdMapping = idMappingRepository.findByInternalId(order.getEncounter().getUuid(), IdMappingType.ENCOUNTER);
+        if (encounterIdMapping != null)
+            return encounterIdMapping.getUri();
+        throw new RuntimeException("Encounter id [" + order.getEncounter().getUuid() + "] is not synced to SHR yet.");
     }
 
     private DateTimeDt getOrderTime(org.openmrs.Order obsOrder) {

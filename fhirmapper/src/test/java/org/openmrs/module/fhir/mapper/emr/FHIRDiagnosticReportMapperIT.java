@@ -18,6 +18,8 @@ import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -28,6 +30,7 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -45,6 +48,8 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
     private OrderService orderService;
     @Autowired
     private EncounterService encounterService;
+    @Autowired
+    private IdMappingRepository idMappingRepository;
 
     @Before
     public void setUp() throws Exception {
@@ -56,11 +61,10 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         deleteAllData();
     }
 
-
     @Test
-    public void shouldMapDiagnosticReportForTestResult() throws Exception {
+    public void shouldMapDiagnosticReportForTestResultWithEncounterRequestDetail() throws Exception {
         Bundle bundle = (Bundle) new MapperTestHelper()
-                .loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithDiagnosticReport.xml", springContext);
+                .loadSampleFHIREncounter("encounterBundles/dstu2/diagnosticReport.xml", springContext);
         DiagnosticReport report = (DiagnosticReport) FHIRBundleHelper.identifyFirstResourceWithName(bundle, new DiagnosticReport().getResourceName());
         Encounter encounter = new Encounter();
         EmrEncounter emrEncounter = new EmrEncounter(encounter);
@@ -133,6 +137,73 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         Set<Obs> updatedObsGroup = emrEncounter.getTopLevelObs();
         assertEquals(1, updatedObsGroup.size());
         assertTestObs(updatedObsGroup.iterator().next(), hemoglobinConcept, 20.0, null, activeTestOrder);
+    }
+
+    @Test
+    public void shouldNotAssociateWithOrderIfOrderNotFound() throws Exception {
+        Bundle bundle = (Bundle) new MapperTestHelper()
+                .loadSampleFHIREncounter("encounterBundles/dstu2/diagnosticReportWithoutRequestDetail.xml", springContext);
+        DiagnosticReport report = (DiagnosticReport) FHIRBundleHelper.identifyFirstResourceWithName(bundle, new DiagnosticReport().getResourceName());
+        Encounter encounter = new Encounter();
+        EmrEncounter emrEncounter = new EmrEncounter(encounter);
+        encounter.setPatient(patientService.getPatient(1));
+
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-1");
+        diagnosticReportMapper.map(report, emrEncounter, encounterComposition, getSystemProperties("1"));
+        Set<Obs> obsSet = emrEncounter.getTopLevelObs();
+        assertEquals(1, obsSet.size());
+        Obs topLevelObs = obsSet.iterator().next();
+        Concept hemoglobinConcept = conceptService.getConcept(303);
+        assertEquals(hemoglobinConcept, topLevelObs.getConcept());
+        assertNull(topLevelObs.getOrder());
+
+        assertTestObs(topLevelObs, hemoglobinConcept, 20.0, "changed", null);
+    }
+
+    @Test
+    public void shouldMapDiagnosticReportForTestResultWithOrderRequestDetail() throws Exception {
+        Bundle bundle = (Bundle) new MapperTestHelper()
+                .loadSampleFHIREncounter("encounterBundles/dstu2/diagnosticReportWithOrderRequestDetail.xml", springContext);
+        DiagnosticReport report = (DiagnosticReport) FHIRBundleHelper.identifyFirstResourceWithName(bundle, new DiagnosticReport().getResourceName());
+        Encounter encounter = new Encounter();
+        EmrEncounter emrEncounter = new EmrEncounter(encounter);
+        encounter.setPatient(patientService.getPatient(1));
+
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-1");
+        diagnosticReportMapper.map(report, emrEncounter, encounterComposition, getSystemProperties("1"));
+        Set<Obs> obsSet = emrEncounter.getTopLevelObs();
+        assertEquals(1, obsSet.size());
+        Obs topLevelObs = obsSet.iterator().next();
+        Concept hemoglobinConcept = conceptService.getConcept(303);
+        assertEquals(hemoglobinConcept, topLevelObs.getConcept());
+        Order testOrder = orderService.getOrder(55);
+        assertEquals(testOrder, topLevelObs.getOrder());
+
+        assertTestObs(topLevelObs, hemoglobinConcept, 20.0, "changed", testOrder);
+    }
+
+    @Test
+    public void shouldMapDiagnosticReportForLocalPanelOrder() throws Exception {
+        Bundle bundle = (Bundle) new MapperTestHelper()
+                .loadSampleFHIREncounter("encounterBundles/dstu2/diagnosticReportForLocalPanelOrder.xml", springContext);
+        DiagnosticReport report = (DiagnosticReport) FHIRBundleHelper.identifyFirstResourceWithName(bundle, new DiagnosticReport().getResourceName());
+        Encounter encounter = new Encounter();
+        EmrEncounter emrEncounter = new EmrEncounter(encounter);
+        encounter.setPatient(patientService.getPatient(1));
+        //Multiple orders present for the request detail.
+        assertEquals(3, idMappingRepository.findMappingsByExternalId("shrEncounterId22:6daaes86-efab-ls29-sow2-f15206e63ab0", IdMappingType.DIAGNOSTIC_ORDER).size());
+
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-1");
+        diagnosticReportMapper.map(report, emrEncounter, encounterComposition, getSystemProperties("1"));
+        Set<Obs> obsSet = emrEncounter.getTopLevelObs();
+        assertEquals(1, obsSet.size());
+        Obs topLevelObs = obsSet.iterator().next();
+        Concept hemoglobinConcept = conceptService.getConcept(303);
+        assertEquals(hemoglobinConcept, topLevelObs.getConcept());
+        Order testOrder = orderService.getOrder(57);
+        assertEquals(testOrder, topLevelObs.getOrder());
+
+        assertTestObs(topLevelObs, hemoglobinConcept, 20.0, "changed", testOrder);
     }
 
     private void assertTestObs(Obs topLevelObs, Concept resultObsConcept, Double resultValueNumeric, String notesValue, Order testOrder) {

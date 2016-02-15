@@ -140,7 +140,9 @@ public class EntityReference {
 
         @Override
         protected String parseUrl(String resourceUrl) {
-            return StringUtils.substringAfterLast(StringUtil.removeSuffix(resourceUrl, "/"), "/");
+            String resourceId = StringUtils.substringAfterLast(resourceUrl, "#");
+            if (resourceId == null) return null;
+            return StringUtils.substringAfterLast(StringUtil.removeSuffix(resourceId, "/"), "/");
         }
     }
 }

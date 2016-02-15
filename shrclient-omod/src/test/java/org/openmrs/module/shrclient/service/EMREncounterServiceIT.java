@@ -119,6 +119,23 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
+    public void shouldSaveTestOrdersWithoutOrder() throws Exception {
+        executeDataSet("testDataSets/shrDiagnosticOrderSyncTestDS.xml");
+        String shrEncounterId = "shr-enc-id";
+
+        List<EncounterEvent> bundles = getEncounterEvents(shrEncounterId, "encounterBundles/dstu2/encounterWithDiagnosticReport.xml");
+        Patient emrPatient = patientService.getPatient(1);
+        emrEncounterService.createOrUpdateEncounters(emrPatient, bundles);
+
+        EncounterIdMapping encounterIdMapping = (EncounterIdMapping) idMappingRepository.findByExternalId(shrEncounterId, ENCOUNTER);
+        assertNotNull(encounterIdMapping);
+        Encounter encounter = encounterService.getEncounterByUuid(encounterIdMapping.getInternalId());
+        Set<Obs> allObs = encounter.getAllObs();
+        assertEquals(1, allObs.size());
+        assertNull(allObs.iterator().next().getOrder());
+    }
+
+    @Test
     public void shouldDiscontinueATestOrderIfUpdated() throws Exception {
         executeDataSet("testDataSets/shrDiagnosticOrderSyncTestDS.xml");
         String shrEncounterId = "shr-enc-id";

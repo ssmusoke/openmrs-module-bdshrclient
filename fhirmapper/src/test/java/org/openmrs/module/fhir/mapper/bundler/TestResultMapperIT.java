@@ -25,7 +25,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import java.util.List;
 
 import static org.codehaus.groovy.runtime.InvokerHelper.asList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.openmrs.module.fhir.MapperTestHelper.containsCoding;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 import static org.openmrs.module.fhir.TestFhirFeedHelper.getResourceByReference;
@@ -126,6 +129,23 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
 
     }
 
+    @Test
+    public void shouldAssociateTestResultsAgainstOrderIfMappingPresent() throws Exception {
+        Encounter fhirEncounter = buildEncounter();
+
+        List<FHIRResource> fhirResources = testResultMapper.map(obsService.getObs(201), new FHIREncounter(fhirEncounter), getSystemProperties("1"));
+
+        assertNotNull(fhirResources);
+        assertEquals(2, fhirResources.size());
+        FHIRResource diagnosticReportResource = TestFhirFeedHelper.getFirstResourceByType(new DiagnosticReport().getResourceName(), fhirResources);
+
+        assertDiagnosticReportWithResult(fhirResources, diagnosticReportResource, "Urea Nitorgen",
+                "http://localhost:9997/openmrs/ws/rest/v1/tr/concept/501qb827-a67c-4q1f-a705-e5efe0qjki2w",
+                "501qb827-a67c-4q1f-a705-e5efe0qjki2w",
+                "http://shr.com/patients/hid/encounters/shrEncounterId19#DiagnosticOrder/200ae386-20sx-4629-9850-f15206e63ab0",
+                new QuantityDt(120.0), "Lab Notes");
+    }
+
     private void assertDiagnosticReportWithResult(List<FHIRResource> fhirResources, FHIRResource reportResource, String display, String system, String code, String orderEncounterReference, IDatatype expectedObsValue, String expectedComments) {
         DiagnosticReport report = (DiagnosticReport) reportResource.getResource();
         assertDiagnosticReport(report, display, system, code, orderEncounterReference);
@@ -136,13 +156,13 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
         assertResultObservation(observation, expectedObsValue, expectedComments, display, system, code);
     }
 
-    private void assertDiagnosticReport(DiagnosticReport report, String display, String system, String code, String orderEncounterReference) {
+    private void assertDiagnosticReport(DiagnosticReport report, String display, String system, String code, String requestReference) {
         assertEquals(patientHid, report.getSubject().getReference().getValue());
         assertEquals(providerId, report.getPerformer().getReference().getValue());
         assertEquals(DateUtil.parseDate("2008-08-18 15:09:05"), report.getIssued());
         assertEquals(DateUtil.parseDate("2008-08-08 00:00:00"), ((DateTimeDt) report.getEffective()).getValue());
         assertEquals(DiagnosticReportStatusEnum.FINAL.getCode(), report.getStatus());
-        assertTrue(report.getRequest().get(0).getReference().getValue().startsWith(orderEncounterReference));
+        assertTrue(report.getRequest().get(0).getReference().getValue().startsWith(requestReference));
         assertEquals(1, report.getIdentifier().size());
         assertFalse(report.getIdentifier().get(0).isEmpty());
         assertFalse(report.getId().isEmpty());
