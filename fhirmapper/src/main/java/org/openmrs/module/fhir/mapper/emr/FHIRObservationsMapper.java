@@ -5,6 +5,7 @@ import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 import org.openmrs.Concept;
+import org.openmrs.ConceptClass;
 import org.openmrs.Location;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
@@ -95,6 +96,6 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
         if (observationName.getCoding() != null && observationName.getCoding().isEmpty()) {
             return null;
         }
-        return omrsConceptLookup.findOrCreateConceptByCodings(observationName.getCoding(), facilityId);
+        return omrsConceptLookup.findOrCreateConceptByCodings(observationName.getCoding(), facilityId, ConceptClass.MISC_UUID);
     }
 }

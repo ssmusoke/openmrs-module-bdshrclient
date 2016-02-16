@@ -12,6 +12,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openmrs.Concept;
+import org.openmrs.ConceptClass;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
@@ -163,10 +164,12 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         CompoundObservation compoundObservationTemplate = new CompoundObservation(procedureTemplate);
         String fullName = "ProcedureLocal" + UNVERIFIED_BY_TR;
         Concept createdConcept = conceptService.getConceptByName(fullName);
+
         Obs obs = compoundObservationTemplate.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_TYPE);
         assertEquals(createdConcept, obs.getValueCoded());
         String version = String.format("%s%s", LOCAL_CONCEPT_VERSION_PREFIX, "10019842");
         assertEquals(version, createdConcept.getVersion());
+        assertEquals(conceptService.getConceptClassByUuid(ConceptClass.PROCEDURE_UUID), createdConcept.getConceptClass());
     }
 
     @Test

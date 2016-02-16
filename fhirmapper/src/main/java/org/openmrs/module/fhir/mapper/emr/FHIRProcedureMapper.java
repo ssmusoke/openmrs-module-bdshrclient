@@ -177,7 +177,7 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
     private Obs getProcedureType(Procedure procedure, Order procedureOrder, String facilityId) {
         CodeableConceptDt procedureType = procedure.getCode();
         Concept concept = conceptService.getConceptByName(MRS_CONCEPT_PROCEDURE_TYPE);
-        Concept answerConcept = omrsConceptLookup.findOrCreateConceptByCodings(procedureType.getCoding(), facilityId);
+        Concept answerConcept = omrsConceptLookup.findOrCreateConceptByCodings(procedureType.getCoding(), facilityId, ConceptClass.PROCEDURE_UUID);
         if (concept != null && answerConcept != null) {
             Obs obs = new Obs();
             obs.setConcept(concept);

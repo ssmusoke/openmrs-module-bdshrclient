@@ -8,6 +8,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openmrs.Concept;
+import org.openmrs.ConceptClass;
 import org.openmrs.Drug;
 import org.openmrs.api.ConceptService;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
@@ -69,7 +70,7 @@ public class OMRSConceptLookupIT extends BaseModuleWebContextSensitiveTest {
     public void shouldFindConceptFromCodingThatHasReferenceTermsWithoutAnyMatchingConceptPreferredName() {
         List<CodingDt> codings = asList(buildCoding(REF_TERM_URI, "1101", "A001", "xyz concept"),
                 buildCoding(REF_TERM_URI, "1102", "B001", "pqr concept"));
-        Concept concept = omrsConceptLookup.findOrCreateConceptByCodings(codings, "101");
+        Concept concept = omrsConceptLookup.findOrCreateConceptByCodings(codings, "101", ConceptClass.MISC_UUID);
         assertNotNull(concept);
         assertTrue(concept.getName().getName().startsWith("xyz concept") || concept.getName().getName().startsWith("pqr concept"));
     }

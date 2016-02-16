@@ -23,6 +23,9 @@
                       creator="1"
                       date_created="2005-09-22 00:00:00" uuid="399e3a7b-6482-487d-94ce-c0zbbzcazcca"></person_attribute>
 
+    <concept_class concept_class_id="101" name="ProcedureTest" description="Describes a clinical procedure" creator="1"
+                   date_created="2004-03-02 00:00:00.0" retired="false" uuid="8d490bf4-c2cc-11de-8d13-0010c6dffd0f"/>
+
     <!--Procedure concepts -->
     <concept concept_id="300" retired="false" datatype_id="4" class_id="10" is_set="true" creator="1"
              date_created="2004-08-12 00:00:00.0"

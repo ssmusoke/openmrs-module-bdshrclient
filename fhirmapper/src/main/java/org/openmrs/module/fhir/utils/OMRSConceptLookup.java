@@ -235,7 +235,7 @@ public class OMRSConceptLookup {
         return StringUtils.substringAfterLast(content, "/");
     }
 
-    public Concept findOrCreateConceptByCodings(List<CodingDt> codings, String facilityId) {
+    public Concept findOrCreateConceptByCodings(List<CodingDt> codings, String facilityId, String conceptClassType) {
         Concept conceptByCoding = findConceptByCode(codings);
         if(conceptByCoding != null) return conceptByCoding;
         String conceptName = codings.get(0).getDisplay();
@@ -248,7 +248,7 @@ public class OMRSConceptLookup {
         Concept concept = conceptService.getConceptByName(fullySpecifiedName);
         if (concept != null) return concept;
         else {
-            concept = createNewConcept(conceptName, facilityId);
+            concept = createNewConcept(conceptName, facilityId, conceptClassType);
             addReferenceTermMappings(concept, codings);
             return conceptService.saveConcept(concept);
         }
@@ -285,12 +285,12 @@ public class OMRSConceptLookup {
         return false;
     }
 
-    private Concept createNewConcept(String conceptName, String facilityId) {
+    private Concept createNewConcept(String conceptName, String facilityId, String conceptClassType) {
         Concept concept;
         concept = new Concept();
         concept.setFullySpecifiedName(new ConceptName(conceptName + UNVERIFIED_BY_TR, Locale.ENGLISH));
         concept.setShortName(new ConceptName(conceptName, Locale.ENGLISH));
-        concept.setConceptClass(getMiscConceptClass());
+        concept.setConceptClass(getConceptClass(conceptClassType));
         concept.setDatatype(getTextConceptDatatype());
         String version = String.format("%s%s", LOCAL_CONCEPT_VERSION_PREFIX, facilityId);
         concept.setVersion(version);
@@ -303,9 +303,10 @@ public class OMRSConceptLookup {
         return conceptDatatypeByUuid;
     }
 
-    private ConceptClass getMiscConceptClass() {
+    private ConceptClass getConceptClass(String miscUuid) {
         if (conceptClassByUuid != null) return conceptClassByUuid;
-        conceptClassByUuid = conceptService.getConceptClassByUuid(ConceptClass.MISC_UUID);
+        conceptClassByUuid = conceptService.getConceptClassByUuid(miscUuid);
         return conceptClassByUuid;
     }
+
 }
