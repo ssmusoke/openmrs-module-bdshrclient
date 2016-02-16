@@ -11,10 +11,7 @@ import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 import ca.uhn.fhir.model.dstu2.resource.Procedure;
 import org.apache.commons.lang3.StringUtils;
-import org.openmrs.Concept;
-import org.openmrs.Encounter;
-import org.openmrs.Obs;
-import org.openmrs.Order;
+import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
@@ -63,9 +60,11 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
         proceduresObs.setConcept(conceptService.getConceptByName(MRS_CONCEPT_PROCEDURES_TEMPLATE));
 
         Order procedureOrder = getProcedureOrder(procedure);
-        Obs procedureType = getProcedureType(procedure, procedureOrder);
-        if(procedureType == null) return;
-        if(shouldFailDownload(procedure, procedureOrder)){
+        final ca.uhn.fhir.model.dstu2.resource.Encounter shrEncounter = FHIRBundleHelper.getEncounter(shrEncounterBundle.getBundle());
+        String facilityId = new EntityReference().parse(Location.class, shrEncounter.getServiceProvider().getReference().getValue());
+        Obs procedureType = getProcedureType(procedure, procedureOrder, facilityId);
+        if (procedureType == null) return;
+        if (shouldFailDownload(procedure, procedureOrder, procedureType)) {
             String requestReference = procedure.getRequest().getReference().getValue();
             throw new RuntimeException(String.format("The procedure order with SHR reference [%s] is not yet synced", requestReference));
         }
@@ -95,8 +94,14 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
         emrEncounter.addObs(fulfillmentObs);
     }
 
-    private boolean shouldFailDownload(Procedure procedure, Order procedureOrder) {
-        return (!procedure.getRequest().isEmpty()) && procedureOrder == null;
+    private boolean shouldFailDownload(Procedure procedure, Order procedureOrder, Obs procedureType) {
+        if (procedure.getRequest().isEmpty()) return false;
+        if (isLocallyCreatedConcept(procedureType.getValueCoded())) return false;
+        return procedureOrder == null;
+    }
+
+    private boolean isLocallyCreatedConcept(Concept concept) {
+        return concept.getVersion() != null && concept.getVersion().startsWith(LOCAL_CONCEPT_VERSION_PREFIX);
     }
 
     private Order getProcedureOrder(Procedure procedure) {
@@ -169,13 +174,18 @@ public class FHIRProcedureMapper implements FHIRResourceMapper {
         }
     }
 
-    private Obs getProcedureType(Procedure procedure, Order procedureOrder) {
+    private Obs getProcedureType(Procedure procedure, Order procedureOrder, String facilityId) {
         CodeableConceptDt procedureType = procedure.getCode();
-        Obs obs = mapObservationForConcept(procedureType, MRS_CONCEPT_PROCEDURE_TYPE);
-        if (obs != null) {
+        Concept concept = conceptService.getConceptByName(MRS_CONCEPT_PROCEDURE_TYPE);
+        Concept answerConcept = omrsConceptLookup.findOrCreateConceptByCodings(procedureType.getCoding(), facilityId);
+        if (concept != null && answerConcept != null) {
+            Obs obs = new Obs();
+            obs.setConcept(concept);
+            obs.setValueCoded(answerConcept);
             obs.setOrder(procedureOrder);
+            return obs;
         }
-        return obs;
+        return null;
     }
 
     private Obs getStartDate(Procedure procedure, Order procedureOrder) {

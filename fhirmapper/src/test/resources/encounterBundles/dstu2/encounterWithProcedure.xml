@@ -171,8 +171,8 @@
                         <display value="ProcedureAnswer1"/>
                     </coding>
                     <coding>
-                        <system value="http://192.168.33.17:9080/openmrs/ws/rest/v1/tr/concepts/bfbcf165-2414-4f33-92fd-80d61bc191ba"/>
-                        <code value="bfbcf165-2414-4f33-92fd-80d61bc191ba"/>
+                        <system value="http://tr.com/Osteopathic-Treatment-of-Abdomen"/>
+                        <code value="Osteopathic-Treatment-of-Abdomen"/>
                         <display value="ProcedureAnswer1"/>
                     </coding>
                 </code>

@@ -235,7 +235,9 @@ public class OMRSConceptLookup {
         return StringUtils.substringAfterLast(content, "/");
     }
 
-    public Concept findConceptByCodings(List<CodingDt> codings, String facilityId) {
+    public Concept findOrCreateConceptByCodings(List<CodingDt> codings, String facilityId) {
+        Concept conceptByCoding = findConceptByCode(codings);
+        if(conceptByCoding != null) return conceptByCoding;
         String conceptName = codings.get(0).getDisplay();
         if (hasTRConceptReference(codings)) {
             String message = String.format("Can not create observation, concept %s not yet synced", conceptName);

@@ -88,9 +88,7 @@
                 <status value="in-progress"/>
                     <code>
                         <coding>
-                            <system value="http://192.168.33.17:9080/openmrs/ws/rest/v1/tr/concepts/invalid"/>
-                            <code value="invalid"/>
-                            <display value="ProcedureAnswer1-invalid"/>
+                            <display value="ProcedureLocal"/>
                         </coding>
                     </code>
                 <performedPeriod>

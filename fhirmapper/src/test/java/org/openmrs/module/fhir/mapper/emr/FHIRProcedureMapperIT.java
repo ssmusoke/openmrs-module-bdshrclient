@@ -18,6 +18,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.ObsHelper;
+import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
@@ -151,14 +152,21 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    public void shouldNotMapIfProcedureTypeConceptIsNotPresentLocally() throws Exception {
+    public void shouldCreateProcedureTypeConceptIfNotPresentLocally() throws Exception {
         bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithProcedureTypeNotPresentLocally.xml", springContext);
         resource = FHIRBundleHelper.identifyFirstResourceWithName(bundle, new Procedure().getResourceName());
 
         EmrEncounter emrEncounter = new EmrEncounter(new Encounter());
         fhirProcedureMapper.map(resource, emrEncounter, new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-2"), getSystemProperties("1"));
-
-        assertTrue(emrEncounter.getObs().isEmpty());
+        assertEquals(1, emrEncounter.getObs().size());
+        Obs procedureTemplate = emrEncounter.getObs().iterator().next();
+        CompoundObservation compoundObservationTemplate = new CompoundObservation(procedureTemplate);
+        String fullName = "ProcedureLocal" + UNVERIFIED_BY_TR;
+        Concept createdConcept = conceptService.getConceptByName(fullName);
+        Obs obs = compoundObservationTemplate.getMemberObsForConceptName(MRS_CONCEPT_PROCEDURE_TYPE);
+        assertEquals(createdConcept, obs.getValueCoded());
+        String version = String.format("%s%s", LOCAL_CONCEPT_VERSION_PREFIX, "10019842");
+        assertEquals(version, createdConcept.getVersion());
     }
 
     @Test
@@ -189,6 +197,18 @@ public class FHIRProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         expectedEx.expectMessage("The procedure order with SHR reference [http://172.18.46.156:8081/patients/HID123/encounters/shr-enc-id-1#ProcedureRequest/invalid-procedure-req-id] is not yet synced");
 
         bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithProcedureReferringToNotPresentProcedureOrder.xml", springContext);
+        resource = FHIRBundleHelper.identifyFirstResourceWithName(bundle, new Procedure().getResourceName());
+
+        EmrEncounter emrEncounter = new EmrEncounter(new Encounter());
+        fhirProcedureMapper.map(resource, emrEncounter, new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-2"), getSystemProperties("1"));
+    }
+
+    @Test
+    public void shouldThrowAnErrorIfProcedureTypeConceptIsNotSyncedFromTR() throws Exception {
+        expectedEx.expect(RuntimeException.class);
+        expectedEx.expectMessage("Can not create observation, concept ProcedureAnswer1 not yet synced");
+
+        bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/encounterWithProcedureTypeNotSyncedFromTr.xml", springContext);
         resource = FHIRBundleHelper.identifyFirstResourceWithName(bundle, new Procedure().getResourceName());
 
         EmrEncounter emrEncounter = new EmrEncounter(new Encounter());

@@ -95,11 +95,6 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
         if (observationName.getCoding() != null && observationName.getCoding().isEmpty()) {
             return null;
         }
-        Concept concept = omrsConceptLookup.findConceptByCode(observationName.getCoding());
-        if (concept != null) {
-            return concept;
-        }
-
-        return omrsConceptLookup.findConceptByCodings(observationName.getCoding(), facilityId);
+        return omrsConceptLookup.findOrCreateConceptByCodings(observationName.getCoding(), facilityId);
     }
 }

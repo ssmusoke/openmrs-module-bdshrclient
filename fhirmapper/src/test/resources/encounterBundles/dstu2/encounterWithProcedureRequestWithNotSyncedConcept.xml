@@ -89,7 +89,7 @@
                     <coding>
                         <system value="http://172.18.46.199:9080/openmrs/ws/rest/v1/tr/concepts/a8baa913-3a3f-45f1-9e8c-4bf7d2d93506"/>
                         <code value="a8baa913-3a3f-45f1-9e8c-4bf7d2d93506"/>
-                        <display value="Colposcopy"/>
+                        <display value="Colposcopy-invalid"/>
                     </coding>
                 </code>
                 <encounter>
