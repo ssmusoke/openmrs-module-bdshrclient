@@ -1,6 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.IDatatype;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
@@ -14,6 +15,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.api.ObsService;
+import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
 import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.mapper.model.FHIRResource;
@@ -167,6 +169,11 @@ public class TestResultMapperIT extends BaseModuleWebContextSensitiveTest {
         assertFalse(report.getIdentifier().get(0).isEmpty());
         assertFalse(report.getId().isEmpty());
         assertTrue(containsCoding(report.getCode().getCoding(), code, system, display));
+        assertEquals(1, report.getCategory().getCoding().size());
+        CodingDt categoryCoding = report.getCategory().getCodingFirstRep();
+        assertEquals(FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL, categoryCoding.getSystem());
+        assertEquals(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_CODE, categoryCoding.getCode());
+        assertEquals(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_DISPLAY, categoryCoding.getDisplay());
     }
 
     private void assertResultObservation(Observation observation, IDatatype expectedObsValue, String expectedComments, String display, String system, String code) {

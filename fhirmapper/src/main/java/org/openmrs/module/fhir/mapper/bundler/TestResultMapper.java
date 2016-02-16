@@ -10,6 +10,7 @@ import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
 import org.openmrs.Obs;
 import org.openmrs.Order;
+import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.mapper.model.CompoundObservation;
 import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.mapper.model.FHIRResource;
@@ -139,7 +140,12 @@ public class TestResultMapper implements EmrObsResourceHandler {
 
         String uri = getRequestUrl(obsOrder);
         report.addRequest().setReference(uri);
-
+        CodeableConceptDt category = new CodeableConceptDt();
+        category.addCoding()
+                .setSystem(FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL)
+                .setCode(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_CODE)
+                .setDisplay(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_DISPLAY);
+        report.setCategory(category);
         return report;
     }
 

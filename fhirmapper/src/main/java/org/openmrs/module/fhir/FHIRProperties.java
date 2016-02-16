@@ -18,6 +18,10 @@ public class FHIRProperties {
     public static final String LOINC_CODE_DETAILS_NOTE = "51899-3";
     public static final String LOINC_DETAILS_NOTE_DISPLAY = "Details Document";
 
+    public static final String FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL = "http://hl7.org/fhir/v2/0074";
+    public static final String FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_CODE = "LAB";
+    public static final String FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_DISPLAY = "Laboratory";
+
     public static final String FHIR_YES_NO_INDICATOR_URL = "http://hl7.org/fhir/v2/0136";
     public static final String FHIR_YES_INDICATOR_CODE = "Y";
     public static final String FHIR_YES_INDICATOR_DISPLAY = "Yes";
