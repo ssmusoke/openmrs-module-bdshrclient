@@ -30,8 +30,6 @@ public class OMRSConceptLookup {
 
     private Logger logger = Logger.getLogger(OMRSConceptLookup.class);
     private ConceptMapType conceptMapTypeByName;
-    private ConceptClass conceptClassByUuid;
-    private ConceptDatatype conceptDatatypeByUuid;
 
     @Autowired
     public OMRSConceptLookup(ConceptService conceptService, IdMappingRepository repository, GlobalPropertyLookUpService globalPropertyLookUpService) {
@@ -235,23 +233,33 @@ public class OMRSConceptLookup {
         return StringUtils.substringAfterLast(content, "/");
     }
 
-    public Concept findOrCreateConceptByCodings(List<CodingDt> codings, String facilityId, String conceptClassType) {
+    public Concept findOrCreateLocalConceptByCodings(List<CodingDt> codings, String facilityId, String conceptClassUuid, String conceptDatatypeUuid) {
         Concept conceptByCoding = findConceptByCode(codings);
         if(conceptByCoding != null) return conceptByCoding;
-        String conceptName = codings.get(0).getDisplay();
+        String conceptName = getConceptNameFromDisplay(codings);
         if (hasTRConceptReference(codings)) {
             String message = String.format("Can not create observation, concept %s not yet synced", conceptName);
             logger.error(message);
             throw new RuntimeException(message);
         }
+        if (conceptName == null) return null;
         String fullySpecifiedName = conceptName + UNVERIFIED_BY_TR;
-        Concept concept = conceptService.getConceptByName(fullySpecifiedName);
-        if (concept != null) return concept;
+        Concept localConcept = conceptService.getConceptByName(fullySpecifiedName);
+        if (localConcept != null)
+            return localConcept;
         else {
-            concept = createNewConcept(conceptName, facilityId, conceptClassType);
-            addReferenceTermMappings(concept, codings);
-            return conceptService.saveConcept(concept);
+            localConcept = createNewUnverifiedConcept(conceptName, facilityId, conceptClassUuid, conceptDatatypeUuid);
+            addReferenceTermMappings(localConcept, codings);
+            return conceptService.saveConcept(localConcept);
         }
+    }
+
+    private String getConceptNameFromDisplay(List<CodingDt> codings) {
+        for (CodingDt coding : codings) {
+            if (StringUtils.isNotBlank(coding.getDisplay()))
+                return coding.getDisplay();
+        }
+        return null;
     }
 
     private void addReferenceTermMappings(Concept concept, List<CodingDt> codings) {
@@ -285,28 +293,23 @@ public class OMRSConceptLookup {
         return false;
     }
 
-    private Concept createNewConcept(String conceptName, String facilityId, String conceptClassType) {
+    private Concept createNewUnverifiedConcept(String conceptName, String facilityId, String conceptClassUuid, String conceptDatatypeUuid) {
         Concept concept;
         concept = new Concept();
         concept.setFullySpecifiedName(new ConceptName(conceptName + UNVERIFIED_BY_TR, Locale.ENGLISH));
         concept.setShortName(new ConceptName(conceptName, Locale.ENGLISH));
-        concept.setConceptClass(getConceptClass(conceptClassType));
-        concept.setDatatype(getTextConceptDatatype());
+        concept.setConceptClass(getConceptClass(conceptClassUuid));
+        concept.setDatatype(getConceptDatatype(conceptDatatypeUuid));
         String version = String.format("%s%s", LOCAL_CONCEPT_VERSION_PREFIX, facilityId);
         concept.setVersion(version);
         return concept;
     }
 
-    private ConceptDatatype getTextConceptDatatype() {
-        if (conceptDatatypeByUuid != null) return conceptDatatypeByUuid;
-        conceptDatatypeByUuid = conceptService.getConceptDatatypeByUuid(ConceptDatatype.TEXT_UUID);
-        return conceptDatatypeByUuid;
+    private ConceptDatatype getConceptDatatype(String conceptDatatypeUuid) {
+        return conceptService.getConceptDatatypeByUuid(conceptDatatypeUuid);
     }
 
-    private ConceptClass getConceptClass(String miscUuid) {
-        if (conceptClassByUuid != null) return conceptClassByUuid;
-        conceptClassByUuid = conceptService.getConceptClassByUuid(miscUuid);
-        return conceptClassByUuid;
+    private ConceptClass getConceptClass(String conceptClassUuid) {
+        return conceptService.getConceptClassByUuid(conceptClassUuid);
     }
-
 }
