@@ -8,16 +8,15 @@ import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.openmrs.Concept;
-import org.openmrs.Encounter;
-import org.openmrs.Obs;
-import org.openmrs.Order;
+import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.OrderService;
+import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
+import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.EncounterIdMapping;
@@ -66,11 +65,18 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     @Override
     public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
         DiagnosticReport diagnosticReport = (DiagnosticReport) resource;
-        Concept concept = omrsConceptLookup.findConceptByCodeOrDisplay(diagnosticReport.getCode().getCoding());
-        if (concept == null) {
-            return;
+        Order order = null;
+        Concept concept = omrsConceptLookup.findConceptByCode(diagnosticReport.getCode().getCoding());
+        if (concept != null) {
+            order = getOrder(diagnosticReport, concept);
+        } else {
+            final ca.uhn.fhir.model.dstu2.resource.Encounter shrEncounter = FHIRBundleHelper.getEncounter(shrEncounterBundle.getBundle());
+            String facilityId = new EntityReference().parse(Location.class, shrEncounter.getServiceProvider().getReference().getValue());
+            ConceptDatatype textDatatype = conceptService.getConceptDatatypeByUuid(ConceptDatatype.TEXT_UUID);
+            ConceptClass labSetClass = conceptService.getConceptClassByName(MRSProperties.MRS_CONCEPT_CLASS_LAB_SET);
+            concept = omrsConceptLookup.createLocalConceptFromCodings(diagnosticReport.getCode().getCoding(), facilityId, labSetClass, textDatatype);
         }
-        Order order = getOrder(diagnosticReport, concept);
+
         Obs topLevelResultObsGroup = buildObs(concept, order);
 
         Set<Obs> resultObsGroups = buildResultObsGroup(shrEncounterBundle, emrEncounter, diagnosticReport, order, concept);

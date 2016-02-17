@@ -111,6 +111,4 @@ public class ProcedureOrderMapper implements EmrOrderResourceHandler {
             procedureRequest.addUndeclaredExtension(false, fhirExtensionUrl, new StringDt(previousOrderUrl));
         }
     }
-
-
 }

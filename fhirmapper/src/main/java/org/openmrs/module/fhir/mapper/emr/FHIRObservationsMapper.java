@@ -48,16 +48,21 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
         Obs result = new Obs();
         result.setConcept(concept);
         try {
-            if (isLocallyCreatedConcept(concept)) {
-                mapValueAsString(observation, result);
-            } else {
-                mapValue(observation, result);
-            }
+            mapValue(observation, concept, result);
             mapRelatedObservations(encounterComposition, observation, result, emrEncounter);
         } catch (ParseException e) {
             e.printStackTrace();
         }
         return result;
+    }
+
+    private void mapValue(Observation observation, Concept concept, Obs result) throws ParseException {
+        if (isLocallyCreatedConcept(concept)) {
+            mapValueAsString(observation, result);
+        } else {
+            IDatatype value = observation.getValue();
+            resourceValueMapper.map(value, result);
+        }
     }
 
     private void mapRelatedObservations(ShrEncounterBundle encounterComposition, Observation observation, Obs obs, EmrEncounter emrEncounter) throws ParseException {
@@ -80,12 +85,6 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
         IDatatype value = relatedObs.getValue();
         if (value != null)
             result.setValueAsString(ObservationValueConverter.convertToText(value));
-    }
-
-
-    private void mapValue(Observation relatedObs, Obs result) throws ParseException {
-        IDatatype value = relatedObs.getValue();
-        resourceValueMapper.map(value, result);
     }
 
     private Concept mapConcept(Observation observation, String facilityId) {

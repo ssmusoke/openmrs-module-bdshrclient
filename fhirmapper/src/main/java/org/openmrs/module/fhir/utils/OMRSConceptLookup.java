@@ -232,13 +232,7 @@ public class OMRSConceptLookup {
         return null;
     }
 
-    private static String getUuid(String content) {
-        return StringUtils.substringAfterLast(content, "/");
-    }
-
-    public Concept findOrCreateLocalConceptByCodings(List<CodingDt> codings, String facilityId, String conceptClassUuid, String conceptDatatypeUuid) {
-        Concept conceptByCoding = findConceptByCode(codings);
-        if(conceptByCoding != null) return conceptByCoding;
+    public Concept createLocalConceptFromCodings(List<CodingDt> codings, String facilityId, ConceptClass conceptClass, ConceptDatatype conceptDatatype) {
         String conceptName = getConceptNameFromDisplay(codings);
         if (hasTRConceptReference(codings)) {
             String message = String.format("Can not create observation, concept %s not yet synced", conceptName);
@@ -251,10 +245,22 @@ public class OMRSConceptLookup {
         if (localConcept != null)
             return localConcept;
         else {
-            localConcept = createNewUnverifiedConcept(conceptName, facilityId, conceptClassUuid, conceptDatatypeUuid);
+            localConcept = createNewUnverifiedConcept(conceptName, facilityId, conceptClass, conceptDatatype);
             addReferenceTermMappings(localConcept, codings);
             return conceptService.saveConcept(localConcept);
         }
+    }
+
+    public Concept findOrCreateLocalConceptByCodings(List<CodingDt> codings, String facilityId, String conceptClassUuid, String conceptDatatypeUuid) {
+        Concept conceptByCoding = findConceptByCode(codings);
+        if(conceptByCoding != null) return conceptByCoding;
+        ConceptClass conceptClass = conceptService.getConceptClassByUuid(conceptClassUuid);
+        ConceptDatatype conceptDatatype = conceptService.getConceptDatatypeByUuid(conceptDatatypeUuid);
+        return createLocalConceptFromCodings(codings, facilityId, conceptClass, conceptDatatype);
+    }
+
+    private static String getUuid(String content) {
+        return StringUtils.substringAfterLast(content, "/");
     }
 
     private String getConceptNameFromDisplay(List<CodingDt> codings) {
@@ -296,23 +302,15 @@ public class OMRSConceptLookup {
         return false;
     }
 
-    private Concept createNewUnverifiedConcept(String conceptName, String facilityId, String conceptClassUuid, String conceptDatatypeUuid) {
+    private Concept createNewUnverifiedConcept(String conceptName, String facilityId, ConceptClass conceptClass, ConceptDatatype conceptDatatype) {
         Concept concept;
         concept = new Concept();
         concept.setFullySpecifiedName(new ConceptName(conceptName + UNVERIFIED_BY_TR, Locale.ENGLISH));
         concept.setShortName(new ConceptName(conceptName, Locale.ENGLISH));
-        concept.setConceptClass(getConceptClass(conceptClassUuid));
-        concept.setDatatype(getConceptDatatype(conceptDatatypeUuid));
+        concept.setConceptClass(conceptClass);
+        concept.setDatatype(conceptDatatype);
         String version = String.format("%s%s", LOCAL_CONCEPT_VERSION_PREFIX, facilityId);
         concept.setVersion(version);
         return concept;
-    }
-
-    private ConceptDatatype getConceptDatatype(String conceptDatatypeUuid) {
-        return conceptService.getConceptDatatypeByUuid(conceptDatatypeUuid);
-    }
-
-    private ConceptClass getConceptClass(String conceptClassUuid) {
-        return conceptService.getConceptClassByUuid(conceptClassUuid);
     }
 }

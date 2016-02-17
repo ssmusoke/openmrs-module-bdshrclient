@@ -14,6 +14,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.OrderService;
 import org.openmrs.api.PatientService;
+import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
@@ -80,7 +81,7 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         Order testOrder = orderService.getOrder(50);
         assertEquals(testOrder, topLevelObs.getOrder());
 
-        assertTestObs(topLevelObs, hemoglobinConcept, 20.0, "changed", testOrder);
+        assertTestObsWithNumericResult(topLevelObs, hemoglobinConcept, 20.0, "changed", testOrder);
     }
 
     @Test
@@ -107,12 +108,12 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         Concept hemoglobinConcept = conceptService.getConcept(303);
         Obs hemoglobinObs = findObsByConcept(panelObs.getGroupMembers(), hemoglobinConcept);
         assertNotNull(hemoglobinObs);
-        assertTestObs(hemoglobinObs, hemoglobinConcept, 20.0, null, testOrder);
+        assertTestObsWithNumericResult(hemoglobinObs, hemoglobinConcept, 20.0, null, testOrder);
 
         Concept esrConcept = conceptService.getConcept(304);
         Obs esrObs = findObsByConcept(panelObs.getGroupMembers(), esrConcept);
         assertNotNull(esrObs);
-        assertTestObs(esrObs, esrConcept, 20.0, null, testOrder);
+        assertTestObsWithNumericResult(esrObs, esrConcept, 20.0, null, testOrder);
     }
 
     @Test
@@ -129,14 +130,14 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
 
         Set<Obs> existingObsGroup = existingEncounter.getObsAtTopLevel(false);
         assertEquals(1, existingObsGroup.size());
-        assertTestObs(existingObsGroup.iterator().next(), hemoglobinConcept, 120.0, null, activeTestOrder);
+        assertTestObsWithNumericResult(existingObsGroup.iterator().next(), hemoglobinConcept, 120.0, null, activeTestOrder);
 
         diagnosticReportMapper.map(report, emrEncounter, encounterComposition, getSystemProperties("1"));
 
         assertEquals(1, emrEncounter.getTopLevelObs().size());
         Set<Obs> updatedObsGroup = emrEncounter.getTopLevelObs();
         assertEquals(1, updatedObsGroup.size());
-        assertTestObs(updatedObsGroup.iterator().next(), hemoglobinConcept, 20.0, null, activeTestOrder);
+        assertTestObsWithNumericResult(updatedObsGroup.iterator().next(), hemoglobinConcept, 20.0, null, activeTestOrder);
     }
 
     @Test
@@ -157,7 +158,7 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         assertEquals(hemoglobinConcept, topLevelObs.getConcept());
         assertNull(topLevelObs.getOrder());
 
-        assertTestObs(topLevelObs, hemoglobinConcept, 20.0, "changed", null);
+        assertTestObsWithNumericResult(topLevelObs, hemoglobinConcept, 20.0, "changed", null);
     }
 
     @Test
@@ -179,7 +180,7 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         Order testOrder = orderService.getOrder(55);
         assertEquals(testOrder, topLevelObs.getOrder());
 
-        assertTestObs(topLevelObs, hemoglobinConcept, 20.0, "changed", testOrder);
+        assertTestObsWithNumericResult(topLevelObs, hemoglobinConcept, 20.0, "changed", testOrder);
     }
 
     @Test
@@ -203,10 +204,53 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         Order testOrder = orderService.getOrder(57);
         assertEquals(testOrder, topLevelObs.getOrder());
 
-        assertTestObs(topLevelObs, hemoglobinConcept, 20.0, "changed", testOrder);
+        assertTestObsWithNumericResult(topLevelObs, hemoglobinConcept, 20.0, "changed", testOrder);
     }
 
-    private void assertTestObs(Obs topLevelObs, Concept resultObsConcept, Double resultValueNumeric, String notesValue, Order testOrder) {
+    @Test
+    public void shouldMapDiagnosticReportForLocalTestConcept() throws Exception {
+        Bundle bundle = (Bundle) new MapperTestHelper()
+                .loadSampleFHIREncounter("encounterBundles/dstu2/diagnosticReportWithLocalTest.xml", springContext);
+        DiagnosticReport report = (DiagnosticReport) FHIRBundleHelper.identifyFirstResourceWithName(bundle, new DiagnosticReport().getResourceName());
+        Encounter encounter = new Encounter();
+        EmrEncounter emrEncounter = new EmrEncounter(encounter);
+        encounter.setPatient(patientService.getPatient(1));
+
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-1");
+        diagnosticReportMapper.map(report, emrEncounter, encounterComposition, getSystemProperties("1"));
+        Set<Obs> obsSet = emrEncounter.getTopLevelObs();
+        assertEquals(1, obsSet.size());
+        Obs topLevelObs = obsSet.iterator().next();
+        Concept localTestConcept = conceptService.getConceptByName("WBC" + MRSProperties.UNVERIFIED_BY_TR);
+        assertEquals(localTestConcept, topLevelObs.getConcept());
+        assertNull(topLevelObs.getOrder());
+
+        assertTestObsWithTextResult(topLevelObs, localTestConcept, "20.0", "changed", null);
+    }
+
+    private void assertTestObsWithNumericResult(Obs topLevelObs, Concept resultObsConcept, Double resultValueNumeric, String notesValue, Order testOrder) {
+        Obs resultObsGroupObs = assertTestObs(topLevelObs, notesValue, testOrder);
+        
+        if (resultValueNumeric != null) {
+            Obs resultObs = findObsByConcept(resultObsGroupObs.getGroupMembers(), resultObsConcept);
+            assertNotNull(resultObs);
+            assertEquals(testOrder, resultObs.getOrder());
+            assertEquals(resultValueNumeric, resultObs.getValueNumeric());
+        }
+    }
+
+    private void assertTestObsWithTextResult(Obs topLevelObs, Concept resultObsConcept, String resultValue, String notesValue, Order testOrder) {
+        Obs resultObsGroupObs = assertTestObs(topLevelObs, notesValue, testOrder);
+
+        if (resultValue != null) {
+            Obs resultObs = findObsByConcept(resultObsGroupObs.getGroupMembers(), resultObsConcept);
+            assertNotNull(resultObs);
+            assertEquals(testOrder, resultObs.getOrder());
+            assertEquals(resultValue, resultObs.getValueText());
+        }
+    }
+
+    private Obs assertTestObs(Obs topLevelObs, String notesValue, Order testOrder) {
         assertEquals(testOrder, topLevelObs.getOrder());
         Set<Obs> resultObsGroupMembers = topLevelObs.getGroupMembers();
         assertEquals(1, resultObsGroupMembers.size());
@@ -214,12 +258,6 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         Obs resultObsGroupObs = resultObsGroupMembers.iterator().next();
         assertEquals(testOrder, resultObsGroupObs.getOrder());
 
-        if (resultValueNumeric != null) {
-            Obs resultObs = findObsByConcept(resultObsGroupObs.getGroupMembers(), resultObsConcept);
-            assertNotNull(resultObs);
-            assertEquals(testOrder, resultObs.getOrder());
-            assertEquals(resultValueNumeric, resultObs.getValueNumeric());
-        }
 
         if (notesValue != null) {
             Concept labNotesConcept = conceptService.getConcept(103);
@@ -228,6 +266,7 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
             assertEquals(testOrder, notesObs.getOrder());
             assertEquals(notesValue, notesObs.getValueText());
         }
+        return resultObsGroupObs;
     }
 
     private Obs findObsByConcept(Set<Obs> obsSet, Concept concept) {
