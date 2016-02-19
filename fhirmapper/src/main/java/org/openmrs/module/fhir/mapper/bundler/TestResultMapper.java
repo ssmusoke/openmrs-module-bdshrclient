@@ -130,10 +130,7 @@ public class TestResultMapper implements EmrObsResourceHandler {
 
     private DiagnosticReport buildDiagnosticReport(Obs obs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         DiagnosticReport report = diagnosticReportBuilder.build(obs, fhirEncounter, systemProperties);
-        CodeableConceptDt name = codeableConceptService.addTRCoding(obs.getConcept());
-        if (name.getCoding() != null && name.getCoding().isEmpty()) {
-            return null;
-        }
+        CodeableConceptDt name = codeableConceptService.addTRCodingOrDisplay(obs.getConcept());
         report.setCode(name);
         org.openmrs.Order obsOrder = obs.getOrder();
         report.setEffective(getOrderTime(obsOrder));
