@@ -73,7 +73,9 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         condition.setCategory(ConditionCategoryCodesEnum.DIAGNOSIS);
 
         final CompoundObservation visitDiagnosisObservation = new CompoundObservation(visitDiagnosisObs);
-        setConditionCode(condition, visitDiagnosisObservation);
+        Obs codedDiagnosisObs = visitDiagnosisObservation.getMemberObsForConceptName(MRSProperties.MRS_CONCEPT_NAME_CODED_DIAGNOSIS);
+        if(codedDiagnosisObs == null) return null;
+        setConditionCode(condition, codedDiagnosisObs);
         if (condition.getCode().isEmpty()) return null;
         setConditionVerificationStatus(condition, visitDiagnosisObservation);
         setPreviousDiagnosisExtension(condition, visitDiagnosisObservation);
@@ -105,8 +107,7 @@ public class DiagnosisMapper implements EmrObsResourceHandler {
         condition.setVerificationStatus(getConditionStatus(diagnosisCertainityObs));
     }
 
-    private void setConditionCode(Condition condition, CompoundObservation visitDiagnosisObservation) {
-        Obs codedDiagnosisObs = visitDiagnosisObservation.getMemberObsForConceptName(MRSProperties.MRS_CONCEPT_NAME_CODED_DIAGNOSIS);
+    private void setConditionCode(Condition condition, Obs codedDiagnosisObs) {
         CodeableConceptDt diagnosisCode = codeableConceptService.addTRCoding(codedDiagnosisObs.getValueCoded());
         condition.setCode(diagnosisCode);
     }

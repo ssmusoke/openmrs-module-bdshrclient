@@ -75,6 +75,16 @@ public class DiagnosisMapperIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
+    public void shouldNotMapNonCodedDiagnosis() throws Exception {
+        Obs visitDiagnosisObs = obsService.getObs(61);
+
+        FHIREncounter fhirEncounter = createFhirEncounter();
+
+        List<FHIRResource> fhirResources = diagnosisMapper.map(visitDiagnosisObs, fhirEncounter, getSystemProperties("1"));
+        assertEquals(0, fhirResources.size());
+    }
+
+    @Test
     public void shouldNotMapDiagnosisObsIfNotTrDiagnosisConcept() throws Exception {
         Obs visitDiagnosisObs = obsService.getObs(8);
 
