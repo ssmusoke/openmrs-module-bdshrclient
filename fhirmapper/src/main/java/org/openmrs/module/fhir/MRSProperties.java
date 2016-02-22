@@ -111,7 +111,7 @@ public class MRSProperties {
     public static final String BAHMNI_DRUG_ORDER_MORNING_DOSE_KEY = "morningDose";
     public static final String BAHMNI_DRUG_ORDER_EVENING_DOSE_KEY = "eveningDose";
 
-    public static final String UNVERIFIED_BY_TR = "(TR Unverified)";
+    public static final String UNVERIFIED_BY_TR = "(Unverified Term)";
     public static final String LOCAL_CONCEPT_VERSION_PREFIX = "DLN-H";
     public static final String CONCEPT_MAP_TYPE_MAY_BE_A = "MAY BE A";
 
