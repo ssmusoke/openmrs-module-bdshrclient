@@ -1,6 +1,7 @@
 package org.openmrs.module.fhir.mapper.emr;
 
 import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.BaseResource;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
@@ -12,6 +13,7 @@ import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.OrderService;
+import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
@@ -59,7 +61,22 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
 
     @Override
     public boolean canHandle(IResource resource) {
-        return resource instanceof DiagnosticReport;
+        if(resource instanceof DiagnosticReport) {
+            DiagnosticReport report = (DiagnosticReport) resource;
+            if(hasLabCategory(report))
+                return true;
+        }
+        return false;
+    }
+
+    private boolean hasLabCategory(DiagnosticReport report) {
+        if(report.getCategory().isEmpty()) return true;
+        for (CodingDt codingDt : report.getCategory().getCoding()) {
+            if(FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL.equals(codingDt.getSystem()) &&
+                    FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_CODE.equals(codingDt.getCode()))
+                return true;
+        }
+        return false;
     }
 
     @Override

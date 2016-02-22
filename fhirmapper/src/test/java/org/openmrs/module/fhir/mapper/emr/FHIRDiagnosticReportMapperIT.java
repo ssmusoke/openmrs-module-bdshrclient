@@ -1,6 +1,7 @@
 package org.openmrs.module.fhir.mapper.emr;
 
 import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import org.junit.After;
@@ -14,6 +15,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.OrderService;
 import org.openmrs.api.PatientService;
+import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
@@ -30,8 +32,10 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -60,6 +64,35 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
     @After
     public void tearDown() throws Exception {
         deleteAllData();
+    }
+
+    @Test
+    public void shouldHandleReportWithoutCategory() throws Exception {
+        assertTrue(diagnosticReportMapper.canHandle(new DiagnosticReport()));
+    }
+
+    @Test
+    public void shouldHandleReportWithLabCategory() throws Exception {
+        DiagnosticReport report = new DiagnosticReport();
+        CodeableConceptDt category = new CodeableConceptDt();
+        category.addCoding()
+                .setSystem(FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL)
+                .setCode(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_CODE)
+                .setDisplay(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_DISPLAY);
+        report.setCategory(category);
+        assertTrue(diagnosticReportMapper.canHandle(report));
+    }
+    
+    @Test
+    public void shouldNotHandleReportWithOtherCategory() throws Exception {
+        DiagnosticReport report = new DiagnosticReport();
+        CodeableConceptDt category = new CodeableConceptDt();
+        category.addCoding()
+                .setSystem(FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL)
+                .setCode("RAD")
+                .setDisplay("Radiology");
+        report.setCategory(category);
+        assertFalse(diagnosticReportMapper.canHandle(report));
     }
 
     @Test
