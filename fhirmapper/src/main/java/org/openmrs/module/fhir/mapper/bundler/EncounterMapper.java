@@ -78,7 +78,7 @@ public class EncounterMapper {
 
     private EncounterClassEnum identifyEncounterClass(final String visitType) {
         try {
-            return EncounterClassEnum.valueOf(visitType);
+            return EncounterClassEnum.forCode(visitType);
         } catch (Exception e) {
             logger.warn("Could not identify FHIR Encounter.class for MRS visitType:" + visitType);
         }
