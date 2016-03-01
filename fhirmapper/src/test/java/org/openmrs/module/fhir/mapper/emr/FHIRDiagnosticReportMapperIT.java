@@ -260,6 +260,38 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
 
         assertTestObsWithTextResult(topLevelObs, localTestConcept, "20.0", "changed", null);
     }
+    
+    @Test
+    public void shouldMapDiagnosticReportForLocalTestAndTRPanel() throws Exception {
+        Bundle bundle = (Bundle) new MapperTestHelper()
+                .loadSampleFHIREncounter("encounterBundles/dstu2/diagnosticReportWithLocalTestAndTRPanelResult.xml", springContext);
+        List<IResource> resources = FHIRBundleHelper.identifyResourcesByName(bundle, new DiagnosticReport().getResourceName());
+        Encounter encounter = new Encounter();
+        EmrEncounter emrEncounter = new EmrEncounter(encounter);
+        encounter.setPatient(patientService.getPatient(1));
+
+        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-1");
+        for (IResource resource : resources) {
+            diagnosticReportMapper.map(resource, emrEncounter, encounterComposition, getSystemProperties("1"));
+        }
+        Set<Obs> obsSet = emrEncounter.getTopLevelObs();
+        assertEquals(2, obsSet.size());
+
+        Concept localTestConcept = conceptService.getConceptByName("WBC" + MRSProperties.UNVERIFIED_BY_TR);
+        Obs localTestObs = findObsByConcept(obsSet, localTestConcept);
+        assertNull(localTestObs.getOrder());
+        assertTestObsWithTextResult(localTestObs, localTestConcept, "20.0", "changed", null);
+
+        Concept trPanelConcept = conceptService.getConcept(302);
+        Obs trPanelObs = findObsByConcept(obsSet, trPanelConcept);
+        Order panelOrder = orderService.getOrder(16);
+        assertEquals(panelOrder, trPanelObs.getOrder());
+        assertEquals(1, trPanelObs.getGroupMembers().size());
+        Concept hemoglobinConcept = conceptService.getConcept(303);
+        Obs hemoglobinObs = findObsByConcept(trPanelObs.getGroupMembers(), hemoglobinConcept);
+        assertNotNull(hemoglobinObs);
+        assertTestObsWithNumericResult(hemoglobinObs, hemoglobinConcept, 20.0, null, panelOrder);
+    }
 
     private void assertTestObsWithNumericResult(Obs topLevelObs, Concept resultObsConcept, Double resultValueNumeric, String notesValue, Order testOrder) {
         Obs resultObsGroupObs = assertTestObs(topLevelObs, notesValue, testOrder);
