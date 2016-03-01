@@ -211,7 +211,8 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
 
     private Obs findObsByOrder(EmrEncounter emrEncounter, Order order) {
         for (Obs obs : emrEncounter.getTopLevelObs()) {
-            if (obs.getOrder().equals(order) && obs.getConcept().equals(order.getConcept())) {
+            Order obsOrder = obs.getOrder();
+            if (obsOrder != null && order.equals(obsOrder) && obs.getConcept().equals(order.getConcept())) {
                 return obs;
             }
         }
