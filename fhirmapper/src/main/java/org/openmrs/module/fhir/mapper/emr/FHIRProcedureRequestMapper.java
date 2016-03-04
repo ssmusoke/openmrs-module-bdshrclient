@@ -84,7 +84,7 @@ public class FHIRProcedureRequestMapper implements FHIRResourceMapper {
         if (null == concept) return null;
         order.setConcept(concept);
         setStatus(order, procedureRequest);
-        order.setCareSetting(orderCareSettingLookupService.getCareSetting(shrEncounterBundle.getBundle()));
+        order.setCareSetting(orderCareSettingLookupService.getCareSetting());
         setOrderer(order, procedureRequest);
         Date dateActivate = getDateActivate(procedureRequest, emrEncounter);
         order.setDateActivated(dateActivate);
