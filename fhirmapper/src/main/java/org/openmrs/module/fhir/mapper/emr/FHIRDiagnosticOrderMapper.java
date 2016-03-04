@@ -3,7 +3,6 @@ package org.openmrs.module.fhir.mapper.emr;
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.BaseResource;
-import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
 import ca.uhn.fhir.model.dstu2.valueset.DiagnosticOrderStatusEnum;
 import org.apache.commons.lang3.StringUtils;
@@ -99,7 +98,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
             Order existingRunningOrder = getExistingRunningOrder(idMappingList, testOrderConcept, emrEncounter);
             if (existingRunningOrder != null)
                 return;
-            Order testOrder = createRequestedTestOrder(diagnosticOrderItemComponent, shrEncounterBundle.getBundle(), diagnosticOrder, emrEncounter, testOrderConcept);
+            Order testOrder = createRequestedTestOrder(diagnosticOrderItemComponent, diagnosticOrder, emrEncounter, testOrderConcept);
             addOrderToIdMapping(testOrder, diagnosticOrder, shrEncounterBundle, systemProperties);
             emrEncounter.addOrder(testOrder);
         }
@@ -132,7 +131,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         if (testOrderConcept != null) {
             Order existingRunningOrder = getExistingRunningOrder(idMappingList, testOrderConcept, emrEncounter);
             if (existingRunningOrder == null) return;
-            Order testOrder = createCancelledTestOrder(item, shrEncounterBundle.getBundle(), diagnosticOrder, emrEncounter, testOrderConcept, existingRunningOrder);
+            Order testOrder = createCancelledTestOrder(item, diagnosticOrder, emrEncounter, testOrderConcept, existingRunningOrder);
             emrEncounter.addOrder(testOrder);
         }
     }
@@ -144,29 +143,29 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         return false;
     }
 
-    private Order createCancelledTestOrder(DiagnosticOrder.Item item, Bundle bundle, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter, Concept testOrderConcept, Order existingRunningOrder) {
+    private Order createCancelledTestOrder(DiagnosticOrder.Item item, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter, Concept testOrderConcept, Order existingRunningOrder) {
         Date dateActivated = getDateActivatedFromEventWithStatus(item, diagnosticOrder, DiagnosticOrderStatusEnum.CANCELLED);
         if (dateActivated == null)
             dateActivated = DateUtil.aSecondAfter(emrEncounter.getEncounter().getEncounterDatetime());
-        Order testOrder = createTestOrder(bundle, diagnosticOrder, testOrderConcept, dateActivated);
+        Order testOrder = createTestOrder(diagnosticOrder, testOrderConcept, dateActivated);
         testOrder.setAction(Order.Action.DISCONTINUE);
         testOrder.setOrderReasonNonCoded(MRSProperties.ORDER_DISCONTINUE_REASON);
         testOrder.setPreviousOrder(existingRunningOrder);
         return testOrder;
     }
 
-    private Order createRequestedTestOrder(DiagnosticOrder.Item item, Bundle bundle, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter, Concept testOrderConcept) {
+    private Order createRequestedTestOrder(DiagnosticOrder.Item item, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter, Concept testOrderConcept) {
         Date dateActivated = getDateActivatedFromEventWithStatus(item, diagnosticOrder, DiagnosticOrderStatusEnum.REQUESTED);
         if (dateActivated == null) dateActivated = emrEncounter.getEncounter().getEncounterDatetime();
-        return createTestOrder(bundle, diagnosticOrder, testOrderConcept, dateActivated);
+        return createTestOrder(diagnosticOrder, testOrderConcept, dateActivated);
     }
 
-    private Order createTestOrder(Bundle bundle, DiagnosticOrder diagnosticOrder, Concept testOrderConcept, Date dateActivated) {
+    private Order createTestOrder(DiagnosticOrder diagnosticOrder, Concept testOrderConcept, Date dateActivated) {
         Order testOrder = new Order();
         testOrder.setOrderType(orderService.getOrderTypeByName(ORDER_NAME));
         testOrder.setConcept(testOrderConcept);
         setOrderer(testOrder, diagnosticOrder);
-        testOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(bundle));
+        testOrder.setCareSetting(orderCareSettingLookupService.getCareSetting());
         testOrder.setDateActivated(dateActivated);
         testOrder.setAutoExpireDate(getAutoExpireDate(dateActivated));
         return testOrder;

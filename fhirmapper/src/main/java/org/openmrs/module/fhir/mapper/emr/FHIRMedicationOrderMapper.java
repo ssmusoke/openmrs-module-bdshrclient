@@ -114,7 +114,7 @@ public class FHIRMedicationOrderMapper implements FHIRResourceMapper {
         drugOrder.setAsNeeded(((BooleanDt) dosageInstruction.getAsNeeded()).getValue());
         drugOrder.setOrderer(getOrderer(medicationOrder));
         drugOrder.setNumRefills(DEFAULT_NUM_REFILLS);
-        drugOrder.setCareSetting(orderCareSettingLookupService.getCareSetting(encounterComposition.getBundle()));
+        drugOrder.setCareSetting(orderCareSettingLookupService.getCareSetting());
         try {
             drugOrder.setDosingInstructions(objectMapper.writeValueAsString(dosingInstructionsMap));
         } catch (IOException e) {

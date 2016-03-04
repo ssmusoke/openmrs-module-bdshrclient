@@ -17,11 +17,8 @@ public class OrderCareSettingLookupService {
     @Autowired
     private OrderService orderService;
 
-    public CareSetting getCareSetting(Bundle bundle) {
+    public CareSetting getCareSetting() {
         //TODO : change to encounter
-        Encounter fhirEncounter = getEncounter(bundle);
-        EncounterClassEnum fhirEncounterClass = fhirEncounter.getClassElementElement().getValueAsEnum();
-        String careSetting = fhirEncounterClass.equals(EncounterClassEnum.INPATIENT) ? MRS_CARE_SETTING_FOR_INPATIENT : MRS_CARE_SETTING_FOR_OUTPATIENT;
-        return orderService.getCareSettingByName(careSetting);
+        return orderService.getCareSettingByName(MRS_CARE_SETTING_FOR_OUTPATIENT);
     }
 }
