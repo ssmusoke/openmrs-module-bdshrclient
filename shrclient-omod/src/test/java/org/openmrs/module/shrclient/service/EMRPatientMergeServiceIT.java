@@ -47,7 +47,6 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
         executeDataSet("testDataSets/dhakaAddressHierarchy.xml");
     }
 
-
     @Test
     public void shouldMergePatientAttributesAndVoidToBeRetiredPatient() throws Exception {
         executeDataSet("testDataSets/mergeDS/patientMergeDS.xml");
@@ -71,7 +70,7 @@ public class EMRPatientMergeServiceIT extends BaseModuleWebContextSensitiveTest 
         assertEquals(expectedVoidReason, retiredPatient.getPerson().getPersonAddress().getVoidReason());
 
         assertEquals(0, retiredPatient.getActiveIdentifiers().size());
-        assertEquals(7, retiredPatient.getAttributes().size());
+        assertEquals(8, retiredPatient.getAttributes().size());
         assertEquals(expectedVoidReason, retiredPatient.getAttributes().iterator().next().getVoidReason());
 
         assertEquals(0, retiredPatient.getActiveAttributes().size());
