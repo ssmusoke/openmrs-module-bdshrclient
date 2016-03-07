@@ -19,12 +19,14 @@ import static java.util.Arrays.asList;
 public class RelationshipMapper {
 
     private static String RELATIONSHIP_FATHER_TYPE = "FTH";
+    private static String RELATIONSHIP_MTH_TYPE = "MTH";
     private static String RELATIONSHIP_SPS_TYPE = "SPS";
 
     private PersonAttributeMapper personAttributeMapper;
 
     private static Map<String, String> attributeRelationshipTypeMapping = new HashMap<String, String>() {{
         put(Constants.FATHER_NAME_ATTRIBUTE_TYPE, RELATIONSHIP_FATHER_TYPE);
+        put(Constants.MOTHER_NAME_ATTRIBUTE_TYPE, RELATIONSHIP_MTH_TYPE);
         put(Constants.SPOUSE_NAME_ATTRIBUTE_TYPE, RELATIONSHIP_SPS_TYPE);
     }};
 
@@ -41,10 +43,12 @@ public class RelationshipMapper {
             String attributeValue = relationshipAttribute != null ? relationshipAttribute.getValue() : null;
             if (StringUtils.isNotEmpty(attributeValue)) {
                 Relation relation = getRelation(attributeValue, attributeRelationshipTypeMapping.get(attributeName));
-                IdMapping idMapping = idMappingRepository.findByInternalId(getRelationInternalId(openMrsPatient, relationshipAttribute.getAttributeType().getUuid()),IdMappingType.PERSON_RELATION);
+                IdMapping idMapping = idMappingRepository.findByInternalId(getRelationInternalId(openMrsPatient,
+                        relationshipAttribute.getAttributeType().getUuid()), IdMappingType.PERSON_RELATION);
                 if (idMapping == null) {
                     relation.setId(UUID.randomUUID().toString());
-                    idMapping = new IdMapping(getRelationInternalId(openMrsPatient, relationshipAttribute.getAttributeType().getUuid()), relation.getId(), IdMappingType.PERSON_RELATION, null, new Date());
+                    idMapping = new IdMapping(getRelationInternalId(openMrsPatient, relationshipAttribute.getAttributeType().getUuid()),
+                            relation.getId(), IdMappingType.PERSON_RELATION, null, new Date());
                     idMappingRepository.saveOrUpdateIdMapping(idMapping);
                 } else {
                     relation.setId(idMapping.getExternalId());

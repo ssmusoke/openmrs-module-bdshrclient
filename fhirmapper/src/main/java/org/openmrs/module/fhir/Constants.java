@@ -25,5 +25,6 @@ public class Constants {
     public final static String ORGANIZATION_ATTRIBUTE_TYPE_NAME = "Organization";
 
     public final static String FATHER_NAME_ATTRIBUTE_TYPE = "fatherName";
+    public final static String MOTHER_NAME_ATTRIBUTE_TYPE = "motherName";
     public final static String SPOUSE_NAME_ATTRIBUTE_TYPE = "spouseName";
 }

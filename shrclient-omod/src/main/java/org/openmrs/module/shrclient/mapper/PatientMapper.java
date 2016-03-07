@@ -93,14 +93,19 @@ public class PatientMapper {
 
         patient.setAddress(addressHelper.getMciAddress(openMrsPatient));
         patient.setStatus(getMciPatientStatus(openMrsPatient));
-        List<Relation> relations = new RelationshipMapper().map(openMrsPatient, idMappingsRepository);
-        if (CollectionUtils.isNotEmpty(relations)) {
-            patient.setRelations(relations.toArray(new Relation[relations.size()]));
-        }
+
+        addRelations(openMrsPatient, patient);
 
         patient.setDobType(getDobType(openMrsPatient));
 
         return patient;
+    }
+
+    private void addRelations(org.openmrs.Patient openMrsPatient, Patient patient) {
+        List<Relation> relations = new RelationshipMapper().map(openMrsPatient, idMappingsRepository);
+        if (CollectionUtils.isNotEmpty(relations)) {
+            patient.setRelations(relations.toArray(new Relation[relations.size()]));
+        }
     }
 
     public String getDobType(org.openmrs.Patient openMrsPatient) {

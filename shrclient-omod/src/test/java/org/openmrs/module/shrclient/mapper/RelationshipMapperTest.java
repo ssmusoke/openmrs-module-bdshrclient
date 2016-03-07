@@ -47,6 +47,7 @@ public class RelationshipMapperTest {
         initMocks(this);
         when(personService.getPersonAttributeTypeByName(Constants.FATHER_NAME_ATTRIBUTE_TYPE)).thenReturn(getAttributeType(Constants.FATHER_NAME_ATTRIBUTE_TYPE));
         when(personService.getPersonAttributeTypeByName(Constants.SPOUSE_NAME_ATTRIBUTE_TYPE)).thenReturn(getAttributeType(Constants.SPOUSE_NAME_ATTRIBUTE_TYPE));
+        when(personService.getPersonAttributeTypeByName(Constants.MOTHER_NAME_ATTRIBUTE_TYPE)).thenReturn(getAttributeType(Constants.MOTHER_NAME_ATTRIBUTE_TYPE));
 
         Context context = new Context();
         ServiceContext serviceContext = ServiceContext.getInstance();
@@ -154,13 +155,19 @@ public class RelationshipMapperTest {
         org.openmrs.module.shrclient.model.Patient patientWithOtherRelations = getPatientFromJson("patients_response/patientWithRelations.json");
         Patient emrPatient = new Patient();
         new RelationshipMapper().addRelationAttributes(patientWithOtherRelations.getRelations(), emrPatient, idMappingsRepository);
-        assertEquals(2, emrPatient.getAttributes().size());
+        assertEquals(3, emrPatient.getAttributes().size());
 
-        PersonAttribute father = (PersonAttribute) CollectionUtils.find(emrPatient.getAttributes(), new BeanPropertyValueEqualsPredicate("attributeType.name", Constants.FATHER_NAME_ATTRIBUTE_TYPE));
+        PersonAttribute father = (PersonAttribute) CollectionUtils.find(emrPatient.getAttributes(),
+                new BeanPropertyValueEqualsPredicate("attributeType.name", Constants.FATHER_NAME_ATTRIBUTE_TYPE));
         assertEquals("Md. Sakib Ali Khan", father.getValue());
 
-        PersonAttribute spouse = (PersonAttribute) CollectionUtils.find(emrPatient.getAttributes(), new BeanPropertyValueEqualsPredicate("attributeType.name", Constants.SPOUSE_NAME_ATTRIBUTE_TYPE));
+        PersonAttribute spouse = (PersonAttribute) CollectionUtils.find(emrPatient.getAttributes(),
+                new BeanPropertyValueEqualsPredicate("attributeType.name", Constants.SPOUSE_NAME_ATTRIBUTE_TYPE));
         assertEquals("Azad", spouse.getValue());
+
+        PersonAttribute mother = (PersonAttribute) CollectionUtils.find(emrPatient.getAttributes(),
+                new BeanPropertyValueEqualsPredicate("attributeType.name", Constants.MOTHER_NAME_ATTRIBUTE_TYPE));
+        assertEquals("Shabnam Chowdhury", mother.getValue());
     }
 
     @Test

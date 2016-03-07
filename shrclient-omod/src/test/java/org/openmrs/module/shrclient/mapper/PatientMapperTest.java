@@ -12,6 +12,7 @@ import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.Address;
 import org.openmrs.module.shrclient.model.Patient;
+import org.openmrs.module.shrclient.model.Relation;
 import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.util.AddressHelper;
@@ -80,26 +81,39 @@ public class PatientMapperTest {
     public void shouldMapRelationsWhenPresent() throws Exception {
         PersonAttribute fatherAttribute = createAttribute(FATHER_NAME_ATTRIBUTE_TYPE, "Oh My Daddy");
         openMrsPatient.getAttributes().add(fatherAttribute);
+        PersonAttribute motherAttribute = createAttribute(MOTHER_NAME_ATTRIBUTE_TYPE, "My Mother");
+        openMrsPatient.getAttributes().add(motherAttribute);
         PersonAttribute spouseAttribute = createAttribute(SPOUSE_NAME_ATTRIBUTE_TYPE, "OhMyDear");
         openMrsPatient.getAttributes().add(spouseAttribute);
 
         Patient mappedPatient = patientMapper.map(openMrsPatient, systemProperties);
         org.openmrs.module.shrclient.model.Relation[] mappedRelations = mappedPatient.getRelations();
 
-        assertEquals(2,mappedRelations.length);
-        assertEquals("Oh My", mappedRelations[0].getGivenName());
-        assertEquals("Daddy", mappedRelations[0].getSurName());
-        assertEquals("FTH", mappedRelations[0].getType());
+        assertEquals(3, mappedRelations.length);
+        Relation fatherRelation = getRelationByType(mappedRelations, "FTH");
+        assertEquals("Oh My", fatherRelation.getGivenName());
+        assertEquals("Daddy", fatherRelation.getSurName());
 
-        assertEquals("OhMyDear", mappedRelations[1].getGivenName());
-        assertNull(mappedRelations[1].getSurName());
-        assertEquals("SPS", mappedRelations[1].getType());
+        Relation motherRelation = getRelationByType(mappedRelations, "MTH");
+        assertEquals("My", motherRelation.getGivenName());
+        assertEquals("Mother", motherRelation.getSurName());
+
+        Relation spouseRelation = getRelationByType(mappedRelations, "SPS");
+        assertEquals("OhMyDear", spouseRelation.getGivenName());
+        assertNull(spouseRelation.getSurName());
     }
 
     @Test
     public void shouldNotMapRelationsWhenNotPresent() throws Exception {
         Patient orphanPatient = patientMapper.map(openMrsPatient, systemProperties);
         assertNull(orphanPatient.getRelations());
+    }
+
+    private Relation getRelationByType(Relation[] mappedRelations, String type) {
+        for (Relation mappedRelation : mappedRelations) {
+            if (type.equals(mappedRelation.getType())) return mappedRelation;
+        }
+        return null;
     }
 
     private void setupData() throws ParseException {
@@ -207,7 +221,7 @@ public class PatientMapperTest {
     }
 
     private PersonAttribute createAttribute(String attributeName, String attributeValue) {
-        final PersonAttributeType attributeType = new PersonAttributeType();
+        PersonAttributeType attributeType = new PersonAttributeType();
         attributeType.setName(attributeName);
         return new PersonAttribute(attributeType, attributeValue);
     }
