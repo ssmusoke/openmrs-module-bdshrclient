@@ -134,12 +134,12 @@ public class PropertiesReader {
     }
 
     public int getMciMaxFailedEvent() {
-        String mciMaxFailedEventCount = getMciProperties().getProperty(PropertyKeyConstants.MCI_MAX_FAILED_EVENT).trim();
+        String mciMaxFailedEventCount = getMciProperties().getProperty(PropertyKeyConstants.MCI_MAX_FAILED_EVENT);
         return getMaxFailedEventCount(mciMaxFailedEventCount);
     }
 
     public int getShrMaxFailedEvent() {
-        String shrMaxFailedEventCount = getShrProperties().getProperty(PropertyKeyConstants.SHR_MAX_FAILED_EVENT).trim();
+        String shrMaxFailedEventCount = getShrProperties().getProperty(PropertyKeyConstants.SHR_MAX_FAILED_EVENT);
         return getMaxFailedEventCount(shrMaxFailedEventCount);
     }
 
@@ -156,9 +156,9 @@ public class PropertiesReader {
     }
 
     private int getMaxFailedEventCount(String failedEventCount) {
-        if (StringUtils.isNotEmpty(failedEventCount)) {
+        if (StringUtils.isNotBlank(failedEventCount)) {
             try {
-                return Integer.parseInt(failedEventCount);
+                return Integer.parseInt(failedEventCount.trim());
             } catch (Exception e) {
                 // do nothing
             }
