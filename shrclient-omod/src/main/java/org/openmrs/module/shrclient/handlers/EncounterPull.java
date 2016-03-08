@@ -46,7 +46,7 @@ public class EncounterPull {
             for (String encounterFeedUrl : encounterFeedUrls) {
                 ShrEncounterFeedProcessor feedProcessor =
                         new ShrEncounterFeedProcessor(encounterFeedUrl, requestHeaders, defaultEncounterFeedWorker,
-                                clientRegistry);
+                                clientRegistry, propertiesReader);
                 try {
                     feedProcessor.process();
                 } catch (URISyntaxException e) {
@@ -108,7 +108,7 @@ public class EncounterPull {
             for (String encounterFeedUrl : encounterFeedUrls) {
                 ShrEncounterFeedProcessor feedProcessor =
                         new ShrEncounterFeedProcessor(encounterFeedUrl, requestProperties, defaultEncounterFeedWorker,
-                                clientRegistry);
+                                clientRegistry, propertiesReader);
                 try {
                     feedProcessor.processFailedEvents();
                 } catch (URISyntaxException e) {
