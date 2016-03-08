@@ -18,6 +18,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.atomfeed.transaction.support.AtomFeedSpringTransactionManager;
 import org.openmrs.module.shrclient.handlers.ClientRegistry;
 import org.openmrs.module.shrclient.util.FhirBundleContextHolder;
+import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterEvent;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -30,36 +31,40 @@ public class ShrEncounterFeedProcessor {
 
     private EncounterEventWorker shrEventWorker;
     private String feedUrl;
-    private Map<String, String> feedProperties;
+    private Map<String, String> requestHeaders;
     private ClientRegistry clientRegistry;
+    private PropertiesReader propertiesReader;
 
     public ShrEncounterFeedProcessor(String feedUrl,
-                                     Map<String, String> feedProperties, EncounterEventWorker shrEventWorker,
-                                     ClientRegistry clientRegistry) {
+                                     Map<String, String> requestHeaders, EncounterEventWorker shrEventWorker,
+                                     ClientRegistry clientRegistry, PropertiesReader propertiesReader) {
         this.shrEventWorker = shrEventWorker;
         this.feedUrl = feedUrl;
-        this.feedProperties = feedProperties;
+        this.requestHeaders = requestHeaders;
         this.clientRegistry = clientRegistry;
+        this.propertiesReader = propertiesReader;
     }
 
     public void process() throws URISyntaxException {
-        atomFeedClient(new URI(this.feedUrl), new FeedEventWorker(shrEventWorker)).processEvents();
+        atomFeedClient(new URI(this.feedUrl), new FeedEventWorker(shrEventWorker), 
+                propertiesReader.getShrMaxFailedEvent()).processEvents();
     }
 
     public void processFailedEvents() throws URISyntaxException {
-        atomFeedClient(new URI(this.feedUrl), new FeedEventWorker(shrEventWorker)).processFailedEvents();
+        atomFeedClient(new URI(this.feedUrl), new FeedEventWorker(shrEventWorker),
+                propertiesReader.getShrMaxFailedEvent()).processFailedEvents();
     }
 
-    private AtomFeedProperties getAtomFeedProperties() {
+    private AtomFeedProperties getAtomFeedProperties(int maxFailedEvents) {
         AtomFeedProperties atomProperties = new AtomFeedProperties();
-        atomProperties.setMaxFailedEvents(20);
+        atomProperties.setMaxFailedEvents(maxFailedEvents);
         return atomProperties;
     }
 
-    private AtomFeedClient atomFeedClient(URI feedUri, EventWorker worker) {
+    private AtomFeedClient atomFeedClient(URI feedUri, EventWorker worker, int maxFailedEvents) {
         AFTransactionManager txManager = getAtomFeedTransactionManager();
         JdbcConnectionProvider connectionProvider = getConnectionProvider(txManager);
-        AtomFeedProperties atomProperties = getAtomFeedProperties();
+        AtomFeedProperties atomProperties = getAtomFeedProperties(maxFailedEvents);
         return new AtomFeedClient(
                 getAllFeeds(clientRegistry),
                 getAllMarkers(connectionProvider),
@@ -79,7 +84,7 @@ public class ShrEncounterFeedProcessor {
     }
 
     private AllFeeds getAllFeeds(ClientRegistry clientRegistry) {
-        return new ShrEncounterFeeds(feedProperties, clientRegistry);
+        return new ShrEncounterFeeds(requestHeaders, clientRegistry);
     }
 
     private class FeedEventWorker implements EventWorker {

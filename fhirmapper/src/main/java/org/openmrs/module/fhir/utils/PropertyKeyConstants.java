@@ -8,10 +8,12 @@ public class PropertyKeyConstants {
 
     public static final String MCI_REFERENCE_PATH = "mci.referenceUrl";
     public static final String MCI_PATIENT_CONTEXT = "mci.patientContext";
+    public static final String MCI_MAX_FAILED_EVENT = "mci.maxFailedEventCount";
 
     public static final String SHR_REFERENCE_PATH = "shr.referenceUrl";
     public static final String SHR_CATCHMENT_PATH_PATTERN = "shr.catchmentPathPattern"; ///catchments/%s/encounters
     public static final String SHR_PATIENT_ENC_PATH_PATTERN = "shr.patientEncPathPattern"; ///patients/%s/encounters
+    public static final String SHR_MAX_FAILED_EVENT = "shr.maxFailedEventCount";
 
     public static final String IDP_SERVER_URL = "idP.referenceUrl";
     public static final String IDP_SIGNIN_PATH = "idP.signinPath";

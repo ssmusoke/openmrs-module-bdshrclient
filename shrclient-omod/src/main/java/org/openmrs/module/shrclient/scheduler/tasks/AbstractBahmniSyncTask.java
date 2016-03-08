@@ -34,10 +34,10 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
         ClientRegistry clientRegistry = new ClientRegistry(propertiesReader, identityStore);
         PatientPush patientPush = getPatientRegistry(propertiesReader, systemUserService, clientRegistry);
         EncounterPush encounterPush = getEncounterRegistry(propertiesReader, systemUserService, clientRegistry);
-        executeBahmniTask(patientPush, encounterPush);
+        executeBahmniTask(patientPush, encounterPush, propertiesReader);
     }
 
-    protected abstract void executeBahmniTask(PatientPush patientPush, EncounterPush encounterPush);
+    protected abstract void executeBahmniTask(PatientPush patientPush, EncounterPush encounterPush, PropertiesReader propertiesReader);
 
     private EncounterPush getEncounterRegistry(PropertiesReader propertiesReader, SystemUserService systemUserService,
                                                ClientRegistry clientRegistry) {
@@ -79,7 +79,7 @@ public abstract class AbstractBahmniSyncTask extends AbstractTask {
         return new RuntimeException(e);
     }
 
-    protected FeedClient getFeedClient(String uri, EventWorker worker) throws URISyntaxException {
-        return new OpenMRSFeedClientFactory().getFeedClient(uri, worker);
+    protected FeedClient getFeedClient(String uri, EventWorker worker, int maxFailedEvents) throws URISyntaxException {
+        return new OpenMRSFeedClientFactory().getFeedClient(uri, worker, maxFailedEvents);
     }
 }

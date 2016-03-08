@@ -28,7 +28,7 @@ import java.util.List;
 
 public class OpenMRSFeedClientFactory {
 
-    public FeedClient getFeedClient(URI feedURI, EventWorker eventWorker) {
+    public FeedClient getFeedClient(URI feedURI, EventWorker eventWorker, int maxFailedEvents) {
         AFTransactionManager txMgr = getAtomFeedTransactionManager();
         JdbcConnectionProvider connectionProvider = getConnectionProvider(txMgr);
 
@@ -36,15 +36,15 @@ public class OpenMRSFeedClientFactory {
                 getAllFeeds(feedURI, connectionProvider),
                 getAllMarkers(connectionProvider),
                 getAllFailedEvent(connectionProvider),
-                getFeedProperties(),
+                getFeedProperties(maxFailedEvents),
                 txMgr,
                 feedURI,
                 eventWorker);
     }
 
-    public FeedClient getFeedClient(String feedURI, EventWorker eventWorker) throws URISyntaxException {
+    public FeedClient getFeedClient(String feedURI, EventWorker eventWorker, int maxFailedEvents) throws URISyntaxException {
         URI uri = new URI(feedURI);
-        return this.getFeedClient(uri,eventWorker);
+        return this.getFeedClient(uri,eventWorker, maxFailedEvents);
     }
 
     private AllFailedEvents getAllFailedEvent(JdbcConnectionProvider connectionProvider) {
@@ -68,9 +68,9 @@ public class OpenMRSFeedClientFactory {
                 new ResourceHelper()));
     }
 
-    private AtomFeedProperties getFeedProperties() {
+    private AtomFeedProperties getFeedProperties(int maxFailedEvents) {
         AtomFeedProperties props = new AtomFeedProperties();
-        props.setMaxFailedEvents(100);
+        props.setMaxFailedEvents(maxFailedEvents);
         return props;
     }
 

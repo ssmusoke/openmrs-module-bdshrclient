@@ -133,6 +133,16 @@ public class PropertiesReader {
         return getMciProperties().getProperty(PropertyKeyConstants.MCI_PATIENT_CONTEXT).trim();
     }
 
+    public int getMciMaxFailedEvent() {
+        String mciMaxFailedEventCount = getMciProperties().getProperty(PropertyKeyConstants.MCI_MAX_FAILED_EVENT).trim();
+        return getMaxFailedEventCount(mciMaxFailedEventCount);
+    }
+
+    public int getShrMaxFailedEvent() {
+        String shrMaxFailedEventCount = getShrProperties().getProperty(PropertyKeyConstants.SHR_MAX_FAILED_EVENT).trim();
+        return getMaxFailedEventCount(shrMaxFailedEventCount);
+    }
+
     public String getShrCatchmentPathPattern() {
         return getShrProperties().getProperty(PropertyKeyConstants.SHR_CATCHMENT_PATH_PATTERN).trim();
     }
@@ -143,5 +153,16 @@ public class PropertiesReader {
 
     public String getIdPSignInPath() {
         return getIdentityProperties().getProperty(PropertyKeyConstants.IDP_SIGNIN_PATH).trim();
+    }
+
+    private int getMaxFailedEventCount(String failedEventCount) {
+        if (StringUtils.isNotEmpty(failedEventCount)) {
+            try {
+                return Integer.parseInt(failedEventCount);
+            } catch (Exception e) {
+                // do nothing
+            }
+        }
+        return 100;
     }
 }
