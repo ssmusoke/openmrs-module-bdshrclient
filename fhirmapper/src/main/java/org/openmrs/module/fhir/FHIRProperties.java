@@ -21,6 +21,8 @@ public class FHIRProperties {
     public static final String FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL = "http://hl7.org/fhir/v2/0074";
     public static final String FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_CODE = "LAB";
     public static final String FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_DISPLAY = "Laboratory";
+    public static final String FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_CODE = "RAD";
+    public static final String FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_DISPLAY = "Radiology";
 
     public static final String FHIR_YES_NO_INDICATOR_URL = "http://hl7.org/fhir/v2/0136";
     public static final String FHIR_YES_INDICATOR_CODE = "Y";
@@ -39,6 +41,7 @@ public class FHIRProperties {
     public static final String MEDICATIONORDER_ACTION_EXTENSION_NAME = "MedicationOrderAction";
     public static final String PROCEDURE_REQUEST_PREVIOUS_REQUEST_EXTENSION_NAME = "PreviousProcedureRequest";
     public static final String PREVIOUS_CONDITION_EXTENSION_NAME = "PreviousCondition";
+    public static final String DIAGNOSTIC_ORDER_CATEGORY_EXTENSION_NAME = "DiagnositicOrderCategory";
 
     public static String getFhirExtensionUrl(String extensionName) {
         return FHIR_EXTENSION_URL + "#" + extensionName;

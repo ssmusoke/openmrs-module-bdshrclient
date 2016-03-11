@@ -63,6 +63,7 @@ public class MRSProperties {
 
     public static final String MRS_DRUG_ORDER_TYPE = "Drug Order";
     public static final String MRS_LAB_ORDER_TYPE = "Lab Order";
+    public static final String MRS_RADIOLOGY_ORDER_TYPE = "Radiology Order";
     public static final String MRS_PROCEDURE_ORDER_TYPE = "Procedure Order";
 
     public static final String DRUG_ORDER_QUANTITY_UNITS_CONCEPT_NAME = "Unit(s)";

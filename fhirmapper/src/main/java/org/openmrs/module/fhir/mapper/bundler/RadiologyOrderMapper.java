@@ -1,38 +1,30 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
-import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
-import ca.uhn.fhir.model.dstu2.valueset.DiagnosticOrderStatusEnum;
 import ca.uhn.fhir.model.primitive.StringDt;
 import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Concept;
 import org.openmrs.Order;
-import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.mapper.model.FHIRResource;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
-import org.openmrs.module.fhir.utils.ProviderLookupService;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.openmrs.module.fhir.FHIRProperties.DIAGNOSTIC_ORDER_CATEGORY_EXTENSION_NAME;
-import static org.openmrs.module.fhir.FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_CODE;
 import static org.openmrs.module.fhir.FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_CODE;
-import static org.openmrs.module.fhir.FHIRProperties.PROCEDURE_REQUEST_PREVIOUS_REQUEST_EXTENSION_NAME;
 import static org.openmrs.module.fhir.FHIRProperties.getFhirExtensionUrl;
-import static org.openmrs.module.fhir.MRSProperties.MRS_LAB_ORDER_TYPE;
 
-@Component("fhirTestOrderMapper")
-public class TestOrderMapper implements EmrOrderResourceHandler {
+@Component("fhirRadiologyOrderMapper")
+public class RadiologyOrderMapper implements EmrOrderResourceHandler {
 
     @Autowired
     private CodeableConceptService codeableConceptService;
@@ -41,33 +33,20 @@ public class TestOrderMapper implements EmrOrderResourceHandler {
 
     @Override
     public boolean canHandle(Order order) {
-        return order.getOrderType().getName().equalsIgnoreCase(MRS_LAB_ORDER_TYPE);
+        return order.getOrderType().getName().equals(MRSProperties.MRS_RADIOLOGY_ORDER_TYPE);
     }
 
     @Override
     public List<FHIRResource> map(Order order, FHIREncounter fhirEncounter, Bundle bundle, SystemProperties systemProperties) {
         if (order.getDateStopped() != null) return Collections.EMPTY_LIST;
         DiagnosticOrder diagnosticOrder = orderBuilder.createDiagnosticOrder(order, fhirEncounter, systemProperties);
-        addItemsToDiagnosticOrder(order, diagnosticOrder);
+        String fhirExtensionUrl = getFhirExtensionUrl(DIAGNOSTIC_ORDER_CATEGORY_EXTENSION_NAME);
+        diagnosticOrder.addUndeclaredExtension(false, fhirExtensionUrl, new StringDt(FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_CODE));
+        createOrderItemForTest(order, diagnosticOrder, order.getConcept());
         if (CollectionUtils.isEmpty(diagnosticOrder.getItem())) {
             return null;
         }
         return asList(new FHIRResource("Diagnostic Order", diagnosticOrder.getIdentifier(), diagnosticOrder));
-    }
-
-    private void addItemsToDiagnosticOrder(Order order, DiagnosticOrder diagnosticOrder) {
-        if (order.getConcept().getConceptClass().getName().equals(MRSProperties.MRS_CONCEPT_CLASS_LAB_SET)) {
-            CodeableConceptDt panelOrderCode = codeableConceptService.addTRCoding(order.getConcept());
-            if (panelOrderCode != null && !panelOrderCode.isEmpty()) {
-                diagnosticOrder.addItem(orderBuilder.createOrderItem(order, panelOrderCode));
-            } else {
-                for (Concept testConcept : order.getConcept().getSetMembers()) {
-                    createOrderItemForTest(order, diagnosticOrder, testConcept);
-                }
-            }
-        } else {
-            createOrderItemForTest(order, diagnosticOrder, order.getConcept());
-        }
     }
 
     private void createOrderItemForTest(Order order, DiagnosticOrder diagnosticOrder, Concept concept) {
