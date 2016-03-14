@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum.D;
+import static ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum.H;
+import static ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum.MIN;
 import static ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum.MO;
 import static ca.uhn.fhir.model.dstu2.valueset.UnitsOfTimeEnum.WK;
 
@@ -23,6 +25,8 @@ public class DurationMapperUtil {
 
     private void buildUnitOfTimeMap() {
         unitsOfTimeMap = new HashMap<>();
+        unitsOfTimeMap.put("Minute(s)", MIN);
+        unitsOfTimeMap.put("Hour(s)", H);
         unitsOfTimeMap.put("Day(s)", D);
         unitsOfTimeMap.put("Week(s)", WK);
         unitsOfTimeMap.put("Month(s)", MO);
@@ -30,6 +34,8 @@ public class DurationMapperUtil {
 
     private void buildConceptNameToUnitOfTimeMap() {
         conceptNameToUnitsOfTimeMap = new HashMap<>();
+        conceptNameToUnitsOfTimeMap.put(MIN, "Minute(s)");
+        conceptNameToUnitsOfTimeMap.put(H, "Hour(s)");
         conceptNameToUnitsOfTimeMap.put(D, "Day(s)");
         conceptNameToUnitsOfTimeMap.put(WK, "Week(s)");
         conceptNameToUnitsOfTimeMap.put(MO, "Month(s)");
