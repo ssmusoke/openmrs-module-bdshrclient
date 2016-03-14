@@ -52,6 +52,11 @@ public class MRSProperties {
     public static final String MRS_CONCEPT_PROCEDURE_NOTES = "Procedure Notes";
     public static final String MRS_CONCEPT_PROCEDURE_FOLLOWUP = "Procedure Followup";
 
+    public static final String MRS_CONCEPT_RADIOLOGY_ORDER_FULFILLMENT_FORM = "Radiology Order Fulfillment Form";
+    public static final String MRS_CONCEPT_TYPE_OF_RADIOLOGY_ORDER = "Type of Radiology Order";
+    public static final String MRS_CONCEPT_DATE_OF_RADIOLOGY_ORDER = "Date of Radiology Order";
+    public static final String MRS_CONCEPT_FINDINGS_OF_RADIOLOGY_ORDER = "Radiology Order Findings";
+
     public static final String MRS_CONCEPT_NAME_LAB_NOTES = "LAB_NOTES";
 
     public static final String MRS_CARE_SETTING_FOR_OUTPATIENT = "Outpatient";
