@@ -55,11 +55,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
     
     @Autowired
     private IdMappingRepository idMappingRepository;
-    
-    @Before
-    public void setUp() throws Exception {
-        executeDataSet("testDataSets/labOrderDS.xml");
-    }
+
 
     @After
     public void tearDown() throws Exception {
@@ -68,6 +64,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Test
     public void shouldMapDiagnosticOrder() throws Exception {
+        executeDataSet("testDataSets/labOrderDS.xml");
         EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithItemEventDate.xml", "HIDA764177", "shr-enc-id");
         Set<Order> orders = emrEncounter.getOrders();
         assertFalse(orders.isEmpty());
@@ -88,6 +85,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Test
     public void shouldMapDiagnosticOrderWithoutOrderer() throws Exception {
+        executeDataSet("testDataSets/labOrderDS.xml");
         int shrClientSystemProviderId = 22;
         EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithoutOrderer.xml", "HIDA764177", "shr-enc-id-1");
         Set<Order> orders = emrEncounter.getOrders();
@@ -98,6 +96,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Test
     public void shouldUpdateSameEncounterIfNewOrdersAreAdded() throws Exception {
+        executeDataSet("testDataSets/labOrderDS.xml");
         Encounter existingEncounter = encounterService.getEncounter(42);
         Set<Order> orders = existingEncounter.getOrders();
         assertEquals(1, orders.size());
@@ -115,6 +114,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Test
     public void shouldDiscontinueAnExistingOrderIfUpdatedAsCancelled() throws Exception {
+        executeDataSet("testDataSets/labOrderDS.xml");
         Encounter existingEncounter = encounterService.getEncounter(42);
         Set<Order> orders = existingEncounter.getOrders();
         assertEquals(1, orders.size());
@@ -133,6 +133,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Test
     public void shouldNotDoAnyThingIfOrderWasNotDownloadedAndUpdatedAsCancelled() throws Exception {
+        executeDataSet("testDataSets/labOrderDS.xml");
         EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithCanceledDiagnosticOrder.xml", "HIDA764177", "shr-enc-id-2");
         Set<Order> emrEncounterOrders = emrEncounter.getOrders();
         assertTrue(CollectionUtils.isEmpty(emrEncounterOrders));
@@ -140,6 +141,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Test
     public void shouldProcessAllCancelledOrdersFirst() throws Exception {
+        executeDataSet("testDataSets/labOrderDS.xml");
         Encounter existingEncounter = encounterService.getEncounter(42);
         Set<Order> orders = existingEncounter.getOrders();
         assertEquals(1, orders.size());
@@ -162,6 +164,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Test
     public void shouldSetOrderDateActivatedFromDiagnosticOrderEventIfNotPresentInItem() throws Exception {
+        executeDataSet("testDataSets/labOrderDS.xml");
         EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithDiagnositicOrderEventDate.xml", "HIDA764177", "shr-enc-id-1");
         Set<Order> orders = emrEncounter.getOrders();
         assertFalse(orders.isEmpty());
@@ -174,6 +177,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Test
     public void shouldSetOrderDateActivatedFromEncounterIfEventNotPresent() throws Exception {
+        executeDataSet("testDataSets/labOrderDS.xml");
         Encounter encounter = new Encounter();
         Date encounterDatetime = new Date();
         encounter.setEncounterDatetime(encounterDatetime);
@@ -185,6 +189,27 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         assertEquals("7f7379ba-3ca8-11e3-bf2b-0800271c1b75", order.getConcept().getUuid());
         assertEquals(encounterDatetime, order.getDateActivated());
         assertNotNull(order.getAutoExpireDate());
+    }
+
+    @Test
+    public void shouldMapRadiologyOrders() throws Exception {
+        executeDataSet("testDataSets/radiologyOrderDS.xml");
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithRadiologyOrder.xml", "HIDA764177", "shr-enc-id");
+        Set<Order> orders = emrEncounter.getOrders();
+        assertFalse(orders.isEmpty());
+        assertEquals(1, orders.size());
+        Order order = orders.iterator().next();
+        assertEquals("7f7379ba-3ca8-11e3-bf2b-0800271c1b75", order.getConcept().getUuid());
+        assertEquals(providerService.getProvider(23), order.getOrderer());
+        assertEquals(orderService.getOrderType(16), order.getOrderType());
+        assertEquals(orderService.getCareSetting(1), order.getCareSetting());
+        assertEquals(DateUtil.parseDate("2016-03-11T13:02:16.000+05:30"), order.getDateActivated());
+        assertEquals(DateUtil.parseDate("2016-03-12T13:02:16.000+05:30"), order.getAutoExpireDate());
+        IdMapping idMapping = idMappingRepository.findByExternalId("shr-enc-id:bdee83c1-f559-433f-8932-8711f6174676", IdMappingType.DIAGNOSTIC_ORDER);
+        assertEquals(order.getUuid(), idMapping.getInternalId());
+        assertEquals(IdMappingType.DIAGNOSTIC_ORDER, idMapping.getType());
+        assertEquals("http://shr.com/patients/HIDA764177/encounters/shr-enc-id#DiagnosticOrder/bdee83c1-f559-433f-8932-8711f6174676",
+                idMapping.getUri());
     }
 
     private Order getOrderWithAction(Set<Order> orders, Order.Action action) {

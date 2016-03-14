@@ -1,10 +1,12 @@
 package org.openmrs.module.fhir.mapper.emr;
 
+import ca.uhn.fhir.model.api.ExtensionDt;
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.BaseResource;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
 import ca.uhn.fhir.model.dstu2.valueset.DiagnosticOrderStatusEnum;
+import ca.uhn.fhir.model.primitive.StringDt;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Concept;
 import org.openmrs.Order;
@@ -30,11 +32,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import static org.openmrs.module.fhir.MRSProperties.RESOURCE_MAPPING_EXTERNAL_ID_FORMAT;
+import static org.openmrs.module.fhir.FHIRProperties.*;
+import static org.openmrs.module.fhir.MRSProperties.*;
 
 @Component
 public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
-    private static final String ORDER_NAME = "Lab Order";
 
     @Autowired
     private OMRSConceptLookup omrsConceptLookup;
@@ -59,18 +61,18 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     @Override
     public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) resource;
-        createTestOrders(shrEncounterBundle, diagnosticOrder, emrEncounter, systemProperties);
+        createOrders(shrEncounterBundle, diagnosticOrder, emrEncounter, systemProperties);
     }
 
-    private void createTestOrders(ShrEncounterBundle shrEncounterBundle, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter, SystemProperties systemProperties) {
+    private void createOrders(ShrEncounterBundle shrEncounterBundle, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter, SystemProperties systemProperties) {
         List<IdMapping> idMappingList = fetchOrdersByExternalId(shrEncounterBundle.getShrEncounterId(), diagnosticOrder.getId().getIdPart());
         List<DiagnosticOrder.Item> cancelledItems = getCancelledDiagnosticOrderItems(diagnosticOrder);
         for (DiagnosticOrder.Item item : cancelledItems) {
-            cancelTestOrderForItem(diagnosticOrder, item, shrEncounterBundle, emrEncounter, idMappingList);
+            cancelOrderForItem(diagnosticOrder, item, emrEncounter, idMappingList);
         }
         List<DiagnosticOrder.Item> requestedItems = getRequestedDiagnosticOrderItems(diagnosticOrder);
         for (DiagnosticOrder.Item item : requestedItems) {
-            createTestOrderForItem(diagnosticOrder, item, shrEncounterBundle, emrEncounter, idMappingList, systemProperties);
+            createOrderForItem(diagnosticOrder, item, shrEncounterBundle, emrEncounter, idMappingList, systemProperties);
         }
     }
 
@@ -92,15 +94,15 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         return items;
     }
 
-    private void createTestOrderForItem(DiagnosticOrder diagnosticOrder, DiagnosticOrder.Item diagnosticOrderItemComponent, ShrEncounterBundle shrEncounterBundle, EmrEncounter emrEncounter, List<IdMapping> idMappingList, SystemProperties systemProperties) {
-        Concept testOrderConcept = omrsConceptLookup.findConceptByCode(diagnosticOrderItemComponent.getCode().getCoding());
-        if (testOrderConcept != null) {
-            Order existingRunningOrder = getExistingRunningOrder(idMappingList, testOrderConcept, emrEncounter);
+    private void createOrderForItem(DiagnosticOrder diagnosticOrder, DiagnosticOrder.Item diagnosticOrderItemComponent, ShrEncounterBundle shrEncounterBundle, EmrEncounter emrEncounter, List<IdMapping> idMappingList, SystemProperties systemProperties) {
+        Concept orderConcept = omrsConceptLookup.findConceptByCode(diagnosticOrderItemComponent.getCode().getCoding());
+        if (orderConcept != null) {
+            Order existingRunningOrder = getExistingRunningOrder(idMappingList, orderConcept, emrEncounter);
             if (existingRunningOrder != null)
                 return;
-            Order testOrder = createRequestedTestOrder(diagnosticOrderItemComponent, diagnosticOrder, emrEncounter, testOrderConcept);
-            addOrderToIdMapping(testOrder, diagnosticOrder, shrEncounterBundle, systemProperties);
-            emrEncounter.addOrder(testOrder);
+            Order order = createRequestedOrder(diagnosticOrderItemComponent, diagnosticOrder, emrEncounter, orderConcept);
+            addOrderToIdMapping(order, diagnosticOrder, shrEncounterBundle, systemProperties);
+            emrEncounter.addOrder(order);
         }
     }
 
@@ -126,13 +128,13 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         return idMappingRepository.findMappingsByExternalId(externalId, IdMappingType.DIAGNOSTIC_ORDER);
     }
 
-    private void cancelTestOrderForItem(DiagnosticOrder diagnosticOrder, DiagnosticOrder.Item item, ShrEncounterBundle shrEncounterBundle, EmrEncounter emrEncounter, List<IdMapping> idMappingList) {
-        Concept testOrderConcept = omrsConceptLookup.findConceptByCode(item.getCode().getCoding());
-        if (testOrderConcept != null) {
-            Order existingRunningOrder = getExistingRunningOrder(idMappingList, testOrderConcept, emrEncounter);
+    private void cancelOrderForItem(DiagnosticOrder diagnosticOrder, DiagnosticOrder.Item item, EmrEncounter emrEncounter, List<IdMapping> idMappingList) {
+        Concept orderConcept = omrsConceptLookup.findConceptByCode(item.getCode().getCoding());
+        if (orderConcept != null) {
+            Order existingRunningOrder = getExistingRunningOrder(idMappingList, orderConcept, emrEncounter);
             if (existingRunningOrder == null) return;
-            Order testOrder = createCancelledTestOrder(item, diagnosticOrder, emrEncounter, testOrderConcept, existingRunningOrder);
-            emrEncounter.addOrder(testOrder);
+            Order order = createCancelledOrder(item, diagnosticOrder, emrEncounter, orderConcept, existingRunningOrder);
+            emrEncounter.addOrder(order);
         }
     }
 
@@ -143,32 +145,43 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         return false;
     }
 
-    private Order createCancelledTestOrder(DiagnosticOrder.Item item, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter, Concept testOrderConcept, Order existingRunningOrder) {
+    private Order createCancelledOrder(DiagnosticOrder.Item item, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter, Concept orderConcept, Order existingRunningOrder) {
         Date dateActivated = getDateActivatedFromEventWithStatus(item, diagnosticOrder, DiagnosticOrderStatusEnum.CANCELLED);
         if (dateActivated == null)
             dateActivated = DateUtil.aSecondAfter(emrEncounter.getEncounter().getEncounterDatetime());
-        Order testOrder = createTestOrder(diagnosticOrder, testOrderConcept, dateActivated);
-        testOrder.setAction(Order.Action.DISCONTINUE);
-        testOrder.setOrderReasonNonCoded(MRSProperties.ORDER_DISCONTINUE_REASON);
-        testOrder.setPreviousOrder(existingRunningOrder);
-        return testOrder;
+        Order order = createOrder(diagnosticOrder, orderConcept, dateActivated);
+        order.setAction(Order.Action.DISCONTINUE);
+        order.setOrderReasonNonCoded(MRSProperties.ORDER_DISCONTINUE_REASON);
+        order.setPreviousOrder(existingRunningOrder);
+        return order;
     }
 
-    private Order createRequestedTestOrder(DiagnosticOrder.Item item, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter, Concept testOrderConcept) {
+    private Order createRequestedOrder(DiagnosticOrder.Item item, DiagnosticOrder diagnosticOrder, EmrEncounter emrEncounter, Concept orderConcept) {
         Date dateActivated = getDateActivatedFromEventWithStatus(item, diagnosticOrder, DiagnosticOrderStatusEnum.REQUESTED);
         if (dateActivated == null) dateActivated = emrEncounter.getEncounter().getEncounterDatetime();
-        return createTestOrder(diagnosticOrder, testOrderConcept, dateActivated);
+        return createOrder(diagnosticOrder, orderConcept, dateActivated);
     }
 
-    private Order createTestOrder(DiagnosticOrder diagnosticOrder, Concept testOrderConcept, Date dateActivated) {
-        Order testOrder = new Order();
-        testOrder.setOrderType(orderService.getOrderTypeByName(ORDER_NAME));
-        testOrder.setConcept(testOrderConcept);
-        setOrderer(testOrder, diagnosticOrder);
-        testOrder.setCareSetting(orderCareSettingLookupService.getCareSetting());
-        testOrder.setDateActivated(dateActivated);
-        testOrder.setAutoExpireDate(getAutoExpireDate(dateActivated));
-        return testOrder;
+    private Order createOrder(DiagnosticOrder diagnosticOrder, Concept orderConcept, Date dateActivated) {
+        Order order = new Order();
+        String orderType = getOrderType(diagnosticOrder);
+        order.setOrderType(orderService.getOrderTypeByName(orderType));
+        order.setConcept(orderConcept);
+        setOrderer(order, diagnosticOrder);
+        order.setCareSetting(orderCareSettingLookupService.getCareSetting());
+        order.setDateActivated(dateActivated);
+        order.setAutoExpireDate(getAutoExpireDate(dateActivated));
+        return order;
+    }
+
+    private String getOrderType(DiagnosticOrder diagnosticOrder) {
+        List<ExtensionDt> undeclaredExtensionsByUrl = diagnosticOrder.getUndeclaredExtensionsByUrl(getFhirExtensionUrl(DIAGNOSTIC_ORDER_CATEGORY_EXTENSION_NAME));
+        for (ExtensionDt extensionDt : undeclaredExtensionsByUrl) {
+            if (((StringDt) extensionDt.getValue()).getValue().equals(FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_CODE)) {
+                return MRS_RADIOLOGY_ORDER_TYPE;
+            }
+        }
+        return MRS_LAB_ORDER_TYPE;
     }
 
     private Date getDateActivatedFromEventWithStatus(DiagnosticOrder.Item item, DiagnosticOrder diagnosticOrder, DiagnosticOrderStatusEnum status) {
@@ -210,10 +223,10 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         return status == null || StringUtils.isEmpty(status);
     }
 
-    private Order getExistingRunningOrder(List<IdMapping> orderIdMappings, Concept testOrderConcept, EmrEncounter emrEncounter) {
+    private Order getExistingRunningOrder(List<IdMapping> orderIdMappings, Concept orderConcept, EmrEncounter emrEncounter) {
         for (IdMapping orderIdMapping : orderIdMappings) {
             Order order = orderService.getOrderByUuid(orderIdMapping.getInternalId());
-            if (order.getConcept().equals(testOrderConcept) && isRunningOrder(order, emrEncounter)) {
+            if (order.getConcept().equals(orderConcept) && isRunningOrder(order, emrEncounter)) {
                 return order;
             }
         }
@@ -225,12 +238,12 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
                 && !isExistingOrderDiscontinued(order, emrEncounter);
     }
 
-    private void setOrderer(Order testOrder, DiagnosticOrder diagnosticOrder) {
+    private void setOrderer(Order order, DiagnosticOrder diagnosticOrder) {
         ResourceReferenceDt orderer = diagnosticOrder.getOrderer();
         String practitionerReferenceUrl = null;
         if (orderer != null && !orderer.isEmpty()) {
             practitionerReferenceUrl = orderer.getReference().getValue();
         }
-        testOrder.setOrderer(providerLookupService.getProviderByReferenceUrlOrDefault(practitionerReferenceUrl));
+        order.setOrderer(providerLookupService.getProviderByReferenceUrlOrDefault(practitionerReferenceUrl));
     }
 }
