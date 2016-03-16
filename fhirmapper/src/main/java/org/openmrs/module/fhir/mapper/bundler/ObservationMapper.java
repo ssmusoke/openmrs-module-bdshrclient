@@ -50,6 +50,26 @@ public class ObservationMapper implements EmrObsResourceHandler {
         return !MRS_ENC_TYPE_LAB_RESULT.equals(encounterType);
     }
 
+    @Override
+    public List<FHIRResource> map(Obs obs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
+        List<FHIRResource> result = new ArrayList<>();
+        mapObs(obs, fhirEncounter, null, result, systemProperties);
+        return result;
+    }
+
+    public FHIRResource mapObs(Obs obs, FHIREncounter fhirEncounter, Observation parentObservation, List<FHIRResource> result, SystemProperties systemProperties) {
+        FHIRResource entry = mapObsToFhirResource(obs, fhirEncounter, systemProperties);
+        if (entry == null) return null;
+        Observation observation = (Observation) entry.getResource();
+        if (parentObservation != null)
+            mapRelatedObservation(observation).mergeWith(parentObservation, systemProperties);
+        for (Obs member : obs.getGroupMembers()) {
+            mapObs(member, fhirEncounter, observation, result, systemProperties);
+        }
+        result.add(entry);
+        return entry;
+    }
+
     private boolean isNotOfKnownTypes(CompoundObservation obs) {
         return obs.isOfType(COMPLAINT_CONDITION_TEMPLATE)
                 || obs.isOfType(VISIT_DIAGNOSES)
@@ -57,16 +77,6 @@ public class ObservationMapper implements EmrObsResourceHandler {
                 || obs.isOfType(IMMUNIZATION)
                 || obs.isOfType(PROCEDURES)
                 || obs.isOfType(PROCEDURE_FULFILLMENT);
-    }
-
-    @Override
-    public List<FHIRResource> map(Obs obs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
-        List<FHIRResource> result = new ArrayList<>();
-
-        if (null != obs && !hasIgnoredConcept(obs)) {
-            result = mapToFhirObservation(obs, fhirEncounter, systemProperties);
-        }
-        return result;
     }
 
     private boolean hasIgnoredConcept(Obs obs) {
@@ -81,38 +91,14 @@ public class ObservationMapper implements EmrObsResourceHandler {
         return false;
     }
 
-    public List<FHIRResource> mapToFhirObservation(Obs observation, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
-        List<FHIRResource> result = new ArrayList<>();
-        FHIRResource entry = mapObservation(observation, fhirEncounter, systemProperties);
-        Observation fhirObservation = (Observation) entry.getResource();
-        fhirObservation.setStatus(ObservationStatusEnum.PRELIMINARY);
-        for (Obs member : observation.getGroupMembers()) {
-            mapGroupMember(member, fhirEncounter, fhirObservation, result, systemProperties);
-        }
-        result.add(entry);
-        return result;
-    }
-
-    private FHIRResource mapObservation(Obs openmrsObs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
+    private FHIRResource mapObsToFhirResource(Obs openmrsObs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
+        if (hasIgnoredConcept(openmrsObs)) return null;
         FHIRResource fhirObservationResource = observationBuilder.buildObservationResource(fhirEncounter, openmrsObs.getUuid(), openmrsObs.getConcept().getName().getName(), systemProperties);
         Observation fhirObservation = (Observation) fhirObservationResource.getResource();
         fhirObservation.setStatus(ObservationStatusEnum.PRELIMINARY);
         mapCode(openmrsObs, fhirObservation);
         mapValue(openmrsObs, fhirObservation);
         return fhirObservationResource;
-    }
-
-    private void mapGroupMember(Obs obs, FHIREncounter fhirEncounter, Observation parentObservation, List<FHIRResource> result, SystemProperties systemProperties) {
-        if (hasIgnoredConcept(obs)) {
-            return;
-        }
-        FHIRResource entry = mapObservation(obs, fhirEncounter, systemProperties);
-        Observation observation = (Observation) entry.getResource();
-        mapRelatedObservation(observation).mergeWith(parentObservation, systemProperties);
-        for (Obs member : obs.getGroupMembers()) {
-            mapGroupMember(member, fhirEncounter, observation, result, systemProperties);
-        }
-        result.add(entry);
     }
 
     private void mapValue(Obs openmrsObs, Observation fhirObservation) {

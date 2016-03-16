@@ -1,6 +1,7 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
@@ -10,9 +11,12 @@ import org.junit.After;
 import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.ObsService;
-import org.openmrs.module.fhir.MRSProperties;
+import org.openmrs.module.fhir.FHIRProperties;
+import org.openmrs.module.fhir.MapperTestHelper;
+import org.openmrs.module.fhir.TestFhirFeedHelper;
 import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.mapper.model.FHIRResource;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -64,34 +68,75 @@ public class RadiologyFulfillmentMapperIT extends BaseModuleWebContextSensitiveT
         executeDataSet("testDataSets/radiologyFulfillmentDS.xml");
         Obs observation = obsService.getObs(501);
         List<FHIRResource> resources = radiologyFulfillmentMapper.map(observation, createFhirEncounter(), getSystemProperties("1"));
-        assertFalse(resources == null);
+        assertNotNull(resources);
+        assertEquals(3, resources.size());
 
+        FHIRResource resource = TestFhirFeedHelper.getFirstResourceByType(new DiagnosticReport().getResourceName(), resources);
+        DiagnosticReport report = (DiagnosticReport) resource.getResource();
+        assertEquals(1, report.getRequest().size());
+        String requestUrl = "http://localhost:9997/patients/hid/encounters/shr-enc-1#DiagnosticOrder/6d0ae396-efab-4629-1930-f15206e63ab0";
+        assertEquals(requestUrl, report.getRequest().get(0).getReference().getValue());
+        CodingDt categoryCoding = report.getCategory().getCodingFirstRep();
+        assertEquals(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_DISPLAY, categoryCoding.getDisplay());
+        assertEquals(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_CODE, categoryCoding.getCode());
+        assertEquals(FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL, categoryCoding.getSystem());
+        assertEquals(1, report.getCode().getCoding().size());
+        assertTrue(MapperTestHelper.containsCoding(report.getCode().getCoding(), "501qb827-a67c-4q1f-a705-e5efe0q6a972",
+                "http://localhost:9997/openmrs/ws/rest/v1/tr/concept/501qb827-a67c-4q1f-a705-e5efe0q6a972", "X-Ray Right Chest"));
 
-        FHIRResource report = getResourceByName(resources, "Diagnostic Report");
-        DiagnosticReport resource = (DiagnosticReport) report.getResource();
-        assertEquals("X-Ray Right Chest", resource.getCode().getCoding().get(0).getDisplay());
+        assertEquals(2, TestFhirFeedHelper.getResourceByType(new Observation().getResourceName(), resources).size());
 
-        FHIRResource typeOfOrder = getResourceByName(resources, MRSProperties.MRS_CONCEPT_TYPE_OF_RADIOLOGY_ORDER);
-        Observation type = (Observation) typeOfOrder.getResource();
-        CodeableConceptDt value = (CodeableConceptDt) type.getValue();
-        assertEquals("X-Ray Right Chest", value.getCodingFirstRep().getDisplay());
+        Observation typeOfRadiologyObs = getObsAsResult(report, resources, "Type of Radiology Order");
+        assertNotNull(typeOfRadiologyObs);
+        CodingDt codingDt = ((CodeableConceptDt) typeOfRadiologyObs.getValue()).getCodingFirstRep();
+        assertEquals("501qb827-a67c-4q1f-a705-e5efe0q6a972", codingDt.getCode());
+        assertEquals("http://localhost:9997/openmrs/ws/rest/v1/tr/concept/501qb827-a67c-4q1f-a705-e5efe0q6a972", codingDt.getSystem());
+        assertEquals("X-Ray Right Chest", codingDt.getDisplay());
 
-        FHIRResource dateOfOrder = getResourceByName(resources, MRSProperties.MRS_CONCEPT_DATE_OF_RADIOLOGY_ORDER);
-        Observation date = (Observation) dateOfOrder.getResource();
-        DateTimeDt actualDateTime = (DateTimeDt) date.getValue();
-        DateTimeDt expectedDateTime = new DateTimeDt("2008-08-18");
-        assertEquals(expectedDateTime.getValue(), actualDateTime.getValue());
-
-
-        FHIRResource finding = getResourceByName(resources, MRSProperties.MRS_CONCEPT_FINDINGS_OF_RADIOLOGY_ORDER);
-        Observation findings = (Observation) finding.getResource();
-        assertEquals(new StringDt("Findings"), findings.getValue());
-
+        Observation dateOfRadiologyObs = getObsAsResult(report, resources, "Date of Radiology Order");
+        assertNotNull(dateOfRadiologyObs);
+        assertEquals(DateUtil.parseDate("2008-08-18"), ((DateTimeDt) dateOfRadiologyObs.getValue()).getValue());
     }
 
-    private FHIRResource getResourceByName(List<FHIRResource> resources, String type) {
-        for (FHIRResource resource : resources) {
-            if (resource.getResourceName().equals(type)) return resource;
+    @Test
+    public void shouldMapLocalRadiologyFulfillment() throws Exception {
+        executeDataSet("testDataSets/radiologyFulfillmentDS.xml");
+        Obs observation = obsService.getObs(701);
+        List<FHIRResource> resources = radiologyFulfillmentMapper.map(observation, createFhirEncounter(), getSystemProperties("1"));
+        assertNotNull(resources);
+        assertEquals(4, resources.size());
+
+        FHIRResource resource = TestFhirFeedHelper.getFirstResourceByType(new DiagnosticReport().getResourceName(), resources);
+        DiagnosticReport report = (DiagnosticReport) resource.getResource();
+        String requestUrl = "http://localhost:9997/patients/hid/encounters/shr-enc-1#DiagnosticOrder/6d0ae396-efab-4629-1930-f16206e63ab0";
+        assertEquals(requestUrl, report.getRequest().get(0).getReference().getValue());
+        CodingDt categoryCoding = report.getCategory().getCodingFirstRep();
+        assertEquals(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_DISPLAY, categoryCoding.getDisplay());
+        assertEquals(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_CODE, categoryCoding.getCode());
+        assertEquals(FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL, categoryCoding.getSystem());
+        assertEquals(1, report.getCode().getCoding().size());
+        assertTrue(MapperTestHelper.containsCoding(report.getCode().getCoding(), null, null, "X-ray left hand"));
+
+        assertEquals(3, TestFhirFeedHelper.getResourceByType(new Observation().getResourceName(), resources).size());
+
+        Observation dateOfRadiologyObs = getObsAsResult(report, resources, "Date of Radiology Order");
+        assertNotNull(dateOfRadiologyObs);
+        assertEquals(DateUtil.parseDate("2008-08-18"), ((DateTimeDt) dateOfRadiologyObs.getValue()).getValue());
+
+        Observation radiologyFindings = getObsAsResult(report, resources, "Radiology Order Findings");
+        assertNotNull(radiologyFindings);
+        assertEquals(1, radiologyFindings.getRelated().size());
+
+        Observation probemDescriptionObs = ((Observation) TestFhirFeedHelper.getResourceByReference(radiologyFindings.getRelatedFirstRep().getTarget(), resources).getResource());
+        assertNotNull(probemDescriptionObs);
+        assertEquals("Findings", ((StringDt) probemDescriptionObs.getValue()).getValue());
+    }
+
+    private Observation getObsAsResult(DiagnosticReport report, List<FHIRResource> resources, String display) {
+        for (ResourceReferenceDt resourceReferenceDt : report.getResult()) {
+            Observation observation = (Observation) TestFhirFeedHelper.getResourceByReference(resourceReferenceDt, resources).getResource();
+            if (MapperTestHelper.containsCoding(observation.getCode().getCoding(), null, null, display))
+                return observation;
         }
         return null;
     }
@@ -102,5 +147,4 @@ public class RadiologyFulfillmentMapperIT extends BaseModuleWebContextSensitiveT
         encounter.setId(fhirEncounterId);
         return new FHIREncounter(encounter);
     }
-
 }

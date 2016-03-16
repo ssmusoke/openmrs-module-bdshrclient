@@ -8,7 +8,6 @@ import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
-import ca.uhn.fhir.model.primitive.StringDt;
 import org.openmrs.Obs;
 import org.openmrs.Order;
 import org.openmrs.module.fhir.FHIRProperties;
@@ -30,8 +29,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.openmrs.module.fhir.FHIRProperties.*;
-
 @Component("radiologyFulfillmentMapper")
 public class RadiologyFulfillmentMapper implements EmrObsResourceHandler {
 
@@ -45,83 +42,49 @@ public class RadiologyFulfillmentMapper implements EmrObsResourceHandler {
     private CodeableConceptService codeableConceptService;
 
     @Autowired
-    private ObservationValueMapper observationValueMapper;
+    private ObservationMapper observationMapper;
 
     @Autowired
     private ObservationBuilder observationBuilder;
 
     @Override
     public boolean canHandle(Obs observation) {
-        CompoundObservation procedureFulfillmentObs = new CompoundObservation(observation);
-        return procedureFulfillmentObs.isOfType(ObservationType.RADIOLOGY_FULFILLMENT);
+        CompoundObservation obs = new CompoundObservation(observation);
+        return obs.isOfType(ObservationType.RADIOLOGY_FULFILLMENT);
     }
 
     @Override
-    public List<FHIRResource> map(Obs topLevelObs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
+    public List<FHIRResource> map(Obs orderFullfillmentObs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         List<FHIRResource> fhirResources = new ArrayList<>();
-        buildResult(topLevelObs, fhirEncounter, fhirResources, systemProperties);
+        buildResult(orderFullfillmentObs, fhirEncounter, fhirResources, systemProperties);
         return fhirResources;
     }
 
-    private void buildResult(Obs topLevelTestObs, FHIREncounter fhirEncounter, List<FHIRResource> fhirResourceList, SystemProperties systemProperties) {
-        DiagnosticReport diagnosticReport = buildDiagnosticReport(topLevelTestObs, fhirEncounter, systemProperties);
+    private void buildResult(Obs orderFullfillmentObs, FHIREncounter fhirEncounter, List<FHIRResource> fhirResourceList, SystemProperties systemProperties) {
+        DiagnosticReport diagnosticReport = buildDiagnosticReport(orderFullfillmentObs, fhirEncounter, systemProperties);
         if (diagnosticReport != null) {
-            for (Obs resultObsGroup : topLevelTestObs.getGroupMembers()) {
-                FHIRResource resultResource = getResultResource(resultObsGroup, fhirEncounter, systemProperties);
-                if (resultResource == null) return;
+            for (Obs resultObs : orderFullfillmentObs.getGroupMembers()) {
+                FHIRResource resultResource = getResultResource(resultObs, fhirEncounter, fhirResourceList, systemProperties);
+                if (resultResource == null) continue;
                 ResourceReferenceDt resourceReference = diagnosticReport.addResult();
                 resourceReference.setReference(resultResource.getIdentifier().getValue());
-                fhirResourceList.add(resultResource);
-
             }
             FHIRResource fhirResource = new FHIRResource("Diagnostic Report", diagnosticReport.getIdentifier(), diagnosticReport);
             fhirResourceList.add(fhirResource);
         }
     }
 
-    private FHIRResource getResultResource(Obs resultObsGroup, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
-
-        CompoundObservation resultGroupObservation = new CompoundObservation(resultObsGroup);
-        FHIRResource observationResource = getResultObservation(resultObsGroup, fhirEncounter, systemProperties, resultGroupObservation);
-
-        Observation fhirObservation = (Observation) observationResource.getResource();
-        setObservationStatusForResult(fhirObservation);
-
-        return observationResource;
-    }
-
-    private void setObservationStatusForResult(Observation resultObservation) {
-        resultObservation.setStatus(ObservationStatusEnum.FINAL);
-    }
-
-    private FHIRResource getResultObservation(Obs resultObsGroup, FHIREncounter fhirEncounter, SystemProperties systemProperties, CompoundObservation resultGroupObservation) {
-        Obs resultObs = resultObsGroup;
-// resultGroupObservation.getMemberObsForConcept(resultObsGroup.getConcept());
-        FHIRResource fhirObservationResource = observationBuilder.buildObservationResource(fhirEncounter,
-                UUID.randomUUID().toString(), resultObsGroup.getConcept().getName().getName(), systemProperties);
-        Observation fhirObservation = (Observation) fhirObservationResource.getResource();
-        fhirObservation.setCode(codeableConceptService.addTRCodingOrDisplay(resultObsGroup.getConcept()));
-        if (resultObs != null) {
-            mapResultValue(resultObs, fhirObservation);
-        }
-        return fhirObservationResource;
-    }
-
-    private void mapResultValue(Obs resultObs, Observation fhirObservation) {
-        IDatatype value = observationValueMapper.map(resultObs);
-        if (null != value) {
-            fhirObservation.setValue(value);
-        }
+    private FHIRResource getResultResource(Obs resultObs, FHIREncounter fhirEncounter, List<FHIRResource> fhirResourceList, SystemProperties systemProperties) {
+        return observationMapper.mapObs(resultObs, fhirEncounter, null, fhirResourceList, systemProperties);
     }
 
     private DiagnosticReport buildDiagnosticReport(Obs obs, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         DiagnosticReport report = diagnosticReportBuilder.build(obs, fhirEncounter, systemProperties);
-        report.setCode(getCodeForReport(obs));
+        report.setCode(codeableConceptService.addTRCodingOrDisplay(obs.getOrder().getConcept()));
         org.openmrs.Order obsOrder = obs.getOrder();
         report.setEffective(getOrderTime(obsOrder));
 
-        String uri = getRequestUrl(obsOrder);
-        report.addRequest().setReference(uri);
+        report.addRequest().setReference(getRequestUrl(obsOrder));
         CodeableConceptDt category = new CodeableConceptDt();
         category.addCoding()
                 .setSystem(FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL)
@@ -129,16 +92,6 @@ public class RadiologyFulfillmentMapper implements EmrObsResourceHandler {
                 .setDisplay(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_DISPLAY);
         report.setCategory(category);
         return report;
-    }
-
-    private CodeableConceptDt getCodeForReport(Obs obs) {
-        Set<Obs> groupMembers = obs.getGroupMembers();
-        CodeableConceptDt name = null;
-        for (Obs groupMember : groupMembers) {
-            if (MRSProperties.MRS_CONCEPT_TYPE_OF_RADIOLOGY_ORDER.equals(groupMember.getConcept().getName().getName()))
-                name = codeableConceptService.addTRCodingOrDisplay(groupMember.getValueCoded());
-        }
-        return name;
     }
 
     private String getRequestUrl(Order order) {
