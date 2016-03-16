@@ -19,7 +19,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
 
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -31,6 +33,51 @@ public class EMRPatientServiceIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     private EMRPatientService emrPatientService;
+
+
+    @Test
+    public void shouldSaveAMCIPatientAsEmrPatient() throws Exception {
+        executeDataSet("testDataSets/patientUpdateDS.xml");
+        org.openmrs.module.shrclient.model.Patient patient = getPatientFromJson("patients_response/by_hid.json");
+
+        emrPatientService.createOrUpdateEmrPatient(patient);
+
+        Patient savedPatient = patientService.getPatient(1);
+
+        assertEquals("HouseHold", savedPatient.getGivenName());
+        assertEquals("Patient", savedPatient.getFamilyName());
+        assertEquals(savedPatient.getGender(), "F");
+        assertFalse(savedPatient.getBirthdateEstimated());
+
+        assertAttribute(savedPatient, Constants.HEALTH_ID_ATTRIBUTE, "11421467785");
+        assertAttribute(savedPatient, Constants.NATIONAL_ID_ATTRIBUTE, "7654376543127");
+        assertAttribute(savedPatient, Constants.BIRTH_REG_NO_ATTRIBUTE, "54098540985409815");
+    }
+    
+    @Test
+    public void shouldSaveAMCIPatientWithEstimatedDOB() throws Exception {
+        executeDataSet("testDataSets/patientUpdateDS.xml");
+        org.openmrs.module.shrclient.model.Patient patient = getPatientFromJson("patients_response/patient_with_estimated_DOB.json");
+
+        emrPatientService.createOrUpdateEmrPatient(patient);
+
+        Patient savedPatient = patientService.getPatient(1);
+
+        assertEquals("HouseHold", savedPatient.getGivenName());
+        assertEquals("Patient", savedPatient.getFamilyName());
+        assertEquals(savedPatient.getGender(), "F");
+        assertTrue(savedPatient.getBirthdateEstimated());
+
+        assertAttribute(savedPatient, Constants.HEALTH_ID_ATTRIBUTE, "11421467785");
+        assertAttribute(savedPatient, Constants.NATIONAL_ID_ATTRIBUTE, "7654376543127");
+        assertAttribute(savedPatient, Constants.BIRTH_REG_NO_ATTRIBUTE, "54098540985409815");
+    }
+
+    public void assertAttribute(Patient savedPatient, String attributeName, String expected) {
+        PersonAttribute hidAttribute = savedPatient.getAttribute(attributeName);
+        assertNotNull(hidAttribute);
+        assertEquals(expected, hidAttribute.getValue());
+    }
 
     @Test
     public void shouldMapRelationsToPatientAttributesWhenPresent() throws Exception {

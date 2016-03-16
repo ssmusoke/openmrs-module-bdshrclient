@@ -19,6 +19,21 @@
                            date_created="2005-01-01 00:00:00.0"
                            searchable="1" uuid="5b19584d-10ab-11e4-b4e1-x92kdxiii2ae"/>
 
+    <person_attribute_type person_attribute_type_id="103" name="healthId" description="Health ID"
+                           format="java.lang.String" retired="0" creator="1" sort_weight="1"
+                           date_created="2005-01-01 00:00:00.0"
+                           searchable="1" uuid="5b19584d-kj45-11e4-b4e1-x92kdxiii2ae"/>
+
+    <person_attribute_type person_attribute_type_id="104" name="nationalId" description="National ID"
+                           format="java.lang.String" retired="0" creator="1" sort_weight="1"
+                           date_created="2005-01-01 00:00:00.0"
+                           searchable="1" uuid="5b19584d-kj45-98uy-b4e1-x92kdxiii2ae"/>
+
+    <person_attribute_type person_attribute_type_id="105" name="birthRegistrationId" description="Birth Registration ID"
+                           format="java.lang.String" retired="0" creator="1" sort_weight="1"
+                           date_created="2005-01-01 00:00:00.0"
+                           searchable="1" uuid="5b19584d-kj45-98uy-45re-x92kdxiii2ae"/>
+
     <patient patient_id="1" creator="1" date_created="2005-09-22 00:00:00.0" changed_by="1"
              date_changed="2008-08-18 12:29:59.0" voided="false" void_reason=""/>
     <patient_identifier date_created="2005-09-22 00:00:00" patient_identifier_id="1" patient_id="1"
