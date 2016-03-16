@@ -123,9 +123,9 @@ public class EMRPatientServiceImpl implements EMRPatientService {
 
             Date dob = mciPatient.getDateOfBirth();
             emrPatient.setBirthdate(dob);
+            emrPatient.setBirthdateEstimated(Boolean.FALSE);
             if (DOB_TYPE_ESTIMATED.equals(mciPatient.getDobType())) {
                 emrPatient.setBirthdateEstimated(Boolean.TRUE);
-                emrPatient.setBirthdateEstimated(Boolean.FALSE);
             }
 
             org.openmrs.Patient patient = patientService.savePatient(emrPatient);
