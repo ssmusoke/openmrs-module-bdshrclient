@@ -7,8 +7,8 @@ import org.apache.log4j.Logger;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.exceptions.AtomFeedClientException;
 import org.ict4h.atomfeed.client.service.EventWorker;
-import org.openmrs.*;
 import org.openmrs.Encounter;
+import org.openmrs.*;
 import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.api.EncounterService;
@@ -107,6 +107,9 @@ public class EncounterPush implements EventWorker {
             } else if (order.getOrderType().getName().equals(MRSProperties.MRS_LAB_ORDER_TYPE)) {
                 orderUrlReferenceIds.put(EntityReference.REFERENCE_RESOURCE_NAME, new DiagnosticOrder().getResourceName());
                 saveOrderIdMapping(shrEncounterId, order.getUuid(), IdMappingType.DIAGNOSTIC_ORDER, orderUrlReferenceIds, systemProperties);
+            } else if (order.getOrderType().getName().equals(MRSProperties.MRS_RADIOLOGY_ORDER_TYPE)) {
+                orderUrlReferenceIds.put(EntityReference.REFERENCE_RESOURCE_NAME, new DiagnosticOrder().getResourceName());
+                saveOrderIdMapping(shrEncounterId, order.getUuid(), IdMappingType.DIAGNOSTIC_ORDER, orderUrlReferenceIds, systemProperties);
             }
         }
     }
@@ -134,7 +137,7 @@ public class EncounterPush implements EventWorker {
             idMappingsRepository.saveOrUpdateIdMapping(new DiagnosisIdMapping(obs.getUuid(), externalId, diagnosisUrl));
         }
     }
-    
+
     private void saveEncounterIdMapping(String openMrsEncounterUuid, String healthId, String shrEncounterId, SystemProperties systemProperties) {
         String shrEncounterUrl = getShrEncounterUrl(healthId, shrEncounterId, systemProperties);
         idMappingsRepository.saveOrUpdateIdMapping(new EncounterIdMapping(openMrsEncounterUuid, shrEncounterId, shrEncounterUrl, new Date()));
