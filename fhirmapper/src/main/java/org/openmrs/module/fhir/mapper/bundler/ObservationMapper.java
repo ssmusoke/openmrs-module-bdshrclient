@@ -46,8 +46,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
         if (isNotOfKnownTypes(obs)) {
             return false;
         }
-        String encounterType = observation.getEncounter().getEncounterType().getName();
-        return !MRS_ENC_TYPE_LAB_RESULT.equals(encounterType);
+        return observation.getOrder() == null;
     }
 
     @Override
@@ -75,8 +74,7 @@ public class ObservationMapper implements EmrObsResourceHandler {
                 || obs.isOfType(VISIT_DIAGNOSES)
                 || obs.isOfType(FAMILY_HISTORY)
                 || obs.isOfType(IMMUNIZATION)
-                || obs.isOfType(PROCEDURES)
-                || obs.isOfType(PROCEDURE_FULFILLMENT);
+                || obs.isOfType(PROCEDURES);
     }
 
     private boolean hasIgnoredConcept(Obs obs) {

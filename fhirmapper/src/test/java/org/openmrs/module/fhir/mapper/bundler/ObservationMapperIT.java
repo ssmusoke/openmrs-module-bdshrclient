@@ -22,6 +22,7 @@ import java.util.List;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
@@ -37,20 +38,37 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
     private String prUrl = "http://pr.com/23.json";
     private String prDisplay = "Doc 23";
 
-    @Before
-    public void setUp() throws Exception {
-        executeDataSet("testDataSets/shrClientObservationsTestDs.xml");
-    }
-
     @After
     public void tearDown() throws Exception {
         deleteAllData();
     }
 
     @Test
-    public void shouldMapOMRSObsToFhirObservation() throws Exception {
+    public void shouldMapObservations() throws Exception {
+        executeDataSet("testDataSets/shrClientObservationsTestDs.xml");
         Obs vitalsObs = obsService.getObs(11);
         assertTrue(observationMapper.canHandle(vitalsObs));
+    }
+
+    @Test
+    public void shouldNotMapProcedureFulfillment() throws Exception {
+        executeDataSet("testDataSets/procedureFulfillmentDS.xml");
+        Obs fulfilmentObs = obsService.getObs(1011);
+        assertFalse(observationMapper.canHandle(fulfilmentObs));
+    }
+
+    @Test
+    public void shouldNotHandleRadiologyFulfillment() throws Exception {
+        executeDataSet("testDataSets/radiologyFulfillmentDS.xml");
+        Obs observation = obsService.getObs(501);
+        assertFalse(observationMapper.canHandle(observation));
+    }
+
+
+    @Test
+    public void shouldMapOMRSObsToFhirObservation() throws Exception {
+        executeDataSet("testDataSets/shrClientObservationsTestDs.xml");
+        Obs vitalsObs = obsService.getObs(11);
 
         Encounter fhirEncounter = new Encounter();
         fhirEncounter.addParticipant().setIndividual(new ResourceReferenceDt().setReference(prUrl).setDisplay(prDisplay));
@@ -74,10 +92,10 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldNotMapAllIgnoredObservation() throws Exception {
+        executeDataSet("testDataSets/shrClientObservationsTestDs.xml");
         executeDataSet("testDataSets/globalProperties/ignoreConceptListForDiastolicAndPulse.xml");
         int numberOfObsAsserted = 0;
         Obs vitalsObs = obsService.getObs(11);
-        assertTrue(observationMapper.canHandle(vitalsObs));
 
         Encounter fhirEncounter = new Encounter();
         fhirEncounter.addParticipant().setIndividual(new ResourceReferenceDt().setReference(prUrl).setDisplay(prDisplay));
@@ -100,10 +118,10 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldNotMapAnIgnoredObservationAndItsChildren() throws Exception {
+        executeDataSet("testDataSets/shrClientObservationsTestDs.xml");
         executeDataSet("testDataSets/globalProperties/ignoreConceptListForBP.xml");
         int numberOfObsAsserted = 0;
         Obs vitalsObs = obsService.getObs(11);
-        assertTrue(observationMapper.canHandle(vitalsObs));
 
         Encounter fhirEncounter = new Encounter();
         fhirEncounter.addParticipant().setIndividual(new ResourceReferenceDt().setReference(prUrl).setDisplay(prDisplay));
@@ -126,10 +144,9 @@ public class ObservationMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Test
     public void shouldNotMapRootLevelIgnoredObservations() throws Exception {
+        executeDataSet("testDataSets/shrClientObservationsTestDs.xml");
         executeDataSet("testDataSets/globalProperties/ignoreConceptListForVitals.xml");
         Obs vitalsObs = obsService.getObs(11);
-        assertTrue(observationMapper.canHandle(vitalsObs));
-
 
         Encounter fhirEncounter = new Encounter();
         fhirEncounter.addParticipant().setIndividual(new ResourceReferenceDt().setReference(prUrl).setDisplay(prDisplay));
