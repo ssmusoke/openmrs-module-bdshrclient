@@ -142,7 +142,7 @@
             date_activated="2008-08-08 00:00:00.0" order_number="12344" order_action="NEW" care_setting="1" creator="1"
             date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
             uuid="6d0ae396-efab-4629-1930-f15206e63ab0"/>
-    <order_id_mapping id="113" internal_id="6d0ae396-efab-4629-1930-f15206e63ab0" type="diognosticOrder"
+    <order_id_mapping id="113" internal_id="6d0ae396-efab-4629-1930-f15206e63ab0" type="DiagnosticOrder"
                       external_id="shr-enc-1:6d0ae396-efab-4629-1930-f15206e63ab0"
                       uri="http://localhost:9997/patients/hid/encounters/shr-enc-1#DiagnosticOrder/6d0ae396-efab-4629-1930-f15206e63ab0"/>
     <!--radiology test order-->
@@ -172,7 +172,7 @@
             date_activated="2008-08-08 00:00:00.0" order_number="12344" order_action="NEW" care_setting="1" creator="1"
             date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
             uuid="6d0ae396-efab-4629-1930-f16206e63ab0"/>
-    <order_id_mapping id="114" internal_id="6d0ae396-efab-4629-1930-f16206e63ab0" type="diognosticOrder"
+    <order_id_mapping id="114" internal_id="6d0ae396-efab-4629-1930-f16206e63ab0" type="DiagnosticOrder"
                       external_id="shr-enc-1:6d0ae396-efab-4629-1930-f16206e63ab0"
                       uri="http://localhost:9997/patients/hid/encounters/shr-enc-1#DiagnosticOrder/6d0ae396-efab-4629-1930-f16206e63ab0"/>
 
@@ -197,4 +197,25 @@
          obs_group_id="703" value_text="Findings" concept_id="405" voided="0" order_id="18"/>
     <!--local radiology order and fulfillment with nested results-->
     <!--radiology order fullfillment for TR test-->
+    
+    <!--encounter with order for download-->
+    <encounter encounter_id="41" encounter_type="1" patient_id="1" visit_id="1" location_id="2"
+               encounter_datetime="2008-08-01 00:00:00.0" creator="1" date_created="2008-08-18 14:09:05.0"
+               voided="false" uuid="6d0af6767-707a-4629-ytyt-235216e63ab1"/>
+    <encounter_id_mapping id="41" internal_id="6d0af6767-707a-4629-ytyt-235216e63ab1" external_id="shr-enc-12"
+                          uri="http://localhost:9997/patients/1234512345123/encounters/shr-enc-12"/>
+
+    <encounter_provider encounter_provider_id="41" encounter_id="41" provider_id="22" creator="1"
+                        date_created="2008-07-01 14:09:05.0" voided="false"
+                        uuid="6g0bf6767-607a-bbbb-tyty-f15206e63ab0"/>
+
+    <orders order_id="19" order_type_id="16" encounter_id="41" urgency="ROUTINE" concept_id="303"
+            date_activated="2008-08-08 00:00:00.0" order_number="12344" order_action="NEW" care_setting="1" creator="1"
+            date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
+            uuid="6d0ae396-efab-4629-vvvv-f15206e63ab0"/>
+    <order_id_mapping id="19" internal_id="6d0ae396-efab-4629-vvvv-f15206e63ab0" type="DiagnosticOrder"
+                      external_id="shr-enc-12:880ae396-jfjf-4629-1930-f15206e63ab0"
+                      uri="http://localhost:9997/patients/1234512345123/encounters/shr-enc-12#DiagnosticOrder/880ae396-jfjf-4629-1930-f15206e63ab0"/>
+
+    <!--encounter with order for download-->
 </dataset>

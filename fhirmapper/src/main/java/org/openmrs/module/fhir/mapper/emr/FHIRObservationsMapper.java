@@ -35,9 +35,7 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
     @Override
     public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
         Observation observation = (Observation) resource;
-        Obs result = mapObs(shrEncounterBundle, emrEncounter, observation);
-        if (result == null) return;
-        emrEncounter.addObs(result);
+        mapObs(shrEncounterBundle, emrEncounter, observation);
     }
 
     public Obs mapObs(ShrEncounterBundle encounterComposition, EmrEncounter emrEncounter, Observation observation) {
@@ -53,6 +51,7 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
         } catch (ParseException e) {
             e.printStackTrace();
         }
+        emrEncounter.addObs(result);
         return result;
     }
 
@@ -72,7 +71,6 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
             member = mapObs(encounterComposition, emrEncounter, relatedObs);
             if (member != null) {
                 obs.addGroupMember(member);
-                emrEncounter.addObs(member);
             }
         }
     }

@@ -104,8 +104,8 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
         EmrEncounter emrEncounter = new EmrEncounter(encounter);
         encounter.setPatient(patientService.getPatient(1));
 
-        ShrEncounterBundle encounterComposition = new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-1");
-        diagnosticReportMapper.map(report, emrEncounter, encounterComposition, getSystemProperties("1"));
+        ShrEncounterBundle shrEncounterBundle = new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-1");
+        diagnosticReportMapper.map(report, emrEncounter, shrEncounterBundle, getSystemProperties("1"));
         Set<Obs> obsSet = emrEncounter.getTopLevelObs();
         assertEquals(1, obsSet.size());
         Obs topLevelObs = obsSet.iterator().next();
