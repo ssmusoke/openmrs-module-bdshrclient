@@ -53,7 +53,6 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
     @Autowired
     private IdMappingRepository idMappingRepository;
 
-
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/omrsGlobalPropertyTestDS.xml");
@@ -380,9 +379,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         Encounter encounter = encounterService.getEncounterByUuid(mapping.getInternalId());
 
         Set<Obs> topLevelObs = encounter.getObsAtTopLevel(true);
-        Set<Obs> allObs = encounter.getAllObs(true);
         assertEquals(1, topLevelObs.size());
-        assertEquals(3, allObs.size());
         Obs diastolicBp = topLevelObs.iterator().next().getGroupMembers().iterator().next().getGroupMembers().iterator().next();
         assertEquals(new Double(70.0), diastolicBp.getValueNumeric());
 
@@ -392,10 +389,8 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         encounter = encounterService.getEncounterByUuid(mapping.getInternalId());
 
         assertEquals(2, encounter.getObsAtTopLevel(true).size());
-        assertEquals(6, encounter.getAllObs(true).size());
         topLevelObs = encounter.getObsAtTopLevel(false);
         assertEquals(1, topLevelObs.size());
-        assertEquals(3, encounter.getAllObs(false).size());
         diastolicBp = topLevelObs.iterator().next().getGroupMembers().iterator().next().getGroupMembers().iterator().next();
         assertEquals(new Double(120.0), diastolicBp.getValueNumeric());
     }

@@ -2,15 +2,16 @@ package org.openmrs.module.fhir.mapper.emr;
 
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
+import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
-import org.apache.commons.lang3.StringUtils;
-import org.openmrs.*;
+import org.apache.commons.collections4.CollectionUtils;
+import org.openmrs.Concept;
+import org.openmrs.Obs;
+import org.openmrs.Order;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.FHIRProperties;
-import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
-import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.fhir.utils.FHIRDiagnosticReportRequestHelper;
@@ -19,46 +20,30 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static org.openmrs.module.fhir.MRSProperties.MRS_CONCEPT_CLASS_LAB_SET;
-import static org.openmrs.module.fhir.MRSProperties.MRS_CONCEPT_NAME_LAB_NOTES;
-import static org.openmrs.module.fhir.utils.FHIRBundleHelper.findResourcesByReference;
 
 
 @Component
 public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
-    private OMRSConceptLookup omrsConceptLookup;
-    private FHIRObservationsMapper observationsMapper;
     private ConceptService conceptService;
+    private FHIRObservationsMapper fhirObservationsMapper;
     private FHIRDiagnosticReportRequestHelper fhirDiagnosticReportRequestHelper;
+    private OMRSConceptLookup omrsConceptLookup;
 
     @Autowired
-    public FHIRDiagnosticReportMapper(OMRSConceptLookup omrsConceptLookup, FHIRObservationsMapper observationsMapper,
-                                      ConceptService conceptService, FHIRDiagnosticReportRequestHelper fhirDiagnosticReportRequestHelper) {
-        this.omrsConceptLookup = omrsConceptLookup;
-        this.observationsMapper = observationsMapper;
+    public FHIRDiagnosticReportMapper(ConceptService conceptService, FHIRObservationsMapper fhirObservationsMapper, FHIRDiagnosticReportRequestHelper fhirDiagnosticReportRequestHelper, OMRSConceptLookup omrsConceptLookup) {
         this.conceptService = conceptService;
+        this.fhirObservationsMapper = fhirObservationsMapper;
         this.fhirDiagnosticReportRequestHelper = fhirDiagnosticReportRequestHelper;
+        this.omrsConceptLookup = omrsConceptLookup;
     }
 
     @Override
     public boolean canHandle(IResource resource) {
         if (resource instanceof DiagnosticReport) {
             DiagnosticReport report = (DiagnosticReport) resource;
-            if (hasLabCategory(report))
-                return true;
-        }
-        return false;
-    }
-
-    private boolean hasLabCategory(DiagnosticReport report) {
-        if (report.getCategory().isEmpty()) return true;
-        for (CodingDt codingDt : report.getCategory().getCoding()) {
-            if (FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL.equals(codingDt.getSystem()) &&
-                    FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_CODE.equals(codingDt.getCode()))
+            if (hasRadiologyCategory(report))
                 return true;
         }
         return false;
@@ -66,82 +51,46 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
 
     @Override
     public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
-        DiagnosticReport diagnosticReport = (DiagnosticReport) resource;
-        Order order = null;
-        Concept concept = omrsConceptLookup.findConceptByCode(diagnosticReport.getCode().getCoding());
-        if (concept != null) {
-            order = fhirDiagnosticReportRequestHelper.getOrder(diagnosticReport, concept, this);
-        } else {
-            final ca.uhn.fhir.model.dstu2.resource.Encounter shrEncounter = FHIRBundleHelper.getEncounter(shrEncounterBundle.getBundle());
-            String facilityId = new EntityReference().parse(Location.class, shrEncounter.getServiceProvider().getReference().getValue());
-            ConceptDatatype textDatatype = conceptService.getConceptDatatypeByUuid(ConceptDatatype.TEXT_UUID);
-            ConceptClass labSetClass = conceptService.getConceptClassByName(MRSProperties.MRS_CONCEPT_CLASS_LAB_SET);
-            concept = omrsConceptLookup.createLocalConceptFromCodings(diagnosticReport.getCode().getCoding(), facilityId, labSetClass, textDatatype);
-        }
+        Concept fulfillmentConcept = conceptService.getConceptByName("Radiology Order Fulfillment Form");
+        Obs fulfillmentObs = new Obs();
+        fulfillmentObs.setConcept(fulfillmentConcept);
+        DiagnosticReport report = (DiagnosticReport) resource;
 
-        Obs topLevelResultObsGroup = buildObs(concept, order);
+        addGroupMembers(report, fulfillmentObs, shrEncounterBundle, emrEncounter);
 
-        Set<Obs> resultObsGroups = buildResultObsGroup(shrEncounterBundle, emrEncounter, diagnosticReport, order, concept);
+        Concept reportConcept = omrsConceptLookup.findConceptByCode(report.getCode().getCoding());
+        Order order = fhirDiagnosticReportRequestHelper.getOrder(report, reportConcept);
+        if (order != null) addOrderToResult(fulfillmentObs, order);
 
-        for (Obs resultObs : resultObsGroups) {
-            topLevelResultObsGroup.addGroupMember(resultObs);
-        }
-
-        if (order != null && order.getConcept().getConceptClass().getName().equals(MRS_CONCEPT_CLASS_LAB_SET)) {
-            Obs panelObs = findObsByOrder(emrEncounter, order);
-            if (panelObs == null) {
-                panelObs = buildObs(order.getConcept(), order);
-            }
-            panelObs.addGroupMember(topLevelResultObsGroup);
-            emrEncounter.addObs(panelObs);
-        }
-        emrEncounter.addObs(topLevelResultObsGroup);
+        emrEncounter.addObs(fulfillmentObs);
     }
 
-    private Obs getNotes(Observation observation, Order order) {
-        String comments = observation.getComments();
-        if (StringUtils.isNotBlank(comments)) {
-            Concept labNotesConcept = conceptService.getConceptByName(MRS_CONCEPT_NAME_LAB_NOTES);
-            Obs notesObs = buildObs(labNotesConcept, order);
-            notesObs.setValueText(comments);
-            return notesObs;
+    private void addGroupMembers(DiagnosticReport report, Obs fulfillmentObs, ShrEncounterBundle shrEncounterBundle, EmrEncounter emrEncounter) {
+        List<ResourceReferenceDt> result = report.getResult();
+        for (ResourceReferenceDt resultReference : result) {
+            Observation observationByReference = (Observation) FHIRBundleHelper.findResourceByReference(shrEncounterBundle.getBundle(), resultReference);
+            Obs resultObs = fhirObservationsMapper.mapObs(shrEncounterBundle, emrEncounter, observationByReference);
+            fulfillmentObs.addGroupMember(resultObs);
         }
-        return null;
     }
 
-    private Set<Obs> buildResultObsGroup(ShrEncounterBundle encounterComposition, EmrEncounter emrEncounter, DiagnosticReport diagnosticReport, Order order, Concept concept) {
-        Set<Obs> resultObsGroups = new HashSet<>();
-        List<IResource> resultObservationList = findResourcesByReference(encounterComposition.getBundle(), diagnosticReport.getResult());
-
-        for (IResource resultObservation : resultObservationList) {
-            Obs resultObsGroup = buildObs(concept, order);
-            populateResultsAndNotes(encounterComposition, emrEncounter, order, (Observation) resultObservation, resultObsGroup);
-            resultObsGroups.add(resultObsGroup);
-        }
-        return resultObsGroups;
-    }
-
-    private void populateResultsAndNotes(ShrEncounterBundle encounterComposition, EmrEncounter emrEncounter, Order order, Observation resultObservation, Obs resultObsGroup) {
-        Obs resultObs = observationsMapper.mapObs(encounterComposition, emrEncounter, resultObservation);
-        resultObs.setOrder(order);
-        resultObsGroup.addGroupMember(resultObs);
-        resultObsGroup.addGroupMember(getNotes(resultObservation, order));
-    }
-
-    private Obs findObsByOrder(EmrEncounter emrEncounter, Order order) {
-        for (Obs obs : emrEncounter.getTopLevelObs()) {
-            Order obsOrder = obs.getOrder();
-            if (obsOrder != null && order.equals(obsOrder) && obs.getConcept().equals(order.getConcept())) {
-                return obs;
-            }
-        }
-        return null;
-    }
-
-    private Obs buildObs(Concept concept, Order order) {
-        Obs obs = new Obs();
-        obs.setConcept(concept);
+    private void addOrderToResult(Obs obs, Order order) {
         obs.setOrder(order);
-        return obs;
+        Set<Obs> groupMembers = obs.getGroupMembers();
+        if (CollectionUtils.isNotEmpty(groupMembers)) {
+            for (Obs member : groupMembers) {
+                addOrderToResult(member, order);
+            }
+        }
+    }
+
+    private boolean hasRadiologyCategory(DiagnosticReport report) {
+        if (report.getCategory().isEmpty()) return false;
+        for (CodingDt codingDt : report.getCategory().getCoding()) {
+            if (FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL.equals(codingDt.getSystem()) &&
+                    FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_CODE.equals(codingDt.getCode()))
+                return true;
+        }
+        return false;
     }
 }

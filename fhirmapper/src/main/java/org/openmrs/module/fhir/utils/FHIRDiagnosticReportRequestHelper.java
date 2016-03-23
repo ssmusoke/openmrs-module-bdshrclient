@@ -10,7 +10,6 @@ import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.OrderService;
-import org.openmrs.module.fhir.mapper.emr.FHIRDiagnosticReportMapper;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.EncounterIdMapping;
@@ -34,9 +33,9 @@ public class FHIRDiagnosticReportRequestHelper {
     @Autowired
     private OrderService orderService;
 
-    public Order getOrder(DiagnosticReport diagnosticReport, Concept concept, FHIRDiagnosticReportMapper fhirDiagnosticReportMapper) {
+    public Order getOrder(DiagnosticReport diagnosticReport, Concept concept) {
         List<ResourceReferenceDt> requestDetail = diagnosticReport.getRequest();
-        Order order = findOrderFromOrderRequestDetail(concept, requestDetail, fhirDiagnosticReportMapper);
+        Order order = findOrderFromOrderRequestDetail(concept, requestDetail);
         if (order != null) return order;
         order = findOrderFromEncounterRequestDetail(concept, requestDetail);
         return order;
@@ -46,7 +45,7 @@ public class FHIRDiagnosticReportRequestHelper {
         return Order.Action.NEW.equals(order.getAction()) && order.getDateStopped() == null;
     }
 
-    private Order findOrderFromOrderRequestDetail(Concept concept, List<ResourceReferenceDt> requestDetail, FHIRDiagnosticReportMapper fhirDiagnosticReportMapper) {
+    private Order findOrderFromOrderRequestDetail(Concept concept, List<ResourceReferenceDt> requestDetail) {
         for (ResourceReferenceDt reference : requestDetail) {
             String requestDetailReference = reference.getReference().getValue();
             if (requestDetailReference.contains("#" + new DiagnosticOrder().getResourceName())) {

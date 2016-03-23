@@ -58,7 +58,6 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
 
         ShrEncounterBundle encounterComposition = new ShrEncounterBundle(encounterBundle, "98101039678", "shr-enc-id");
         Encounter encounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
-        assertEquals(4, encounter.getAllObs().size());
 
         Set<Obs> topLevelObs = encounter.getObsAtTopLevel(false);
         assertEquals(1, topLevelObs.size());
@@ -76,7 +75,6 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(1, bpObs.getGroupMembers().size());
         Obs diastolicObs = identifyObsByConcept(bpObs.getGroupMembers(), conceptService.getConcept(305));
         assertTrue(70 == diastolicObs.getValueNumeric());
-
     }
 
     @Test
@@ -88,7 +86,6 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
 
         ShrEncounterBundle encounterComposition = new ShrEncounterBundle(encounterBundle, "98101039678", "shr-enc-id");
         Encounter encounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
-        assertEquals(6, encounter.getAllObs().size());
 
         Set<Obs> topLevelObs = encounter.getObsAtTopLevel(false);
         assertEquals(1, topLevelObs.size());
@@ -130,7 +127,7 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
 
         Patient patient = patientService.getPatient(1);
         ShrEncounterBundle encounterComposition = new ShrEncounterBundle(encounterBundle, "98101039678", "shr-enc-id");
-        Encounter encounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
+        fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
     }
 
     @Test
@@ -150,7 +147,6 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
         ShrEncounterBundle encounterComposition = new ShrEncounterBundle(encounterBundle, "98101039678", "shr-enc-id");
         Encounter emrEncounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
 
-        assertEquals(3, emrEncounter.getAllObs().size());
         final Set<Obs> topLevelObs = emrEncounter.getObsAtTopLevel(false);
         assertEquals(1, topLevelObs.size());
 
@@ -183,7 +179,6 @@ public class FHIRMapperIT extends BaseModuleWebContextSensitiveTest {
 
         ShrEncounterBundle encounterComposition = new ShrEncounterBundle(encounterBundle, "98101039678", "shr-enc-id");
         Encounter encounter = fhirMapper.map(patient, encounterComposition, getSystemProperties("1"));
-        assertEquals(6, encounter.getAllObs().size());
 
         Set<Obs> topLevelObs = encounter.getObsAtTopLevel(false);
         assertEquals(1, topLevelObs.size());
