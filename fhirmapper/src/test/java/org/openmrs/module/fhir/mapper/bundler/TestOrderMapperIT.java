@@ -1,9 +1,11 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import ca.uhn.fhir.model.api.ExtensionDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
 import ca.uhn.fhir.model.dstu2.valueset.DiagnosticOrderStatusEnum;
+import ca.uhn.fhir.model.primitive.StringDt;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -12,6 +14,7 @@ import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.OrderService;
+import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
 import org.openmrs.module.fhir.mapper.model.FHIREncounter;
@@ -27,6 +30,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.openmrs.module.fhir.FHIRProperties.DIAGNOSTIC_ORDER_CATEGORY_EXTENSION_NAME;
+import static org.openmrs.module.fhir.FHIRProperties.getFhirExtensionUrl;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -171,6 +176,10 @@ public class TestOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(orderId, diagnosticOrder.getIdentifierFirstRep().getValue());
         assertFalse(diagnosticOrder.getIdentifier().get(0).isEmpty());
         assertEquals(fhirEncounterId, diagnosticOrder.getEncounter().getReference().getValue());
+        String fhirExtensionUrl = getFhirExtensionUrl(DIAGNOSTIC_ORDER_CATEGORY_EXTENSION_NAME);
+        List<ExtensionDt> extensions = diagnosticOrder.getUndeclaredExtensionsByUrl(fhirExtensionUrl);
+        assertEquals(1, extensions.size());
+        assertEquals(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_CODE, ((StringDt) extensions.get(0).getValue()).getValue());
     }
 
     private FHIREncounter createFhirEncounter() {

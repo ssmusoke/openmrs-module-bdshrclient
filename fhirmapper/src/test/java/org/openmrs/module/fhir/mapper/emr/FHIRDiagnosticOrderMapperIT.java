@@ -5,13 +5,13 @@ import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.OrderService;
 import org.openmrs.api.ProviderService;
+import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.MapperTestHelper;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
@@ -55,7 +55,6 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
     
     @Autowired
     private IdMappingRepository idMappingRepository;
-
 
     @After
     public void tearDown() throws Exception {
@@ -165,7 +164,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
     @Test
     public void shouldSetOrderDateActivatedFromDiagnosticOrderEventIfNotPresentInItem() throws Exception {
         executeDataSet("testDataSets/labOrderDS.xml");
-        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithDiagnosticOrderWithDiagnositicOrderEventDate.xml", "HIDA764177", "shr-enc-id-1");
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/diagnositicOrderWithEventDateAndCategory.xml", "HIDA764177", "shr-enc-id-1");
         Set<Order> orders = emrEncounter.getOrders();
         assertFalse(orders.isEmpty());
         assertEquals(1, orders.size());
@@ -173,6 +172,17 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         assertEquals("7f7379ba-3ca8-11e3-bf2b-0800271c1b75", order.getConcept().getUuid());
         assertEquals(DateUtil.parseDate("2015-08-24T18:10:10.000+05:30"), order.getDateActivated());
         assertNotNull(order.getAutoExpireDate());
+    }
+
+    @Test
+    public void shouldMapLabOrderFromCategory() throws Exception {
+        executeDataSet("testDataSets/labOrderDS.xml");
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/diagnositicOrderWithEventDateAndCategory.xml", "HIDA764177", "shr-enc-id-1");
+        Set<Order> orders = emrEncounter.getOrders();
+        assertFalse(orders.isEmpty());
+        assertEquals(1, orders.size());
+        Order order = orders.iterator().next();
+        assertEquals(MRSProperties.MRS_LAB_ORDER_TYPE, order.getOrderType().getName());
     }
 
     @Test

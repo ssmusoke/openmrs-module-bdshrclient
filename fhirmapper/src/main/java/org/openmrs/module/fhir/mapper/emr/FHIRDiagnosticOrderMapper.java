@@ -32,8 +32,13 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import static org.openmrs.module.fhir.FHIRProperties.*;
-import static org.openmrs.module.fhir.MRSProperties.*;
+import static org.openmrs.module.fhir.FHIRProperties.DIAGNOSTIC_ORDER_CATEGORY_EXTENSION_NAME;
+import static org.openmrs.module.fhir.FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_CODE;
+import static org.openmrs.module.fhir.FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_CODE;
+import static org.openmrs.module.fhir.FHIRProperties.getFhirExtensionUrl;
+import static org.openmrs.module.fhir.MRSProperties.MRS_LAB_ORDER_TYPE;
+import static org.openmrs.module.fhir.MRSProperties.MRS_RADIOLOGY_ORDER_TYPE;
+import static org.openmrs.module.fhir.MRSProperties.RESOURCE_MAPPING_EXTERNAL_ID_FORMAT;
 
 @Component
 public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
@@ -177,8 +182,11 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     private String getOrderType(DiagnosticOrder diagnosticOrder) {
         List<ExtensionDt> undeclaredExtensionsByUrl = diagnosticOrder.getUndeclaredExtensionsByUrl(getFhirExtensionUrl(DIAGNOSTIC_ORDER_CATEGORY_EXTENSION_NAME));
         for (ExtensionDt extensionDt : undeclaredExtensionsByUrl) {
-            if (((StringDt) extensionDt.getValue()).getValue().equals(FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_CODE)) {
+            String value = ((StringDt) extensionDt.getValue()).getValue();
+            if (FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_CODE.equals(value)) {
                 return MRS_RADIOLOGY_ORDER_TYPE;
+            } else if (FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_CODE.equals(value)) {
+                return MRS_LAB_ORDER_TYPE;
             }
         }
         return MRS_LAB_ORDER_TYPE;
