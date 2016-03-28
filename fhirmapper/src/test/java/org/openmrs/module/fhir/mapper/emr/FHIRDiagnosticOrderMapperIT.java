@@ -52,7 +52,7 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
 
     @Autowired
     private EncounterService encounterService;
-    
+
     @Autowired
     private IdMappingRepository idMappingRepository;
 
@@ -220,6 +220,13 @@ public class FHIRDiagnosticOrderMapperIT extends BaseModuleWebContextSensitiveTe
         assertEquals(IdMappingType.DIAGNOSTIC_ORDER, idMapping.getType());
         assertEquals("http://shr.com/patients/HIDA764177/encounters/shr-enc-id#DiagnosticOrder/bdee83c1-f559-433f-8932-8711f6174676",
                 idMapping.getUri());
+    }
+
+    @Test
+    public void shouldSkipDownloadOfOrderIfCategoryCodeNotPresentLocalMaps() throws Exception {
+        executeDataSet("testDataSets/radiologyOrderDS.xml");
+        EmrEncounter emrEncounter = mapOrder("encounterBundles/dstu2/encounterWithOrderCategoryCodeNotPresentLocally.xml", "HIDA764177", "shr-enc-id");
+        assertTrue(CollectionUtils.isEmpty(emrEncounter.getOrders()));
     }
 
     private Order getOrderWithAction(Set<Order> orders, Order.Action action) {

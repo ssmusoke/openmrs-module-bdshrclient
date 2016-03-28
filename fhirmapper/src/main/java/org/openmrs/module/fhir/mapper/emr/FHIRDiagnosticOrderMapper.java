@@ -7,18 +7,19 @@ import ca.uhn.fhir.model.dstu2.resource.BaseResource;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticOrder;
 import ca.uhn.fhir.model.dstu2.valueset.DiagnosticOrderStatusEnum;
 import ca.uhn.fhir.model.primitive.StringDt;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.openmrs.Concept;
 import org.openmrs.Order;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.fhir.mapper.model.OpenMRSOrderTypeMap;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
-import org.openmrs.module.fhir.utils.DateUtil;
-import org.openmrs.module.fhir.utils.OMRSConceptLookup;
-import org.openmrs.module.fhir.utils.OrderCareSettingLookupService;
-import org.openmrs.module.fhir.utils.ProviderLookupService;
+import org.openmrs.module.fhir.utils.*;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
@@ -27,18 +28,11 @@ import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
-import static org.openmrs.module.fhir.FHIRProperties.DIAGNOSTIC_ORDER_CATEGORY_EXTENSION_NAME;
-import static org.openmrs.module.fhir.FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_CODE;
-import static org.openmrs.module.fhir.FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_CODE;
-import static org.openmrs.module.fhir.FHIRProperties.getFhirExtensionUrl;
-import static org.openmrs.module.fhir.MRSProperties.MRS_LAB_ORDER_TYPE;
-import static org.openmrs.module.fhir.MRSProperties.MRS_RADIOLOGY_ORDER_TYPE;
-import static org.openmrs.module.fhir.MRSProperties.RESOURCE_MAPPING_EXTERNAL_ID_FORMAT;
+import static java.util.Arrays.asList;
+import static org.openmrs.module.fhir.FHIRProperties.*;
+import static org.openmrs.module.fhir.MRSProperties.*;
 
 @Component
 public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
@@ -57,6 +51,9 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
 
     @Autowired
     private IdMappingRepository idMappingRepository;
+
+    @Autowired
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Override
     public boolean canHandle(IResource resource) {
@@ -106,6 +103,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
             if (existingRunningOrder != null)
                 return;
             Order order = createRequestedOrder(diagnosticOrderItemComponent, diagnosticOrder, emrEncounter, orderConcept);
+            if (order == null) return;
             addOrderToIdMapping(order, diagnosticOrder, shrEncounterBundle, systemProperties);
             emrEncounter.addOrder(order);
         }
@@ -155,6 +153,7 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
         if (dateActivated == null)
             dateActivated = DateUtil.aSecondAfter(emrEncounter.getEncounter().getEncounterDatetime());
         Order order = createOrder(diagnosticOrder, orderConcept, dateActivated);
+        if (null == order) return null;
         order.setAction(Order.Action.DISCONTINUE);
         order.setOrderReasonNonCoded(MRSProperties.ORDER_DISCONTINUE_REASON);
         order.setPreviousOrder(existingRunningOrder);
@@ -170,6 +169,9 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     private Order createOrder(DiagnosticOrder diagnosticOrder, Concept orderConcept, Date dateActivated) {
         Order order = new Order();
         String orderType = getOrderType(diagnosticOrder);
+        if (null == orderType) {
+            return null;
+        }
         order.setOrderType(orderService.getOrderTypeByName(orderType));
         order.setConcept(orderConcept);
         setOrderer(order, diagnosticOrder);
@@ -180,16 +182,20 @@ public class FHIRDiagnosticOrderMapper implements FHIRResourceMapper {
     }
 
     private String getOrderType(DiagnosticOrder diagnosticOrder) {
-        List<ExtensionDt> undeclaredExtensionsByUrl = diagnosticOrder.getUndeclaredExtensionsByUrl(getFhirExtensionUrl(DIAGNOSTIC_ORDER_CATEGORY_EXTENSION_NAME));
+        String fhirExtensionUrl = getFhirExtensionUrl(DIAGNOSTIC_ORDER_CATEGORY_EXTENSION_NAME);
+        List<OpenMRSOrderTypeMap> orderTypes = globalPropertyLookUpService.getConfiguredOrderTypes();
+        List<ExtensionDt> undeclaredExtensionsByUrl = diagnosticOrder.getUndeclaredExtensionsByUrl(fhirExtensionUrl);
+        if (CollectionUtils.isEmpty(undeclaredExtensionsByUrl)) return MRS_LAB_ORDER_TYPE;
         for (ExtensionDt extensionDt : undeclaredExtensionsByUrl) {
             String value = ((StringDt) extensionDt.getValue()).getValue();
-            if (FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_CODE.equals(value)) {
-                return MRS_RADIOLOGY_ORDER_TYPE;
-            } else if (FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_CODE.equals(value)) {
+            if (FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_CODE.equals(value)) {
                 return MRS_LAB_ORDER_TYPE;
             }
+            for (OpenMRSOrderTypeMap orderType : orderTypes) {
+                if (orderType.getCode().equals(value)) return orderType.getType();
+            }
         }
-        return MRS_LAB_ORDER_TYPE;
+        return null;
     }
 
     private Date getDateActivatedFromEventWithStatus(DiagnosticOrder.Item item, DiagnosticOrder diagnosticOrder, DiagnosticOrderStatusEnum status) {
