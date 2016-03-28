@@ -8,7 +8,6 @@ import ca.uhn.fhir.model.dstu2.valueset.DiagnosticOrderStatusEnum;
 import ca.uhn.fhir.model.primitive.StringDt;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Encounter;
 import org.openmrs.Order;
@@ -36,10 +35,10 @@ import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class RadiologyOrderMapperIT extends BaseModuleWebContextSensitiveTest {
+public class GenericOrderMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
-    private RadiologyOrderMapper radiologyOrderMapper;
+    private GenericOrderMapper genericOrderMapper;
 
     @Autowired
     private EncounterService encounterService;
@@ -59,28 +58,28 @@ public class RadiologyOrderMapperIT extends BaseModuleWebContextSensitiveTest {
     public void shouldHandleRadiologyOrder() throws Exception {
         executeDataSet("testDataSets/radiologyOrderDS.xml");
         Order order = orderService.getOrder(16);
-        assertTrue(radiologyOrderMapper.canHandle(order));
+        assertTrue(genericOrderMapper.canHandle(order));
     }
 
     @Test
     public void shouldNotHandleTestOrder() throws Exception {
         executeDataSet("testDataSets/labOrderDS.xml");
         Order order = orderService.getOrder(20);
-        assertFalse(radiologyOrderMapper.canHandle(order));
+        assertFalse(genericOrderMapper.canHandle(order));
     }
 
     @Test
     public void shouldNotHandleDrugOrder() throws Exception {
         executeDataSet("testDataSets/drugOrderDS.xml");
         Order order = orderService.getOrder(77);
-        assertFalse(radiologyOrderMapper.canHandle(order));
+        assertFalse(genericOrderMapper.canHandle(order));
     }
 
     @Test
     public void shouldMapALocalRadiologyOrder() throws Exception {
         executeDataSet("testDataSets/radiologyOrderDS.xml");
         Order order = orderService.getOrder(16);
-        List<FHIRResource> mappedResources = radiologyOrderMapper.map(order, createFhirEncounter(), new Bundle(), getSystemProperties("1"));
+        List<FHIRResource> mappedResources = genericOrderMapper.map(order, createFhirEncounter(), new Bundle(), getSystemProperties("1"));
         assertTrue(CollectionUtils.isNotEmpty(mappedResources));
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) mappedResources.get(0).getResource();
         assertDiagnosticOrder(diagnosticOrder, order.getUuid());
@@ -99,7 +98,7 @@ public class RadiologyOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(1, encounter.getOrders().size());
         Bundle bundle = new Bundle();
         Order order = encounter.getOrders().iterator().next();
-        List<FHIRResource> mappedResources = radiologyOrderMapper.map(order, fhirEncounter, bundle, getSystemProperties("1"));
+        List<FHIRResource> mappedResources = genericOrderMapper.map(order, fhirEncounter, bundle, getSystemProperties("1"));
         assertNotNull(mappedResources);
         assertEquals(1, mappedResources.size());
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) TestFhirFeedHelper.getFirstResourceByType(new DiagnosticOrder().getResourceName(), mappedResources).getResource();
@@ -115,7 +114,7 @@ public class RadiologyOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/radiologyOrderDS.xml");
         FHIREncounter fhirEncounter = createFhirEncounter();
         Order order = orderService.getOrder(18);
-        List<FHIRResource> fhirResources = radiologyOrderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        List<FHIRResource> fhirResources = genericOrderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         assertTrue(fhirResources.isEmpty());
     }
 
@@ -124,7 +123,7 @@ public class RadiologyOrderMapperIT extends BaseModuleWebContextSensitiveTest {
         executeDataSet("testDataSets/radiologyOrderDS.xml");
         FHIREncounter fhirEncounter = createFhirEncounter();
         Order order = orderService.getOrder(19);
-        List<FHIRResource> fhirResources = radiologyOrderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
+        List<FHIRResource> fhirResources = genericOrderMapper.map(order, fhirEncounter, new Bundle(), getSystemProperties("1"));
         assertEquals(1, fhirResources.size());
         DiagnosticOrder diagnosticOrder = (DiagnosticOrder) fhirResources.get(0).getResource();
         assertDiagnosticOrder(diagnosticOrder, order.getPreviousOrder().getUuid());

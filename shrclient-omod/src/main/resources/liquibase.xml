@@ -1170,4 +1170,21 @@
             update order_id_mapping set type="MedicationOrder" where type is null;
         </sql>
     </changeSet>
+    <changeSet id="bdshrclient-28032016-1629" author="Dubey,sukreet" context="setup">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from global_property where
+                property='shr.openMrsFhirOrderTypeMap';
+            </sqlCheck>
+        </preConditions>
+        <comment>Adding a global property to store maps of openmrs order types to fhir category code and display
+        </comment>
+        <insert tableName="global_property">
+            <column name="property" value="shr.openMrsFhirOrderTypeMap"/>
+            <column name="description" value="
+            List of maps for openmrs order types to fhir category code and display. E.g.:- [{'type':'Radiology Order','code':'RAD','display':'Radiology'},
+            {'type':'Custom Order','code':'CUST','display':'Custom'}]"/>
+            <column name="uuid" valueComputed="uuid()"/>
+        </insert>
+    </changeSet>
 </databaseChangeLog>

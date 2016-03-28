@@ -98,6 +98,7 @@ public class MRSProperties {
     public static final String GLOBAL_PROPERTY_CONCEPT_IMMUNIZATION_STATUS = "shr.concept.immunizationStatus";
 
     public static final String GLOBAL_PROPERTY_IGNORED_CONCEPT_LIST = "shr.ignoreConceptList";
+    public static final String GLOBAL_PROPERTY_OPEN_MRS_FHIR_ORDER_TYPE_MAP = "shr.openMrsFhirOrderTypeMap";
 
     public static final String GLOBAL_PROPERTY_DOSING_FORMS_CONCEPT_UUID = "order.drugDosingUnitsConceptUuid";
 

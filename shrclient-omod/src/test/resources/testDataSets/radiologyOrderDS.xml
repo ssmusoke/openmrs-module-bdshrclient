@@ -1,5 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <dataset>
+    <global_property property="shr.openMrsFhirOrderTypeMap" property_value='[{"type":"Radiology Order","code":"RAD","display":"Radiology"},
+    {"type":"Custom Order","code":"CUST","display":"Custom"}]' description="A Map for Openmrs Order to FHIR Order Category Code" uuid="qkieyg88-efd9-fda3-2b99-z12aalsa677h"/>
+
     <person_attribute_type person_attribute_type_id="100" name="healthId" description="Unique Health ID"
                            format="java.lang.String" retired="0" creator="1" sort_weight="1" date_created="2005-01-01 00:00:00.0"
                            searchable="1" uuid="5b19584d-10ab-11e4-b4e1-1e55d8e9e2ae"/>
