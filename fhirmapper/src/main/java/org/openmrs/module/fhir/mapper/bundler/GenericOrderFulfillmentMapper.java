@@ -2,17 +2,19 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
+import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
 import org.openmrs.Obs;
 import org.openmrs.Order;
 import org.openmrs.module.fhir.FHIRProperties;
-import org.openmrs.module.fhir.mapper.model.CompoundObservation;
+import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.mapper.model.FHIRResource;
-import org.openmrs.module.fhir.mapper.model.ObservationType;
+import org.openmrs.module.fhir.mapper.model.OpenMRSOrderTypeMap;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
@@ -24,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component("radiologyFulfillmentMapper")
-public class RadiologyFulfillmentMapper implements EmrObsResourceHandler {
+public class GenericOrderFulfillmentMapper implements EmrObsResourceHandler {
 
     @Autowired
     private IdMappingRepository idMappingRepository;
@@ -41,10 +43,19 @@ public class RadiologyFulfillmentMapper implements EmrObsResourceHandler {
     @Autowired
     private ObservationBuilder observationBuilder;
 
+    @Autowired
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
+
     @Override
     public boolean canHandle(Obs observation) {
-        CompoundObservation obs = new CompoundObservation(observation);
-        return obs.isOfType(ObservationType.RADIOLOGY_FULFILLMENT);
+        String obsName = observation.getConcept().getName().getName();
+        List<OpenMRSOrderTypeMap> configuredOrderTypes = globalPropertyLookUpService.getConfiguredOrderTypes();
+        for (OpenMRSOrderTypeMap openMRSOrderTypeMap : configuredOrderTypes) {
+            String orderFulfillmentForm = openMRSOrderTypeMap.getType() + MRSProperties.MRS_ORDER_FULFILLMENT_FORM_SUFFIX;
+            if (obsName.equals(orderFulfillmentForm))
+                return true;
+        }
+        return false;
     }
 
     @Override
@@ -79,13 +90,22 @@ public class RadiologyFulfillmentMapper implements EmrObsResourceHandler {
         report.setEffective(getOrderTime(obsOrder));
 
         report.addRequest().setReference(getRequestUrl(obsOrder));
-        CodeableConceptDt category = new CodeableConceptDt();
-        category.addCoding()
-                .setSystem(FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL)
-                .setCode(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_CODE)
-                .setDisplay(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_DISPLAY);
-        report.setCategory(category);
+        report.setCategory(getCategory(obs));
         return report;
+    }
+
+    private CodeableConceptDt getCategory(Obs observation) {
+        CodeableConceptDt category = new CodeableConceptDt();
+        CodingDt codingDt = category.addCoding().setSystem(FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL);
+        String obsName = observation.getConcept().getName().getName();
+        List<OpenMRSOrderTypeMap> configuredOrderTypes = globalPropertyLookUpService.getConfiguredOrderTypes();
+        for (OpenMRSOrderTypeMap openMRSOrderTypeMap : configuredOrderTypes) {
+            String orderFulfillmentForm = openMRSOrderTypeMap.getType() + MRSProperties.MRS_ORDER_FULFILLMENT_FORM_SUFFIX;
+            if (obsName.equals(orderFulfillmentForm))
+                codingDt.setCode(openMRSOrderTypeMap.getCode())
+                        .setDisplay(openMRSOrderTypeMap.getDisplay());
+        }
+        return category;
     }
 
     private String getRequestUrl(Order order) {

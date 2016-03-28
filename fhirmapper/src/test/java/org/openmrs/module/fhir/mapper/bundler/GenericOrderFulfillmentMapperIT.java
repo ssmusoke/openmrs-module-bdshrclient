@@ -28,9 +28,9 @@ import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class RadiologyFulfillmentMapperIT extends BaseModuleWebContextSensitiveTest {
+public class GenericOrderFulfillmentMapperIT extends BaseModuleWebContextSensitiveTest {
     @Autowired
-    private RadiologyFulfillmentMapper radiologyFulfillmentMapper;
+    private GenericOrderFulfillmentMapper genericOrderFulfillmentMapper;
     @Autowired
     private ObsService obsService;
 
@@ -46,28 +46,28 @@ public class RadiologyFulfillmentMapperIT extends BaseModuleWebContextSensitiveT
     public void shouldHandleRadiologyFulfillment() throws Exception {
         executeDataSet("testDataSets/radiologyFulfillmentDS.xml");
         Obs observation = obsService.getObs(501);
-        assertTrue(radiologyFulfillmentMapper.canHandle(observation));
+        assertTrue(genericOrderFulfillmentMapper.canHandle(observation));
     }
 
     @Test
     public void shouldNotHandleProcedureFulfillment() throws Exception {
         executeDataSet("testDataSets/procedureFulfillmentDS.xml");
         Obs fulfilmentObs = obsService.getObs(1011);
-        assertFalse(radiologyFulfillmentMapper.canHandle(fulfilmentObs));
+        assertFalse(genericOrderFulfillmentMapper.canHandle(fulfilmentObs));
     }
 
     @Test
     public void shouldNotHandleRadiologyFulfillment() throws Exception {
         executeDataSet("testDataSets/labResultDS.xml");
         Obs observation = obsService.getObs(1);
-        assertFalse(radiologyFulfillmentMapper.canHandle(observation));
+        assertFalse(genericOrderFulfillmentMapper.canHandle(observation));
     }
 
     @Test
     public void shouldMapRadiologyFulfillment() throws Exception {
         executeDataSet("testDataSets/radiologyFulfillmentDS.xml");
         Obs observation = obsService.getObs(501);
-        List<FHIRResource> resources = radiologyFulfillmentMapper.map(observation, createFhirEncounter(), getSystemProperties("1"));
+        List<FHIRResource> resources = genericOrderFulfillmentMapper.map(observation, createFhirEncounter(), getSystemProperties("1"));
         assertNotNull(resources);
         assertEquals(3, resources.size());
 
@@ -102,7 +102,7 @@ public class RadiologyFulfillmentMapperIT extends BaseModuleWebContextSensitiveT
     public void shouldMapLocalRadiologyFulfillment() throws Exception {
         executeDataSet("testDataSets/radiologyFulfillmentDS.xml");
         Obs observation = obsService.getObs(701);
-        List<FHIRResource> resources = radiologyFulfillmentMapper.map(observation, createFhirEncounter(), getSystemProperties("1"));
+        List<FHIRResource> resources = genericOrderFulfillmentMapper.map(observation, createFhirEncounter(), getSystemProperties("1"));
         assertNotNull(resources);
         assertEquals(4, resources.size());
 
