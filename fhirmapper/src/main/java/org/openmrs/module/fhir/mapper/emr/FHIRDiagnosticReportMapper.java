@@ -11,10 +11,13 @@ import org.openmrs.Obs;
 import org.openmrs.Order;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.FHIRProperties;
+import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
+import org.openmrs.module.fhir.mapper.model.OpenMRSOrderTypeMap;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.fhir.utils.FHIRDiagnosticReportRequestHelper;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,13 +33,15 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     private FHIRObservationsMapper fhirObservationsMapper;
     private FHIRDiagnosticReportRequestHelper fhirDiagnosticReportRequestHelper;
     private OMRSConceptLookup omrsConceptLookup;
+    private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Autowired
-    public FHIRDiagnosticReportMapper(ConceptService conceptService, FHIRObservationsMapper fhirObservationsMapper, FHIRDiagnosticReportRequestHelper fhirDiagnosticReportRequestHelper, OMRSConceptLookup omrsConceptLookup) {
+    public FHIRDiagnosticReportMapper(ConceptService conceptService, FHIRObservationsMapper fhirObservationsMapper, FHIRDiagnosticReportRequestHelper fhirDiagnosticReportRequestHelper, OMRSConceptLookup omrsConceptLookup, GlobalPropertyLookUpService globalPropertyLookUpService) {
         this.conceptService = conceptService;
         this.fhirObservationsMapper = fhirObservationsMapper;
         this.fhirDiagnosticReportRequestHelper = fhirDiagnosticReportRequestHelper;
         this.omrsConceptLookup = omrsConceptLookup;
+        this.globalPropertyLookUpService = globalPropertyLookUpService;
     }
 
     @Override
@@ -51,10 +56,10 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
 
     @Override
     public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
-        Concept fulfillmentConcept = conceptService.getConceptByName("Radiology Order Fulfillment Form");
         Obs fulfillmentObs = new Obs();
-        fulfillmentObs.setConcept(fulfillmentConcept);
         DiagnosticReport report = (DiagnosticReport) resource;
+        Concept fulfillmentConcept = conceptService.getConceptByName(getFulfillmentFormConcept(report)); //might have to change
+        fulfillmentObs.setConcept(fulfillmentConcept);
 
         addGroupMembers(report, fulfillmentObs, shrEncounterBundle, emrEncounter);
 
@@ -63,6 +68,18 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
         if (order != null) addOrderToResult(fulfillmentObs, order);
 
         emrEncounter.addObs(fulfillmentObs);
+    }
+
+    private String getFulfillmentFormConcept(DiagnosticReport report) {
+        for (CodingDt codingDt : report.getCategory().getCoding()) {
+            List<OpenMRSOrderTypeMap> configuredOrderTypes = globalPropertyLookUpService.getConfiguredOrderTypes();
+            for (OpenMRSOrderTypeMap configuredOrderType : configuredOrderTypes) {
+                if (FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL.equals(codingDt.getSystem()) &&
+                        configuredOrderType.getCode().equals(codingDt.getCode()))
+                    return configuredOrderType.getType() + MRSProperties.MRS_ORDER_FULFILLMENT_FORM_SUFFIX;
+            }
+        }
+        return null;
     }
 
     private void addGroupMembers(DiagnosticReport report, Obs fulfillmentObs, ShrEncounterBundle shrEncounterBundle, EmrEncounter emrEncounter) {
@@ -87,9 +104,12 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     private boolean hasRadiologyCategory(DiagnosticReport report) {
         if (report.getCategory().isEmpty()) return false;
         for (CodingDt codingDt : report.getCategory().getCoding()) {
-            if (FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL.equals(codingDt.getSystem()) &&
-                    FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_CODE.equals(codingDt.getCode()))
-                return true;
+            List<OpenMRSOrderTypeMap> configuredOrderTypes = globalPropertyLookUpService.getConfiguredOrderTypes();
+            for (OpenMRSOrderTypeMap configuredOrderType : configuredOrderTypes) {
+                if (FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL.equals(codingDt.getSystem()) &&
+                        configuredOrderType.getCode().equals(codingDt.getCode()))
+                    return true;
+            }
         }
         return false;
     }
