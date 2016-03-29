@@ -6,19 +6,14 @@ import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 import org.apache.commons.collections4.CollectionUtils;
-import org.openmrs.Concept;
-import org.openmrs.Obs;
-import org.openmrs.Order;
+import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.OpenMRSOrderTypeMap;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
-import org.openmrs.module.fhir.utils.FHIRBundleHelper;
-import org.openmrs.module.fhir.utils.FHIRDiagnosticReportRequestHelper;
-import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
-import org.openmrs.module.fhir.utils.OMRSConceptLookup;
+import org.openmrs.module.fhir.utils.*;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -48,7 +43,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     public boolean canHandle(IResource resource) {
         if (resource instanceof DiagnosticReport) {
             DiagnosticReport report = (DiagnosticReport) resource;
-            if (hasMatchingCategoryToAnyOfConfiguredOrder(report))
+            if (!hasLabCategory(report))
                 return true;
         }
         return false;
@@ -58,9 +53,14 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
         Obs fulfillmentObs = new Obs();
         DiagnosticReport report = (DiagnosticReport) resource;
-        Concept fulfillmentConcept = conceptService.getConceptByName(getFulfillmentFormConceptName(report)); //might have to change
-        fulfillmentObs.setConcept(fulfillmentConcept);
-
+        Concept topLevelObsConcept = conceptService.getConceptByName(getFulfillmentFormConceptName(report));
+        if (null == topLevelObsConcept) {
+            String facilityId = FHIREncounterUtil.getFacilityId(shrEncounterBundle.getBundle());
+            ConceptClass miscClass = conceptService.getConceptClassByUuid(ConceptClass.MISC_UUID);
+            ConceptDatatype textDataType = conceptService.getConceptDatatypeByUuid(ConceptDatatype.TEXT_UUID);
+            topLevelObsConcept = omrsConceptLookup.createLocalConceptFromCodings(report.getCategory().getCoding(), facilityId, miscClass, textDataType);
+        }
+        fulfillmentObs.setConcept(topLevelObsConcept);
         addGroupMembers(report, fulfillmentObs, shrEncounterBundle, emrEncounter);
 
         Concept reportConcept = omrsConceptLookup.findConceptByCode(report.getCode().getCoding());
@@ -101,15 +101,12 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
         }
     }
 
-    private boolean hasMatchingCategoryToAnyOfConfiguredOrder(DiagnosticReport report) {
-        if (report.getCategory().isEmpty()) return false;
+    private boolean hasLabCategory(DiagnosticReport report) {
+        if (report.getCategory().isEmpty()) return true;
         for (CodingDt codingDt : report.getCategory().getCoding()) {
-            List<OpenMRSOrderTypeMap> configuredOrderTypes = globalPropertyLookUpService.getConfiguredOrderTypes();
-            for (OpenMRSOrderTypeMap configuredOrderType : configuredOrderTypes) {
-                if (FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL.equals(codingDt.getSystem()) &&
-                        configuredOrderType.getCode().equals(codingDt.getCode()))
-                    return true;
-            }
+            if (FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL.equals(codingDt.getSystem()) &&
+                    FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_CODE.equals(codingDt.getCode()))
+                return true;
         }
         return false;
     }

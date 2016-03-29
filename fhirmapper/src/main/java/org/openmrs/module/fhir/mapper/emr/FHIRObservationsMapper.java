@@ -9,6 +9,7 @@ import org.openmrs.module.fhir.mapper.model.EmrEncounter;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
+import org.openmrs.module.fhir.utils.FHIREncounterUtil;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
 import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,16 +40,15 @@ public class FHIRObservationsMapper implements FHIRResourceMapper {
         emrEncounter.addObs(obs);
     }
 
-    public Obs mapObs(ShrEncounterBundle encounterComposition, EmrEncounter emrEncounter, Observation observation) {
-        final ca.uhn.fhir.model.dstu2.resource.Encounter shrEncounter = FHIRBundleHelper.getEncounter(encounterComposition.getBundle());
-        String facilityId = new EntityReference().parse(Location.class, shrEncounter.getServiceProvider().getReference().getValue());
+    public Obs mapObs(ShrEncounterBundle shrEncounterBundle, EmrEncounter emrEncounter, Observation observation) {
+        String facilityId = FHIREncounterUtil.getFacilityId(shrEncounterBundle.getBundle());
         Concept concept = mapConcept(observation, facilityId);
         if (concept == null) return null;
         Obs result = new Obs();
         result.setConcept(concept);
         try {
             mapValue(observation, concept, result);
-            mapRelatedObservations(encounterComposition, observation, result, emrEncounter);
+            mapRelatedObservations(shrEncounterBundle, observation, result, emrEncounter);
         } catch (ParseException e) {
             e.printStackTrace();
         }

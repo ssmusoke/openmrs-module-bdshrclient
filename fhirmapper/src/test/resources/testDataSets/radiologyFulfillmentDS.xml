@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <dataset>
     <global_property property="shr.orderTypeToFHIRCodeMappings" property_value='[{"type":"Radiology Order","code":"RAD","display":"Radiology"},
-    {"type":"Custom Order","code":"CUST","display":"Custom"}]' description="A Map for Openmrs Order to FHIR Order Category Code" uuid="qkieyg88-efd9-fda3-2b99-z12aalsa677h"/>
+    {"type":"Endoscopy Order","code":"ED","display":"Endoscopy"}]' description="A Map for Openmrs Order to FHIR Order Category Code" uuid="qkieyg88-efd9-fda3-2b99-z12aalsa677h"/>
 
     <person_attribute_type person_attribute_type_id="100" name="healthId" description="Unique Health ID"
                            format="java.lang.String" retired="0" creator="1" sort_weight="1"
@@ -123,11 +123,24 @@
                   concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <concept_set concept_set_id="405" concept_id="405" concept_set="404" creator="1" sort_weight="1"
                  date_created="2005-01-01 00:00:00.0"/>
+
+    <concept concept_id="406" retired="false" datatype_id="3" class_id="11" is_set="false" creator="1"
+             date_created="2005-01-01 00:00:00.0" uuid="7f736666-slsz-14po-uuzu-0800271c1b75"/>
+    <concept_name concept_name_id="406" concept_id="406" name="Upper Gastrointestinal" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="637de959-kj6t-xuuu-0222-bc4335835ea9"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+    <shr_id_mapping id="2" internal_id="7f736666-slsz-14po-uuzu-0800271c1b75" external_id="501qb827-df45-4q1f-a705-e5efe0q6a972"
+                    type="concept" uri="http://localhost:9997/openmrs/ws/rest/v1/tr/concept/501qb827-df45-4q1f-a705-e5efe0q6a972"/>
+
     <!--fullfillment form templates-->
 
     <order_type order_type_id="16" name="Radiology Order" description="An order for radiology tests" creator="1"
                 java_class_name="org.openmrs.Order"
                 date_created="2008-08-15 13:49:47.0" retired="false" uuid="92c1bdef-72d4-49d9-8a1f-804892f66abd"/>
+
+    <order_type order_type_id="17" name="Endoscopy Order" description="An order for Endoscopy tests" creator="1"
+                java_class_name="org.openmrs.Order"
+                date_created="2008-08-15 13:49:47.0" retired="false" uuid="92c1bdef-14p9-49d9-8a1f-804892f66abd"/>
 
     <!--radiology order fullfillment for TR test-->
     <!--radiology test order-->
@@ -219,6 +232,14 @@
     <order_id_mapping id="19" internal_id="6d0ae396-efab-4629-vvvv-f15206e63ab0" type="DiagnosticOrder"
                       external_id="shr-enc-12:880ae396-jfjf-4629-1930-f15206e63ab0"
                       uri="http://localhost:9997/patients/1234512345123/encounters/shr-enc-12#DiagnosticOrder/880ae396-jfjf-4629-1930-f15206e63ab0"/>
+
+    <orders order_id="20" order_type_id="17" encounter_id="41" urgency="ROUTINE" concept_id="406"
+            date_activated="2008-08-08 00:00:00.0" order_number="12344" order_action="NEW" care_setting="1" creator="1"
+            date_created="2008-08-19 12:20:22.0" voided="false" patient_id="1" orderer="23"
+            uuid="6d0ae396-efab-4629-lk89-f15206e63ab0"/>
+    <order_id_mapping id="20" internal_id="6d0ae396-efab-4629-lk89-f15206e63ab0" type="DiagnosticOrder"
+                      external_id="shr-enc-12:880ae396-lk87-4629-1930-f15206e63ab0"
+                      uri="http://localhost:9997/patients/1234512345123/encounters/shr-enc-12#DiagnosticOrder/880ae396-lk87-4629-1930-f15206e63ab0"/>
 
     <!--encounter with order for download-->
 </dataset>

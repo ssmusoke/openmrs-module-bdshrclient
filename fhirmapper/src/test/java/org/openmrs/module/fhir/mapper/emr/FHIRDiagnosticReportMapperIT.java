@@ -88,6 +88,73 @@ public class FHIRDiagnosticReportMapperIT extends BaseModuleWebContextSensitiveT
     }
 
     @Test
+    public void shouldDownloadAnOrderFulfillmentWhenOrderTypeNotPresentLocally() throws Exception {
+        executeDataSet("testDataSets/radiologyFulfillmentDS.xml");
+        Bundle bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/diagnosticReportWithAudiologyReport.xml", springContext);
+        IResource report = FHIRBundleHelper.identifyFirstResourceWithName(bundle, new DiagnosticReport().getResourceName());
+
+        ShrEncounterBundle shrEncounterBundle = new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-1");
+        EmrEncounter emrEncounter = new EmrEncounter(new Encounter());
+        fhirDiagnosticReportMapper.map(report, emrEncounter, shrEncounterBundle, getSystemProperties("1"));
+
+        Set<Obs> topLevelObs = emrEncounter.getTopLevelObs();
+        assertEquals(1, topLevelObs.size());
+
+        Obs audiologyObs = topLevelObs.iterator().next();
+        assertEquals("Audiology" + MRSProperties.UNVERIFIED_BY_TR, audiologyObs.getConcept().getName().getName());
+        assertEquals(3, audiologyObs.getGroupMembers().size());
+        assertNull(audiologyObs.getOrder());
+
+        ObsHelper obsHelper = new ObsHelper();
+        Obs typeOfAudiologyObs = obsHelper.findMemberObsByConceptName(audiologyObs, "Type of Audiology" + MRSProperties.UNVERIFIED_BY_TR);
+        assertNotNull(typeOfAudiologyObs);
+        assertEquals("Tympanometry", typeOfAudiologyObs.getValueText());
+        assertNull(typeOfAudiologyObs.getOrder());
+
+        Obs findingsObs = obsHelper.findMemberObsByConceptName(audiologyObs, "Audiology order findings" + MRSProperties.UNVERIFIED_BY_TR);
+        assertEquals("crack head", findingsObs.getValueText());
+        assertNull(findingsObs.getOrder());
+
+        Obs dateObs = obsHelper.findMemberObsByConceptName(audiologyObs, "Date of Audiology test" + MRSProperties.UNVERIFIED_BY_TR);
+        assertEquals("22 Mar 2016", dateObs.getValueText());
+        assertNull(dateObs.getOrder());
+    }
+
+    @Test
+    public void shouldDownloadAnOrderFulfillmentWhenOrderIsPresentButFulfillmentFormIsNotSetup() throws Exception {
+        executeDataSet("testDataSets/radiologyFulfillmentDS.xml");
+        Bundle bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/diagnosticReportWithEndoscopyReport.xml", springContext);
+        IResource report = FHIRBundleHelper.identifyFirstResourceWithName(bundle, new DiagnosticReport().getResourceName());
+        Order order = orderService.getOrder(20);
+
+        ShrEncounterBundle shrEncounterBundle = new ShrEncounterBundle(bundle, "98101039678", "shr-enc-id-1");
+        EmrEncounter emrEncounter = new EmrEncounter(new Encounter());
+        fhirDiagnosticReportMapper.map(report, emrEncounter, shrEncounterBundle, getSystemProperties("1"));
+
+        Set<Obs> topLevelObs = emrEncounter.getTopLevelObs();
+        assertEquals(1, topLevelObs.size());
+
+        Obs endoscopyObs = topLevelObs.iterator().next();
+        assertEquals("Endoscopy" + MRSProperties.UNVERIFIED_BY_TR, endoscopyObs.getConcept().getName().getName());
+        assertEquals(3, endoscopyObs.getGroupMembers().size());
+        assertEquals(order, endoscopyObs.getOrder());
+
+        ObsHelper obsHelper = new ObsHelper();
+        Obs typeOfEndoscopyObs = obsHelper.findMemberObsByConceptName(endoscopyObs, "Type of Endoscopy" + MRSProperties.UNVERIFIED_BY_TR);
+        assertNotNull(typeOfEndoscopyObs);
+        assertEquals("Upper Gastrointestinal", typeOfEndoscopyObs.getValueText());
+        assertEquals(order,typeOfEndoscopyObs.getOrder());
+
+        Obs findingsObs = obsHelper.findMemberObsByConceptName(endoscopyObs, "Endoscopy order findings" + MRSProperties.UNVERIFIED_BY_TR);
+        assertEquals("crack head", findingsObs.getValueText());
+        assertEquals(order, findingsObs.getOrder());
+
+        Obs dateObs = obsHelper.findMemberObsByConceptName(endoscopyObs, "Date of Endoscopy test" + MRSProperties.UNVERIFIED_BY_TR);
+        assertEquals("22 Mar 2016", dateObs.getValueText());
+        assertEquals(order, dateObs.getOrder());
+    }
+
+    @Test
     public void shouldMapLocalRadiologyReport() throws Exception {
         executeDataSet("testDataSets/radiologyFulfillmentDS.xml");
         Bundle bundle = (Bundle) new MapperTestHelper().loadSampleFHIREncounter("encounterBundles/dstu2/diagnosticReportWithLocalRadiologyOrder.xml", springContext);
