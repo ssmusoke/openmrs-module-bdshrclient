@@ -48,7 +48,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     public boolean canHandle(IResource resource) {
         if (resource instanceof DiagnosticReport) {
             DiagnosticReport report = (DiagnosticReport) resource;
-            if (hasRadiologyCategory(report))
+            if (hasMatchingCategoryToAnyOfConfiguredOrder(report))
                 return true;
         }
         return false;
@@ -58,7 +58,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
     public void map(IResource resource, EmrEncounter emrEncounter, ShrEncounterBundle shrEncounterBundle, SystemProperties systemProperties) {
         Obs fulfillmentObs = new Obs();
         DiagnosticReport report = (DiagnosticReport) resource;
-        Concept fulfillmentConcept = conceptService.getConceptByName(getFulfillmentFormConcept(report)); //might have to change
+        Concept fulfillmentConcept = conceptService.getConceptByName(getFulfillmentFormConceptName(report)); //might have to change
         fulfillmentObs.setConcept(fulfillmentConcept);
 
         addGroupMembers(report, fulfillmentObs, shrEncounterBundle, emrEncounter);
@@ -70,7 +70,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
         emrEncounter.addObs(fulfillmentObs);
     }
 
-    private String getFulfillmentFormConcept(DiagnosticReport report) {
+    private String getFulfillmentFormConceptName(DiagnosticReport report) {
         for (CodingDt codingDt : report.getCategory().getCoding()) {
             List<OpenMRSOrderTypeMap> configuredOrderTypes = globalPropertyLookUpService.getConfiguredOrderTypes();
             for (OpenMRSOrderTypeMap configuredOrderType : configuredOrderTypes) {
@@ -101,7 +101,7 @@ public class FHIRDiagnosticReportMapper implements FHIRResourceMapper {
         }
     }
 
-    private boolean hasRadiologyCategory(DiagnosticReport report) {
+    private boolean hasMatchingCategoryToAnyOfConfiguredOrder(DiagnosticReport report) {
         if (report.getCategory().isEmpty()) return false;
         for (CodingDt codingDt : report.getCategory().getCoding()) {
             List<OpenMRSOrderTypeMap> configuredOrderTypes = globalPropertyLookUpService.getConfiguredOrderTypes();

@@ -1174,16 +1174,16 @@
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 select count(*) from global_property where
-                property='shr.openMrsFhirOrderTypeMap';
+                property='shr.orderTypeToFHIRCodeMappings';
             </sqlCheck>
         </preConditions>
-        <comment>Adding a global property to store maps of openmrs order types to fhir category code and display
+        <comment>Adding a global property to store mappings of openmrs order types to fhir category code and display
         </comment>
         <insert tableName="global_property">
-            <column name="property" value="shr.openMrsFhirOrderTypeMap"/>
+            <column name="property" value="shr.orderTypeToFHIRCodeMappings"/>
             <column name="description" value="
-            List of maps for openmrs order types to fhir category code and display. E.g.:- [{'type':'Radiology Order','code':'RAD','display':'Radiology'},
-            {'type':'Custom Order','code':'CUST','display':'Custom'}]"/>
+            List of maps for openmrs order types to fhir category code and display. E.g.:- [{&quot;type&quot;:&quot;Radiology Order&quot;,&quot;code&quot;:&quot;RAD&quot;,&quot;display&quot;:&quot;Radiology&quot;},
+            {&quot;type&quot;:&quot;Custom Order&quot;,&quot;code&quot;:&quot;CUST&quot;,&quot;display&quot;:&quot;Custom&quot;}]"/>
             <column name="uuid" valueComputed="uuid()"/>
         </insert>
     </changeSet>

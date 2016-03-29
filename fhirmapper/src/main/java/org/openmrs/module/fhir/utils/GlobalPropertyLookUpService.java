@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static java.util.Arrays.asList;
-import static org.openmrs.module.fhir.MRSProperties.GLOBAL_PROPERTY_OPEN_MRS_FHIR_ORDER_TYPE_MAP;
+import static org.openmrs.module.fhir.MRSProperties.GLOBAL_PROPERTY_ORDER_TYPE_TO_FHIR_CODE_MAPPINGS;
 
 @Component
 public class GlobalPropertyLookUpService {
@@ -28,14 +28,14 @@ public class GlobalPropertyLookUpService {
     }
 
     public List<OpenMRSOrderTypeMap> getConfiguredOrderTypes() {
-        String orderTypes = getGlobalPropertyValue(GLOBAL_PROPERTY_OPEN_MRS_FHIR_ORDER_TYPE_MAP);
+        String orderTypes = getGlobalPropertyValue(GLOBAL_PROPERTY_ORDER_TYPE_TO_FHIR_CODE_MAPPINGS);
         if (StringUtils.isBlank(orderTypes)) return Collections.emptyList();
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         try {
             return asList(mapper.readValue(orderTypes, OpenMRSOrderTypeMap[].class));
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Invalid Property value for %s", GLOBAL_PROPERTY_OPEN_MRS_FHIR_ORDER_TYPE_MAP));
+            throw new RuntimeException(String.format("Invalid Property value for %s", GLOBAL_PROPERTY_ORDER_TYPE_TO_FHIR_CODE_MAPPINGS));
         }
     }
 }

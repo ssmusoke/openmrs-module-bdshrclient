@@ -52,7 +52,6 @@ public class MRSProperties {
     public static final String MRS_CONCEPT_PROCEDURE_NOTES = "Procedure Notes";
     public static final String MRS_CONCEPT_PROCEDURE_FOLLOWUP = "Procedure Followup";
 
-    public static final String MRS_CONCEPT_RADIOLOGY_ORDER_FULFILLMENT_FORM = "Radiology Order Fulfillment Form";
     public static final String MRS_ORDER_FULFILLMENT_FORM_SUFFIX = " Fulfillment Form";
 
     public static final String MRS_CONCEPT_NAME_LAB_NOTES = "LAB_NOTES";
@@ -96,7 +95,7 @@ public class MRSProperties {
     public static final String GLOBAL_PROPERTY_CONCEPT_IMMUNIZATION_STATUS = "shr.concept.immunizationStatus";
 
     public static final String GLOBAL_PROPERTY_IGNORED_CONCEPT_LIST = "shr.ignoreConceptList";
-    public static final String GLOBAL_PROPERTY_OPEN_MRS_FHIR_ORDER_TYPE_MAP = "shr.openMrsFhirOrderTypeMap";
+    public static final String GLOBAL_PROPERTY_ORDER_TYPE_TO_FHIR_CODE_MAPPINGS = "shr.orderTypeToFHIRCodeMappings";
 
     public static final String GLOBAL_PROPERTY_DOSING_FORMS_CONCEPT_UUID = "order.drugDosingUnitsConceptUuid";
 
