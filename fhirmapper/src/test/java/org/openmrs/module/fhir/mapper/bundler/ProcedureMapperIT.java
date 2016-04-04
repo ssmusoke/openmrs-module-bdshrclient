@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Obs;
 import org.openmrs.api.ObsService;
+import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.TestFhirFeedHelper;
 import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.mapper.model.FHIRResource;
@@ -107,6 +108,11 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
 
         FHIRResource diagnosticReportResource = TestFhirFeedHelper.getFirstResourceByType(new DiagnosticReport().getResourceName(), fhirResources);
         assertNotNull(diagnosticReportResource);
+        CodingDt categoryCoding = ((DiagnosticReport) diagnosticReportResource.getResource()).getCategory().getCodingFirstRep();
+        assertEquals(FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL, categoryCoding.getSystem());
+        assertEquals(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_OTHER_CODE, categoryCoding.getCode());
+        assertEquals(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_OTHER_DISPLAY, categoryCoding.getDisplay());
+
         assertEquals("urn:uuid:ew6574cb-22yy-891a-giz7-3450552c77459", diagnosticReportResource.getIdentifierList().get(0).getValue());
         assertEquals("urn:uuid:ew6574cb-22yy-891a-giz7-3450552c77459", diagnosticReportResource.getResource().getId().getValue());
         assertEquals("Diagnostic Report", diagnosticReportResource.getResourceName());

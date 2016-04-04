@@ -23,6 +23,8 @@ public class FHIRProperties {
     public static final String FHIR_DIAGNOSTIC_REPORT_CATEGORY_LAB_DISPLAY = "Laboratory";
     public static final String FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_CODE = "RAD";
     public static final String FHIR_DIAGNOSTIC_REPORT_CATEGORY_RADIOLOGY_DISPLAY = "Radiology";
+    public static final String FHIR_DIAGNOSTIC_REPORT_CATEGORY_OTHER_CODE = "OTH";
+    public static final String FHIR_DIAGNOSTIC_REPORT_CATEGORY_OTHER_DISPLAY = "Other";
 
     public static final String FHIR_YES_NO_INDICATOR_URL = "http://hl7.org/fhir/v2/0136";
     public static final String FHIR_YES_INDICATOR_CODE = "Y";

@@ -15,6 +15,7 @@ import ca.uhn.fhir.model.dstu2.valueset.ProcedureStatusEnum;
 import ca.uhn.fhir.model.primitive.BoundCodeDt;
 import org.openmrs.Concept;
 import org.openmrs.Obs;
+import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.mapper.model.*;
 import org.openmrs.module.fhir.utils.CodeableConceptService;
 import org.openmrs.module.fhir.utils.OMRSConceptLookup;
@@ -164,11 +165,21 @@ public class ProcedureMapper implements EmrObsResourceHandler {
         if (diagnosisTestName != null) {
             DiagnosticReport diagnosticReport = diagnosticReportBuilder.build(diagnosticStudyObs.getRawObservation(), fhirEncounter, systemProperties);
             diagnosticReport.setCode(diagnosisTestName);
+            addCategoryToReport(diagnosticReport);
             addDiagnosticResults(diagnosticStudyObs, systemProperties, allResources, diagnosticReport);
             addDiagnosisToDiagnosticReport(diagnosticReport, diagnosticStudyObs);
             return diagnosticReport;
         }
         return null;
+    }
+
+    private void addCategoryToReport(DiagnosticReport diagnosticReport) {
+        CodeableConceptDt category = new CodeableConceptDt();
+        category.addCoding()
+                .setSystem(FHIRProperties.FHIR_V2_VALUESET_DIAGNOSTIC_REPORT_CATEGORY_URL)
+                .setCode(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_OTHER_CODE)
+                .setDisplay(FHIRProperties.FHIR_DIAGNOSTIC_REPORT_CATEGORY_OTHER_DISPLAY    );
+        diagnosticReport.setCategory(category);
     }
 
     private void addDiagnosticResults(CompoundObservation diagnosticStudyObs, SystemProperties systemProperties, List<FHIRResource> allResources, DiagnosticReport diagnosticReport) {
