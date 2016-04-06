@@ -1187,4 +1187,34 @@
             <column name="uuid" valueComputed="uuid()"/>
         </insert>
     </changeSet>
+    <changeSet id="bdshrclient-20160406-1556" author="neha" context="setup">
+        <comment>Increasing the length of shr_id_mapping uri column</comment>
+        <sql>
+            ALTER TABLE shr_id_mapping MODIFY uri VARCHAR(250);
+        </sql>
+    </changeSet>
+    <changeSet id="bdshrclient-20160406-1557" author="neha" context="setup">
+        <comment>Increasing the length of encounter_id_mapping uri column</comment>
+        <sql>
+            ALTER TABLE encounter_id_mapping MODIFY uri VARCHAR(250);
+        </sql>
+    </changeSet>
+    <changeSet id="bdshrclient-20160406-1558" author="neha" context="setup">
+        <comment>Increasing the length of patient_id_mapping uri column</comment>
+        <sql>
+            ALTER TABLE patient_id_mapping MODIFY uri VARCHAR(250);
+        </sql>
+    </changeSet>
+    <changeSet id="bdshrclient-20160406-1559" author="neha" context="setup">
+        <comment>Increasing the length of diagnosis_id_mapping uri column</comment>
+        <sql>
+            ALTER TABLE diagnosis_id_mapping MODIFY uri VARCHAR(250);
+        </sql>
+    </changeSet>
+    <changeSet id="bdshrclient-20160406-1600" author="neha" context="setup">
+        <comment>Increasing the length of order_id_mapping uri column</comment>
+        <sql>
+            ALTER TABLE order_id_mapping MODIFY uri VARCHAR(250);
+        </sql>
+    </changeSet>
 </databaseChangeLog>
