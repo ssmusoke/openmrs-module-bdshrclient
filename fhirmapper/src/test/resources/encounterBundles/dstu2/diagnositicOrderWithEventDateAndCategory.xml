@@ -86,7 +86,7 @@
         <fullUrl value="urn:uuid:"/>
         <resource>
             <DiagnosticOrder xmlns="http://hl7.org/fhir">
-                <extension url="https://sharedhealth.atlassian.net/wiki/display/docs/fhir-extensions#DiagnositicOrderCategory">
+                <extension url="https://sharedhealth.atlassian.net/wiki/display/docs/fhir-extensions#DiagnosticOrderCategory">
                     <valueString value="LAB"/>
                 </extension>
                 <id value="453b7b24-7847-49f7-8a33-2fc339e5c4c7"/>

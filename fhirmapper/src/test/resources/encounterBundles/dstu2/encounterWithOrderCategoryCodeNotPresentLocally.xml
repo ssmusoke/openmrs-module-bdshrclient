@@ -80,7 +80,7 @@
         <fullUrl value="urn:uuid:bdee83c1-f559-433f-8932-8711f6174676"/>
         <resource>
             <DiagnosticOrder xmlns="http://hl7.org/fhir">
-                <extension url="https://sharedhealth.atlassian.net/wiki/display/docs/fhir-extensions#DiagnositicOrderCategory">
+                <extension url="https://sharedhealth.atlassian.net/wiki/display/docs/fhir-extensions#DiagnosticOrderCategory">
                     <valueString value="INVALID"/>
                 </extension>
                 <subject>
