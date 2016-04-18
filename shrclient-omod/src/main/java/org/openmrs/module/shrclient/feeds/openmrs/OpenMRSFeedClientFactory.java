@@ -71,6 +71,7 @@ public class OpenMRSFeedClientFactory {
     private AtomFeedProperties getFeedProperties(int maxFailedEvents) {
         AtomFeedProperties props = new AtomFeedProperties();
         props.setMaxFailedEvents(maxFailedEvents);
+        props.setHandleRedirection(true);
         return props;
     }
 

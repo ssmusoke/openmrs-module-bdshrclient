@@ -9,6 +9,8 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
@@ -57,8 +59,9 @@ public class ShrEncounterFeeds extends AllFeeds {
     }
 
     private String execute(HttpRequestBase request) throws IOException {
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        try {
+        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+        httpClientBuilder.setRedirectStrategy(new DefaultRedirectStrategy());
+        try (CloseableHttpClient httpClient = httpClientBuilder.build()) {
             ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
                 public String handleResponse(final HttpResponse response) throws IOException {
                     int status = response.getStatusLine().getStatusCode();
@@ -74,9 +77,6 @@ public class ShrEncounterFeeds extends AllFeeds {
                 }
             };
             return httpClient.execute(request, responseHandler);
-
-        } finally {
-            httpClient.close();
         }
     }
 }

@@ -58,6 +58,7 @@ public class ShrEncounterFeedProcessor {
     private AtomFeedProperties getAtomFeedProperties(int maxFailedEvents) {
         AtomFeedProperties atomProperties = new AtomFeedProperties();
         atomProperties.setMaxFailedEvents(maxFailedEvents);
+        atomProperties.setHandleRedirection(true);
         return atomProperties;
     }
 

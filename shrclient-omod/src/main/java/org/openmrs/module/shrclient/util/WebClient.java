@@ -10,7 +10,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.Logger;
 import org.openmrs.module.shrclient.identity.IdentityUnauthorizedException;
 import org.springframework.http.HttpStatus;
@@ -43,7 +44,7 @@ public class WebClient {
         try {
             HttpGet request = new HttpGet(URI.create(url));
 
-            return execute(request);
+            return execute(request, true);
         } catch (IdentityUnauthorizedException e) {
             log.error("Unauthorized identity. URL: " + url, e);
             throw e;
@@ -59,7 +60,7 @@ public class WebClient {
         try {
             HttpPost request = new HttpPost(URI.create(url));
             request.setEntity(entity);
-            return execute(request);
+            return execute(request, false);
         } catch (IdentityUnauthorizedException e) {
             log.error("Unauthorized identity. URL: " + url, e);
             throw e;
@@ -75,7 +76,7 @@ public class WebClient {
         try {
             HttpPut request = new HttpPut(URI.create(url));
             request.setEntity(entity);
-            return execute(request);
+            return execute(request, false);
         } catch (IdentityUnauthorizedException e) {
             log.error("Unauthorized identity. URL: " + url, e);
             throw e;
@@ -85,8 +86,13 @@ public class WebClient {
         }
     }
 
-    private String execute(final HttpRequestBase request) throws IOException {
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+    private String execute(final HttpRequestBase request, boolean allowRedirection) throws IOException {
+        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+        if (allowRedirection)
+            httpClientBuilder.setRedirectStrategy(new DefaultRedirectStrategy());
+        else
+            httpClientBuilder.disableRedirectHandling();
+        try (CloseableHttpClient httpClient = httpClientBuilder.build()) {
             addHeaders(request);
 
             ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
