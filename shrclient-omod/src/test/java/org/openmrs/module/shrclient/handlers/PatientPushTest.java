@@ -139,6 +139,42 @@ public class PatientPushTest {
     }
 
     @Test
+    public void shouldNotProcessIfEventTimeIsEqualToLastSyncTime() throws Exception {
+        String content = "/openmrs/ws/rest/v1/patient/36c82d16-6237-4495-889f-59bd9e0d8181?v=full";
+        DateTime dateTime = new DateTime();
+        Date eventUpdatedDate = dateTime.toDate();
+        Event event = new Event("123defc456", content, "Patient", null, eventUpdatedDate);
+        Patient openMrsPatient = new Patient();
+
+        when(patientService.getPatientByUuid("36c82d16-6237-4495-889f-59bd9e0d8181")).thenReturn(openMrsPatient);
+
+        PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsPatient.getUuid(), "hid123", "http://mci.com/patients/hid123", dateTime.toDate());
+        when(idMappingsRepository.findByInternalId(openMrsPatient.getUuid(), IdMappingType.PATIENT)).thenReturn(patientIdMapping);
+
+        patientPush.process(event);
+
+        verify(patientMapper, never()).map(any(Patient.class), any(SystemProperties.class));
+    }
+
+    @Test
+    public void shouldProcessIfEventTimeIsAfterLastSyncTime() throws Exception {
+        String content = "/openmrs/ws/rest/v1/patient/36c82d16-6237-4495-889f-59bd9e0d8181?v=full";
+        DateTime dateTime = new DateTime();
+        Date eventUpdatedDate = dateTime.plusMinutes(1).toDate();
+        Event event = new Event("123defc456", content, "Patient", null, eventUpdatedDate);
+        Patient openMrsPatient = new Patient();
+
+        when(patientService.getPatientByUuid("36c82d16-6237-4495-889f-59bd9e0d8181")).thenReturn(openMrsPatient);
+
+        PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsPatient.getUuid(), "hid123", "http://mci.com/patients/hid123", dateTime.toDate());
+        when(idMappingsRepository.findByInternalId(openMrsPatient.getUuid(), IdMappingType.PATIENT)).thenReturn(patientIdMapping);
+
+        patientPush.process(event);
+
+        verify(patientMapper, times(1)).map(any(Patient.class), any(SystemProperties.class));
+    }
+
+    @Test
     public void shouldRequestMciToCreateAPatient() throws Exception {
         String content = "/openmrs/ws/rest/v1/patient/36c82d16-6237-4495-889f-59bd9e0d8181?v=full";
         Date eventUpdatedDate = new Date();

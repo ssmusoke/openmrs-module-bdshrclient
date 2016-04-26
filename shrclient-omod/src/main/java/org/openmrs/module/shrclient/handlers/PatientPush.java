@@ -129,7 +129,8 @@ public class PatientPush implements EventWorker {
         }
 
         if(eventDate != null && idMapping != null) {
-            if(DateUtil.isLaterThan(idMapping.getLastSyncDateTime(), eventDate)) {
+            Date lastSyncDateTime = idMapping.getLastSyncDateTime();
+            if(DateUtil.isEqualTo(lastSyncDateTime, eventDate) || DateUtil.isLaterThan(lastSyncDateTime, eventDate)) {
                 log.debug(String.format("Patient [%s] already uploaded to MCI.", openMrsPatient.getUuid()));
                 return false;
             }
