@@ -70,7 +70,7 @@ public class PatientPush implements EventWorker {
             org.openmrs.Patient openMrsPatient = patientService.getPatientByUuid(uuid);
 
             PatientIdMapping patientIdMapping = (PatientIdMapping) idMappingsRepository.findByInternalId(openMrsPatient.getUuid(),IdMappingType.PATIENT);
-            if (!shouldUploadPatient(openMrsPatient, event.getUpdatedDate(), patientIdMapping)) {
+            if (!shouldUploadPatient(openMrsPatient, event.getDateCreated(), patientIdMapping)) {
                 return;
             }
 

@@ -1,6 +1,7 @@
 package org.openmrs.module.shrclient.handlers;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.sun.syndication.feed.atom.Entry;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -53,6 +54,8 @@ public class PatientPushTest {
     private RestClient mockMciRestClient;
     @Mock
     private ProviderService providerService;
+    @Mock
+    private Event event;
 
     private PatientPush patientPush;
     private String healthId = "hid-200";
@@ -124,14 +127,16 @@ public class PatientPushTest {
     public void shouldNotProcessIfEventTimeIsBeforeLastSyncTime() throws Exception {
         String content = "/openmrs/ws/rest/v1/patient/36c82d16-6237-4495-889f-59bd9e0d8181?v=full";
         DateTime dateTime = new DateTime();
-        Date eventUpdatedDate = dateTime.toDate();
-        Event event = new Event("123defc456", content, "Patient", null, eventUpdatedDate);
+        Date eventCreatedDate = dateTime.toDate();
+
         Patient openMrsPatient = new Patient();
 
         when(patientService.getPatientByUuid("36c82d16-6237-4495-889f-59bd9e0d8181")).thenReturn(openMrsPatient);
 
         PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsPatient.getUuid(), "hid123", "http://mci.com/patients/hid123", dateTime.plusMinutes(1).toDate());
         when(idMappingsRepository.findByInternalId(openMrsPatient.getUuid(), IdMappingType.PATIENT)).thenReturn(patientIdMapping);
+        when(event.getContent()).thenReturn(content);
+        when(event.getDateCreated()).thenReturn(eventCreatedDate);
 
         patientPush.process(event);
 
@@ -142,14 +147,15 @@ public class PatientPushTest {
     public void shouldNotProcessIfEventTimeIsEqualToLastSyncTime() throws Exception {
         String content = "/openmrs/ws/rest/v1/patient/36c82d16-6237-4495-889f-59bd9e0d8181?v=full";
         DateTime dateTime = new DateTime();
-        Date eventUpdatedDate = dateTime.toDate();
-        Event event = new Event("123defc456", content, "Patient", null, eventUpdatedDate);
+        Date eventCreatedDate = dateTime.toDate();
         Patient openMrsPatient = new Patient();
 
         when(patientService.getPatientByUuid("36c82d16-6237-4495-889f-59bd9e0d8181")).thenReturn(openMrsPatient);
 
         PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsPatient.getUuid(), "hid123", "http://mci.com/patients/hid123", dateTime.toDate());
         when(idMappingsRepository.findByInternalId(openMrsPatient.getUuid(), IdMappingType.PATIENT)).thenReturn(patientIdMapping);
+        when(event.getContent()).thenReturn(content);
+        when(event.getDateCreated()).thenReturn(eventCreatedDate);
 
         patientPush.process(event);
 
@@ -160,14 +166,15 @@ public class PatientPushTest {
     public void shouldProcessIfEventTimeIsAfterLastSyncTime() throws Exception {
         String content = "/openmrs/ws/rest/v1/patient/36c82d16-6237-4495-889f-59bd9e0d8181?v=full";
         DateTime dateTime = new DateTime();
-        Date eventUpdatedDate = dateTime.plusMinutes(1).toDate();
-        Event event = new Event("123defc456", content, "Patient", null, eventUpdatedDate);
+        Date eventCreatedDate = dateTime.plusMinutes(1).toDate();
         Patient openMrsPatient = new Patient();
 
         when(patientService.getPatientByUuid("36c82d16-6237-4495-889f-59bd9e0d8181")).thenReturn(openMrsPatient);
 
         PatientIdMapping patientIdMapping = new PatientIdMapping(openMrsPatient.getUuid(), "hid123", "http://mci.com/patients/hid123", dateTime.toDate());
         when(idMappingsRepository.findByInternalId(openMrsPatient.getUuid(), IdMappingType.PATIENT)).thenReturn(patientIdMapping);
+        when(event.getContent()).thenReturn(content);
+        when(event.getDateCreated()).thenReturn(eventCreatedDate);
 
         patientPush.process(event);
 
