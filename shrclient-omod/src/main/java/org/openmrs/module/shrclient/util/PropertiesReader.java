@@ -2,6 +2,7 @@ package org.openmrs.module.shrclient.util;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.module.fhir.utils.PropertyKeyConstants;
+import org.openmrs.util.OpenmrsUtil;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -110,10 +111,9 @@ public class PropertiesReader {
     private Properties getProperties(String resourceName) {
         Properties resourceProperties = allProperties.get(resourceName);
         if (resourceProperties != null) return resourceProperties;
-
         try {
             Properties properties = new Properties();
-            final File file = new File(System.getProperty("user.home") + File.separator + ".OpenMRS" + File.separator + resourceName);
+            final File file =  new File(OpenmrsUtil.getApplicationDataDirectory(), resourceName);
             final InputStream inputStream;
             if (file.exists()) {
                 inputStream = new FileInputStream(file);
@@ -127,6 +127,14 @@ public class PropertiesReader {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String getPropertiesLocation() {
+        String propertiesLocation = System.getProperty("user.home") + File.separator + ".OpenMRS" + File.separator;
+        File propertiesDirectory = new File(propertiesLocation);
+        if(propertiesDirectory.exists() && propertiesDirectory.isDirectory())
+            return propertiesLocation;
+        return "/opt/openmrs/etc";
     }
 
     public String getMciPatientContext() {
