@@ -2,6 +2,7 @@ package org.openmrs.module.shrclient.service;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Test;
@@ -19,6 +20,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
 
+import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -53,7 +55,7 @@ public class EMRPatientServiceIT extends BaseModuleWebContextSensitiveTest {
         assertAttribute(savedPatient, Constants.NATIONAL_ID_ATTRIBUTE, "7654376543127");
         assertAttribute(savedPatient, Constants.BIRTH_REG_NO_ATTRIBUTE, "54098540985409815");
     }
-    
+
     @Test
     public void shouldSaveAMCIPatientWithEstimatedDOB() throws Exception {
         executeDataSet("testDataSets/patientUpdateDS.xml");
@@ -115,6 +117,35 @@ public class EMRPatientServiceIT extends BaseModuleWebContextSensitiveTest {
 
         List<PersonAttribute> spouseName = savedPatient.getAttributes(Constants.SPOUSE_NAME_ATTRIBUTE_TYPE);
         assertEquals(1, spouseName.size());
+    }
+
+    @Test
+    public void shouldPopulateAddressCodeAttributeOnDownload() throws Exception {
+        executeDataSet("testDataSets/patientUpdateDSWithAddressCodeAttribute.xml");
+        org.openmrs.module.shrclient.model.Patient patient = getPatientFromJson("patients_response/by_hid.json");
+
+        emrPatientService.createOrUpdateEmrPatient(patient);
+
+        Patient savedPatient = patientService.getPatient(1);
+
+        PersonAttribute addressCode = savedPatient.getAttribute(Constants.ADDRESS_CODE_ATTRIBUTE_TYPE);
+
+        assertNotNull(addressCode);
+        assertEquals("302606", addressCode.getValue());
+    }
+
+    @Test
+    public void shouldNotPopulateAddressCodeWhenAttributeIsNotPresent() throws Exception {
+        executeDataSet("testDataSets/patientUpdateDS.xml");
+        org.openmrs.module.shrclient.model.Patient patient = getPatientFromJson("patients_response/by_hid.json");
+
+        emrPatientService.createOrUpdateEmrPatient(patient);
+
+        Patient savedPatient = patientService.getPatient(1);
+
+        PersonAttribute addressCode = savedPatient.getAttribute(Constants.ADDRESS_CODE_ATTRIBUTE_TYPE);
+
+        assertNull(addressCode);
     }
 
     private org.openmrs.module.shrclient.model.Patient getPatientFromJson(String patientJson) throws IOException {

@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 public class Address {
@@ -191,6 +193,24 @@ public class Address {
         }
 
         int beginIndex = (level - 1) * 2;
-        return code.substring(beginIndex, beginIndex+ 2);
+        return code.substring(beginIndex, beginIndex + 2);
+    }
+
+    public String getAddressCode() {
+        StringBuilder addressCode = new StringBuilder();
+
+        appendAddressPart(addressCode, divisionId);
+        appendAddressPart(addressCode, districtId);
+        appendAddressPart(addressCode, upazilaId);
+        appendAddressPart(addressCode, cityCorporationId);
+        appendAddressPart(addressCode, unionOrUrbanWardId);
+        appendAddressPart(addressCode, ruralWardId);
+        return addressCode.toString();
+    }
+
+    private void appendAddressPart(StringBuilder addressCode, String addressPart) {
+        if (isNotBlank(addressPart)) {
+            addressCode.append(format("%s", addressPart));
+        }
     }
 }
