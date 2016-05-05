@@ -7,6 +7,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Test;
 import org.openmrs.Patient;
+import org.openmrs.PersonAddress;
 import org.openmrs.PersonAttribute;
 import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir.Constants;
@@ -146,6 +147,40 @@ public class EMRPatientServiceIT extends BaseModuleWebContextSensitiveTest {
         PersonAttribute addressCode = savedPatient.getAttribute(Constants.ADDRESS_CODE_ATTRIBUTE_TYPE);
 
         assertNull(addressCode);
+    }
+
+    @Test
+    public void shouldUpdateAnOlderPatientAddressToNewOne() throws Exception {
+        executeDataSet("testDataSets/patientUpdateDSAddressHierarchy.xml");
+        org.openmrs.module.shrclient.model.Patient patient = getPatientFromJson("patients_response/patient_with_address_to_be_updated.json");
+
+        emrPatientService.createOrUpdateEmrPatient(patient);
+
+        Patient savedPatient = patientService.getPatient(1);
+
+        PersonAddress personAddress = savedPatient.getPersonAddress();
+        assertEquals("Dhaka", personAddress.getStateProvince());
+        assertEquals("Gazipur", personAddress.getCountyDistrict());
+        assertEquals("Kaliganj", personAddress.getAddress5());
+        assertEquals("Unions Of Kaliganj Upazila", personAddress.getAddress4());
+        assertEquals("Bahadursadi", personAddress.getAddress3());
+        assertEquals("Ward No-01", personAddress.getAddress2());
+        assertEquals("house 1", personAddress.getAddress1());
+
+        org.openmrs.module.shrclient.model.Patient patientUpdateResponse = getPatientFromJson("patients_response/patient_with_updated_address.json");
+
+        emrPatientService.createOrUpdateEmrPatient(patientUpdateResponse);
+
+        Patient updatedPatient = patientService.getPatient(1);
+
+        personAddress = updatedPatient.getPersonAddress();
+        assertEquals("Dhaka", personAddress.getStateProvince());
+        assertEquals("Gazipur", personAddress.getCountyDistrict());
+        assertEquals("Kaliganj", personAddress.getAddress5());
+        assertNull(personAddress.getAddress4());
+        assertNull(personAddress.getAddress3());
+        assertNull(personAddress.getAddress2());
+        assertEquals("house 2", personAddress.getAddress1());
     }
 
     private org.openmrs.module.shrclient.model.Patient getPatientFromJson(String patientJson) throws IOException {

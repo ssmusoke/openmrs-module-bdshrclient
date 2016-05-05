@@ -72,7 +72,7 @@ public class AddressHelper {
         if (StringUtils.isNotBlank(name)) {
             AddressHierarchyLevel hierarchyLevel = getAddressHierarchyLevel(addressLevel);
             List<AddressHierarchyEntry> entries;
-            if ((parent == null) && (addressLevel.getLevelNumber() ==1)) {
+            if ((parent == null) && (addressLevel.getLevelNumber() == 1)) {
                 entries = addressHierarchyService.getAddressHierarchyEntriesByLevelAndName(hierarchyLevel, name);
             } else {
                 entries = addressHierarchyService.getAddressHierarchyEntriesByLevelAndNameAndParent(hierarchyLevel, name, parent);
@@ -82,10 +82,8 @@ public class AddressHelper {
         return null;
     }
 
-    public PersonAddress setPersonAddress(PersonAddress emrPatientAddress, Address address) {
-        if (emrPatientAddress == null) {
-            emrPatientAddress = new PersonAddress();
-        }
+    public PersonAddress setPersonAddress(Address address) {
+        PersonAddress emrPatientAddress = new PersonAddress();
 
         AddressHierarchyEntry division = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.getDivisionId());
         if (division != null) {
@@ -107,7 +105,7 @@ public class AddressHelper {
         if (urbanWardOrUnion != null) {
             emrPatientAddress.setAddress3(urbanWardOrUnion.getName());
         }
-        if(address.getRuralWardId() != null) {
+        if (address.getRuralWardId() != null) {
             AddressHierarchyEntry ruralWard = addressHierarchyService.getAddressHierarchyEntryByUserGenId(address.createUserGeneratedRuralWardId());
             if (ruralWard != null) {
                 emrPatientAddress.setAddress2(ruralWard.getName());

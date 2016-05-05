@@ -85,7 +85,11 @@ public class EMRPatientServiceImpl implements EMRPatientService {
             setIdentifier(emrPatient);
             setPersonName(emrPatient, mciPatient);
             setDeathInfo(emrPatient, mciPatient);
-            emrPatient.addAddress(addressHelper.setPersonAddress(emrPatient.getPersonAddress(), mciPatient.getAddress()));
+            PersonAddress personAddress = emrPatient.getPersonAddress();
+            if (personAddress != null) {
+                emrPatient.removeAddress(personAddress);
+            }
+            emrPatient.addAddress(addressHelper.setPersonAddress(mciPatient.getAddress()));
 
             addPersonAttribute(emrPatient, NATIONAL_ID_ATTRIBUTE, mciPatient.getNationalId());
             addPersonAttribute(emrPatient, HEALTH_ID_ATTRIBUTE, mciPatient.getHealthId());
@@ -136,6 +140,7 @@ public class EMRPatientServiceImpl implements EMRPatientService {
             return emrPatient;
         } catch (Exception e) {
             logger.error(String.format("error Occurred while trying to process Patient[%s] from MCI.", mciPatient.getHealthId()), e);
+
             throw new RuntimeException(e);
         }
     }
