@@ -6,6 +6,9 @@ import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
+import org.openmrs.api.PersonService;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
@@ -23,6 +26,7 @@ public class RelationshipMapper {
     private static String RELATIONSHIP_SPS_TYPE = "SPS";
 
     private PersonAttributeMapper personAttributeMapper;
+    private PersonService personService;
 
     private static Map<String, String> attributeRelationshipTypeMapping = new HashMap<String, String>() {{
         put(Constants.FATHER_NAME_ATTRIBUTE_TYPE, RELATIONSHIP_FATHER_TYPE);
@@ -40,21 +44,21 @@ public class RelationshipMapper {
         Set<String> attributeNames = attributeRelationshipTypeMapping.keySet();
         for (String attributeName : attributeNames) {
             PersonAttribute relationshipAttribute = openMrsPatient.getAttribute(attributeName);
-            String attributeValue = relationshipAttribute != null ? relationshipAttribute.getValue() : null;
-            if (StringUtils.isNotEmpty(attributeValue)) {
-                Relation relation = getRelation(attributeValue, attributeRelationshipTypeMapping.get(attributeName));
-                IdMapping idMapping = idMappingRepository.findByInternalId(getRelationInternalId(openMrsPatient,
-                        relationshipAttribute.getAttributeType().getUuid()), IdMappingType.PERSON_RELATION);
-                if (idMapping == null) {
-                    relation.setId(UUID.randomUUID().toString());
-                    idMapping = new IdMapping(getRelationInternalId(openMrsPatient, relationshipAttribute.getAttributeType().getUuid()),
-                            relation.getId(), IdMappingType.PERSON_RELATION, null, new Date());
-                    idMappingRepository.saveOrUpdateIdMapping(idMapping);
-                } else {
-                    relation.setId(idMapping.getExternalId());
-                }
-                relations.add(relation);
+            String attributeValue = relationshipAttribute != null ? relationshipAttribute.getValue()
+                    : "";
+            Relation relation = getRelation(attributeValue, attributeRelationshipTypeMapping.get(attributeName));
+            String attributeTypeUuid = getPersonService().getPersonAttributeTypeByName(attributeName).getUuid();
+            IdMapping idMapping = idMappingRepository.findByInternalId(getRelationInternalId(openMrsPatient,
+                    attributeTypeUuid), IdMappingType.PERSON_RELATION);
+            if (idMapping == null) {
+                relation.setId(UUID.randomUUID().toString());
+                idMapping = new IdMapping(getRelationInternalId(openMrsPatient, attributeTypeUuid),
+                        relation.getId(), IdMappingType.PERSON_RELATION, null, new Date());
+                idMappingRepository.saveOrUpdateIdMapping(idMapping);
+            } else {
+                relation.setId(idMapping.getExternalId());
             }
+            relations.add(relation);
         }
         return relations;
     }
@@ -125,5 +129,12 @@ public class RelationshipMapper {
         relation.setGivenName(givenName);
         relation.setSurName(surName);
         return relation;
+    }
+
+    private PersonService getPersonService() {
+        if(personService == null){
+            personService = Context.getPersonService();
+        }
+        return personService;
     }
 }

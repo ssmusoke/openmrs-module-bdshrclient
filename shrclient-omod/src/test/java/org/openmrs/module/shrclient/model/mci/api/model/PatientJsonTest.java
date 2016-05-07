@@ -45,10 +45,11 @@ public class PatientJsonTest {
 
     @Test
     public void shouldExcludeEmptyNonMandatoryFields() throws Exception {
-        String expected = "{\"given_name\":\"Scott\",\"sur_name\":\"Tiger\",\"date_of_birth\":null,\"dob_type\":\"1\",\"gender\":\"M\"" +
-                ",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"04\"" +
-                ",\"upazila_id\":\"09\",\"city_corporation_id\":\"20\",\"union_or_urban_ward_id\":\"01\"}" +
-                ",\"status\":null}";
+        String expected = "{\"nid\":null,\"given_name\":\"Scott\",\"sur_name\":\"Tiger\"," +
+                "\"date_of_birth\":null,\"dob_type\":\"1\",\"gender\":\"M\",\"occupation\":null," +
+                "\"edu_level\":null,\"present_address\":{\"address_line\":null,\"division_id\":\"10\"," +
+                "\"district_id\":\"04\",\"upazila_id\":\"09\",\"city_corporation_id\":\"20\"," +
+                "\"union_or_urban_ward_id\":\"01\"},\"status\":null,\"bin_brn\":null,\"household_code\":null}";
         patient.setDobType("1");
         String actual = objectMapper.writeValueAsString(patient);
         assertEquals(expected, actual);
@@ -60,10 +61,12 @@ public class PatientJsonTest {
         patient.setActive(true);
         patient.setDobType("2");
 
-        String expected = "{\"nid\":\"nid-100\",\"given_name\":\"Scott\",\"sur_name\":\"Tiger\",\"date_of_birth\":null,\"dob_type\":\"2\"," +
-                "\"gender\":\"M\",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"04\"," +
-                "\"upazila_id\":\"09\",\"city_corporation_id\":\"20\",\"union_or_urban_ward_id\":\"01\"}" +
-                ",\"status\":null,\"active\":true}";
+        String expected = "{\"nid\":\"nid-100\",\"given_name\":\"Scott\",\"sur_name\":\"Tiger\"," +
+                "\"date_of_birth\":null,\"dob_type\":\"2\",\"gender\":\"M\",\"occupation\":null," +
+                "\"edu_level\":null,\"present_address\":{\"address_line\":null,\"division_id\":\"10\"," +
+                "\"district_id\":\"04\",\"upazila_id\":\"09\",\"city_corporation_id\":\"20\"," +
+                "\"union_or_urban_ward_id\":\"01\"},\"status\":null,\"bin_brn\":null,\"household_code\":null," +
+                "\"active\":true}";
         String actual = objectMapper.writeValueAsString(patient);
         assertEquals(expected, actual);
     }
@@ -73,12 +76,13 @@ public class PatientJsonTest {
         patient.setNationalId("nid-100");
         patient.setRelations(getRelationsForPatient(patient));
         patient.setActive(false);
-        String expected = "{\"nid\":\"nid-100\",\"given_name\":\"Scott\",\"sur_name\":\"Tiger\",\"date_of_birth\":null,\"dob_type\":null," +
-                "\"gender\":\"M\",\"present_address\":{\"address_line\":null,\"division_id\":\"10\",\"district_id\":\"04\"," +
-                "\"upazila_id\":\"09\",\"city_corporation_id\":\"20\",\"union_or_urban_ward_id\":\"01\"},\"status\":null," +
-                "\"relations\":[{" + "\"type\":\"mother\"," +
-                "\"given_name\":\"Mother of Scott\"," +
-                "\"sur_name\":\"Tiger\"}],\"active\":false}";
+        String expected = "{\"nid\":\"nid-100\",\"given_name\":\"Scott\",\"sur_name\":\"Tiger\"," +
+                "\"date_of_birth\":null,\"dob_type\":null,\"gender\":\"M\",\"occupation\":null," +
+                "\"edu_level\":null,\"present_address\":{\"address_line\":null,\"division_id\":\"10\"," +
+                "\"district_id\":\"04\",\"upazila_id\":\"09\",\"city_corporation_id\":\"20\"," +
+                "\"union_or_urban_ward_id\":\"01\"},\"status\":null,\"bin_brn\":null,\"household_code\":null," +
+                "\"relations\":[{\"type\":\"mother\",\"given_name\":\"Mother of Scott\",\"sur_name\":\"Tiger\"}]," +
+                "\"active\":false}";
         String actual = objectMapper.writeValueAsString(patient);
         assertEquals(expected, actual);
     }

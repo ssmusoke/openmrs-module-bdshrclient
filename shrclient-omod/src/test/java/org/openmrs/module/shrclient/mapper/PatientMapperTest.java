@@ -1,9 +1,14 @@
 package org.openmrs.module.shrclient.mapper;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.openmrs.*;
+import org.openmrs.api.PersonService;
+import org.openmrs.api.context.Context;
+import org.openmrs.api.context.ServiceContext;
 import org.openmrs.module.addresshierarchy.AddressField;
 import org.openmrs.module.addresshierarchy.AddressHierarchyEntry;
 import org.openmrs.module.addresshierarchy.AddressHierarchyLevel;
@@ -23,7 +28,9 @@ import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -37,6 +44,8 @@ public class PatientMapperTest {
     private SystemProperties systemProperties;
     @Mock
     private IdMappingRepository idMappingRepository;
+    @Mock
+    private PersonService personService;
 
     private AddressHelper addressHelper;
     private BbsCodeService bbsCodeService;
@@ -61,11 +70,22 @@ public class PatientMapperTest {
         patientMapper = new PatientMapper(bbsCodeService, addressHelper, idMappingRepository);
         setUpAddressHierarchy();
         setupData();
+
+        mockPersonServiceInContext();
+    }
+
+    private void mockPersonServiceInContext() {
+        Context context = new Context();
+        ServiceContext serviceContext = ServiceContext.getInstance();
+        serviceContext.setService(PersonService.class, personService);
+        PersonAttributeType attributeType = new PersonAttributeType();
+        when(personService.getPersonAttributeTypeByName(anyString())).thenReturn(attributeType);
+        context.setServiceContext(serviceContext);
     }
 
     @Test
     public void shouldMapOpenMrsPatientToMciPatient() throws Exception {
-        Patient expectedPatient = patientMapper.map(openMrsPatient, systemProperties);
+        Patient expectedPatient = patientMapper.map(openMrsPatient);
         assertEquals(this.patient, expectedPatient);
     }
 
@@ -73,7 +93,7 @@ public class PatientMapperTest {
     public void shouldMapDobTypeAsEstimated() throws Exception {
         openMrsPatient.setBirthdateEstimated(Boolean.TRUE);
         patient.setDobType("3");
-        Patient expectedPatient = patientMapper.map(openMrsPatient, systemProperties);
+        Patient expectedPatient = patientMapper.map(openMrsPatient);
         assertEquals(this.patient, expectedPatient);
     }
 
@@ -86,7 +106,7 @@ public class PatientMapperTest {
         PersonAttribute spouseAttribute = createAttribute(SPOUSE_NAME_ATTRIBUTE_TYPE, "OhMyDear");
         openMrsPatient.getAttributes().add(spouseAttribute);
 
-        Patient mappedPatient = patientMapper.map(openMrsPatient, systemProperties);
+        Patient mappedPatient = patientMapper.map(openMrsPatient);
         org.openmrs.module.shrclient.model.Relation[] mappedRelations = mappedPatient.getRelations();
 
         assertEquals(3, mappedRelations.length);
@@ -105,8 +125,17 @@ public class PatientMapperTest {
 
     @Test
     public void shouldNotMapRelationsWhenNotPresent() throws Exception {
-        Patient orphanPatient = patientMapper.map(openMrsPatient, systemProperties);
-        assertNull(orphanPatient.getRelations());
+        Patient orphanPatient = patientMapper.map(openMrsPatient);
+        assertTrue(CollectionUtils.isEmpty(filterRelationsWithNames(orphanPatient.getRelations())));
+    }
+
+    private List<Relation> filterRelationsWithNames(Relation[] relations) {
+        List<Relation> relationsWithName = new ArrayList<>();
+        for (Relation relation : relations) {
+            if (StringUtils.isNotBlank(relation.getGivenName()) || StringUtils.isNotBlank(relation.getSurName()))
+                relationsWithName.add(relation);
+        }
+        return relationsWithName;
     }
 
     private Relation getRelationByType(Relation[] mappedRelations, String type) {

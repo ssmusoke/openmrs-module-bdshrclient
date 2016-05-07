@@ -15,7 +15,6 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 public class Patient {
 
     @JsonProperty("nid")
-    @JsonInclude(NON_EMPTY)
     private String nationalId;
 
     @JsonProperty("hid")
@@ -38,11 +37,9 @@ public class Patient {
     private String gender;
 
     @JsonProperty("occupation")
-    @JsonInclude(NON_EMPTY)
     private String occupation;
 
     @JsonProperty("edu_level")
-    @JsonInclude(NON_EMPTY)
     private String educationLevel;
 
     @JsonProperty("present_address")
@@ -52,11 +49,9 @@ public class Patient {
     private Status status;
 
     @JsonProperty("bin_brn")
-    @JsonInclude(NON_EMPTY)
     private String birthRegNumber;
 
     @JsonProperty("household_code")
-    @JsonInclude(NON_EMPTY)
     private String houseHoldCode;
 
     @JsonProperty("relations")

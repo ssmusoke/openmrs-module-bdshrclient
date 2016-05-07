@@ -75,7 +75,7 @@ public class PatientPush implements EventWorker {
             }
 
             SystemProperties systemProperties = getSystemProperties();
-            Patient patient = patientMapper.map(openMrsPatient, systemProperties);
+            Patient patient = patientMapper.map(openMrsPatient);
             log.debug("Patient: [ " + patient + "]");
 
             if (patientIdMapping == null) {

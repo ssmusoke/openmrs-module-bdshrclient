@@ -1,7 +1,6 @@
 package org.openmrs.module.shrclient.handlers;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.sun.syndication.feed.atom.Entry;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -21,7 +20,6 @@ import org.openmrs.module.shrclient.model.PatientIdMapping;
 import org.openmrs.module.shrclient.model.mci.api.MciPatientUpdateResponse;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
-import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.module.shrclient.util.SystemUserService;
 
 import java.util.*;
@@ -140,7 +138,7 @@ public class PatientPushTest {
 
         patientPush.process(event);
 
-        verify(patientMapper, never()).map(any(Patient.class), any(SystemProperties.class));
+        verify(patientMapper, never()).map(any(Patient.class));
     }
 
     @Test
@@ -159,7 +157,7 @@ public class PatientPushTest {
 
         patientPush.process(event);
 
-        verify(patientMapper, never()).map(any(Patient.class), any(SystemProperties.class));
+        verify(patientMapper, never()).map(any(Patient.class));
     }
 
     @Test
@@ -178,7 +176,7 @@ public class PatientPushTest {
 
         patientPush.process(event);
 
-        verify(patientMapper, times(1)).map(any(Patient.class), any(SystemProperties.class));
+        verify(patientMapper, times(1)).map(any(Patient.class));
     }
 
     @Test
@@ -196,7 +194,7 @@ public class PatientPushTest {
         org.openmrs.module.shrclient.model.Patient patient = new org.openmrs.module.shrclient.model.Patient();
 
         when(patientService.getPatientByUuid("36c82d16-6237-4495-889f-59bd9e0d8181")).thenReturn(openMrsPatient);
-        when(patientMapper.map(any(Patient.class), any(SystemProperties.class))).thenReturn(patient);
+        when(patientMapper.map(any(Patient.class))).thenReturn(patient);
         when(providerService.getProvidersByPerson(creator)).thenReturn(Collections.EMPTY_LIST);
         when(mockMciRestClient.post(propertiesReader.getMciPatientContext(), patient, MciPatientUpdateResponse.class))
                 .thenReturn(updateResponse);
