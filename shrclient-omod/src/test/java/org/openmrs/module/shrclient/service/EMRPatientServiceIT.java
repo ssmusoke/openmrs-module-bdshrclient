@@ -2,7 +2,6 @@ package org.openmrs.module.shrclient.service;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Test;
@@ -26,6 +25,7 @@ import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.openmrs.module.fhir.Constants.*;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -74,12 +74,6 @@ public class EMRPatientServiceIT extends BaseModuleWebContextSensitiveTest {
         assertAttribute(savedPatient, Constants.HEALTH_ID_ATTRIBUTE, "11421467785");
         assertAttribute(savedPatient, Constants.NATIONAL_ID_ATTRIBUTE, "7654376543127");
         assertAttribute(savedPatient, Constants.BIRTH_REG_NO_ATTRIBUTE, "54098540985409815");
-    }
-
-    public void assertAttribute(Patient savedPatient, String attributeName, String expected) {
-        PersonAttribute hidAttribute = savedPatient.getAttribute(attributeName);
-        assertNotNull(hidAttribute);
-        assertEquals(expected, hidAttribute.getValue());
     }
 
     @Test
@@ -181,6 +175,72 @@ public class EMRPatientServiceIT extends BaseModuleWebContextSensitiveTest {
         assertNull(personAddress.getAddress3());
         assertNull(personAddress.getAddress2());
         assertEquals("house 2", personAddress.getAddress1());
+    }
+
+    @Test
+    public void shouldDeleteAllAttributesIfDeletedFromMCI() throws Exception {
+        executeDataSet("testDataSets/patientUpdateDSAddressHierarchy.xml");
+        org.openmrs.module.shrclient.model.Patient patient = getPatientFromJson("patients_response/patientWithAllAttributes.json");
+
+        emrPatientService.createOrUpdateEmrPatient(patient);
+
+        Patient savedPatient = patientService.getPatient(1);
+
+        assertAttribute(savedPatient, NATIONAL_ID_ATTRIBUTE, "7654376543127");
+        assertAttribute(savedPatient, BIRTH_REG_NO_ATTRIBUTE, "54098540985409815");
+        assertAttribute(savedPatient, PHONE_NUMBER, "100");
+        assertAttribute(savedPatient, HOUSE_HOLD_CODE_ATTRIBUTE, "124");
+        assertAttribute(savedPatient, MOTHER_NAME_ATTRIBUTE_TYPE, "Shana Khan");
+        assertAttribute(savedPatient, FATHER_NAME_ATTRIBUTE_TYPE, "Md. Sakib Ali Khan");
+        assertAttribute(savedPatient, SPOUSE_NAME_ATTRIBUTE_TYPE, "Azad Khan");
+        assertAttribute(savedPatient, OCCUPATION_ATTRIBUTE, "303");
+        assertAttribute(savedPatient, EDUCATION_ATTRIBUTE, "304");
+
+        org.openmrs.module.shrclient.model.Patient patientUpdateResponse = getPatientFromJson("patients_response/patient_with_removed_attribute.json");
+        emrPatientService.createOrUpdateEmrPatient(patientUpdateResponse);
+
+        Patient updatedPatient = patientService.getPatient(1);
+
+        assertNull(updatedPatient.getAttribute(NATIONAL_ID_ATTRIBUTE));
+        assertNull(updatedPatient.getAttribute(BIRTH_REG_NO_ATTRIBUTE));
+        assertNull(updatedPatient.getAttribute(PHONE_NUMBER));
+        assertNull(updatedPatient.getAttribute(HOUSE_HOLD_CODE_ATTRIBUTE));
+        assertNull(updatedPatient.getAttribute(OCCUPATION_ATTRIBUTE));
+        assertNull(updatedPatient.getAttribute(EDUCATION_ATTRIBUTE));
+        assertNull(updatedPatient.getAttribute(MOTHER_NAME_ATTRIBUTE_TYPE));
+        assertNull(updatedPatient.getAttribute(FATHER_NAME_ATTRIBUTE_TYPE));
+        assertNull(updatedPatient.getAttribute(SPOUSE_NAME_ATTRIBUTE_TYPE));
+
+    }
+
+    @Test
+    public void shouldDeleteRelationAttributesDeletedInMCI() throws Exception {
+        executeDataSet("testDataSets/patientUpdateDSAddressHierarchy.xml");
+        org.openmrs.module.shrclient.model.Patient patient = getPatientFromJson("patients_response/patientWithAllAttributes.json");
+
+        emrPatientService.createOrUpdateEmrPatient(patient);
+
+        Patient savedPatient = patientService.getPatient(1);
+
+        assertAttribute(savedPatient, MOTHER_NAME_ATTRIBUTE_TYPE, "Shana Khan");
+        assertAttribute(savedPatient, FATHER_NAME_ATTRIBUTE_TYPE, "Md. Sakib Ali Khan");
+        assertAttribute(savedPatient, SPOUSE_NAME_ATTRIBUTE_TYPE, "Azad Khan");
+
+        org.openmrs.module.shrclient.model.Patient patientUpdateResponse = getPatientFromJson("patients_response/patientWithFatherAttribute.json" +
+                "");
+        emrPatientService.createOrUpdateEmrPatient(patientUpdateResponse);
+
+        Patient updatedPatient = patientService.getPatient(1);
+        assertAttribute(updatedPatient, FATHER_NAME_ATTRIBUTE_TYPE, "Md. Sakib Ali Khan");
+        assertNull(updatedPatient.getAttribute(MOTHER_NAME_ATTRIBUTE_TYPE));
+        assertNull(updatedPatient.getAttribute(SPOUSE_NAME_ATTRIBUTE_TYPE));
+
+    }
+
+    private void assertAttribute(Patient savedPatient, String attributeName, String expected) {
+        PersonAttribute attribute = savedPatient.getAttribute(attributeName);
+        assertNotNull(attribute);
+        assertEquals(expected, attribute.getValue());
     }
 
     private org.openmrs.module.shrclient.model.Patient getPatientFromJson(String patientJson) throws IOException {

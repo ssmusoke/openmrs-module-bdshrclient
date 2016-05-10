@@ -1,6 +1,19 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <dataset>
 
+    <concept concept_id="303" retired="false" datatype_id="3" class_id="11" is_set="false" creator="1"
+             date_created="2005-01-01 00:00:00.0" uuid="7f7379ba-3ca8-11e3-bf2b-0800271c1b75"/>
+    <concept_name concept_name_id="303" concept_id="303" name="Economist" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="637de959-e1c4-41d4-b2d6-bc4335835ea9"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+
+    <concept concept_id="304" retired="false" datatype_id="3" class_id="11" is_set="false" creator="1"
+             date_created="2005-01-01 00:00:00.0" uuid="7f7379ba-3ca8-11e3-45po-0800271c1b75"/>
+    <concept_name concept_name_id="304" concept_id="304" name="6th Std" locale="en" creator="1"
+                  date_created="2005-01-01 00:00:00.0" voided="false" uuid="637de959-h76k-41d4-b2d6-bc4335835ea9"
+                  concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
+
+
     <person person_id="1" gender="M" dead="false" creator="1" birthdate_estimated="0"
             date_created="2008-08-15 15:57:09.0" voided="false" void_reason=""
             uuid="75e04d42-3ca8-11e3-bf2b-0800271c1b75"/>
@@ -33,6 +46,26 @@
                            format="java.lang.String" retired="0" creator="1" sort_weight="1"
                            date_created="2005-01-01 00:00:00.0"
                            searchable="1" uuid="5b19584d-kj45-98uy-45re-x92kdxiii2ae"/>
+
+    <person_attribute_type person_attribute_type_id="106" name="occupation" description="Occupation"
+                           format="java.lang.String" retired="0" creator="1" sort_weight="1"
+                           date_created="2005-01-01 00:00:00.0"
+                           searchable="1" uuid="5b19584d-kj45-98uy-14lo-x92kdxiii2ae"/>
+
+    <person_attribute_type person_attribute_type_id="107" name="education" description="Education"
+                           format="java.lang.String" retired="0" creator="1" sort_weight="1"
+                           date_created="2005-01-01 00:00:00.0"
+                           searchable="1" uuid="5b19584d-kj45-47po-45re-x92kdxiii2ae"/>
+
+    <person_attribute_type person_attribute_type_id="108" name="phoneNumber" description="Phone number"
+                           format="java.lang.String" retired="0" creator="1" sort_weight="1"
+                           date_created="2005-01-01 00:00:00.0"
+                           searchable="1" uuid="5b19584d-kj45-47po-45rf-x92kdxiii2ae"/>
+
+    <person_attribute_type person_attribute_type_id="109" name="householdCode" description="House Hold Code"
+                           format="java.lang.String" retired="0" creator="1" sort_weight="1"
+                           date_created="2005-01-01 00:00:00.0"
+                           searchable="1" uuid="5b19585e-kj45-47po-45rf-x92kdxiii2ae"/>
 
     <address_hierarchy_level address_hierarchy_level_id="1" name="Division" address_field="STATE_PROVINCE"
                              uuid="uuid()" required="1"/>

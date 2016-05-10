@@ -23,10 +23,7 @@ import org.openmrs.module.shrclient.model.Status;
 import org.openmrs.module.shrclient.service.BbsCodeService;
 import org.openmrs.module.shrclient.service.EMRPatientDeathService;
 import org.openmrs.module.shrclient.service.EMRPatientService;
-import org.openmrs.module.shrclient.util.AddressHelper;
-import org.openmrs.module.shrclient.util.PropertiesReader;
-import org.openmrs.module.shrclient.util.SystemProperties;
-import org.openmrs.module.shrclient.util.SystemUserService;
+import org.openmrs.module.shrclient.util.*;
 import org.openmrs.serialization.SerializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -104,28 +101,10 @@ public class EMRPatientServiceImpl implements EMRPatientService {
             addPersonAttribute(emrPatient, GIVEN_NAME_LOCAL, getGivenNameLocal(banglaName));
             addPersonAttribute(emrPatient, FAMILY_NAME_LOCAL, getFamilyNameLocal(banglaName));
             addPersonAttribute(emrPatient, PHONE_NUMBER, PhoneNumberMapper.map(mciPatient.getPhoneNumber()));
+
             mapRelations(emrPatient, mciPatient);
-
-            String occupationConceptName = bbsCodeService.getOccupationConceptName(mciPatient.getOccupation());
-            String occupationConceptId = getConceptId(occupationConceptName);
-            if (occupationConceptId != null) {
-                addPersonAttribute(emrPatient, OCCUPATION_ATTRIBUTE, occupationConceptId);
-            } else {
-                logger.warn(String.format("Can't update occupation for patient. " +
-                                "Can't identify relevant concept for patient hid:%s, occupation:%s, code:%s",
-                        mciPatient.getHealthId(), occupationConceptName, mciPatient.getOccupation()));
-            }
-
-
-            String educationConceptName = bbsCodeService.getEducationConceptName(mciPatient.getEducationLevel());
-            String educationConceptId = getConceptId(educationConceptName);
-            if (educationConceptId != null) {
-                addPersonAttribute(emrPatient, EDUCATION_ATTRIBUTE, educationConceptId);
-            } else {
-                logger.warn(String.format("Can't update education for patient. " +
-                                "Can't identify relevant concept for patient hid:%s, education:%s, code:%s",
-                        mciPatient.getHealthId(), educationConceptName, mciPatient.getEducationLevel()));
-            }
+            setOccupation(mciPatient, emrPatient);
+            setEducation(mciPatient, emrPatient);
 
             Date dob = mciPatient.getDateOfBirth();
             emrPatient.setBirthdate(dob);
@@ -142,6 +121,46 @@ public class EMRPatientServiceImpl implements EMRPatientService {
             logger.error(String.format("error Occurred while trying to process Patient[%s] from MCI.", mciPatient.getHealthId()), e);
 
             throw new RuntimeException(e);
+        }
+    }
+
+    private void setEducation(Patient mciPatient, org.openmrs.Patient emrPatient) {
+        String educationLevel = mciPatient.getEducationLevel();
+        if(StringUtils.isBlank(educationLevel)) {
+            PersonAttribute educationAttribute = emrPatient.getAttribute(EDUCATION_ATTRIBUTE);
+            if(null != educationAttribute) {
+                emrPatient.removeAttribute(educationAttribute);
+            }
+            return;
+        }
+        String educationConceptName = bbsCodeService.getEducationConceptName(educationLevel);
+        String educationConceptId = getConceptId(educationConceptName);
+        if (educationConceptId != null) {
+            addPersonAttribute(emrPatient, EDUCATION_ATTRIBUTE, educationConceptId);
+        } else {
+            logger.warn(String.format("Can't update education for patient. " +
+                            "Can't identify relevant concept for patient hid:%s, education:%s, code:%s",
+                    mciPatient.getHealthId(), educationConceptName, educationLevel));
+        }
+    }
+
+    private void setOccupation(Patient mciPatient, org.openmrs.Patient emrPatient) {
+        String occupation = mciPatient.getOccupation();
+        if(StringUtils.isBlank(occupation)) {
+            PersonAttribute occupationAttribute = emrPatient.getAttribute(OCCUPATION_ATTRIBUTE);
+            if(null != occupationAttribute) {
+                emrPatient.removeAttribute(occupationAttribute);
+            }
+            return;
+        }
+        String occupationConceptName = bbsCodeService.getOccupationConceptName(occupation);
+        String occupationConceptId = getConceptId(occupationConceptName);
+        if (occupationConceptId != null) {
+            addPersonAttribute(emrPatient, OCCUPATION_ATTRIBUTE, occupationConceptId);
+        } else {
+            logger.warn(String.format("Can't update occupation for patient. " +
+                            "Can't identify relevant concept for patient hid:%s, occupation:%s, code:%s",
+                    mciPatient.getHealthId(), occupationConceptName, occupation));
         }
     }
 

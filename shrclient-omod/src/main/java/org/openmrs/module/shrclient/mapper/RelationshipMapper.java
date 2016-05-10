@@ -6,10 +6,8 @@ import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Patient;
 import org.openmrs.PersonAttribute;
-import org.openmrs.PersonAttributeType;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.fhir.Constants;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
@@ -18,10 +16,11 @@ import org.openmrs.module.shrclient.model.Relation;
 import java.util.*;
 
 import static java.util.Arrays.asList;
+import static org.openmrs.module.fhir.Constants.*;
 
 public class RelationshipMapper {
 
-    private static String RELATIONSHIP_FATHER_TYPE = "FTH";
+    private static String RELATIONSHIP_FTH_TYPE = "FTH";
     private static String RELATIONSHIP_MTH_TYPE = "MTH";
     private static String RELATIONSHIP_SPS_TYPE = "SPS";
 
@@ -29,9 +28,9 @@ public class RelationshipMapper {
     private PersonService personService;
 
     private static Map<String, String> attributeRelationshipTypeMapping = new HashMap<String, String>() {{
-        put(Constants.FATHER_NAME_ATTRIBUTE_TYPE, RELATIONSHIP_FATHER_TYPE);
-        put(Constants.MOTHER_NAME_ATTRIBUTE_TYPE, RELATIONSHIP_MTH_TYPE);
-        put(Constants.SPOUSE_NAME_ATTRIBUTE_TYPE, RELATIONSHIP_SPS_TYPE);
+        put(FATHER_NAME_ATTRIBUTE_TYPE, RELATIONSHIP_FTH_TYPE);
+        put(MOTHER_NAME_ATTRIBUTE_TYPE, RELATIONSHIP_MTH_TYPE);
+        put(SPOUSE_NAME_ATTRIBUTE_TYPE, RELATIONSHIP_SPS_TYPE);
     }};
 
     public RelationshipMapper() {
@@ -63,20 +62,54 @@ public class RelationshipMapper {
         return relations;
     }
 
+    public void addRelationAttributes(Relation[] relations, Patient emrPatient, IdMappingRepository idMappingsRepository) {
+        // When there are no relations in MCI delete relations from openmrs if present
+        if (relations == null || relations.length == 0) {
+            for (String relationshipType : attributeRelationshipTypeMapping.keySet()) {
+                removeAttribute(emrPatient, relationshipType);
+            }
+            return;
+        }
+        // Check if a relationship is not present in MCI delete that relation from openmrs if present
+        for (String relationshipType : attributeRelationshipTypeMapping.keySet()) {
+            removeAttributeIfRelationNotPresent(relations, emrPatient, relationshipType);
+        }
+        // Add relations
+        List<Relation> relationsToPersistAsAttributes = getRelationsToPersistAsAttributes(relations);
+        for (Relation relationToPersistAsAttribute : relationsToPersistAsAttributes) {
+            PersonAttribute relationAttribute = getPersonAttribute(relationToPersistAsAttribute, emrPatient, idMappingsRepository);
+            if (relationAttribute != null) {
+                emrPatient.addAttribute(relationAttribute);
+            }
+        }
+    }
+
     private String getRelationInternalId(Patient openMrsPatient, String attributeUuid) {
         return String.format("%s:%s", openMrsPatient.getUuid(), attributeUuid);
     }
 
-    public void addRelationAttributes(Relation[] relations, Patient emrPatient, IdMappingRepository idMappingsRepository) {
-        if (relations != null && relations.length > 0) {
-            List<Relation> relationsToPersistAsAttributes = getRelationsToPersistAsAttributes(relations);
-            for (Relation relationToPersistAsAttribute : relationsToPersistAsAttributes) {
-                PersonAttribute relationAttribute = getPersonAttribute(relationToPersistAsAttribute, emrPatient, idMappingsRepository);
-                if (relationAttribute != null) {
-                    emrPatient.addAttribute(relationAttribute);
-                }
+    private void removeAttributeIfRelationNotPresent(Relation[] relations, Patient emrPatient, String attributeName) {
+        Relation relation = getRelationByAttribute(relations, attributeName);
+        if (relation == null) {
+            removeAttribute(emrPatient, attributeName);
+        }
+    }
+
+    private void removeAttribute(Patient emrPatient, String attributeName) {
+        PersonAttribute attribute = emrPatient.getAttribute(attributeName);
+        if (attribute != null) {
+            emrPatient.removeAttribute(attribute);
+        }
+    }
+
+    private Relation getRelationByAttribute(Relation[] relations, String attributeName) {
+        for (Relation relation : relations) {
+            String relationType = attributeRelationshipTypeMapping.get(attributeName);
+            if (relation.getType().equals(relationType)) {
+                return relation;
             }
         }
+        return null;
     }
 
     private PersonAttribute getPersonAttribute(Relation relationToPersistAsAttribute, Patient patient, IdMappingRepository idMappingsRepository) {
@@ -132,7 +165,7 @@ public class RelationshipMapper {
     }
 
     private PersonService getPersonService() {
-        if(personService == null){
+        if (personService == null) {
             personService = Context.getPersonService();
         }
         return personService;
