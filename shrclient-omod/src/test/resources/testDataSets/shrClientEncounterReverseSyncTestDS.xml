@@ -23,8 +23,10 @@
     <encounter_type encounter_type_id="2" name="OPD" description="Some desc 2" creator="1"
                     date_created="2005-01-01 00:00:00.0" retired="false" uuid="4ee21921-01cc-4720-a6bf-a61a17c4d05b"/>
 
+    <visit_type visit_type_id="11" name="outpatient" description="OPD" creator="1" date_created="2005-01-01 00:00:00.0"
+                retired="false" uuid="c0c579b0-8e59-401d-qq4q-976a0b183519"/>
     <visit visit_id="1" date_started="2014-07-10 00:00:00" date_created="2014-07-10 00:00:00" patient_id="1"
-           visit_type_id="1" date_stopped="2014-07-10 23:59:59" location_id="2" creator="1" changed_by="1"
+           visit_type_id="11" date_stopped="2014-07-10 23:59:59" location_id="2" creator="1" changed_by="1"
            voided_by="1" uuid="ad41fb41-a41a-4ad6-8835-2f59099acf5a" voided="0"/>
 
 

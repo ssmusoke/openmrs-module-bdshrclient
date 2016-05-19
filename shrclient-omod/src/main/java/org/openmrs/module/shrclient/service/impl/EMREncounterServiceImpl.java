@@ -108,7 +108,7 @@ public class EMREncounterServiceImpl implements EMREncounterService {
         org.openmrs.Encounter newEmrEncounter = fhirMapper.map(emrPatient, shrEncounterBundle, systemProperties);
 
         VisitType visitType = fhirMapper.getVisitType(shrEncounterBundle);
-        Visit visit = visitLookupService.findOrInitializeVisit(emrPatient, newEmrEncounter.getEncounterDatetime(), visitType);
+        Visit visit = visitLookupService.findOrInitializeVisit(emrPatient, newEmrEncounter.getEncounterDatetime(), visitType , newEmrEncounter.getLocation());
         visit.addEncounter(newEmrEncounter);
 
         //identify location, provider(s), visit 

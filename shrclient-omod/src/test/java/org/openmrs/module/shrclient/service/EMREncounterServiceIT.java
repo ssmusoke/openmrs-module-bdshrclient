@@ -103,7 +103,7 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         assertEquals("Bahmni", encounter.getLocation().getName());
 
         assertNotNull(encounter.getVisit());
-        assertEquals("ad41fb41-a41a-4ad6-8835-2f59099acf5a", encounter.getVisit().getUuid());
+        assertNotNull(encounter.getVisit().getUuid());
         assertEquals("50ab30be-98af-4dfd-bd04-5455937c443f", encounter.getLocation().getUuid());
     }
 
@@ -243,7 +243,6 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(firstOrder, discontinuedOrder.getPreviousOrder());
         assertNotNull(firstOrder.getDateStopped());
     }
-
 
     @Test
     public void shouldSaveDrugOrders() throws Exception {
