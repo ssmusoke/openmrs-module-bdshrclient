@@ -1,16 +1,21 @@
 package org.openmrs.module.fhir.mapper.bundler;
 
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
+import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Encounter;
+import org.openmrs.Visit;
 import org.openmrs.api.EncounterService;
+import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
@@ -22,6 +27,9 @@ public class EncounterMapperIT extends BaseModuleWebContextSensitiveTest {
 
     @Autowired
     EncounterMapper encounterMapper;
+
+    @Autowired
+    VisitService visitService;
 
     @Before
     public void setUp() throws Exception {
@@ -69,5 +77,20 @@ public class EncounterMapperIT extends BaseModuleWebContextSensitiveTest {
         FHIREncounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
         assertEquals(1, fhirEncounter.getParticipantReferences().size());
         assertEquals("http://localhost:9997/api/1.0/providers/23.json", fhirEncounter.getFirstParticipantReference().getReference().getValue());
+    }
+
+    @Test
+    public void shouldSetPeriodFromVisitStartAndEndDate() throws Exception {
+        Encounter savedEncounter = encounterService.getEncounter(36);
+        Visit encounterVisit = visitService.getVisit(1);
+
+        FHIREncounter fhirEncounter = encounterMapper.map(savedEncounter, "1234", getSystemProperties("1"));
+
+        PeriodDt expectedPeriod = new PeriodDt();
+        expectedPeriod.setStart(encounterVisit.getStartDatetime(), TemporalPrecisionEnum.SECOND);
+        expectedPeriod.setEnd(encounterVisit.getStopDatetime(), TemporalPrecisionEnum.SECOND);
+
+        assertEquals(expectedPeriod.getStart(), fhirEncounter.getEncounter().getPeriod().getStart());
+        assertEquals(expectedPeriod.getEnd(), fhirEncounter.getEncounter().getPeriod().getEnd());
     }
 }

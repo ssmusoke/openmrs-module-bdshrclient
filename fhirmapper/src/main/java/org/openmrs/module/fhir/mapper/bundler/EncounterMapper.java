@@ -2,15 +2,14 @@ package org.openmrs.module.fhir.mapper.bundler;
 
 
 import ca.uhn.fhir.model.api.IResource;
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
+import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.valueset.EncounterClassEnum;
 import ca.uhn.fhir.model.dstu2.valueset.EncounterStateEnum;
 import org.apache.log4j.Logger;
-import org.openmrs.EncounterProvider;
-import org.openmrs.Location;
-import org.openmrs.Patient;
-import org.openmrs.Provider;
+import org.openmrs.*;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.FHIREncounter;
 import org.openmrs.module.fhir.utils.OMRSLocationService;
@@ -41,7 +40,16 @@ public class EncounterMapper {
         encounter.setServiceProvider(getServiceProvider(openMrsEncounter, systemProperties));
         setIdentifiers(encounter, openMrsEncounter, systemProperties);
         setType(encounter, openMrsEncounter);
+        setPeriod(encounter, openMrsEncounter);
         return new FHIREncounter(encounter);
+    }
+
+    private void setPeriod(Encounter encounter, org.openmrs.Encounter openMrsEncounter) {
+        Visit encounterVisit = openMrsEncounter.getVisit();
+        PeriodDt visitPeriod = new PeriodDt();
+        visitPeriod.setStart(encounterVisit.getStartDatetime(), TemporalPrecisionEnum.MILLI);
+        visitPeriod.setEnd(encounterVisit.getStopDatetime(), TemporalPrecisionEnum.MILLI);
+        encounter.setPeriod(visitPeriod);
     }
 
     private void setType(Encounter encounter, org.openmrs.Encounter openMrsEncounter) {
