@@ -4,6 +4,8 @@ import ca.uhn.fhir.model.api.IDatatype;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodingDt;
 import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
+import ca.uhn.fhir.model.primitive.BooleanDt;
+import ca.uhn.fhir.model.primitive.DateDt;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
 import ca.uhn.fhir.model.primitive.StringDt;
 import org.openmrs.Concept;
@@ -32,7 +34,11 @@ public class FHIRObservationValueMapper {
             } else if (value instanceof QuantityDt) {
                 obs.setValueNumeric(((QuantityDt) value).getValue().doubleValue());
             } else if (value instanceof DateTimeDt) {
-                obs.setValueDate(((DateTimeDt) value).getValue());
+                obs.setValueDatetime(((DateTimeDt) value).getValue());
+            } else if (value instanceof DateDt) {
+                obs.setValueDate(((DateDt) value).getValue());
+            } else if (value instanceof BooleanDt) {
+                obs.setValueBoolean(((BooleanDt) value).getValue());
             } else if (value instanceof CodeableConceptDt) {
                 List<CodingDt> codings = ((CodeableConceptDt) value).getCoding();
                 Boolean booleanValue = checkIfBooleanCoding(codings);
@@ -43,8 +49,9 @@ public class FHIRObservationValueMapper {
                     Drug drug = omrsConceptLookup.findDrug(codings);
                     if (drug != null) {
                         obs.setValueCoded(drug.getConcept());
+                        obs.setValueDrug(drug);
                     } else {
-                        obs.setValueCoded(findConcept(codings));
+                        obs.setValueCoded(omrsConceptLookup.findConceptByCodeOrDisplay(codings));
                     }
                 }
             }
@@ -64,11 +71,5 @@ public class FHIRObservationValueMapper {
             }
         }
         return null;
-    }
-
-    private Concept findConcept(List<CodingDt> codings) {
-        Concept concept = omrsConceptLookup.findConceptByCode(codings);
-        if (concept != null) return concept;
-        return conceptService.getConceptByName(codings.get(0).getDisplay());
     }
 }

@@ -8,10 +8,7 @@ import ca.uhn.fhir.model.primitive.DateTimeDt;
 import ca.uhn.fhir.model.primitive.StringDt;
 import org.junit.After;
 import org.junit.Test;
-import org.openmrs.Concept;
-import org.openmrs.ConceptName;
-import org.openmrs.ConceptNumeric;
-import org.openmrs.Obs;
+import org.openmrs.*;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir.FHIRProperties;
 import org.openmrs.module.fhir.mapper.bundler.ObservationValueMapper;
@@ -26,6 +23,7 @@ import java.util.Locale;
 import static java.lang.Boolean.FALSE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.openmrs.module.fhir.MapperTestHelper.containsCoding;
 
 @org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -116,5 +114,25 @@ public class ObservationValueMapperTest extends BaseModuleWebContextSensitiveTes
         assertEquals(FHIRProperties.FHIR_YES_NO_INDICATOR_URL, codingDt.getSystem());
         assertEquals(FHIRProperties.FHIR_NO_INDICATOR_CODE, codingDt.getCode());
         assertEquals(FHIRProperties.FHIR_NO_INDICATOR_DISPLAY, codingDt.getDisplay());
+    }
+
+    @Test
+    public void shouldMapCodedDrugValues() throws Exception {
+        Obs obs = new Obs();
+        Concept concept = new Concept();
+        concept.setDatatype(conceptService.getConceptDatatypeByName("Coded"));
+        obs.setConcept(concept);
+        Concept codedConcept = new Concept(10);
+        String conceptName = "Concept 1";
+        codedConcept.addName(new ConceptName(conceptName, conceptService.getLocalesOfConceptNames().iterator().next()));
+        Drug codedDrug = new Drug(10);
+        String drugName = "Drug 1";
+        codedDrug.setConcept(codedConcept);
+        codedDrug.setName(drugName);
+        obs.setValueCoded(codedConcept);
+        obs.setValueDrug(codedDrug);
+        IDatatype value = observationValueMapper.map(obs);
+        assertTrue(value instanceof CodeableConceptDt);
+        assertTrue(containsCoding(((CodeableConceptDt) value).getCoding(), null, null, drugName));
     }
 }

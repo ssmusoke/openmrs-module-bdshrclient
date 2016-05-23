@@ -40,6 +40,15 @@ public class CodeableConceptService {
         return codeableConceptDt;
     }
 
+    public CodeableConceptDt addTRCodingOrDisplay(Drug drug) {
+        CodeableConceptDt codeableConceptDt = addTRCoding(drug);
+        if (CollectionUtils.isEmpty(codeableConceptDt.getCoding())) {
+            CodingDt coding = codeableConceptDt.addCoding();
+            coding.setDisplay(drug.getName());
+        }
+        return codeableConceptDt;
+    }
+
     public CodeableConceptDt addTRCoding(Concept concept) {
         CodeableConceptDt codeableConcept = new CodeableConceptDt();
         Collection<ConceptMap> conceptMappings = concept.getConceptMappings();
@@ -49,6 +58,15 @@ public class CodeableConceptService {
             }
         }
         addTRCodingForConcept(concept, idMappingsRepository, codeableConcept);
+        return codeableConcept;
+    }
+
+    public CodeableConceptDt addTRCoding(Drug drug) {
+        CodeableConceptDt codeableConcept = new CodeableConceptDt();
+        IdMapping idMapping = idMappingsRepository.findByInternalId(drug.getUuid(), IdMappingType.MEDICATION);
+        if (idMapping != null) {
+            addFHIRCoding(codeableConcept, idMapping.getExternalId(), idMapping.getUri(), drug.getName());
+        }
         return codeableConcept;
     }
 

@@ -10,6 +10,7 @@ import ca.uhn.fhir.model.primitive.StringDt;
 import org.apache.commons.collections.CollectionUtils;
 import org.openmrs.Concept;
 import org.openmrs.ConceptNumeric;
+import org.openmrs.Drug;
 import org.openmrs.Obs;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
@@ -97,13 +98,15 @@ public class ObservationValueMapper {
             @Override
             public IDatatype readValue(Obs obs, CodeableConceptService codeableConceptService) {
                 if (obs.getConcept().getDatatype().isCoded() && obs.getValueCoded() != null) {
-                    Concept valueCoded = obs.getValueCoded();
-                    CodeableConceptDt concept = codeableConceptService.addTRCoding(valueCoded);
-                    if (CollectionUtils.isEmpty(concept.getCoding())) {
-                        CodingDt coding = concept.addCoding();
-                        coding.setDisplay(valueCoded.getName().getName());
+                    CodeableConceptDt codeableConcept = null;
+                    if (obs.getValueDrug() != null) {
+                        Drug valueDrug = obs.getValueDrug();
+                        codeableConcept = codeableConceptService.addTRCodingOrDisplay(valueDrug);
+                    } else {
+                        Concept valueCoded = obs.getValueCoded();
+                        codeableConcept = codeableConceptService.addTRCodingOrDisplay(valueCoded);
                     }
-                    return concept;
+                    return codeableConcept;
                 }
                 return null;
             }

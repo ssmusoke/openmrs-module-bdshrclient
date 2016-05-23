@@ -343,7 +343,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
             coding.setDisplay(drugOrder.getDrugNonCoded());
         } else {
             String uuid = drugOrder.getDrug().getUuid();
-            IdMapping idMapping = idMappingsRepository.findByInternalId(uuid, IdMappingType.CONCEPT);
+            IdMapping idMapping = idMappingsRepository.findByInternalId(uuid, IdMappingType.MEDICATION);
             String displayName = drugOrder.getDrug().getDisplayName();
             if (null != idMapping) {
                 coding.setCode(idMapping.getExternalId())

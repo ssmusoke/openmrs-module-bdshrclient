@@ -182,7 +182,7 @@ public class OMRSConceptLookup {
     }
 
     private Drug findDrug(String drugExternalId) {
-        IdMapping idMapping = idMappingsRepository.findByExternalId(drugExternalId, IdMappingType.CONCEPT);
+        IdMapping idMapping = idMappingsRepository.findByExternalId(drugExternalId, IdMappingType.MEDICATION);
         if (idMapping != null) {
             return conceptService.getDrugByUuid(idMapping.getInternalId());
         }

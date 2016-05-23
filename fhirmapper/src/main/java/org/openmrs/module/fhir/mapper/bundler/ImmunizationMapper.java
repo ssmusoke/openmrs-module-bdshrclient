@@ -189,7 +189,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
 
     private CodeableConceptDt getVaccineCode(List<Drug> drugs) {
         Drug drugsByConcept = drugs.get(0);
-        IdMapping idMapping = idMappingsRepository.findByInternalId(drugsByConcept.getUuid(), IdMappingType.CONCEPT);
+        IdMapping idMapping = idMappingsRepository.findByInternalId(drugsByConcept.getUuid(), IdMappingType.MEDICATION);
         CodeableConceptDt codeableConcept = new CodeableConceptDt();
         if (idMapping != null) {
             codeableConceptService.addFHIRCoding(codeableConcept, idMapping.getExternalId(), idMapping.getUri(), drugsByConcept.getDisplayName());
