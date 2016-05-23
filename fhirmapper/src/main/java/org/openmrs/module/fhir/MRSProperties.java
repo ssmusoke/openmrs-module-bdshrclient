@@ -105,6 +105,7 @@ public class MRSProperties {
     public static final String GLOBAL_PROPERTY_SHR_HIE_FACILITY_LOCATION_TAG_ID = "shr.hie.facilities.location.tag";
     public static final String GLOBAL_PROPERTY_SHR_LOGIN_LOCATION_TAG_ID = "shr.login.location.tag";
     public static final String GLOBAL_PROPERTY_SHR_SYSTEM_USER_TAG = "shr.system.user";
+    public static final String GLOBAL_PROPERTY_SHR_CATEGORY_EVENT = "shr.system.shrCategoryForEncounterEvents";
 
     public static final String GLOBAL_PROPERTY_EMR_PRIMARY_IDENTIFIER_TYPE = "emr.primaryIdentifierType";
     public static final String GLOBAL_PROPERTY_DEFAULT_IDENTIFIER_TYPE_ID = "shr.defaultPatientIdentifierSourceId";

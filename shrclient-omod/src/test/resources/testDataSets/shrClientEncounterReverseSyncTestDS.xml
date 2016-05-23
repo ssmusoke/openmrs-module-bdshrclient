@@ -47,6 +47,7 @@
     <shr_id_mapping id="222" internal_id="50ab30be-98af-4dfd-bd04-5455937c443f" external_id="10000069" type="fr_location" uri="http://localhost:9997/api/1.0/facilities/10000069.json"></shr_id_mapping>
 
     <global_property property="shr.system.user" property_value="777" description="Shr System User" uuid="lkieyg88-efd9-fda3-2b99-z12aalsa677h"/>
+    <global_property property="shr.system.shrCategoryForEncounterEvents" property_value="ShrEncounter" description="Shr System Encounter Event Category" uuid="lkieyg88-efd9-fda3-2b99-z12aalsx67xh"/>
 
 
     <concept_reference_source concept_source_id="1" name="ICD10-BD" creator="1" date_created="2004-08-12 00:00:00.0" uuid="b5e44116-778f-11e2-ad73-903c7bb72694"/>

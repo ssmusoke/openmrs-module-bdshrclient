@@ -11,13 +11,13 @@ import org.openmrs.Encounter;
 import org.openmrs.Location;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.atomfeed.transaction.support.AtomFeedSpringTransactionManager;
+import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
 import org.openmrs.module.fhir.utils.OMRSLocationService;
 
 import java.lang.reflect.Method;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,7 +32,7 @@ public class ShrEncounterAdviceTest {
     @Mock
     private EncounterAdviceState mockEncounterAdviceState;
     @Mock
-    private OMRSLocationService locationService;
+    private OMRSLocationService mockLocationService;
 
     private ArgumentCaptor<AFTransactionWorkWithoutResult> captor = ArgumentCaptor.forClass(AFTransactionWorkWithoutResult.class);
 
@@ -43,7 +43,7 @@ public class ShrEncounterAdviceTest {
     @Before
     public void setup() {
         initMocks(this);
-        encounterSaveInterceptor = new ShrEncounterAdvice(mockAtomFeedSpringTransactionManager, mockEventService, mockEncounterAdviceState, locationService);
+        encounterSaveInterceptor = new ShrEncounterAdvice(mockAtomFeedSpringTransactionManager, mockEventService, mockEncounterAdviceState, mockLocationService);
         encounter = new Encounter();
         encounter.setUuid("uuid");
     }

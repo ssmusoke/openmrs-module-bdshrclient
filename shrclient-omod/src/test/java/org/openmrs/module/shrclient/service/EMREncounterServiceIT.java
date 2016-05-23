@@ -8,17 +8,21 @@ import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.openmrs.*;
-import org.openmrs.api.EncounterService;
-import org.openmrs.api.PatientService;
-import org.openmrs.api.ProviderService;
+import org.openmrs.api.*;
+import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
+import org.openmrs.module.shrclient.advice.SHREncounterEventService;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.EncounterIdMapping;
 import org.openmrs.module.shrclient.model.IdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
+import org.openmrs.module.shrclient.service.impl.EMREncounterServiceImpl;
 import org.openmrs.module.shrclient.util.FhirBundleContextHolder;
+import org.openmrs.module.shrclient.util.PropertiesReader;
+import org.openmrs.module.shrclient.util.SystemUserService;
 import org.openmrs.module.shrclient.web.controller.dto.EncounterEvent;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,24 +41,43 @@ import static org.openmrs.module.shrclient.web.controller.dto.EncounterEvent.ENC
 public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
     @Autowired
     private ApplicationContext springContext;
-
     @Autowired
     private PatientService patientService;
-
-    @Autowired
-    private EMREncounterService emrEncounterService;
-
     @Autowired
     private EncounterService encounterService;
-
     @Autowired
     private ProviderService providerService;
-
     @Autowired
     private IdMappingRepository idMappingRepository;
+    @Autowired
+    private EMRPatientService emrPatientService;
+    @Autowired
+    private PropertiesReader propertiesReader;
+    @Autowired
+    private SystemUserService systemUserService;
+    @Autowired
+    private VisitService visitService;
+    @Autowired
+    private FHIRMapper fhirMapper;
+    @Autowired
+    private OrderService orderService;
+    @Autowired
+    private EMRPatientDeathService patientDeathService;
+    @Autowired
+    private EMRPatientMergeService emrPatientMergeService;
+    @Autowired
+    private VisitLookupService visitLookupService;
+    @Mock
+    private SHREncounterEventService shrEncounterEventService;
+
+    private EMREncounterService emrEncounterService;
+
 
     @Before
     public void setUp() throws Exception {
+        initMocks();
+        emrEncounterService = new EMREncounterServiceImpl(emrPatientService, idMappingRepository, propertiesReader, systemUserService,
+                visitService, fhirMapper, orderService, patientDeathService, emrPatientMergeService, visitLookupService, shrEncounterEventService);
         executeDataSet("testDataSets/omrsGlobalPropertyTestDS.xml");
     }
 

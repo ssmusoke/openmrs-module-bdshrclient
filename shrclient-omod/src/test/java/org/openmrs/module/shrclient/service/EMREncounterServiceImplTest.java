@@ -19,6 +19,7 @@ import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.GlobalPropertyLookUpService;
+import org.openmrs.module.shrclient.advice.SHREncounterEventService;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.EncounterIdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
@@ -71,6 +72,8 @@ public class EMREncounterServiceImplTest {
     private EMRPatientService mockEMRPatientService;
     @Mock
     private VisitLookupService mockVisitLookupService;
+    @Mock
+    private SHREncounterEventService mockShrEncounterEventService;
 
     private EMREncounterService emrEncounterService;
 
@@ -81,7 +84,7 @@ public class EMREncounterServiceImplTest {
     public void setUp() throws Exception {
         initMocks(this);
         emrEncounterService = new EMREncounterServiceImpl(mockEMRPatientService, mockIdMappingRepository, mockPropertiesReader,
-                mockSystemUserService, mockVisitService, mockFhirmapper, mockOrderService, patientDeathService, emrPatientMergeService, mockVisitLookupService);
+                mockSystemUserService, mockVisitService, mockFhirmapper, mockOrderService, patientDeathService, emrPatientMergeService, mockVisitLookupService, mockShrEncounterEventService);
     }
 
     @Test

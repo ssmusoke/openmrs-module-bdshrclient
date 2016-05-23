@@ -13,6 +13,7 @@ import org.openmrs.module.fhir.mapper.model.Confidentiality;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.ShrEncounterBundle;
 import org.openmrs.module.fhir.utils.DateUtil;
+import org.openmrs.module.shrclient.advice.SHREncounterEventService;
 import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.model.EncounterIdMapping;
 import org.openmrs.module.shrclient.model.IdMappingType;
@@ -34,7 +35,6 @@ import static org.openmrs.module.fhir.mapper.model.Confidentiality.getConfidenti
 public class EMREncounterServiceImpl implements EMREncounterService {
 
     private static final Logger logger = Logger.getLogger(EMREncounterServiceImpl.class);
-
     private EMRPatientService emrPatientService;
     private IdMappingRepository idMappingRepository;
     private PropertiesReader propertiesReader;
@@ -45,13 +45,14 @@ public class EMREncounterServiceImpl implements EMREncounterService {
     private EMRPatientDeathService patientDeathService;
     private EMRPatientMergeService emrPatientMergeService;
     private VisitLookupService visitLookupService;
+    private SHREncounterEventService shrEncounterEventService;
 
     @Autowired
     public EMREncounterServiceImpl(@Qualifier("hieEmrPatientService") EMRPatientService emrPatientService, IdMappingRepository idMappingRepository,
                                    PropertiesReader propertiesReader, SystemUserService systemUserService,
                                    VisitService visitService, FHIRMapper fhirMapper, OrderService orderService,
                                    EMRPatientDeathService patientDeathService, EMRPatientMergeService emrPatientMergeService,
-                                   VisitLookupService visitLookupService) {
+                                   VisitLookupService visitLookupService, SHREncounterEventService shrEncounterEventService) {
         this.emrPatientService = emrPatientService;
         this.idMappingRepository = idMappingRepository;
         this.propertiesReader = propertiesReader;
@@ -62,6 +63,7 @@ public class EMREncounterServiceImpl implements EMREncounterService {
         this.patientDeathService = patientDeathService;
         this.emrPatientMergeService = emrPatientMergeService;
         this.visitLookupService = visitLookupService;
+        this.shrEncounterEventService = shrEncounterEventService;
     }
 
     @Override
@@ -114,6 +116,7 @@ public class EMREncounterServiceImpl implements EMREncounterService {
         saveOrders(newEmrEncounter);
         Date encounterUpdatedDate = getEncounterUpdatedDate(encounterEvent);
         addEncounterToIdMapping(newEmrEncounter, shrEncounterId, healthId, systemProperties, encounterUpdatedDate);
+        shrEncounterEventService.raiseShrEncounterDownloadEvent(newEmrEncounter);
         systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter);
         systemUserService.setOpenmrsShrSystemUserAsCreator(newEmrEncounter.getVisit());
         savePatientDeathInfo(emrPatient);
