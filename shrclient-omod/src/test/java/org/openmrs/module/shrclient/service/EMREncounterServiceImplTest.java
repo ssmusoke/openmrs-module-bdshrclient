@@ -1,5 +1,6 @@
 package org.openmrs.module.shrclient.service;
 
+import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.Composition;
@@ -138,8 +139,8 @@ public class EMREncounterServiceImplTest {
         shrProperties.put(SHR_REFERENCE_PATH, "http://shr.com/");
         shrProperties.put(SHR_PATIENT_ENC_PATH_PATTERN, "/patients/%s/encounters");
         when(mockPropertiesReader.getShrProperties()).thenReturn(shrProperties);
-        when(mockVisitLookupService.findOrInitializeVisit(eq(emrPatient), any(Date.class), any(VisitType.class), any(Location.class))).thenReturn(new Visit());
-
+        when(mockFhirmapper.getVisitPeriod(any(ShrEncounterBundle.class))).thenReturn(new PeriodDt());
+        when(mockVisitLookupService.findOrInitializeVisit(eq(emrPatient), any(Date.class), any(VisitType.class), any(Location.class), any(Date.class), any(Date.class))).thenReturn(new Visit());
         emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
 
         verify(mockFhirmapper, times(1)).map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class));
@@ -233,7 +234,8 @@ public class EMREncounterServiceImplTest {
         shrProperties.put(SHR_REFERENCE_PATH, "http://shr.com/");
         shrProperties.put(SHR_PATIENT_ENC_PATH_PATTERN, "/patients/%s/encounters");
         when(mockPropertiesReader.getShrProperties()).thenReturn(shrProperties);
-        when(mockVisitLookupService.findOrInitializeVisit(eq(emrPatient), any(Date.class), any(VisitType.class), any(Location.class))).thenReturn(new Visit());
+        when(mockFhirmapper.getVisitPeriod(any(ShrEncounterBundle.class))).thenReturn(new PeriodDt());
+        when(mockVisitLookupService.findOrInitializeVisit(eq(emrPatient), any(Date.class), any(VisitType.class), any(Location.class), any(Date.class) ,any(Date.class) )).thenReturn(new Visit());
 
         emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
         verify(mockFhirmapper, times(1)).map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class));
@@ -272,7 +274,8 @@ public class EMREncounterServiceImplTest {
         shrProperties.put(SHR_REFERENCE_PATH, "http://shr.com/");
         shrProperties.put(SHR_PATIENT_ENC_PATH_PATTERN, "/patients/%s/encounters");
         when(mockPropertiesReader.getShrProperties()).thenReturn(shrProperties);
-        when(mockVisitLookupService.findOrInitializeVisit(eq(emrPatient), any(Date.class), any(VisitType.class), any(Location.class))).thenReturn(new Visit());
+        when(mockFhirmapper.getVisitPeriod(any(ShrEncounterBundle.class))).thenReturn(new PeriodDt());
+        when(mockVisitLookupService.findOrInitializeVisit(eq(emrPatient), any(Date.class), any(VisitType.class), any(Location.class), any(Date.class) ,any(Date.class) )).thenReturn(new Visit());
 
         emrEncounterService.createOrUpdateEncounter(emrPatient, encounterEvent);
         verify(mockFhirmapper, times(1)).map(eq(emrPatient), any(ShrEncounterBundle.class), any(SystemProperties.class));

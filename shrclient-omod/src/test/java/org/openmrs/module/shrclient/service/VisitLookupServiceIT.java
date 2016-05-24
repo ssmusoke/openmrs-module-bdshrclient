@@ -32,16 +32,28 @@ public class VisitLookupServiceIT extends BaseModuleWebContextSensitiveTest {
     private PatientService patientService;
 
     @Test
-    public void shouldReturnExistingVisit() throws Exception {
+    public void shouldReturnCorrectExistingVisit() throws Exception {
         executeDataSet("testDataSets/visitDs.xml");
         Patient patient = patientService.getPatient(100);
         VisitType visitType = visitService.getVisitType(11);
         Location location = locationService.getLocation(13);
-        Date visitDate = DateUtil.parseDate("2014-07-10 13:00:00");
-        Visit existingVisit = visitService.getVisit(100);
+        Date visitDateOne = DateUtil.parseDate("2014-07-10 13:00:00");
+        Visit existingVisitOne = visitService.getVisit(100);
 
-        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, visitDate, visitType, location);
-        assertEquals(existingVisit.getUuid(), createdVisit.getUuid());
+        Visit createdVisitOne = visitLookupService.findOrInitializeVisit(patient, visitDateOne, visitType, location, null ,null );
+        assertEquals(existingVisitOne.getUuid(), createdVisitOne.getUuid());
+
+        Date startdate = DateUtil.parseDate("2015-07-10 05:00:00");
+        Visit existingVisitTwo = visitService.getVisit(102);
+
+        Visit createdVisitTwo = visitLookupService.findOrInitializeVisit(patient, startdate, visitType, location, startdate ,null );
+        assertEquals(existingVisitTwo.getUuid(), createdVisitTwo.getUuid());
+
+        startdate = DateUtil.parseDate("2015-07-10 07:00:00");
+        Visit existingVisitThree = visitService.getVisit(103);
+
+        Visit createdVisitThree = visitLookupService.findOrInitializeVisit(patient, startdate, visitType, location, startdate ,null );
+        assertEquals(existingVisitThree.getUuid(), createdVisitThree.getUuid());
     }
 
     @Test
@@ -53,7 +65,7 @@ public class VisitLookupServiceIT extends BaseModuleWebContextSensitiveTest {
         Date visitDate = DateUtil.parseDate("2014-07-10 13:00:00");
         Visit existingVisit = visitService.getVisit(100);
 
-        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, visitDate, visitType, location);
+        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, visitDate, visitType, location,null ,null);
 
         assertNotEquals(existingVisit, createdVisit);
         assertEquals(visitDate, createdVisit.getStartDatetime());
@@ -70,7 +82,7 @@ public class VisitLookupServiceIT extends BaseModuleWebContextSensitiveTest {
         Date visitDate = DateUtil.parseDate("2014-07-10 13:00:00");
         Visit existingVisit = visitService.getVisit(100);
 
-        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, visitDate, visitType, location);
+        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, visitDate, visitType, location, null ,null );
 
         assertNotEquals(existingVisit, createdVisit);
         assertEquals(visitDate, createdVisit.getStartDatetime());
@@ -87,7 +99,7 @@ public class VisitLookupServiceIT extends BaseModuleWebContextSensitiveTest {
         Visit existingVisit = visitService.getVisit(100);
         Date visitDate = DateUtil.parseDate("2014-07-10 13:00:00");
 
-        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, visitDate, visitType, location);
+        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, visitDate, visitType, location, null ,null );
 
         assertNotEquals(existingVisit, createdVisit);
         assertEquals(visitDate, createdVisit.getStartDatetime());
@@ -104,7 +116,7 @@ public class VisitLookupServiceIT extends BaseModuleWebContextSensitiveTest {
         Date visitDate = DateUtil.parseDate("2014-07-10 01:00:00");
         Visit existingVisit = visitService.getVisit(100);
 
-        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, visitDate, visitType, location);
+        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, visitDate, visitType, location, null ,null );
         assertNotEquals(existingVisit, createdVisit);
         assertEquals(visitDate, createdVisit.getStartDatetime());
         Date expectedStopDate = DateUtil.parseDate("2014-07-10 04:59:59");
@@ -120,7 +132,7 @@ public class VisitLookupServiceIT extends BaseModuleWebContextSensitiveTest {
         Date visitDate = DateUtil.parseDate("2014-07-10 23:00:00");
         Visit existingVisit = visitService.getVisit(100);
         
-        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, visitDate, visitType, location);
+        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, visitDate, visitType, location, null ,null );
         
         assertNotEquals(existingVisit, createdVisit);
         assertEquals(visitDate, createdVisit.getStartDatetime());
@@ -136,9 +148,88 @@ public class VisitLookupServiceIT extends BaseModuleWebContextSensitiveTest {
         Location location = locationService.getLocation(13);
         Date visitDate = new Date();
 
-        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, visitDate, visitType, location);
+        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, visitDate, visitType, location, null ,null );
         Date expectedStopDate = new DateTime(visitDate).withTime(23, 59, 59, 0).toDate();
         assertEquals(visitDate, createdVisit.getStartDatetime());
+        assertEquals(expectedStopDate, createdVisit.getStopDatetime());
+    }
+
+    @Test
+    public void shouldStopADownloadedVisitImmediatelyIfOnTheSameDay() throws Exception {
+        executeDataSet("testDataSets/visitDs.xml");
+        Patient patient = patientService.getPatient(100);
+        VisitType visitType = visitService.getVisitType(11);
+        Location location = locationService.getLocation(13);
+        Date visitDate = DateUtil.parseDate("2014-08-10 23:00:00");
+        Date currentDateTime = DateUtil.parseDate("2014-08-10 23:30:00");
+
+        org.joda.time.DateTimeUtils.setCurrentMillisFixed(currentDateTime.getTime());
+
+        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, visitDate, visitType, location,  null ,null );
+        Date expectedStopDate = new DateTime(visitDate).withTime(23, 29, 59, 0).toDate();
+        assertEquals(visitDate, createdVisit.getStartDatetime());
+        assertEquals(expectedStopDate, createdVisit.getStopDatetime());
+    }
+
+    @Test
+    public void shouldIncreaseStopTimeForApplicableVisit() throws Exception {
+        executeDataSet("testDataSets/visitDs.xml");
+        Patient patient = patientService.getPatient(101);
+        VisitType visitType = visitService.getVisitType(12);
+        Location location = locationService.getLocation(14);
+        Date visitDate = DateUtil.parseDate("2014-07-11 06:00:00");
+        Date startDate = DateUtil.parseDate("2014-07-11 05:00:00");
+
+        Date currentDateTime = DateUtil.parseDate("2014-07-11 23:30:00");
+        Visit existingVisit = visitService.getVisit(101);
+        org.joda.time.DateTimeUtils.setCurrentMillisFixed(currentDateTime.getTime());
+
+        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, visitDate, visitType, location, startDate , null);
+
+        assertEquals(existingVisit.getUuid(), createdVisit.getUuid());
+        assertEquals(startDate, createdVisit.getStartDatetime());
+        Date expectedStopDate = new DateTime(visitDate).withTime(23, 29, 59, 0).toDate();
+        assertEquals(expectedStopDate, createdVisit.getStopDatetime());
+    }
+
+    @Test
+    public void shouldIncreaseStopTimeForApplicableVisitToNextDay() throws Exception {
+        executeDataSet("testDataSets/visitDs.xml");
+        Patient patient = patientService.getPatient(101);
+        VisitType visitType = visitService.getVisitType(12);
+        Location location = locationService.getLocation(14);
+        Date encounterDate = DateUtil.parseDate("2014-07-12 06:00:00");
+        Date startDate = DateUtil.parseDate("2014-07-11 05:00:00");
+
+        Date currentDateTime = DateUtil.parseDate("2014-07-13 23:30:00");
+        Visit existingVisit = visitService.getVisit(101);
+        org.joda.time.DateTimeUtils.setCurrentMillisFixed(currentDateTime.getTime());
+
+        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, encounterDate, visitType, location, startDate , null);
+
+        assertEquals(existingVisit.getUuid(), createdVisit.getUuid());
+        assertEquals(startDate, createdVisit.getStartDatetime());
+        Date expectedStopDate = new DateTime(encounterDate).withTime(23, 59, 59, 0).toDate();
+        assertEquals(expectedStopDate, createdVisit.getStopDatetime());
+    }
+
+
+    @Test
+    public void shouldStopAvisitBasedOnStopDate() throws Exception {
+        executeDataSet("testDataSets/visitDs.xml");
+        Patient patient = patientService.getPatient(101);
+        VisitType visitType = visitService.getVisitType(12);
+        Location location = locationService.getLocation(14);
+        Date encounterDate = DateUtil.parseDate("2014-07-13 16:00:00");
+        Date startDate = DateUtil.parseDate("2014-07-13 05:00:00");
+        Date stopDate = DateUtil.parseDate("2014-07-13 20:30:00");
+        Date currentDateTime = DateUtil.parseDate("2014-07-13 23:30:00");
+        org.joda.time.DateTimeUtils.setCurrentMillisFixed(currentDateTime.getTime());
+
+        Visit createdVisit = visitLookupService.findOrInitializeVisit(patient, encounterDate, visitType, location, startDate , stopDate);
+
+        assertEquals(startDate, createdVisit.getStartDatetime());
+        Date expectedStopDate = new DateTime(encounterDate).withTime(20, 30, 00, 0).toDate();
         assertEquals(expectedStopDate, createdVisit.getStopDatetime());
     }
 

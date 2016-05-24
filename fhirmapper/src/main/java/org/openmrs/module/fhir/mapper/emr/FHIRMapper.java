@@ -1,5 +1,6 @@
 package org.openmrs.module.fhir.mapper.emr;
 
+import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
 import ca.uhn.fhir.model.dstu2.valueset.EncounterClassEnum;
 import org.apache.commons.collections4.CollectionUtils;
 import org.openmrs.*;
@@ -95,5 +96,10 @@ public class FHIRMapper {
                 }
             }
             return encVisitType;
+    }
+
+    public PeriodDt getVisitPeriod(ShrEncounterBundle shrEncounterBundle) {
+        ca.uhn.fhir.model.dstu2.resource.Encounter fhirEncounter = FHIRBundleHelper.getEncounter(shrEncounterBundle.getBundle());
+        return fhirEncounter.getPeriod();
     }
 }

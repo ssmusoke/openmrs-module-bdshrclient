@@ -12,6 +12,10 @@ import org.mockito.Mock;
 import org.openmrs.*;
 import org.openmrs.api.*;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
+import org.openmrs.api.EncounterService;
+import org.openmrs.api.PatientService;
+import org.openmrs.api.ProviderService;
+import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.shrclient.advice.SHREncounterEventService;
@@ -72,7 +76,6 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
 
     private EMREncounterService emrEncounterService;
 
-
     @Before
     public void setUp() throws Exception {
         initMocks();
@@ -102,8 +105,9 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         assertNotNull(encounter.getEncounterProviders());
         assertEquals("Bahmni", encounter.getLocation().getName());
 
-        assertNotNull(encounter.getVisit());
-        assertNotNull(encounter.getVisit().getUuid());
+        Visit createdEncounterVisit = encounter.getVisit();
+        assertNotNull(createdEncounterVisit);
+        assertNotNull((createdEncounterVisit).getUuid());
         assertEquals("50ab30be-98af-4dfd-bd04-5455937c443f", encounter.getLocation().getUuid());
     }
 
@@ -359,11 +363,11 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    public void shouldUpdateTheSameEncounter() throws Exception {
+    public void shouldUpdateTheSameEncounterAndVisit() throws Exception {
         executeDataSet("testDataSets/shrClientEncounterReverseSyncTestDS.xml");
         Patient patient = patientService.getPatient(1);
         String shrEncounterId = "shr-enc-id";
-        List<EncounterEvent> events = getEncounterEvents(shrEncounterId, "encounterBundles/dstu2/diagnosisConditions.xml");
+        List<EncounterEvent> events = getEncounterEvents(shrEncounterId, "encounterBundles/dstu2/diagnosisConditionsUpdate.xml");
 
         Date currentTime = new Date();
         Date tenMinutesAfter = getDateTimeAfterNMinutes(currentTime, 10);
@@ -371,6 +375,11 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
         Category category = new Category();
         category.setTerm(ENCOUNTER_UPDATED_CATEGORY_TAG + ":" + DateUtil.toISOString(currentTime));
         events.get(0).setCategories(asList(category));
+
+        Visit initialVisit = visitService.getVisit(1);
+        String initialVisitUuid = initialVisit.getUuid();
+        assertEquals(DateUtil.parseDate("2014-07-10 00:00:00"), initialVisit.getStartDatetime());
+        assertEquals(DateUtil.parseDate("2014-07-11 23:59:59"), initialVisit.getStopDatetime());
 
         emrEncounterService.createOrUpdateEncounters(patient, events);
         EncounterIdMapping mapping = (EncounterIdMapping) idMappingRepository.findByExternalId(shrEncounterId, ENCOUNTER);
@@ -383,10 +392,15 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
 
         emrEncounterService.createOrUpdateEncounters(patient, events);
         mapping = (EncounterIdMapping) idMappingRepository.findByExternalId(shrEncounterId, ENCOUNTER);
-        Encounter encounter2 = encounterService.getEncounterByUuid(mapping.getInternalId());
+        Encounter encounter = encounterService.getEncounterByUuid(mapping.getInternalId());
 
-        assertEquals(encounterUUID, encounter2.getUuid());
+        assertEquals(initialVisitUuid, encounter.getVisit().getUuid());
+        assertEquals(encounterUUID, encounter.getUuid());
         assertTrue(firstServerUpdateDateTime.before(mapping.getServerUpdateDateTime()));
+
+        Visit finalVisit = visitService.getVisit(1);
+        assertEquals(DateUtil.parseDate("2014-07-10 00:00:00"), finalVisit.getStartDatetime());
+        assertEquals(DateUtil.parseDate("2014-07-27 16:05:09"), finalVisit.getStopDatetime());
     }
 
     @Test

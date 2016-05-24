@@ -28,7 +28,16 @@
     <visit_type visit_type_id="12" name="inpatient" description="IPD" creator="1" date_created="2005-01-01 00:00:00.0"
                 retired="false" uuid="c0c579b0-8e59-401d-qq4q-976a0qwer519"/>
 
-    <visit visit_id="100" date_started="2014-07-10 05:00:00" date_created="2014-07-10 00:00:00" patient_id="100"
+    <visit visit_id="100" date_started="2014-07-10 05:00:00" date_created="2014-07-11 00:00:00" patient_id="100"
            visit_type_id="11" date_stopped="2014-07-10 20:59:59" location_id="13" creator="1" changed_by="1"
            voided_by="1" uuid="ad41fb41-a41a-4ad6-8835-2f59099acf5a" voided="0"/>
+    <visit visit_id="101" date_started="2014-07-11 05:00:00" date_created="2014-07-11 00:00:00" patient_id="101"
+           visit_type_id="12" date_stopped="2014-07-11 06:59:59" location_id="14" creator="1" changed_by="1"
+           voided_by="1" uuid="ad41fb41-a41a-4ad6-8835-2f59tf9acf5a" voided="0"/>
+    <visit visit_id="102" date_started="2015-07-10 05:00:00" date_created="2015-07-11 00:00:00" patient_id="100"
+           visit_type_id="11" date_stopped="2015-07-10 20:59:59" location_id="13" creator="1" changed_by="1"
+           voided_by="1" uuid="ad41fb41-a41a-12as-8835-2f59099acf5a" voided="0"/>
+    <visit visit_id="103" date_started="2015-07-10 07:00:00" date_created="2015-07-11 00:00:00" patient_id="100"
+           visit_type_id="11" date_stopped="2015-07-10 20:59:59" location_id="13" creator="1" changed_by="1"
+           voided_by="1" uuid="ad41fb41-123b-12as-8835-2f59099acf5a" voided="0"/>
 </dataset>

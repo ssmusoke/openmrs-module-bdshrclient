@@ -1,8 +1,10 @@
 package org.openmrs.module.shrclient.service;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 import org.openmrs.*;
 import org.openmrs.api.VisitService;
+import org.openmrs.module.fhir.utils.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,46 +22,80 @@ public class VisitLookupService {
         this.visitService = visitService;
     }
 
-    public Visit findOrInitializeVisit(Patient patient, Date visitDate, VisitType visitType, Location location) {
-        Visit applicableVisit = getVisitForPatientWithinDates(visitType, patient, location, visitDate);
+    public Visit findOrInitializeVisit(Patient patient, Date encounterDate, VisitType visitType, Location location, Date visitStartDate, Date visitStopDate) {
+        Visit applicableVisit = getApplicableVisit(patient, encounterDate, visitType, location, visitStartDate);
         if (applicableVisit != null) {
-            return applicableVisit;
+            return modifiedVisit(applicableVisit, visitStopDate, encounterDate);
+        }
+        if (visitStartDate == null) {
+            visitStartDate = encounterDate;
         }
         Visit visit = new Visit();
         visit.setPatient(patient);
         visit.setVisitType(visitType);
-        visit.setStartDatetime(visitDate);
+        visit.setStartDatetime(visitStartDate);
         visit.setEncounters(new HashSet<Encounter>());
         visit.setUuid(UUID.randomUUID().toString());
         visit.setLocation(location);
 
-        Visit nextVisit = getVisitForPatientForNearestStartDate(patient, visitDate);
-        DateTime startTime = new DateTime(visitDate);
+        Visit nextVisit = getVisitForPatientForNearestStartDate(patient, visitStartDate);
+        DateTime startTime = new DateTime(visitStartDate);
         if (nextVisit == null) {
-            stopVisitAtEndOfDay(visit, startTime);
+            stopVisitWhenSuitable(visit, startTime, visitStopDate);
         } else {
             stopVisitBeforeStartOfNextVisit(visit, nextVisit, startTime);
         }
         return visit;
     }
 
+    private Visit getApplicableVisit(Patient patient, Date encounterDate, VisitType visitType, Location location, Date visitStartDate) {
+        if (visitStartDate == null) {
+            return getApplicableVisitForEncounterDate(visitType, patient, location, encounterDate);
+        }
+        return getApplicableVisitForVisitStartDate(visitType, patient, location, visitStartDate);
+    }
+
+
+    private Visit modifiedVisit(Visit applicableVisit, Date visitStopDate, Date encounterDate) {
+        if (visitStopDate == null) {
+            Date today = new DateTime().toDate();
+            if (DateUtils.isSameDay(encounterDate, today))
+                visitStopDate = DateUtil.aSecondBefore(today);
+            else
+                visitStopDate = getEndOfDay(new DateTime(encounterDate)).toDate();
+        }
+        applicableVisit.setStopDatetime(visitStopDate);
+        return applicableVisit;
+    }
+
+
     private void stopVisitBeforeStartOfNextVisit(Visit visit, Visit nextVisit, DateTime startTime) {
         DateTime nextVisitStartTime = new DateTime(nextVisit.getStartDatetime());
-        DateTime visitStopDate = startTime.withTime(23, 59, 59, 000);
-        boolean isEndTimeBeforeNextVisitStart = visitStopDate.isBefore(nextVisitStartTime);
-        if (!isEndTimeBeforeNextVisitStart) {
+        DateTime visitStopDate = getEndOfDay(startTime);
+        if (!visitStopDate.isBefore(nextVisitStartTime)) {
             visitStopDate = nextVisitStartTime.minusSeconds(1);
         }
         visit.setStopDatetime(visitStopDate.toDate());
     }
 
-    private void stopVisitAtEndOfDay(Visit visit, DateTime startTime) {
-        Date stopTime = startTime.withTime(23, 59, 59, 000).toDate();
+    private DateTime getEndOfDay(DateTime startTime) {
+        return startTime.withTime(23, 59, 59, 000);
+    }
+
+    private void stopVisitWhenSuitable(Visit visit, DateTime startTime, Date stopTime) {
+        if (stopTime == null) {
+            stopTime = getEndOfDay(startTime).toDate();
+            Date currentDateTime = new DateTime().toDate();
+            if (DateUtils.isSameDay(startTime.toDate(), currentDateTime)) {
+                stopTime = DateUtil.aSecondBefore(currentDateTime);
+            }
+        }
         visit.setStopDatetime(stopTime);
     }
 
-    private Visit getVisitForPatientForNearestStartDate(Patient patient, Date startTime) {
-        List<Visit> visits = visitService.getVisits(null, Arrays.asList(patient), null, null, startTime, null, null, null, null, true, false);
+    private Visit getVisitForPatientForNearestStartDate(Patient patient, Date startDate) {
+        Date maxEndDate = getEndOfDay(new DateTime(startDate)).toDate();
+        List<Visit> visits = visitService.getVisits(null, Arrays.asList(patient), null, null, startDate, null, null, maxEndDate, null, true, false);
         if (visits.isEmpty()) {
             return null;
         }
@@ -72,9 +108,15 @@ public class VisitLookupService {
         return visits.get(0);
     }
 
-    private Visit getVisitForPatientWithinDates(VisitType visitType, Patient patient, Location location, Date startTime) {
+    private Visit getApplicableVisitForEncounterDate(VisitType visitType, Patient patient, Location location, Date startTime) {
         List<Visit> visits = visitService.getVisits(Arrays.asList(visitType), Arrays.asList(patient),
                 Arrays.asList(location), null, null, startTime, startTime, null, null, true, false);
+        return visits.isEmpty() ? null : visits.get(0);
+    }
+
+    private Visit getApplicableVisitForVisitStartDate(VisitType visitType, Patient patient, Location location, Date visitStartDate) {
+        List<Visit> visits = visitService.getVisits(Arrays.asList(visitType), Arrays.asList(patient),
+                Arrays.asList(location), null, visitStartDate, visitStartDate, null, null, null, true, false);
         return visits.isEmpty() ? null : visits.get(0);
     }
 }
