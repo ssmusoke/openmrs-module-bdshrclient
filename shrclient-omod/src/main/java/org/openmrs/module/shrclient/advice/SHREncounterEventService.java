@@ -24,15 +24,11 @@ import static org.openmrs.module.shrclient.advice.ShrEncounterAdvice.ENCOUNTER_R
 
 @Component
 public class SHREncounterEventService {
-    private AtomFeedSpringTransactionManager atomFeedSpringTransactionManager;
-    private final EventService eventService;
     private GlobalPropertyLookUpService globalPropertyLookUpService;
 
     @Autowired
     public SHREncounterEventService(GlobalPropertyLookUpService globalPropertyLookUpService) {
         this.globalPropertyLookUpService = globalPropertyLookUpService;
-        this.atomFeedSpringTransactionManager = findTransactionManager();
-        this.eventService = getEventService(atomFeedSpringTransactionManager);
     }
 
     public void raiseShrEncounterDownloadEvent(Encounter newEmrEncounter) {
@@ -40,6 +36,8 @@ public class SHREncounterEventService {
         if (StringUtils.isNotBlank(shrEncounterEventCategory)) {
             String url = String.format(ENCOUNTER_REST_URL, newEmrEncounter.getUuid());
             final Event event = new Event(UUID.randomUUID().toString(), shrEncounterEventCategory, DateTime.now(), (URI) null, url, shrEncounterEventCategory);
+            AtomFeedSpringTransactionManager atomFeedSpringTransactionManager = findTransactionManager();
+            final EventService eventService = getEventService(atomFeedSpringTransactionManager);
             atomFeedSpringTransactionManager.executeWithTransaction(
                     new AFTransactionWorkWithoutResult() {
                         @Override

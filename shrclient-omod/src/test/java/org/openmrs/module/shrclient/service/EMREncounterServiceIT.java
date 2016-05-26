@@ -13,10 +13,6 @@ import org.mockito.Mock;
 import org.openmrs.*;
 import org.openmrs.api.*;
 import org.openmrs.module.fhir.mapper.emr.FHIRMapper;
-import org.openmrs.api.EncounterService;
-import org.openmrs.api.PatientService;
-import org.openmrs.api.ProviderService;
-import org.openmrs.api.VisitService;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.fhir.utils.FHIRBundleHelper;
 import org.openmrs.module.shrclient.advice.SHREncounterEventService;
@@ -72,14 +68,13 @@ public class EMREncounterServiceIT extends BaseModuleWebContextSensitiveTest {
     private EMRPatientMergeService emrPatientMergeService;
     @Autowired
     private VisitLookupService visitLookupService;
-    @Mock
+    @Autowired
     private SHREncounterEventService shrEncounterEventService;
 
     private EMREncounterService emrEncounterService;
 
     @Before
     public void setUp() throws Exception {
-        initMocks();
         emrEncounterService = new EMREncounterServiceImpl(emrPatientService, idMappingRepository, propertiesReader, systemUserService,
                 visitService, fhirMapper, orderService, patientDeathService, emrPatientMergeService, visitLookupService, shrEncounterEventService);
         executeDataSet("testDataSets/omrsGlobalPropertyTestDS.xml");
