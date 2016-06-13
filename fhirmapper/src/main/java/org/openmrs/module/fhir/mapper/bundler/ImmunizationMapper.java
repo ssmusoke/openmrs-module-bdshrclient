@@ -3,8 +3,6 @@ package org.openmrs.module.fhir.mapper.bundler;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.model.dstu2.composite.*;
 import ca.uhn.fhir.model.dstu2.resource.Immunization;
-import ca.uhn.fhir.model.dstu2.valueset.ImmunizationReasonCodesEnum;
-import ca.uhn.fhir.model.dstu2.valueset.ImmunizationRouteCodesEnum;
 import org.apache.commons.collections4.CollectionUtils;
 import org.openmrs.Concept;
 import org.openmrs.Drug;
@@ -116,8 +114,10 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         Concept routeOfAdministrationConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.ROUTE_OF_ADMINISTRATION);
         Obs routeObs = immunizationIncidentObs.getMemberObsForConceptName(routeOfAdministrationConcept.getName().getName());
         if (routeObs != null) {
-            CodeableConceptDt codeableConceptDt = codeableConceptService.getTRValueSetCodeableConcept(routeObs.getValueCoded(), TrValueSetType.ROUTE_OF_ADMINISTRATION.getTrPropertyValueSetUrl(systemProperties), new BoundCodeableConceptDt<>(ImmunizationRouteCodesEnum.VALUESET_BINDER));
-            BoundCodeableConceptDt<ImmunizationRouteCodesEnum> routeCodeableConcept = new BoundCodeableConceptDt<>(ImmunizationRouteCodesEnum.VALUESET_BINDER);
+            CodeableConceptDt codeableConceptDt = codeableConceptService.getTRValueSetCodeableConcept(routeObs.getValueCoded(),
+                    TrValueSetType.ROUTE_OF_ADMINISTRATION.getTrPropertyValueSetUrl(systemProperties),
+                    new CodeableConceptDt());
+            CodeableConceptDt routeCodeableConcept = new CodeableConceptDt();
             routeCodeableConcept.setCoding(codeableConceptDt.getCoding());
             immunization.setRoute(routeCodeableConcept);
         }
@@ -150,7 +150,7 @@ public class ImmunizationMapper implements EmrObsResourceHandler {
         if (TrValueSetType.IMMUNIZATION_REFUSAL_REASON.equals(trValueSetType)) {
             explanationComponent.addReasonNotGiven(reason);
         } else {
-            BoundCodeableConceptDt<ImmunizationReasonCodesEnum> conceptDt = explanationComponent.addReason();
+            CodeableConceptDt conceptDt = explanationComponent.addReason();
             conceptDt.setCoding(reason.getCoding());
         }
     }

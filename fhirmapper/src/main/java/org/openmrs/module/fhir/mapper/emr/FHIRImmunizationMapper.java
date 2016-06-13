@@ -2,11 +2,9 @@ package org.openmrs.module.fhir.mapper.emr;
 
 import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.AnnotationDt;
-import ca.uhn.fhir.model.dstu2.composite.BoundCodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.QuantityDt;
 import ca.uhn.fhir.model.dstu2.resource.Immunization;
-import ca.uhn.fhir.model.dstu2.valueset.ImmunizationReasonCodesEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Concept;
 import org.openmrs.Drug;
@@ -85,10 +83,10 @@ public class FHIRImmunizationMapper implements FHIRResourceMapper {
     private Obs addImmunizationReasons(Immunization immunization, Obs immunizationIncident) {
         Immunization.Explanation explanation = immunization.getExplanation();
         if (explanation != null && !explanation.isEmpty()) {
-            List<BoundCodeableConceptDt<ImmunizationReasonCodesEnum>> reasons = explanation.getReason();
+            List<CodeableConceptDt> reasons = explanation.getReason();
             if (reasons != null && !reasons.isEmpty()) {
                 Concept immunizationReasonConcept = omrsConceptLookup.findTRConceptOfType(TrValueSetType.IMMUNIZATION_REASON);
-                for (BoundCodeableConceptDt<ImmunizationReasonCodesEnum> reason : reasons) {
+                for (CodeableConceptDt reason : reasons) {
                     Obs immunizationReasonObs = new Obs();
                     immunizationReasonObs.setConcept(immunizationReasonConcept);
                     immunizationReasonObs.setValueCoded(omrsConceptLookup.findConceptByCodeOrDisplay(reason.getCoding()));
