@@ -199,6 +199,7 @@
     </changeSet>
 
     <changeSet id="bdshrclient-110714-1" author="tw" context="setup">
+        <validCheckSum>3:1f2e06b0ba6152c4d0397ff81a8a6871</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 select count(*) from person_name where given_name = "shrclientsystem";
@@ -207,7 +208,7 @@
         <sql>
             set @person_id = 0;
             select person_id into @person_id from users where username = 'shrclientsystem';
-            insert into person_name (preferred, person_id, given_name, family_name, creator, date_created) values (1, @person_id, 'shrclientsystem', 'system', 1, now());
+            insert into person_name (preferred, person_id, given_name, family_name, creator, date_created, uuid) values (1, @person_id, 'shrclientsystem', 'system', 1, now(), uuid());
         </sql>
     </changeSet>
 
