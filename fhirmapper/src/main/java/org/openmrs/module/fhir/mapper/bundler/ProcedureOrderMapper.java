@@ -7,7 +7,6 @@ import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.Bundle;
 import ca.uhn.fhir.model.dstu2.resource.ProcedureRequest;
 import ca.uhn.fhir.model.primitive.StringDt;
-import org.apache.commons.collections4.CollectionUtils;
 import org.openmrs.Order;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
 import org.openmrs.module.fhir.mapper.model.FHIREncounter;
@@ -56,7 +55,7 @@ public class ProcedureOrderMapper implements EmrOrderResourceHandler {
     public FHIRResource createProcedureRequest(Order order, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         ProcedureRequest procedureRequest = new ProcedureRequest();
         procedureRequest.setSubject(fhirEncounter.getPatient());
-        procedureRequest.setOrderer(getOrdererReference(order, fhirEncounter, systemProperties));
+        procedureRequest.setOrderer(getOrdererReference(order, fhirEncounter));
         procedureRequest.setOrderedOn(order.getDateActivated(), TemporalPrecisionEnum.SECOND);
         String id = new EntityReference().build(Order.class, systemProperties, order.getUuid());
         procedureRequest.addIdentifier().setValue(id);
@@ -86,9 +85,9 @@ public class ProcedureOrderMapper implements EmrOrderResourceHandler {
         procedureRequest.addNotes(notes);
     }
 
-    private ResourceReferenceDt getOrdererReference(Order order, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
+    private ResourceReferenceDt getOrdererReference(Order order, FHIREncounter fhirEncounter) {
         if (order.getOrderer() != null) {
-            String providerUrl = providerLookupService.getProviderRegistryUrl(systemProperties, order.getOrderer());
+            String providerUrl = providerLookupService.getProviderRegistryUrl(order.getOrderer());
             if (providerUrl != null) {
                 return new ResourceReferenceDt().setReference(providerUrl);
             }

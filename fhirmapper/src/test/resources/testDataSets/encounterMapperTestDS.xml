@@ -73,6 +73,8 @@
 
     <provider provider_id="23" person_id="3" name="ali" creator="1" date_created="2005-01-01 00:00:00.0"
               identifier="23" retired="false" uuid="ccoccbf8-7846-11e3-a96a-0900271c1b75"/>
+    <provider_id_mapping id="1" internal_id="ccoccbf8-7846-11e3-a96a-0900271c1b75" external_id="23"
+                         uri="http://localhost:9997/api/1.0/providers/23.json"/>
     <!--HIE Provider-->
 
     <!--encounter with local provider and location id is DGHS facility-->

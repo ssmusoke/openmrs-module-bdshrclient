@@ -7,7 +7,12 @@ import org.openmrs.Provider;
 import org.openmrs.ProviderAttribute;
 import org.openmrs.ProviderAttributeType;
 import org.openmrs.api.ProviderService;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
+import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.model.ProviderEntry;
+import org.openmrs.module.shrclient.util.PropertiesReader;
+import org.openmrs.module.shrclient.util.SystemProperties;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -23,10 +28,23 @@ public class ProviderMapperTest extends BaseModuleWebContextSensitiveTest {
     private ProviderService providerService;
     @Autowired
     private ProviderMapper providerMapper;
+    @Autowired
+    private PropertiesReader propertiesReader;
+    @Autowired
+    private IdMappingRepository idMappingRepository;
+
+    private SystemProperties systemProperties;
 
     @Before
     public void setUp() throws Exception {
         executeDataSet("testDataSets/providerDS.xml");
+        systemProperties = new SystemProperties(
+                propertiesReader.getFrProperties(),
+                propertiesReader.getTrProperties(),
+                propertiesReader.getPrProperties(),
+                propertiesReader.getFacilityInstanceProperties(),
+                propertiesReader.getMciProperties(),
+                propertiesReader.getShrProperties());
     }
 
     @Test
@@ -34,7 +52,8 @@ public class ProviderMapperTest extends BaseModuleWebContextSensitiveTest {
         String identifier = "1022";
         ProviderEntry providerEntry = getProviderEntry(identifier, "1", true);
         assertNull(providerService.getProviderByIdentifier(identifier));
-        providerMapper.createOrUpdate(providerEntry);
+
+        providerMapper.createOrUpdate(providerEntry, systemProperties);
 
         Provider provider = providerService.getProviderByIdentifier(identifier);
         assertEquals("Provider Name @ facility-name", provider.getName());
@@ -43,6 +62,11 @@ public class ProviderMapperTest extends BaseModuleWebContextSensitiveTest {
         ProviderAttributeType providerAttributeType = providerService.getProviderAttributeType(1);
         ProviderAttribute organization = provider.getActiveAttributes(providerAttributeType).get(0);
         assertEquals("2222", organization.getValue());
+        IdMapping idMapping = idMappingRepository.findByExternalId(identifier, IdMappingType.PROVIDER);
+        assertNotNull(idMapping);
+        assertEquals(provider.getUuid(), idMapping.getInternalId());
+        assertTrue(idMapping.getUri().contains(identifier + ".json"));
+        assertNotNull(idMapping.getCreatedAt());
     }
 
     @Test
@@ -53,7 +77,7 @@ public class ProviderMapperTest extends BaseModuleWebContextSensitiveTest {
         assertEquals(identifier, existingProvider.getIdentifier());
         assertEquals("test provider", existingProvider.getName());
 
-        providerMapper.createOrUpdate(providerEntry);
+        providerMapper.createOrUpdate(providerEntry, systemProperties);
 
         Provider provider = providerService.getProvider(22);
         assertEquals(identifier, provider.getIdentifier());
@@ -68,7 +92,7 @@ public class ProviderMapperTest extends BaseModuleWebContextSensitiveTest {
         assertEquals(identifier, existingProvider.getIdentifier());
         assertEquals("test provider", existingProvider.getName());
 
-        providerMapper.createOrUpdate(providerEntry);
+        providerMapper.createOrUpdate(providerEntry, systemProperties);
 
         Provider provider = providerService.getProvider(22);
         assertEquals(identifier, provider.getIdentifier());
@@ -83,7 +107,7 @@ public class ProviderMapperTest extends BaseModuleWebContextSensitiveTest {
         ProviderAttribute providerAttribute = existingProvider.getActiveAttributes(organizationAttributeType).get(0);
         assertEquals("1022", providerAttribute.getValue());
 
-        providerMapper.createOrUpdate(providerEntry);
+        providerMapper.createOrUpdate(providerEntry, systemProperties);
 
         Provider provider = providerService.getProvider(23);
         ProviderAttribute organization = provider.getActiveAttributes(organizationAttributeType).get(0);
@@ -98,7 +122,7 @@ public class ProviderMapperTest extends BaseModuleWebContextSensitiveTest {
         assertEquals(identifier, existingProvider.getIdentifier());
         assertFalse(existingProvider.isRetired());
 
-        providerMapper.createOrUpdate(providerEntry);
+        providerMapper.createOrUpdate(providerEntry, systemProperties);
 
         Provider provider = providerService.getProvider(22);
         assertEquals(identifier, provider.getIdentifier());
@@ -114,7 +138,7 @@ public class ProviderMapperTest extends BaseModuleWebContextSensitiveTest {
         assertEquals(identifier, existingProvider.getIdentifier());
         assertTrue(existingProvider.isRetired());
 
-        providerMapper.createOrUpdate(providerEntry);
+        providerMapper.createOrUpdate(providerEntry, systemProperties);
 
         Provider provider = providerService.getProvider(24);
         assertEquals(identifier, provider.getIdentifier());

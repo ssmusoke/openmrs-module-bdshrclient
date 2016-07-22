@@ -6,11 +6,18 @@ import org.openmrs.ProviderAttribute;
 import org.openmrs.ProviderAttributeType;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
+import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.model.ProviderEntry;
+import org.openmrs.module.shrclient.model.ProviderIdMapping;
+import org.openmrs.module.shrclient.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+
+import static org.apache.commons.lang3.StringUtils.trim;
 
 @Component
 public class ProviderMapper {
@@ -19,22 +26,30 @@ public class ProviderMapper {
     private final static String NOT_ACTIVE = "0";
     private final static String ACTIVE = "1";
     private ProviderService providerService;
+    private IdMappingRepository idMappingRepository;
 
     @Autowired
-    public ProviderMapper(ProviderService providerService) {
+    public ProviderMapper(ProviderService providerService, IdMappingRepository idMappingRepository) {
         this.providerService = providerService;
+        this.idMappingRepository = idMappingRepository;
     }
 
-    public void createOrUpdate(ProviderEntry providerEntry) {
-        Provider provider = providerService.getProviderByIdentifier(providerEntry.getId());
-        if(provider == null) {
+    public void createOrUpdate(ProviderEntry providerEntry, SystemProperties systemProperties) {
+        String providerIdentifier = trim(providerEntry.getId());
+        IdMapping idMapping = idMappingRepository.findByExternalId(providerIdentifier, IdMappingType.PROVIDER);
+        Provider provider = null;
+        if (idMapping == null) {
             provider = new Provider();
+            provider.setIdentifier(providerIdentifier);
+        } else {
+            provider = providerService.getProviderByUuid(idMapping.getInternalId());
         }
         provider.setName(buildProviderName(providerEntry));
-        provider.setIdentifier(providerEntry.getId());
         mapActive(providerEntry, provider);
         mapOrganization(providerEntry, provider);
         providerService.saveProvider(provider);
+        String providerUrl = new EntityReference().build(Provider.class, systemProperties, providerIdentifier);
+        idMappingRepository.saveOrUpdateIdMapping(new ProviderIdMapping(provider.getUuid(), providerIdentifier, providerUrl));
     }
 
     private String buildProviderName(ProviderEntry providerEntry) {

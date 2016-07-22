@@ -8,7 +8,9 @@ import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.fhir.MRSProperties;
 import org.openmrs.module.fhir.mapper.model.EntityReference;
-import org.openmrs.module.shrclient.util.SystemProperties;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
+import org.openmrs.module.shrclient.model.IdMapping;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +19,9 @@ public class ProviderLookupService {
 
     @Autowired
     private ProviderService providerService;
+
+    @Autowired
+    private IdMappingRepository idMappingRepository;
 
     public Provider getShrClientSystemProvider() {
         User systemUser = getShrClientSystemUser();
@@ -40,20 +45,12 @@ public class ProviderLookupService {
         return getProviderById(providerId);
     }
 
-    public String getProviderRegistryUrl(SystemProperties systemProperties, Provider provider) {
+    public String getProviderRegistryUrl(Provider provider) {
         if (provider == null) return null;
-        String identifier = provider.getIdentifier();
-        if (!isHIEProvider(identifier)) return null;
-        return new EntityReference().build(Provider.class, systemProperties, identifier);
-    }
-
-    private boolean isHIEProvider(String identifier) {
-        try {
-            Integer.parseInt(identifier);
-        } catch (Exception e) {
-            return false;
-        }
-        return true;
+        provider = new HibernateLazyLoader().load(provider);
+        IdMapping idMapping = idMappingRepository.findByInternalId(provider.getUuid(), IdMappingType.PROVIDER);
+        if (idMapping == null) return null;
+        return idMapping.getUri();
     }
 
     private Provider getProviderById(String providerId) {

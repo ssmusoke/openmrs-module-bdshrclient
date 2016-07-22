@@ -10,7 +10,9 @@ import org.openmrs.Provider;
 import org.openmrs.ProviderAttributeType;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.fhir.utils.DateUtil;
+import org.openmrs.module.shrclient.dao.IdMappingRepository;
 import org.openmrs.module.shrclient.mapper.ProviderMapper;
+import org.openmrs.module.shrclient.model.IdMappingType;
 import org.openmrs.module.shrclient.model.ProviderEntry;
 import org.openmrs.module.shrclient.util.PropertiesReader;
 import org.openmrs.module.shrclient.util.RestClient;
@@ -29,7 +31,9 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.contains;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.openmrs.module.shrclient.handlers.ProviderPull.PR_FEED_URI;
 
@@ -42,6 +46,8 @@ public class ProviderPullTest {
     private ScheduledTaskHistory scheduledTaskHistory;
     @Mock
     private ProviderService providerService;
+    @Mock
+    private IdMappingRepository idMappingRepository;
 
     private ProviderEntry[] providerEntries;
     private ProviderPull providerPull;
@@ -49,7 +55,7 @@ public class ProviderPullTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        ProviderMapper providerMapper = new ProviderMapper(providerService);
+        ProviderMapper providerMapper = new ProviderMapper(providerService, idMappingRepository);
         providerPull = new ProviderPull(propertiesReader, prClient, scheduledTaskHistory, providerMapper);
         providerEntries = getProviderEntries();
         Properties properties = new Properties();
@@ -73,7 +79,7 @@ public class ProviderPullTest {
         verify(prClient, times(1)).get("list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class);
         verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(PR_FEED_URI);
         verify(providerService, times(5)).saveProvider(any(Provider.class));
-        verify(providerService, times(5)).getProviderByIdentifier(anyString());
+        verify(idMappingRepository, times(5)).findByExternalId(anyString(), eq(IdMappingType.PROVIDER));
         String format = new SimpleDateFormat(DateUtil.SIMPLE_DATE_FORMAT).format(new Date());
         verify(scheduledTaskHistory, times(1)).setFeedUriForLastReadEntryByFeedUri(contains("list?offset=0&limit=100&updatedSince=" + format), eq(PR_FEED_URI));
         verify(scheduledTaskHistory, times(1)).setLastReadEntryId("23", PR_FEED_URI);
@@ -90,7 +96,7 @@ public class ProviderPullTest {
         verify(prClient, times(1)).get("list?offset=100&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class);
         verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(PR_FEED_URI);
         verify(providerService, times(5)).saveProvider(any(Provider.class));
-        verify(providerService, times(5)).getProviderByIdentifier(anyString());
+        verify(idMappingRepository, times(5)).findByExternalId(anyString(), eq(IdMappingType.PROVIDER));
         String format = new SimpleDateFormat(DateUtil.SIMPLE_DATE_FORMAT).format(new Date());
         verify(scheduledTaskHistory, times(1)).setFeedUriForLastReadEntryByFeedUri(contains("/providers/list?offset=0&limit=100&updatedSince=" + format), eq(PR_FEED_URI));
         verify(scheduledTaskHistory, times(1)).setLastReadEntryId("23", PR_FEED_URI);
@@ -106,7 +112,7 @@ public class ProviderPullTest {
         verify(prClient, times(1)).get("list?offset=0&limit=100&updatedSince=0000-00-00%2000:00:00", ProviderEntry[].class);
         verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(PR_FEED_URI);
         verify(providerService, times(5)).saveProvider(any(Provider.class));
-        verify(providerService, times(5)).getProviderByIdentifier(anyString());
+        verify(idMappingRepository, times(5)).findByExternalId(anyString(), eq(IdMappingType.PROVIDER));
         String format = new SimpleDateFormat(DateUtil.SIMPLE_DATE_FORMAT).format(new Date());
         verify(scheduledTaskHistory, times(1)).setFeedUriForLastReadEntryByFeedUri(contains("/providers/list?offset=0&limit=100&updatedSince=" + format), eq(PR_FEED_URI));
         verify(scheduledTaskHistory, times(1)).setLastReadEntryId("23", PR_FEED_URI);
@@ -138,7 +144,7 @@ public class ProviderPullTest {
         verify(prClient, times(10)).get(anyString(), eq(ProviderEntry[].class));
         verify(scheduledTaskHistory, times(1)).getFeedUriForLastReadEntryByFeedUri(PR_FEED_URI);
         verify(providerService, times(1000)).saveProvider(any(Provider.class));
-        verify(providerService, times(1000)).getProviderByIdentifier(anyString());
+        verify(idMappingRepository, times(1000)).findByExternalId(anyString(), eq(IdMappingType.PROVIDER));
         verify(scheduledTaskHistory, times(1)).setFeedUriForLastReadEntryByFeedUri(contains("list?offset=1000&limit=100&updatedSince=0000-00-00%2000:00:00"), eq(PR_FEED_URI));
         verify(scheduledTaskHistory, times(1)).setLastReadEntryId("23", PR_FEED_URI);
     }

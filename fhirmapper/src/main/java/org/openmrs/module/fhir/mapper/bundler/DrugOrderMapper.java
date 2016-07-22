@@ -40,8 +40,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.openmrs.module.fhir.FHIRProperties.*;
-import static org.openmrs.module.fhir.MRSProperties.*;
+import static org.openmrs.module.fhir.FHIRProperties.FHIR_DRUG_ORDER_AFTERNOON_DOSE_KEY;
+import static org.openmrs.module.fhir.FHIRProperties.FHIR_DRUG_ORDER_EVENING_DOSE_KEY;
+import static org.openmrs.module.fhir.FHIRProperties.FHIR_DRUG_ORDER_MORNING_DOSE_KEY;
+import static org.openmrs.module.fhir.MRSProperties.BAHMNI_DRUG_ORDER_AFTERNOON_DOSE_KEY;
+import static org.openmrs.module.fhir.MRSProperties.BAHMNI_DRUG_ORDER_EVENING_DOSE_KEY;
+import static org.openmrs.module.fhir.MRSProperties.BAHMNI_DRUG_ORDER_MORNING_DOSE_KEY;
+import static org.openmrs.module.fhir.MRSProperties.MRS_DRUG_ORDER_TYPE;
 
 @Component
 public class DrugOrderMapper implements EmrOrderResourceHandler {
@@ -81,7 +86,7 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         medicationOrder.setPatient(fhirEncounter.getPatient());
         medicationOrder.setDateWritten(drugOrder.getDateActivated(), TemporalPrecisionEnum.SECOND);
         medicationOrder.setMedication(getMedication(drugOrder));
-        medicationOrder.setPrescriber(getOrdererReference(drugOrder, fhirEncounter, systemProperties));
+        medicationOrder.setPrescriber(getOrdererReference(drugOrder, fhirEncounter));
         medicationOrder.addDosageInstruction(getDoseInstructions(drugOrder, systemProperties));
         setStatusAndPriorPrescriptionAndOrderAction(drugOrder, medicationOrder, systemProperties);
         setDispenseRequest(drugOrder, medicationOrder);
@@ -147,9 +152,9 @@ public class DrugOrderMapper implements EmrOrderResourceHandler {
         return !drugOrder.getEncounter().equals(drugOrder.getPreviousOrder().getEncounter());
     }
 
-    private ResourceReferenceDt getOrdererReference(Order order, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
+    private ResourceReferenceDt getOrdererReference(Order order, FHIREncounter fhirEncounter) {
         if (order.getOrderer() != null) {
-            String providerUrl = providerLookupService.getProviderRegistryUrl(systemProperties, order.getOrderer());
+            String providerUrl = providerLookupService.getProviderRegistryUrl(order.getOrderer());
             if (providerUrl != null) {
                 return new ResourceReferenceDt().setReference(providerUrl);
             }

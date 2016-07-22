@@ -23,7 +23,7 @@ public class DiagnosticOrderBuilder {
     public DiagnosticOrder createDiagnosticOrder(Order order, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
         DiagnosticOrder diagnosticOrder = new DiagnosticOrder();
         diagnosticOrder.setSubject(fhirEncounter.getPatient());
-        diagnosticOrder.setOrderer(getOrdererReference(order, fhirEncounter, systemProperties));
+        diagnosticOrder.setOrderer(getOrdererReference(order, fhirEncounter));
         String orderUuid = order.getUuid();
         if (isDiscontinuedOrder(order))
             orderUuid = order.getPreviousOrder().getUuid();
@@ -62,9 +62,9 @@ public class DiagnosticOrderBuilder {
         event.setDateTime(dateActivated, TemporalPrecisionEnum.MILLI);
     }
 
-    private ResourceReferenceDt getOrdererReference(Order order, FHIREncounter fhirEncounter, SystemProperties systemProperties) {
+    private ResourceReferenceDt getOrdererReference(Order order, FHIREncounter fhirEncounter) {
         if (order.getOrderer() != null) {
-            String providerUrl = providerLookupService.getProviderRegistryUrl(systemProperties, order.getOrderer());
+            String providerUrl = providerLookupService.getProviderRegistryUrl(order.getOrderer());
             if (providerUrl != null) {
                 return new ResourceReferenceDt().setReference(providerUrl);
             }

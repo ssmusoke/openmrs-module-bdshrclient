@@ -36,7 +36,7 @@ public class EncounterMapper {
         encounter.setStatus(EncounterStateEnum.FINISHED);
         setClass(openMrsEncounter, encounter);
         setPatientReference(healthId, encounter, systemProperties);
-        setParticipant(openMrsEncounter, encounter, systemProperties);
+        setParticipant(openMrsEncounter, encounter);
         encounter.setServiceProvider(getServiceProvider(openMrsEncounter, systemProperties));
         setIdentifiers(encounter, openMrsEncounter, systemProperties);
         setType(encounter, openMrsEncounter);
@@ -108,11 +108,11 @@ public class EncounterMapper {
         return new EntityReference().build(type, systemProperties, id);
     }
 
-    private void setParticipant(org.openmrs.Encounter openMrsEncounter, Encounter encounter, SystemProperties systemProperties) {
+    private void setParticipant(org.openmrs.Encounter openMrsEncounter, Encounter encounter) {
         final Set<EncounterProvider> encounterProviders = openMrsEncounter.getEncounterProviders();
         for (EncounterProvider encounterProvider : encounterProviders) {
             Provider provider = encounterProvider.getProvider();
-            String providerUrl = providerLookupService.getProviderRegistryUrl(systemProperties, provider);
+            String providerUrl = providerLookupService.getProviderRegistryUrl(provider);
             if (providerUrl == null)
                 continue;
             Encounter.Participant participant = encounter.addParticipant();

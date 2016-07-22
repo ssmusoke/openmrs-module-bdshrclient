@@ -4,10 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.openmrs.module.fhir.utils.DateUtil;
 import org.openmrs.module.shrclient.mapper.ProviderMapper;
 import org.openmrs.module.shrclient.model.ProviderEntry;
-import org.openmrs.module.shrclient.util.PropertiesReader;
-import org.openmrs.module.shrclient.util.RestClient;
-import org.openmrs.module.shrclient.util.ScheduledTaskHistory;
-import org.openmrs.module.shrclient.util.StringUtil;
+import org.openmrs.module.shrclient.util.*;
 
 import java.io.IOException;
 import java.net.URL;
@@ -49,10 +46,18 @@ public class ProviderPull {
     }
 
     public void synchronize() throws IOException {
-        synchronizeUpdates();
+        SystemProperties systemProperties = new SystemProperties(
+                propertiesReader.getFrProperties(),
+                propertiesReader.getTrProperties(),
+                propertiesReader.getPrProperties(),
+                propertiesReader.getFacilityInstanceProperties(),
+                propertiesReader.getMciProperties(),
+                propertiesReader.getShrProperties());
+
+        synchronizeUpdates(systemProperties);
     }
 
-    private void synchronizeUpdates() throws IOException {
+    private void synchronizeUpdates(SystemProperties systemProperties) throws IOException {
         int offset = INITIAL_OFFSET;
         String updatedSince = INITIAL_DATETIME;
         String feedUriForLastReadEntry = scheduledTaskHistory.getFeedUriForLastReadEntryByFeedUri(PR_FEED_URI);
@@ -74,7 +79,7 @@ public class ProviderPull {
             completeContextPath = buildCompleteContextPath(baseContextPath, offset, updatedSince);
             newEntriesFromPr = getNextChunkOfUpdatesFromPr(completeContextPath);
             if (newEntriesFromPr != null) {
-                saveOrUpdateProviderEntries(newEntriesFromPr);
+                saveOrUpdateProviderEntries(newEntriesFromPr, systemProperties);
                 offset += newEntriesFromPr.size();
                 noOfEntriesSynchronizedSoFar += newEntriesFromPr.size();
             }
@@ -108,10 +113,10 @@ public class ProviderPull {
         }
     }
 
-    private void saveOrUpdateProviderEntries(List<ProviderEntry> providerEntries) {
+    private void saveOrUpdateProviderEntries(List<ProviderEntry> providerEntries, SystemProperties systemProperties) {
         for (ProviderEntry providerEntry : providerEntries) {
             try {
-                providerMapper.createOrUpdate(providerEntry);
+                providerMapper.createOrUpdate(providerEntry, systemProperties);
             } catch (Exception e) {
                 logger.error(String.format("Unable to save or update provider with id[%s]",providerEntry.getId()), e);
             }

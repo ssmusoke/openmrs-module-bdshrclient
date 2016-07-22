@@ -52,6 +52,8 @@
     <!--hie provider-->
     <provider provider_id="23" identifier="812" name="demo provider" creator="1" date_created="2005-01-01 00:00:00.0"
               retired="false" uuid="331c6bf8-7846-11e3-az6a-z9z0z7zc1b75"/>
+    <provider_id_mapping id="1" internal_id="331c6bf8-7846-11e3-az6a-z9z0z7zc1b75" external_id="812"
+                         uri="http://pr.com/provider/812.json"/>
     <!--hie provider-->
 
     <!--Create Procedure Order Type-->

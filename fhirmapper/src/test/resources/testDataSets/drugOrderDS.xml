@@ -50,6 +50,8 @@
     <!--hie provider-->
     <provider provider_id="23" identifier="321" name="demo provider" creator="1" date_created="2005-01-01 00:00:00.0"
               retired="false" uuid="331c6bf8-7846-11e3-az6a-z9z0z7zc1b75"/>
+    <provider_id_mapping id="1" internal_id="331c6bf8-7846-11e3-az6a-z9z0z7zc1b75" external_id="321"
+                         uri="http://pr.com/provider/321.json"/>
     <!--hie provider-->
 
     <concept_reference_source concept_source_id="1" name="ATC" creator="1" date_created="2004-08-12 00:00:00.0"

@@ -14,4 +14,5 @@ public class IdMappingType {
     public static final String DIAGNOSIS = "Diagnosis";
     public static final String PROCEDURE_ORDER = "ProcedureOrder";
     public static final String DIAGNOSTIC_ORDER = "DiagnosticOrder";
+    public static final String PROVIDER = "provider";
 }

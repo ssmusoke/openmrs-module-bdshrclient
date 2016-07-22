@@ -74,12 +74,11 @@ public class PatientPush implements EventWorker {
                 return;
             }
 
-            SystemProperties systemProperties = getSystemProperties();
             Patient patient = patientMapper.map(openMrsPatient);
             log.debug("Patient: [ " + patient + "]");
 
             if (patientIdMapping == null) {
-                setProvider(patient, openMrsPatient, systemProperties);
+                setProvider(patient, openMrsPatient);
                 MciPatientUpdateResponse response = newPatient(patient);
                 updateOpenMrsPatientHealthId(openMrsPatient, response.getHealthId());
             } else {
@@ -95,7 +94,7 @@ public class PatientPush implements EventWorker {
         }
     }
 
-    private void setProvider(Patient patient, org.openmrs.Patient openMrsPatient, SystemProperties systemProperties) {
+    private void setProvider(Patient patient, org.openmrs.Patient openMrsPatient) {
         Person person = null;
         person = openMrsPatient.getChangedBy() != null ? openMrsPatient.getChangedBy().getPerson() : openMrsPatient.getCreator().getPerson();
         if (null == person) return;
@@ -103,10 +102,9 @@ public class PatientPush implements EventWorker {
         if (CollectionUtils.isEmpty(providers)) return;
 
         for (Provider provider : providers) {
-            String identifier = provider.getIdentifier();
-            if (!StringUtils.isBlank(identifier) && isHIEProvider(identifier)) {
-                String providerUrl = new EntityReference().build(Provider.class, systemProperties, identifier);
-                patient.setProviderReference(providerUrl);
+            IdMapping providerIdMapping = idMappingsRepository.findByInternalId(provider.getUuid(), IdMappingType.PROVIDER);
+            if (providerIdMapping != null && StringUtils.isNotBlank(providerIdMapping.getExternalId()) && isHIEProvider(providerIdMapping.getExternalId())) {
+                patient.setProviderReference(providerIdMapping.getUri());
                 return;
             }
         }
