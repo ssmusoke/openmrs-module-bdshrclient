@@ -35,8 +35,8 @@
     </modules>
 
     <properties>
-        <openMRSVersion>1.12.0-SNAPSHOT</openMRSVersion>
-        <openMRSRuntimeVersion>1.12.0-SNAPSHOT</openMRSRuntimeVersion>
+        <openMRSVersion>1.12.0</openMRSVersion>
+        <openMRSRuntimeVersion>1.12.0</openMRSRuntimeVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <webservicesRestModuleVersion>2.12</webservicesRestModuleVersion>
         <openmrsAtomfeedVersion>2.5.2</openmrsAtomfeedVersion>
