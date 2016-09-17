@@ -8,6 +8,7 @@ import ca.uhn.fhir.model.dstu2.composite.CodeableConceptDt;
 import ca.uhn.fhir.model.dstu2.composite.PeriodDt;
 import ca.uhn.fhir.model.dstu2.composite.ResourceReferenceDt;
 import ca.uhn.fhir.model.dstu2.resource.DiagnosticReport;
+import ca.uhn.fhir.model.dstu2.resource.Encounter;
 import ca.uhn.fhir.model.dstu2.resource.Observation;
 import ca.uhn.fhir.model.dstu2.resource.Procedure;
 import ca.uhn.fhir.model.dstu2.valueset.ObservationStatusEnum;
@@ -71,11 +72,21 @@ public class ProcedureMapper implements EmrObsResourceHandler {
             procedure.setStatus(getProcedureStatus(compoundObservationProcedure));
             procedure.setNotes(getProcedureNotes(compoundObservationProcedure));
             procedure.setPerformed(getProcedurePeriod(compoundObservationProcedure));
+            setPerformers(fhirEncounter, procedure);
             addReportToProcedure(compoundObservationProcedure, fhirEncounter, systemProperties, procedure, resources);
             FHIRResource procedureResource = new FHIRResource("Procedure", procedure.getIdentifier(), procedure);
             resources.add(procedureResource);
         }
         return resources;
+    }
+
+    private void setPerformers(FHIREncounter fhirEncounter, Procedure procedure) {
+        List<Encounter.Participant> participants = fhirEncounter.getEncounter().getParticipant();
+        for (Encounter.Participant participant : participants) {
+            Procedure.Performer performer = new Procedure.Performer();
+            performer.setActor(participant.getIndividual());
+            procedure.addPerformer(performer);
+        }
     }
 
     private BoundCodeDt<ProcedureStatusEnum> getProcedureStatus(CompoundObservation procedure) {

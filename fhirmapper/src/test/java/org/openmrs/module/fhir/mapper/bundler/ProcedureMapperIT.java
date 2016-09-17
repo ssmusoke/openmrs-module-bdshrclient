@@ -31,7 +31,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.openmrs.module.fhir.MapperTestHelper.containsCoding;
 import static org.openmrs.module.fhir.MapperTestHelper.getSystemProperties;
 import static org.openmrs.module.fhir.TestFhirFeedHelper.getResourceByReference;
@@ -85,6 +87,10 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         ResourceReferenceDt patient = new ResourceReferenceDt();
         patient.setReference("Hid");
         fhirEncounter.setPatient(patient);
+        Encounter.Participant participant = new Encounter.Participant();
+        ResourceReferenceDt resourceReferenceDt = new ResourceReferenceDt("10");
+        participant.setIndividual(resourceReferenceDt);
+        fhirEncounter.addParticipant(participant);
 
         List<FHIRResource> fhirResources = mapProcedure(1100, fhirEncounter);
         assertEquals(3, fhirResources.size());
@@ -93,6 +99,9 @@ public class ProcedureMapperIT extends BaseModuleWebContextSensitiveTest {
         assertEquals(patient, procedure.getSubject());
 
         assertEquals(fhirEncounter.getId().getValue(), procedure.getEncounter().getReference().getValue());
+
+        assertEquals(1, procedure.getPerformer().size());
+        assertEquals(resourceReferenceDt, procedure.getPerformer().get(0).getActor());
     }
 
     @Test
