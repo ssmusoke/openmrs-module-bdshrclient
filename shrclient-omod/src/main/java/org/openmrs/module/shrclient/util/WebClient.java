@@ -98,13 +98,19 @@ public class WebClient {
             ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
                 public String handleResponse(final HttpResponse response) throws IOException {
                     int status = response.getStatusLine().getStatusCode();
+                    HttpEntity entity = response.getEntity();
+                    String content = parseContentInputAsString(entity);
                     if (status >= 200 && status < 300) {
-                        HttpEntity entity = response.getEntity();
-                        return entity != null ? parseContentInputAsString(entity) : null;
+                        return entity != null ? content : null;
                     } else if (status == HttpStatus.NOT_FOUND.value()) {
                         return null;
                     } else if (status == HttpStatus.UNAUTHORIZED.value()) {
                         throw new IdentityUnauthorizedException("Identity not authorized");
+                    } else if (status == HttpStatus.FORBIDDEN.value()) {
+                        throw new ClientProtocolException("Access is denied: " + status);
+                    } else if (status >= 400 && status < 500) {
+                        String errorMessage = String.format("Unexpected response status: %s. Response returned is %s.\n", status, content);
+                        throw new ClientProtocolException(errorMessage);
                     } else {
                         throw new ClientProtocolException("Unexpected response status: " + status);
                     }
@@ -145,5 +151,4 @@ public class WebClient {
     private String getUrl(String path) {
         return StringUtil.ensureSuffix(baseUrl, "/") + StringUtil.removePrefix(path, "/");
     }
-
 }
