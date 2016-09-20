@@ -109,7 +109,7 @@ public class WebClient {
                     } else if (status == HttpStatus.FORBIDDEN.value()) {
                         throw new ClientProtocolException("Access is denied: " + status);
                     } else if (status >= 400 && status < 500) {
-                        String errorMessage = String.format("Unexpected response status: %s. Response returned is %s.\n", status, content);
+                        String errorMessage = String.format("Unexpected response status: %s. \nResponse returned is %s.\n", status, content);
                         throw new ClientProtocolException(errorMessage);
                     } else {
                         throw new ClientProtocolException("Unexpected response status: " + status);
